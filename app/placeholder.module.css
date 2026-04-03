@@ -93,10 +93,12 @@
     transform: scale(0.9);
     opacity: 0.8;
   }
+
   50% {
     transform: scale(1.05);
     opacity: 0.4;
   }
+
   100% {
     transform: scale(0.9);
     opacity: 0.8;
@@ -114,10 +116,13 @@
 }
 
 @keyframes logoBreath {
-  0%, 100% {
+
+  0%,
+  100% {
     filter: drop-shadow(0 0 16px rgba(236, 0, 140, 0.5)) drop-shadow(0 0 35px rgba(146, 39, 143, 0.3));
     transform: scale(1);
   }
+
   50% {
     filter: drop-shadow(0 0 28px rgba(236, 0, 140, 0.8)) drop-shadow(0 0 55px rgba(146, 39, 143, 0.5));
     transform: scale(1.04);
@@ -149,8 +154,17 @@
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(1.5); }
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: scale(1.5);
+  }
 }
 
 .title {
@@ -171,8 +185,15 @@
 }
 
 @keyframes gradientMove {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 .subtitle {
@@ -230,8 +251,8 @@
 }
 
 .socialIconTikTok:hover {
-  border-color: #EC008C;
-  color: #EC008C;
+  border-color: #FFE600;
+  color: #FFE600;
   box-shadow: 0 10px 20px rgba(236, 0, 140, 0.2);
 }
 
@@ -250,8 +271,10 @@
   .title {
     font-size: 3rem;
   }
-  
-  .orb1, .orb2, .orb3 {
+
+  .orb1,
+  .orb2,
+  .orb3 {
     transform: scale(0.6);
   }
 }
