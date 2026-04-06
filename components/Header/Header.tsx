@@ -4,12 +4,14 @@ import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import gsap from 'gsap';
 import styles from './Header.module.css';
+import Link from 'next/link';
 
 const NAV_LINKS = [
   { label: 'Inicio', href: '#inicio' },
   { label: 'Servicios', href: '#servicios' },
   { label: 'Nosotros', href: '#nosotros' },
   { label: 'Contacto', href: '#contacto' },
+  { label: 'Reservas', href: '/reservas' },
 ];
 
 export default function Header() {
@@ -97,17 +99,19 @@ export default function Header() {
     <>
       <header ref={headerRef} className={headerClasses}>
         {/* Logo */}
-        <div ref={logoRef} className={styles.logoContainer}>
-          <Image
-            src="/estrella.png"
-            alt="AtrevidaFit Logo"
-            width={50}
-            height={50}
-            className={styles.logoImage}
-            priority
-          />
-          <span className={styles.logoText}>ATREVIDAFIT</span>
-        </div>
+        <Link href="/">
+          <div ref={logoRef} className={styles.logoContainer}>
+            <Image
+              src="/estrella.png"
+              alt="AtrevidaFit Logo"
+              width={50}
+              height={50}
+              className={styles.logoImage}
+              priority
+            />
+            <span className={styles.logoText}>ATREVIDAFIT</span>
+          </div>
+        </Link>
 
         {/* Desktop Nav */}
         <nav className={styles.nav}>
@@ -123,7 +127,7 @@ export default function Header() {
           ))}
           <a
             ref={ctaRef}
-            href="#reservar"
+            href="/reservas"
             className={styles.ctaButton}
           >
             <span className={styles.ctaButtonText}>✦ Reservar</span>
@@ -157,7 +161,7 @@ export default function Header() {
           </a>
         ))}
         <a
-          href="#reservar"
+          href="/reservas"
           className={`${styles.ctaButton} mobileNavItem`}
           onClick={() => setMobileOpen(false)}
           style={{ marginTop: '1rem', fontSize: '1rem', padding: '0.8rem 2.5rem' }}
@@ -165,6 +169,7 @@ export default function Header() {
           <span className={styles.ctaButtonText}>✦ Reservar</span>
         </a>
       </div>
+      <div className='h-10'> </div>
     </>
   );
 }

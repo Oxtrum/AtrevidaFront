@@ -1,0 +1,511 @@
+/* ═══════════════════════════════════════════════════════════════
+   ReservationForm.module.css — consistente con Calendar
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Wrapper ─────────────────────────────────────────────────── */
+
+.form {
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+  position: relative;
+  background: rgba(0, 0, 0, 0.70);
+  border: 1px solid rgba(146, 39, 143, 0.30);
+  border-radius: 24px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  overflow: visible; /* necesario para que los dropdowns no queden recortados */
+}
+
+.form::before {
+  content: '';
+  display: block;
+  height: 2px;
+  border-radius: 24px 24px 0 0;
+  background: linear-gradient(90deg, transparent 0%, #EC008C 20%, #92278F 40%, #14AEEF 60%, #FFE600 80%, transparent 100%);
+}
+
+.formBody { padding: 2.25rem 2.5rem 2.75rem; }
+
+/* ─── Header ──────────────────────────────────────────────────── */
+
+.formHeader { margin-bottom: 2rem; }
+
+.formEyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 1rem;
+  border-radius: 50px;
+  border: 1px solid rgba(255, 230, 0, 0.30);
+  background: rgba(255, 230, 0, 0.08);
+  color: #FFE600;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.eyebrowDot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: #FFE600;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(1.5); }
+}
+
+.formTitle {
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  margin: 0 0 0.5rem;
+  background: linear-gradient(135deg, #F5F5F5 0%, #EC008C 50%, #92278F 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
+}
+
+.formSubtitle {
+  font-size: 0.875rem;
+  color: rgba(245, 245, 245, 0.50);
+  font-weight: 300;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ─── Error Alert ─────────────────────────────────────────────── */
+
+.errorAlert {
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.75rem;
+  background: rgba(220, 38, 38, 0.10);
+  border: 1px solid rgba(220, 38, 38, 0.35);
+  border-radius: 12px;
+  color: #FCA5A5;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+/* ─── Form Grid ───────────────────────────────────────────────── */
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem 1.5rem;
+}
+
+.fullWidth { grid-column: 1 / -1; }
+
+/* ─── Form Group ──────────────────────────────────────────────── */
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  position: relative; /* para dropdowns posicionados absolutamente */
+}
+
+.formGroup label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(245, 245, 245, 0.50);
+  transition: color 0.3s ease;
+}
+
+.formGroup:focus-within label { color: rgba(236, 0, 140, 0.90); }
+
+/* ─── Input base (mismo look que Calendar.module.css .select) ─── */
+
+.formGroup input {
+  background: rgba(0, 0, 0, 0.60);
+  border: 1px solid rgba(146, 39, 143, 0.35);
+  border-radius: 50px;
+  padding: 0.75rem 1.25rem;
+  color: #F5F5F5;
+  font-family: inherit;
+  font-size: 0.875rem;
+  width: 100%;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  box-sizing: border-box;
+}
+
+.formGroup input::placeholder { color: rgba(245, 245, 245, 0.25); font-weight: 300; }
+
+.formGroup input:hover {
+  border-color: rgba(236, 0, 140, 0.55);
+  background: rgba(236, 0, 140, 0.04);
+  box-shadow: 0 0 18px rgba(236, 0, 140, 0.12);
+}
+
+.formGroup input:focus {
+  outline: none;
+  border-color: #EC008C;
+  background: rgba(236, 0, 140, 0.06);
+  box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.15), 0 0 25px rgba(236, 0, 140, 0.18);
+}
+
+.inputError {
+  border-color: rgba(220, 38, 38, 0.60) !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.10) !important;
+}
+
+.errorText {
+  font-size: 0.68rem;
+  color: #FCA5A5;
+  letter-spacing: 0.3px;
+  padding-left: 0.5rem;
+}
+/* ─── Day Selector ────────────────────────────────────────────── */
+
+.daySelector {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.dayChip {
+  flex: 1;
+  min-width: 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.6rem 0.5rem;
+  background: rgba(0, 0, 0, 0.60);
+  border: 1px solid rgba(146, 39, 143, 0.30);
+  border-radius: 14px;
+  color: rgba(245, 245, 245, 0.55);
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dayChip:hover:not(:disabled) {
+  border-color: rgba(236, 0, 140, 0.55);
+  background: rgba(236, 0, 140, 0.08);
+  color: #F5F5F5;
+  transform: translateY(-2px);
+}
+
+.dayChipActive {
+  background: linear-gradient(135deg, rgba(146, 39, 143, 0.40), rgba(236, 0, 140, 0.28)) !important;
+  border-color: rgba(236, 0, 140, 0.70) !important;
+  box-shadow: 0 4px 18px rgba(236, 0, 140, 0.28), 0 0 28px rgba(236, 0, 140, 0.12);
+  color: #F5F5F5 !important;
+  transform: translateY(-2px);
+}
+
+.dayChipDisabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  border-color: rgba(146, 39, 143, 0.12) !important;
+}
+
+.dayChipLabel {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.dayChipDate {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: rgba(245, 245, 245, 0.80);
+}
+
+.dayChipActive .dayChipDate { color: #F5F5F5; }
+
+/* ─── Time Slot Picker ────────────────────────────────────────── */
+
+.pickerPlaceholder {
+  padding: 1.25rem 1.5rem;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px dashed rgba(245, 245, 245, 0.10);
+  border-radius: 16px;
+  color: rgba(245, 245, 245, 0.28);
+  font-size: 0.875rem;
+  font-style: italic;
+  font-weight: 300;
+  text-align: center;
+}
+
+.timeSlotPicker {
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(146, 39, 143, 0.28);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+/* Stripe top */
+.timeSlotPicker::before {
+  content: '';
+  display: block;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, #EC008C 20%, #92278F 40%, #14AEEF 60%, #FFE600 80%, transparent 100%);
+  opacity: 0.55;
+}
+
+.timeSlotPickerLegend {
+  display: flex;
+  gap: 1.25rem;
+  padding: 0.7rem 1rem 0.4rem;
+  flex-wrap: wrap;
+}
+
+.timeSlotPickerLegend span {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: rgba(245, 245, 245, 0.45);
+}
+
+.legendDot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.timeSlotGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 0.75rem 1rem 1rem;
+}
+
+/* Time chip */
+
+.timeChip {
+  padding: 0.35rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid rgba(20, 174, 239, 0.25);
+  background: rgba(20, 174, 239, 0.08);
+  color: rgba(245, 245, 245, 0.70);
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+  white-space: nowrap;
+}
+
+.timeChip:hover:not(:disabled) {
+  border-color: rgba(20, 174, 239, 0.65);
+  background: rgba(20, 174, 239, 0.18);
+  color: #14AEEF;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(20, 174, 239, 0.20);
+}
+
+.timeChipReserved {
+  border-color: rgba(236, 0, 140, 0.30) !important;
+  background: rgba(236, 0, 140, 0.12) !important;
+  color: rgba(236, 0, 140, 0.55) !important;
+  cursor: not-allowed !important;
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.timeChipPast {
+  border-color: rgba(245, 245, 245, 0.08) !important;
+  background: rgba(0, 0, 0, 0.30) !important;
+  color: rgba(245, 245, 245, 0.20) !important;
+  cursor: not-allowed !important;
+  opacity: 0.45;
+}
+
+.timeChipSelected {
+  border-color: rgba(236, 0, 140, 0.70);
+  background: rgba(236, 0, 140, 0.18);
+  color: #F5F5F5;
+  box-shadow: 0 0 12px rgba(236, 0, 140, 0.25);
+}
+
+.timeChipStart {
+  border-color: #EC008C !important;
+  background: rgba(236, 0, 140, 0.28) !important;
+  color: #F5F5F5 !important;
+  box-shadow: 0 0 16px rgba(236, 0, 140, 0.40), 0 0 0 2px rgba(236, 0, 140, 0.20) !important;
+  transform: translateY(-1px);
+}
+
+/* Selected range display */
+
+.selectedRange {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.55rem 1rem;
+  margin: 0 1rem 0.75rem;
+  background: rgba(236, 0, 140, 0.10);
+  border: 1px solid rgba(236, 0, 140, 0.30);
+  border-radius: 50px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: #F5F5F5;
+  letter-spacing: 0.5px;
+}
+
+.selectedRangeIcon {
+  color: #EC008C;
+  font-size: 0.7rem;
+}
+
+/* ─── Servicio placeholder ────────────────────────────────────── */
+
+.servicioPlaceholder {
+  padding: 0.75rem 1.25rem;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px dashed rgba(245, 245, 245, 0.10);
+  border-radius: 50px;
+  color: rgba(245, 245, 245, 0.28);
+  font-size: 0.875rem;
+  font-style: italic;
+  font-weight: 300;
+}
+
+/* ─── Divider ─────────────────────────────────────────────────── */
+
+.formDivider {
+  grid-column: 1 / -1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(146, 39, 143, 0.35), transparent);
+  margin: 0.25rem 0;
+}
+
+/* ─── Actions ─────────────────────────────────────────────────── */
+
+.formActions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2.25rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid rgba(245, 245, 245, 0.07);
+}
+
+.cancelButton {
+  flex: 1;
+  padding: 0.9rem 1.5rem;
+  border-radius: 50px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  background: transparent;
+  border: 1px solid rgba(245, 245, 245, 0.15);
+  color: rgba(245, 245, 245, 0.55);
+}
+
+.cancelButton:hover:not(:disabled) {
+  border-color: rgba(245, 245, 245, 0.30);
+  color: #F5F5F5;
+  background: rgba(245, 245, 245, 0.05);
+}
+
+.submitButton {
+  flex: 1.6;
+  padding: 0.9rem 1.5rem;
+  border-radius: 50px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  border: none;
+  color: #F5F5F5;
+  background: linear-gradient(135deg, #EC008C, #92278F);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(236, 0, 140, 0.30);
+}
+
+.submitButton::before {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: 50px;
+  background: linear-gradient(135deg, #92278F, #14AEEF);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.submitButtonText { position: relative; z-index: 1; }
+
+.submitButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(236, 0, 140, 0.45), 0 0 50px rgba(236, 0, 140, 0.15);
+}
+
+.submitButton:hover:not(:disabled)::before { opacity: 1; }
+.submitButton:active:not(:disabled) { transform: translateY(0); }
+
+.cancelButton:disabled,
+.submitButton:disabled { opacity: 0.40; cursor: not-allowed; }
+
+/* ─── Responsive ──────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .formBody { padding: 1.75rem 1.25rem 2rem; }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .daySelector { gap: 0.35rem; }
+  .dayChip { min-width: 56px; padding: 0.5rem 0.35rem; }
+  .dayChipLabel { font-size: 0.58rem; }
+  .dayChipDate { font-size: 0.68rem; }
+
+  .timeChip { font-size: 0.65rem; padding: 0.3rem 0.5rem; }
+
+  .formActions { flex-direction: column-reverse; gap: 0.75rem; }
+  .cancelButton, .submitButton { flex: unset; width: 100%; }
+}
+
+/* Aviso cuando un slot seleccionado queda inválido */
+.slotWarning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  background: rgba(255, 230, 0, 0.08);
+  border: 1px solid rgba(255, 230, 0, 0.3);
+  color: #FFE600;
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1.5;
+  margin-bottom: 0.75rem;
+}
+ 
+.slotWarning span:first-child {
+  flex-shrink: 0;
+  margin-top: 0.05rem;
+}
+ 

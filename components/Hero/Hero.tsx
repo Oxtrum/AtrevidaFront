@@ -103,7 +103,7 @@ export default function Hero() {
           <a href="#servicios" className={styles.ctaPrimary}>
             <span className={styles.ctaPrimaryText}>Ver Servicios</span>
           </a>
-          <a href="#reservar" className={styles.ctaSecondary}>
+          <a href="/reservas" className={styles.ctaSecondary}>
             ✦ Reservar Cita →
           </a>
         </div>
