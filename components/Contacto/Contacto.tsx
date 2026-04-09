@@ -12,7 +12,7 @@ const INFO_ITEMS = [
   {
     icono: <MapPin strokeWidth={1.5} />,
     titulo: 'Ubicación',
-    valor: 'Tu ciudad, País',
+    valor: 'Cochabamba, Bolivia',
     sub: 'Consulta nuestras sucursales disponibles',
     color: '#EC008C',
     rgb: '236, 0, 140'
@@ -20,7 +20,7 @@ const INFO_ITEMS = [
   {
     icono: <MessageCircle strokeWidth={1.5} />,
     titulo: 'WhatsApp',
-    valor: '+000 000 0000',
+    valor: '+591 77411855',
     sub: 'Lun – Sáb, 8am – 7pm',
     color: '#14AEEF',
     rgb: '20, 174, 239'
@@ -28,7 +28,7 @@ const INFO_ITEMS = [
   {
     icono: <Camera strokeWidth={1.5} />,
     titulo: 'Instagram',
-    valor: '@atrevidafit',
+    valor: '@atrevida.fit',
     sub: 'Síguenos para ver resultados',
     color: '#92278F',
     rgb: '146, 39, 143'
@@ -36,8 +36,8 @@ const INFO_ITEMS = [
   {
     icono: <Clock strokeWidth={1.5} />,
     titulo: 'Horarios',
-    valor: 'Lun – Sáb: 8am – 7pm',
-    sub: 'Dom: Citas especiales',
+    valor: 'Lun – Sáb: 8am – 8pm',
+    sub: 'Agenda tu cita en el horario que más te convenga',
     color: '#FFE600',
     rgb: '255, 230, 0'
   },
@@ -90,9 +90,9 @@ export default function Contacto() {
                 <div
                   key={item.titulo}
                   className={styles.infoItem}
-                  style={{ 
+                  style={{
                     '--icon-color': item.color,
-                    '--icon-color-rgb': item.rgb 
+                    '--icon-color-rgb': item.rgb
                   } as React.CSSProperties}
                 >
                   <span className={styles.infoIcon}>{item.icono}</span>
