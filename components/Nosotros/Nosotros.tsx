@@ -9,8 +9,8 @@ import styles from './Nosotros.module.css';
 gsap.registerPlugin(ScrollTrigger);
 
 const STATS = [
-  { numero: '5+', label: 'Años de experiencia' },
-  { numero: '2000+', label: 'Clientes satisfechas' },
+  { numero: '4+', label: 'Años de experiencia' },
+  { numero: '7000+', label: 'Clientes satisfechas' },
   { numero: '6', label: 'Tratamientos especializados' },
   { numero: '100%', label: 'Resultados garantizados' },
 ];
@@ -139,10 +139,10 @@ export default function Nosotros() {
             </div>
             <div className={styles.imageSecond}>
               <Image
-                src="/Pose bonita.JPEG"
+                src="/AtrevidaPose.jpeg"
                 alt="Tratamiento AtrevidaFit"
                 fill
-                className={styles.img}
+                className={styles.imgSecond}
                 sizes="(max-width: 768px) 100vw, 30vw"
               />
               <div className={styles.imgOverlay} />
@@ -150,8 +150,8 @@ export default function Nosotros() {
 
             {/* Floating badge */}
             <div className={styles.floatingBadge}>
-              <span className={styles.floatingNumber}>2000+</span>
-              <span className={styles.floatingLabel}>Clientes felices</span>
+              <span className={styles.floatingNumber}>7000+</span>
+              <span className={styles.floatingLabel}>Clientes satisfechos</span>
             </div>
           </div>
 
@@ -164,11 +164,11 @@ export default function Nosotros() {
               <span className={styles.titleAccent}>una transformación</span>
             </h2>
             <p className={styles.bodyText}>
-              En <strong>AtrevidaFit</strong> creemos que cada mujer merece sentirse segura y radiante en su propio cuerpo. 
+              En <strong>AtrevidaFit</strong> creemos que cada mujer merece sentirse segura y radiante en su propio cuerpo.
               Somos un centro de bienestar y estética corporal especializado en tratamientos no invasivos con tecnología de última generación.
             </p>
             <p className={styles.bodyText}>
-              Nuestro equipo de profesionales certificados combina ciencia, experiencia y pasión para ofrecerte resultados reales, 
+              Nuestro equipo de profesionales certificados combina ciencia, experiencia y pasión para ofrecerte resultados reales,
               en un ambiente cálido, seguro y completamente personalizado para ti.
             </p>
 
