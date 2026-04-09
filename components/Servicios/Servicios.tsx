@@ -37,7 +37,8 @@ const SERVICIOS = [
     imagen: '/Maderoterapia.JPEG',
     color: '#92278F',
     icono: '🌿',
-    beneficios: ['Reduce celulitis', 'Mejora circulación', 'Moldea el cuerpo'],
+    beneficios: ['Reduce celulitis', 'Mejora circulation', 'Moldea el cuerpo'],
+    position: 'center 70%',
   },
   {
     id: 'ondas-rusas',
@@ -58,6 +59,7 @@ const SERVICIOS = [
     color: '#EC008C',
     icono: '◉',
     beneficios: ['Colágeno natural', 'Efecto tensor', 'Piel firme'],
+    position: 'center 65%',
   },
   {
     id: 'vacumterapia',
@@ -68,6 +70,7 @@ const SERVICIOS = [
     color: '#14AEEF',
     icono: '◎',
     beneficios: ['Drenaje linfático', 'Reduce retención', 'Reafirma tejidos'],
+    position: 'center 85%',
   },
 ];
 
@@ -221,6 +224,7 @@ export default function Servicios() {
                       fill
                       className={styles.cardImage}
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      style={{ objectPosition: (servicio as any).position || 'center' }}
                     />
                     <div className={styles.cardOverlay} />
                     <span className={styles.cardIcon}>{servicio.icono}</span>
