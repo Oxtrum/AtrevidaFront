@@ -5,7 +5,6 @@ import Nosotros from "@/components/Nosotros/Nosotros";
 import Testimonios from "@/components/Testimonios/Testimonios";
 import Contacto from "@/components/Contacto/Contacto";
 import Footer from "@/components/Footer/Footer";
-import CtaBanner from "@/components/CtaBanner/CtaBanner";
 
 export default function Home() {
   return (
@@ -15,9 +14,8 @@ export default function Home() {
         <Hero />
         <Servicios />
         <Nosotros />
-        <Testimonios />
-        <CtaBanner />
         <Contacto />
+        <Testimonios />
       </main>
       <Footer />
     </>

@@ -45,12 +45,14 @@ const INFO_ITEMS = [
 
 export default function Contacto() {
   const sectionRef = useRef<HTMLElement>(null);
-  const leftRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const ctaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
+      // Info column entrance
       gsap.fromTo(
-        leftRef.current,
+        contentRef.current,
         { y: 30, opacity: 0 },
         {
           y: 0,
@@ -58,22 +60,58 @@ export default function Contacto() {
           duration: 0.9,
           ease: 'power3.out',
           scrollTrigger: {
-            trigger: leftRef.current,
+            trigger: contentRef.current,
             start: 'top 82%'
           },
         }
       );
+
+      // CTA entrance
+      gsap.fromTo(
+        ctaRef.current,
+        { y: 40, opacity: 0, scale: 0.97 },
+        {
+          y: 0,
+          opacity: 1,
+          scale: 1,
+          duration: 0.9,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: ctaRef.current,
+            start: 'top 88%',
+          },
+        }
+      );
+
+      // Floating particles
+      gsap.to('.contactParticle', {
+        y: '-=15',
+        duration: 2.5,
+        ease: 'sine.inOut',
+        yoyo: true,
+        repeat: -1,
+        stagger: { each: 0.4 },
+      });
     }, sectionRef);
+
     return () => ctx.revert();
   }, []);
 
   return (
     <section ref={sectionRef} className={styles.contacto} id="contacto">
-      <div className={styles.bgGlow} />
+      {/* Animated mesh gradient background */}
+      <div className={styles.bgMesh} />
+
+      {/* Floating decorative particles */}
+      <span className={`${styles.particle} contactParticle`} style={{ top: '10%', left: '5%' }}>✦</span>
+      <span className={`${styles.particle} contactParticle`} style={{ top: '65%', left: '8%' }}>◎</span>
+      <span className={`${styles.particle} contactParticle`} style={{ top: '15%', right: '7%' }}>◉</span>
+      <span className={`${styles.particle} contactParticle`} style={{ bottom: '25%', right: '5%' }}>✦</span>
 
       <div className={styles.container}>
+        {/* Info section */}
         <div className={styles.contentWrapper}>
-          <div ref={leftRef} className={styles.infoCol}>
+          <div ref={contentRef} className={styles.infoCol}>
             <span className={styles.sectionBadge}>Contacto</span>
             <h2 className={styles.sectionTitle}>
               Estamos para
@@ -105,6 +143,14 @@ export default function Contacto() {
               ))}
             </div>
           </div>
+        </div>
+
+        {/* CTA button section */}
+        <div ref={ctaRef} className={styles.ctaSection}>
+          <p className={styles.ctaEyebrow}>¿Estás lista?</p>
+          <a href="/reservar" className={styles.ctaBtn}>
+            ✦ Reservar cita
+          </a>
         </div>
       </div>
     </section>
