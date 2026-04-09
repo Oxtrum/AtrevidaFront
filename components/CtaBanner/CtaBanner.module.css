@@ -1,0 +1,135 @@
+/* ──────────────────────────────────────────────
+   CTA BANNER
+────────────────────────────────────────────── */
+.ctaBanner {
+  position: relative;
+  padding: 8rem 1.5rem;
+  overflow: hidden;
+  background: #030303;
+}
+
+/* Animated mesh gradient */
+.bgMesh {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 100% at 30% 50%, rgba(146, 39, 143, 0.22) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 75% 50%, rgba(236, 0, 140, 0.18) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 60% at 60% 0%, rgba(20, 174, 239, 0.1) 0%, transparent 55%);
+  animation: meshShift 8s ease-in-out infinite alternate;
+}
+
+@keyframes meshShift {
+  0%   { transform: scale(1) translateX(0); }
+  100% { transform: scale(1.05) translateX(20px); }
+}
+
+/* Particles */
+.particle {
+  position: absolute;
+  font-size: 1.4rem;
+  color: rgba(236, 0, 140, 0.25);
+  pointer-events: none;
+  user-select: none;
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0;
+}
+
+.eyebrow {
+  display: inline-block;
+  padding: 0.35rem 1.1rem;
+  border: 1px solid rgba(236, 0, 140, 0.4);
+  border-radius: 100px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #EC008C;
+  background: rgba(236, 0, 140, 0.08);
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  font-weight: 800;
+  line-height: 1.1;
+  color: #F5F5F5;
+  margin-bottom: 1.2rem;
+  letter-spacing: -0.02em;
+}
+
+.titleAccent {
+  background: linear-gradient(120deg, #EC008C, #92278F, #14AEEF);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  font-size: 0.95rem;
+  color: rgba(245, 245, 245, 0.45);
+  margin-bottom: 2.8rem;
+  letter-spacing: 0.04em;
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.btnPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 1rem 2.4rem;
+  border-radius: 100px;
+  background: linear-gradient(135deg, #EC008C, #92278F);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 10px 40px rgba(236, 0, 140, 0.4);
+  transition: transform 0.3s ease, opacity 0.3s;
+}
+
+.btnPrimary:hover {
+  transform: translateY(-3px) scale(1.02);
+  opacity: 0.9;
+}
+
+.btnSecondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 1rem 2rem;
+  border-radius: 100px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(245, 245, 245, 0.75);
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 0.3s, color 0.3s, background 0.3s;
+}
+
+.btnSecondary:hover {
+  border-color: rgba(236, 0, 140, 0.5);
+  color: #EC008C;
+  background: rgba(236, 0, 140, 0.06);
+}

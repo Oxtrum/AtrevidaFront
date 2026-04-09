@@ -1,0 +1,245 @@
+/* ──────────────────────────────────────────────
+   TESTIMONIOS SECTION
+────────────────────────────────────────────── */
+.testimonios {
+  position: relative;
+  padding: 8rem 1.5rem 7rem;
+  background: #030303;
+  overflow: hidden;
+}
+
+.bgOrb1 {
+  position: absolute;
+  top: -100px;
+  right: -200px;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(236, 0, 140, 0.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.bgOrb2 {
+  position: absolute;
+  bottom: -100px;
+  left: -200px;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(20, 174, 239, 0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Header */
+.sectionHeader {
+  text-align: center;
+  margin-bottom: 3.5rem;
+}
+
+.sectionBadge {
+  display: inline-block;
+  padding: 0.35rem 1.1rem;
+  border: 1px solid rgba(236, 0, 140, 0.45);
+  border-radius: 100px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #EC008C;
+  background: rgba(236, 0, 140, 0.08);
+  margin-bottom: 1.2rem;
+}
+
+.sectionTitle {
+  font-size: clamp(2rem, 4.5vw, 3rem);
+  font-weight: 800;
+  line-height: 1.1;
+  color: #F5F5F5;
+}
+
+.titleAccent {
+  background: linear-gradient(120deg, #EC008C, #92278F);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Slider */
+.sliderWrapper {
+  position: relative;
+}
+
+.sliderViewport {
+  overflow: hidden;
+  border-radius: 24px;
+}
+
+.sliderTrack {
+  display: flex;
+  will-change: transform;
+}
+
+.slide {
+  flex: 0 0 100%;
+  padding: 0.5rem;
+}
+
+/* Card */
+.card {
+  background: #0c0c0c;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 20px;
+  padding: 3rem 3.5rem;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.4s;
+}
+
+.card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--t-color, #EC008C), transparent);
+  border-radius: 20px 20px 0 0;
+}
+
+@media (max-width: 600px) {
+  .card {
+    padding: 2rem 1.5rem;
+  }
+}
+
+.quoteIcon {
+  position: absolute;
+  top: 1.5rem;
+  right: 2.5rem;
+  font-size: 5rem;
+  line-height: 1;
+  color: var(--t-color, #EC008C);
+  opacity: 0.12;
+  font-family: Georgia, serif;
+  pointer-events: none;
+}
+
+/* Stars */
+.stars {
+  display: flex;
+  gap: 0.2rem;
+  margin-bottom: 1.4rem;
+}
+
+.star {
+  color: #FFE600;
+  font-size: 1rem;
+}
+
+.testimonioText {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: rgba(245, 245, 245, 0.75);
+  margin-bottom: 2rem;
+  font-style: italic;
+}
+
+/* Author */
+.author {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.authorAvatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.authorNombre {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #F5F5F5;
+}
+
+.authorCargo {
+  font-size: 0.78rem;
+  color: rgba(245, 245, 245, 0.4);
+  margin-top: 0.1rem;
+}
+
+/* Nav buttons */
+.navBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(12, 12, 12, 0.9);
+  color: #F5F5F5;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s, border-color 0.3s;
+  z-index: 10;
+}
+
+.navBtn:hover {
+  background: #EC008C;
+  border-color: #EC008C;
+}
+
+.navBtnPrev {
+  left: -1.5rem;
+}
+
+.navBtnNext {
+  right: -1.5rem;
+}
+
+@media (max-width: 768px) {
+  .navBtnPrev { left: 0.5rem; }
+  .navBtnNext { right: 0.5rem; }
+}
+
+/* Dots */
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.3s, width 0.3s;
+  padding: 0;
+}
+
+.dotActive {
+  background: #EC008C;
+  width: 24px;
+  border-radius: 4px;
+}

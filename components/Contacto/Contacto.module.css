@@ -1,0 +1,210 @@
+/* ──────────────────────────────────────────────
+   CONTACTO SECTION
+────────────────────────────────────────────── */
+.contacto {
+  position: relative;
+  padding: 8rem 1.5rem;
+  background: #050505;
+  overflow: hidden;
+}
+
+.bgGlow {
+  position: absolute;
+  bottom: -200px;
+  right: -200px;
+  width: 700px;
+  height: 700px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(236, 0, 140, 0.08) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.contentWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+/* Info column */
+.infoCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 800px;
+}
+
+.sectionBadge {
+  display: inline-block;
+  padding: 0.35rem 1.1rem;
+  border: 1px solid rgba(236, 0, 140, 0.45);
+  border-radius: 100px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #EC008C;
+  background: rgba(236, 0, 140, 0.08);
+  margin-bottom: 1.4rem;
+  width: fit-content;
+}
+
+.sectionTitle {
+  font-size: clamp(2.5rem, 5vw, 3.8rem);
+  font-weight: 800;
+  line-height: 1.1;
+  color: #F5F5F5;
+  margin-bottom: 1.2rem;
+}
+
+.titleAccent {
+  background: linear-gradient(120deg, #EC008C, #92278F);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.infoText {
+  font-size: 1.05rem;
+  line-height: 1.75;
+  color: rgba(245, 245, 245, 0.5);
+  margin-bottom: 3.5rem;
+  max-width: 600px;
+}
+
+/* Info items list */
+.infoList {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2.5rem;
+  width: 100%;
+}
+
+@media (max-width: 650px) {
+  .infoList {
+    grid-template-columns: 1fr;
+    gap: 1.8rem;
+  }
+}
+
+.infoItem {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 1.8rem;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(10px);
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.infoItem::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 20% 50%,
+    rgba(var(--icon-color-rgb), 0.08),
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.infoItem:hover {
+  transform: translateY(-8px);
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(var(--icon-color-rgb), 0.1) inset;
+}
+
+.infoItem:hover::before {
+  opacity: 1;
+}
+
+.infoIcon {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(var(--icon-color-rgb, 212, 212, 212), 0.12);
+  border: 1px solid rgba(var(--icon-color-rgb, 212, 212, 212), 0.25);
+  border-radius: 18px;
+  flex-shrink: 0;
+  color: var(--icon-color, #F5F5F5);
+  position: relative;
+  transition: all 0.4s ease;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.infoIcon::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 20px;
+  background: var(--icon-color, #EC008C);
+  opacity: 0;
+  filter: blur(10px);
+  transition: opacity 0.4s ease;
+  z-index: -1;
+}
+
+.infoItem:hover .infoIcon {
+  transform: scale(1.1) rotate(-5deg);
+  background: var(--icon-color, #EC008C);
+  color: #000;
+  border-color: transparent;
+  box-shadow: 0 10px 25px rgba(var(--icon-color-rgb), 0.3);
+}
+
+.infoItem:hover .infoIcon::after {
+  opacity: 0.4;
+}
+
+.infoIcon svg {
+  width: 28px;
+  height: 28px;
+  filter: drop-shadow(0 0 8px rgba(var(--icon-color-rgb), 0.3));
+  transition: transform 0.4s ease;
+}
+
+.infoItem:hover .infoIcon svg {
+  transform: scale(1.1);
+  filter: none;
+}
+
+.infoTitulo {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: rgba(245, 245, 245, 0.3);
+  margin-bottom: 0.4rem;
+}
+
+.infoValor {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #F5F5F5;
+  margin-bottom: 0.25rem;
+  letter-spacing: -0.01em;
+}
+
+.infoSub {
+  font-size: 0.85rem;
+  color: rgba(245, 245, 245, 0.45);
+  line-height: 1.5;
+}

@@ -1,0 +1,248 @@
+/* ──────────────────────────────────────────────
+   SERVICIOS SECTION
+────────────────────────────────────────────── */
+.servicios {
+  position: relative;
+  padding: 7rem 1.5rem 8rem;
+  background: #030303;
+  overflow: hidden;
+}
+
+/* Decorative background */
+.bgGradient {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 10% 20%, rgba(146, 39, 143, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 90% 80%, rgba(20, 174, 239, 0.10) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.bgLine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(236, 0, 140, 0.4), transparent);
+}
+
+/* Container */
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+/* Section Header */
+.sectionHeader {
+  text-align: center;
+  margin-bottom: 4.5rem;
+}
+
+.sectionBadge {
+  display: inline-block;
+  padding: 0.35rem 1.1rem;
+  border: 1px solid rgba(236, 0, 140, 0.45);
+  border-radius: 100px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #EC008C;
+  background: rgba(236, 0, 140, 0.08);
+  margin-bottom: 1.2rem;
+}
+
+.sectionTitle {
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-weight: 800;
+  line-height: 1.1;
+  color: #F5F5F5;
+  margin-bottom: 1.1rem;
+}
+
+.titleAccent {
+  background: linear-gradient(120deg, #EC008C, #92278F, #14AEEF);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.sectionSubtitle {
+  max-width: 560px;
+  margin: 0 auto;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: rgba(245, 245, 245, 0.55);
+}
+
+/* Grid */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.8rem;
+}
+
+@media (max-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Card */
+.card {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #0c0c0c;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+              border-color 0.4s ease,
+              box-shadow 0.4s ease;
+  cursor: pointer;
+}
+
+.card:hover {
+  transform: translateY(-8px);
+  border-color: rgba(var(--card-color-rgb, 236, 0, 140), 0.35);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    0 0 0 1px var(--card-color, #EC008C) inset,
+    0 0 40px rgba(var(--card-color-rgb, 236, 0, 140), 0.08);
+}
+
+/* Glow border on hover using pseudo-element */
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--card-color, #EC008C), transparent 60%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 1;
+}
+
+.card:hover::before {
+  opacity: 1;
+}
+
+/* Card Image */
+.cardImageWrapper {
+  position: relative;
+  width: 100%;
+  height: 240px;
+  overflow: hidden;
+}
+
+.cardImage {
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.card:hover .cardImage {
+  transform: scale(1.08);
+}
+
+.cardOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.1) 0%,
+    rgba(0, 0, 0, 0.55) 100%
+  );
+  z-index: 1;
+}
+
+.cardIcon {
+  position: absolute;
+  bottom: 1rem;
+  right: 1.2rem;
+  font-size: 1.8rem;
+  z-index: 2;
+  filter: drop-shadow(0 0 10px var(--card-color, #EC008C));
+  line-height: 1;
+}
+
+/* Card Content */
+.cardContent {
+  padding: 1.6rem 1.8rem 2rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.cardTitle {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #F5F5F5;
+  margin-bottom: 0.6rem;
+  letter-spacing: -0.01em;
+}
+
+.cardDesc {
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: rgba(245, 245, 245, 0.5);
+  margin-bottom: 1.2rem;
+}
+
+/* Benefits */
+.benefitsList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1.6rem;
+  flex: 1;
+}
+
+.benefitItem {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.8rem;
+  color: rgba(245, 245, 245, 0.65);
+  font-weight: 500;
+}
+
+.benefitDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--card-color, #EC008C);
+  flex-shrink: 0;
+  box-shadow: 0 0 6px var(--card-color, #EC008C);
+}
+
+/* Card CTA */
+.cardCta {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--card-color, #EC008C);
+  text-decoration: none;
+  letter-spacing: 0.03em;
+  transition: gap 0.3s ease, opacity 0.3s ease;
+  gap: 0.3rem;
+}
+
+.cardCta:hover {
+  opacity: 0.8;
+  gap: 0.6rem;
+}

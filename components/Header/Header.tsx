@@ -123,7 +123,7 @@ export default function Header() {
           ))}
           <a
             ref={ctaRef}
-            href="#reservar"
+            href="#contacto"
             className={styles.ctaButton}
           >
             <span className={styles.ctaButtonText}>✦ Reservar</span>
@@ -157,7 +157,7 @@ export default function Header() {
           </a>
         ))}
         <a
-          href="#reservar"
+          href="#contacto"
           className={`${styles.ctaButton} mobileNavItem`}
           onClick={() => setMobileOpen(false)}
           style={{ marginTop: '1rem', fontSize: '1rem', padding: '0.8rem 2.5rem' }}

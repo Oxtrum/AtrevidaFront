@@ -1,0 +1,203 @@
+/* ──────────────────────────────────────────────
+   FOOTER
+────────────────────────────────────────────── */
+.footer {
+  position: relative;
+  background: #020202;
+  overflow: hidden;
+}
+
+.topLine {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(236, 0, 140, 0.5), rgba(20, 174, 239, 0.4), transparent);
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 5rem 1.5rem 2.5rem;
+}
+
+/* Main grid */
+.grid {
+  display: grid;
+  grid-template-columns: 1.8fr 1fr 1fr 1.4fr;
+  gap: 3rem;
+  margin-bottom: 4rem;
+}
+
+@media (max-width: 1024px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+/* Brand col */
+.brandCol {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.logoRow {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.logoImg {
+  object-fit: contain;
+}
+
+.logoText {
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #F5F5F5;
+}
+
+.brandDesc {
+  font-size: 0.87rem;
+  line-height: 1.72;
+  color: rgba(245, 245, 245, 0.4);
+  max-width: 320px;
+}
+
+/* Social buttons */
+.socialRow {
+  display: flex;
+  gap: 0.7rem;
+  margin-top: 0.3rem;
+}
+
+.socialBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(245, 245, 245, 0.6);
+  text-decoration: none;
+  transition: background 0.3s, border-color 0.3s, color 0.3s;
+}
+
+.socialBtn:hover {
+  background: rgba(236, 0, 140, 0.15);
+  border-color: rgba(236, 0, 140, 0.4);
+  color: #EC008C;
+}
+
+/* Link columns */
+.linkCol {
+  display: flex;
+  flex-direction: column;
+}
+
+.colTitle {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 245, 0.35);
+  margin-bottom: 1.4rem;
+}
+
+.linkList {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.footerLink {
+  font-size: 0.9rem;
+  color: rgba(245, 245, 245, 0.55);
+  text-decoration: none;
+  transition: color 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.footerLink:hover {
+  color: #EC008C;
+}
+
+.footerLink::before {
+  content: '→';
+  font-size: 0.7rem;
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.footerLink:hover::before {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* CTA col */
+.ctaCol {
+  display: flex;
+  flex-direction: column;
+}
+
+.ctaText {
+  font-size: 0.88rem;
+  line-height: 1.7;
+  color: rgba(245, 245, 245, 0.45);
+  margin-bottom: 1.4rem;
+}
+
+.ctaBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.85rem 1.6rem;
+  border-radius: 100px;
+  background: linear-gradient(135deg, #EC008C, #92278F);
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+  width: fit-content;
+  box-shadow: 0 6px 20px rgba(236, 0, 140, 0.3);
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.ctaBtn:hover {
+  opacity: 0.88;
+  transform: translateY(-2px);
+}
+
+/* Bottom bar */
+.bottomBar {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.copyright {
+  font-size: 0.8rem;
+  color: rgba(245, 245, 245, 0.3);
+}
+
+.credits {
+  font-size: 0.8rem;
+  color: rgba(236, 0, 140, 0.5);
+}
