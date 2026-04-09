@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import Image from 'next/image';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -71,64 +71,88 @@ const SERVICIOS = [
   },
 ];
 
+function getPerPage(): number {
+  if (typeof window === 'undefined') return 3;
+  if (window.innerWidth <= 640) return 1;
+  if (window.innerWidth <= 1024) return 2;
+  return 3;
+}
+
 export default function Servicios() {
   const sectionRef = useRef<HTMLElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
-  const cardsRef = useRef<HTMLDivElement[]>([]);
+  const trackRef = useRef<HTMLDivElement>(null);
 
+  const [idx, setIdx] = useState(0);
+  const [perPage, setPerPage] = useState(3);
+
+  const total = SERVICIOS.length;
+  const maxIdx = Math.max(0, total - perPage);
+  const pages = Math.ceil(total / perPage);
+
+  // Touch swipe
+  const touchStartX = useRef(0);
+
+  const move = useCallback(
+    (dir: number) => {
+      setIdx((prev) => Math.min(Math.max(0, prev + dir), maxIdx));
+    },
+    [maxIdx]
+  );
+
+  // Resize → recalc perPage and clamp idx
+  useEffect(() => {
+    const onResize = () => {
+      const pp = getPerPage();
+      setPerPage(pp);
+      setIdx((prev) => Math.min(prev, Math.max(0, total - pp)));
+    };
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [total]);
+
+  // Slide track
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    const card = track.querySelector<HTMLElement>(`.${styles.card}`);
+    if (!card) return;
+    const gap = parseFloat(getComputedStyle(track).gap) || 20;
+    const cardW = card.getBoundingClientRect().width;
+    track.style.transform = `translateX(-${idx * (cardW + gap)}px)`;
+  }, [idx, perPage]);
+
+  // GSAP entrance
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // Title animation
       gsap.fromTo(
         titleRef.current,
         { y: 60, opacity: 0 },
         {
-          y: 0,
-          opacity: 1,
-          duration: 0.9,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: titleRef.current,
-            start: 'top 85%',
-            toggleActions: 'play none none none',
-          },
+          y: 0, opacity: 1, duration: 0.9, ease: 'power3.out',
+          scrollTrigger: { trigger: titleRef.current, start: 'top 85%', toggleActions: 'play none none none' },
         }
       );
-
-      // Cards stagger animation
-      cardsRef.current.forEach((card, i) => {
-        if (!card) return;
-        gsap.fromTo(
-          card,
-          { y: 80, opacity: 0, scale: 0.95 },
-          {
-            y: 0,
-            opacity: 1,
-            scale: 1,
-            duration: 0.7,
-            ease: 'power3.out',
-            delay: (i % 3) * 0.12,
-            scrollTrigger: {
-              trigger: card,
-              start: 'top 88%',
-              toggleActions: 'play none none none',
-            },
-          }
-        );
-      });
+      gsap.fromTo(
+        trackRef.current,
+        { y: 50, opacity: 0 },
+        {
+          y: 0, opacity: 1, duration: 0.8, ease: 'power3.out',
+          scrollTrigger: { trigger: trackRef.current, start: 'top 88%', toggleActions: 'play none none none' },
+        }
+      );
     }, sectionRef);
-
     return () => ctx.revert();
   }, []);
 
   return (
     <section ref={sectionRef} className={styles.servicios} id="servicios">
-      {/* Background elements */}
       <div className={styles.bgGradient} />
       <div className={styles.bgLine} />
 
       <div className={styles.container}>
-        {/* Section header */}
+        {/* Header */}
         <div ref={titleRef} className={styles.sectionHeader}>
           <span className={styles.sectionBadge}>Nuestros Servicios</span>
           <h2 className={styles.sectionTitle}>
@@ -142,49 +166,95 @@ export default function Servicios() {
           </p>
         </div>
 
-        {/* Cards grid */}
-        <div className={styles.grid}>
-          {SERVICIOS.map((servicio, i) => (
+        {/* Carousel */}
+        <div className={styles.carouselWrap}>
+          <div className={styles.carouselOuter}>
             <div
-              key={servicio.id}
-              ref={(el) => { if (el) cardsRef.current[i] = el; }}
-              className={styles.card}
-              style={{ '--card-color': servicio.color } as React.CSSProperties}
+              ref={trackRef}
+              className={styles.carouselTrack}
             >
-              {/* Image */}
-              <div className={styles.cardImageWrapper}>
-                <Image
-                  src={servicio.imagen}
-                  alt={servicio.nombre}
-                  fill
-                  className={styles.cardImage}
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                />
-                <div className={styles.cardOverlay} />
-                <span className={styles.cardIcon}>{servicio.icono}</span>
-              </div>
+              {SERVICIOS.map((servicio) => (
+                <div
+                  key={servicio.id}
+                  className={styles.card}
+                  style={{ '--card-color': servicio.color } as React.CSSProperties}
+                >
+                  {/* Color bar */}
+                  <div className={styles.cardBar} />
 
-              {/* Content */}
-              <div className={styles.cardContent}>
-                <h3 className={styles.cardTitle}>{servicio.nombre}</h3>
-                <p className={styles.cardDesc}>{servicio.descripcion}</p>
+                  {/* Image */}
+                  <div className={styles.cardImageWrapper}>
+                    <Image
+                      src={servicio.imagen}
+                      alt={servicio.nombre}
+                      fill
+                      className={styles.cardImage}
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    />
+                    <div className={styles.cardOverlay} />
+                    <span className={styles.cardIcon}>{servicio.icono}</span>
+                  </div>
 
-                {/* Benefits */}
-                <ul className={styles.benefitsList}>
-                  {servicio.beneficios.map((b) => (
-                    <li key={b} className={styles.benefitItem}>
-                      <span className={styles.benefitDot} />
-                      {b}
-                    </li>
-                  ))}
-                </ul>
-
-                <a href="#contacto" className={styles.cardCta}>
-                  Reservar sesión →
-                </a>
-              </div>
+                  {/* Content */}
+                  <div className={styles.cardContent}>
+                    <h3 className={styles.cardTitle}>{servicio.nombre}</h3>
+                    <p className={styles.cardDesc}>{servicio.descripcion}</p>
+                    <ul className={styles.benefitsList}>
+                      {servicio.beneficios.map((b) => (
+                        <li key={b} className={styles.benefitItem}>
+                          <span className={styles.benefitDot} />
+                          {b}
+                        </li>
+                      ))}
+                    </ul>
+                    <a href="#contacto" className={styles.cardCta}>
+                      Reservar sesión →
+                    </a>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
+
+          {/* Nav bar */}
+          <div className={styles.carouselNav}>
+            {/* Dots */}
+            <div className={styles.dots}>
+              {Array.from({ length: pages }).map((_, i) => (
+                <button
+                  key={i}
+                  className={`${styles.dotBtn} ${Math.floor(idx / perPage) === i ? styles.dotActive : ''}`}
+                  onClick={() => setIdx(Math.min(i * perPage, maxIdx))}
+                  aria-label={`Página ${i + 1}`}
+                />
+              ))}
+            </div>
+
+            {/* Counter */}
+            <span className={styles.counter}>
+              <strong>{idx + 1}</strong> / {total}
+            </span>
+
+            {/* Arrows */}
+            <div className={styles.arrows}>
+              <button
+                className={styles.arrBtn}
+                onClick={() => move(-1)}
+                disabled={idx === 0}
+                aria-label="Anterior"
+              >
+                ←
+              </button>
+              <button
+                className={styles.arrBtn}
+                onClick={() => move(1)}
+                disabled={idx >= maxIdx}
+                aria-label="Siguiente"
+              >
+                →
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </section>

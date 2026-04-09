@@ -1,5 +1,5 @@
 /* ──────────────────────────────────────────────
-   SERVICIOS SECTION
+   SERVICIOS — CAROUSEL VERSION
 ────────────────────────────────────────────── */
 .servicios {
   position: relative;
@@ -33,10 +33,10 @@
   margin: 0 auto;
 }
 
-/* Section Header */
+/* ── Section Header ── */
 .sectionHeader {
   text-align: center;
-  margin-bottom: 4.5rem;
+  margin-bottom: 4rem;
 }
 
 .sectionBadge {
@@ -76,74 +76,84 @@
   color: rgba(245, 245, 245, 0.55);
 }
 
-/* Grid */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.8rem;
-}
-
-@media (max-width: 1024px) {
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 640px) {
-  .grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* Card */
-.card {
+/* ── Carousel ── */
+.carouselWrap {
   position: relative;
+}
+
+.carouselOuter {
+  overflow: hidden;
   border-radius: 20px;
+  /* small fade on edges for depth */
+  mask-image: linear-gradient(to right,
+      transparent 0%,
+      black 3%,
+      black 97%,
+      transparent 100%);
+  -webkit-mask-image: linear-gradient(to right,
+      transparent 0%,
+      black 3%,
+      black 97%,
+      transparent 100%);
+}
+
+.carouselTrack {
+  display: flex;
+  gap: 1.4rem;
+  transition: transform 0.55s cubic-bezier(0.23, 1, 0.32, 1);
+  will-change: transform;
+}
+
+/* ── Card ── */
+.card {
+  /* 3 per row on desktop */
+  flex: 0 0 calc(33.333% - 0.94rem);
+  min-width: 0;
+  border-radius: 18px;
   overflow: hidden;
   background: #0c0c0c;
   border: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   flex-direction: column;
-  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
-              border-color 0.4s ease,
-              box-shadow 0.4s ease;
+  transition:
+    transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+    border-color 0.4s ease,
+    box-shadow 0.4s ease;
   cursor: pointer;
+  position: relative;
+}
+
+@media (max-width: 1024px) {
+  .card {
+    flex: 0 0 calc(50% - 0.7rem);
+  }
+}
+
+@media (max-width: 640px) {
+  .card {
+    flex: 0 0 100%;
+  }
 }
 
 .card:hover {
-  transform: translateY(-8px);
-  border-color: rgba(var(--card-color-rgb, 236, 0, 140), 0.35);
-  box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.5),
-    0 0 0 1px var(--card-color, #EC008C) inset,
-    0 0 40px rgba(var(--card-color-rgb, 236, 0, 140), 0.08);
+  transform: translateY(-7px);
+  border-color: rgba(var(--card-color-rgb, 236, 0, 140), 0.3);
+  box-shadow: 0 20px 55px rgba(0, 0, 0, 0.5);
 }
 
-/* Glow border on hover using pseudo-element */
-.card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 20px;
-  padding: 1px;
-  background: linear-gradient(135deg, var(--card-color, #EC008C), transparent 60%);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  z-index: 1;
-}
-
-.card:hover::before {
-  opacity: 1;
+/* Color accent bar at top */
+.cardBar {
+  height: 3px;
+  background: var(--card-color, #EC008C);
+  opacity: 0.85;
+  flex-shrink: 0;
 }
 
 /* Card Image */
 .cardImageWrapper {
   position: relative;
   width: 100%;
-  height: 240px;
+  height: 220px;
   overflow: hidden;
 }
 
@@ -154,51 +164,47 @@
 }
 
 .card:hover .cardImage {
-  transform: scale(1.08);
+  transform: scale(1.07);
 }
 
 .cardOverlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.1) 0%,
-    rgba(0, 0, 0, 0.55) 100%
-  );
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.55) 100%);
   z-index: 1;
 }
 
 .cardIcon {
   position: absolute;
-  bottom: 1rem;
-  right: 1.2rem;
-  font-size: 1.8rem;
+  bottom: 0.9rem;
+  right: 1.1rem;
+  font-size: 1.7rem;
   z-index: 2;
-  filter: drop-shadow(0 0 10px var(--card-color, #EC008C));
+  filter: drop-shadow(0 0 8px var(--card-color, #EC008C));
   line-height: 1;
 }
 
 /* Card Content */
 .cardContent {
-  padding: 1.6rem 1.8rem 2rem;
+  padding: 1.5rem 1.7rem 1.9rem;
   display: flex;
   flex-direction: column;
   flex: 1;
 }
 
 .cardTitle {
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   font-weight: 700;
   color: #F5F5F5;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.55rem;
   letter-spacing: -0.01em;
 }
 
 .cardDesc {
-  font-size: 0.875rem;
+  font-size: 0.855rem;
   line-height: 1.65;
-  color: rgba(245, 245, 245, 0.5);
-  margin-bottom: 1.2rem;
+  color: rgba(245, 245, 245, 0.48);
+  margin-bottom: 1.1rem;
 }
 
 /* Benefits */
@@ -206,43 +212,118 @@
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  margin-bottom: 1.6rem;
+  gap: 0.38rem;
+  margin-bottom: 1.5rem;
   flex: 1;
 }
 
 .benefitItem {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
-  font-size: 0.8rem;
-  color: rgba(245, 245, 245, 0.65);
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  color: rgba(245, 245, 245, 0.62);
   font-weight: 500;
 }
 
 .benefitDot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: var(--card-color, #EC008C);
   flex-shrink: 0;
-  box-shadow: 0 0 6px var(--card-color, #EC008C);
+  box-shadow: 0 0 5px var(--card-color, #EC008C);
 }
 
-/* Card CTA */
+/* CTA */
 .cardCta {
   display: inline-flex;
   align-items: center;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 700;
   color: var(--card-color, #EC008C);
   text-decoration: none;
   letter-spacing: 0.03em;
   transition: gap 0.3s ease, opacity 0.3s ease;
   gap: 0.3rem;
+  width: fit-content;
 }
 
 .cardCta:hover {
   opacity: 0.8;
   gap: 0.6rem;
+}
+
+/* ── Navigation bar ── */
+.carouselNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1.8rem;
+  padding: 0 0.2rem;
+}
+
+/* Dots */
+.dots {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.dotBtn {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.3s, transform 0.3s;
+}
+
+.dotActive {
+  background: #EC008C;
+  transform: scale(1.35);
+}
+
+/* Counter */
+.counter {
+  font-size: 0.78rem;
+  color: rgba(245, 245, 245, 0.35);
+  letter-spacing: 0.05em;
+}
+
+.counter strong {
+  color: #EC008C;
+}
+
+/* Arrows */
+.arrows {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.arrBtn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(245, 245, 245, 0.7);
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s, border-color 0.3s, color 0.3s;
+}
+
+.arrBtn:hover:not(:disabled) {
+  background: rgba(236, 0, 140, 0.12);
+  border-color: rgba(236, 0, 140, 0.4);
+  color: #EC008C;
+}
+
+.arrBtn:disabled {
+  opacity: 0.3;
+  cursor: default;
 }
