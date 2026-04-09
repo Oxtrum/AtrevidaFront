@@ -3,13 +3,13 @@
 ────────────────────────────────────────────── */
 .footer {
   position: relative;
-  background: #020202;
+  background: #030303;
   overflow: hidden;
 }
 
 .topLine {
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(236, 0, 140, 0.5), rgba(20, 174, 239, 0.4), transparent);
+  background: linear-gradient(90deg, transparent, rgba(236, 0, 140, 0.15), rgba(20, 174, 239, 0.12), transparent);
 }
 
 .container {

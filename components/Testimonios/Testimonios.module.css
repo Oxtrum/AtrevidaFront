@@ -8,25 +8,13 @@
   overflow: hidden;
 }
 
-.bgOrb1 {
+.bgMesh {
   position: absolute;
-  top: -100px;
-  right: -200px;
-  width: 600px;
-  height: 600px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(236, 0, 140, 0.07) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-.bgOrb2 {
-  position: absolute;
-  bottom: -100px;
-  left: -200px;
-  width: 500px;
-  height: 500px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(20, 174, 239, 0.06) 0%, transparent 70%);
+  inset: 0;
+  background:
+    radial-gradient(ellipse 65% 70% at 10% 40%, rgba(146, 39, 143, 0.13) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 65% at 85% 65%, rgba(20, 174, 239, 0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 45% 55% at 50% 90%, rgba(236, 0, 140, 0.08) 0%, transparent 55%);
   pointer-events: none;
 }
 

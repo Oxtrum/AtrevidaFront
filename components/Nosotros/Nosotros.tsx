@@ -120,7 +120,7 @@ export default function Nosotros() {
 
   return (
     <section ref={sectionRef} className={styles.nosotros} id="nosotros">
-      <div className={styles.bgAccent} />
+      <div className={styles.bgMesh} />
 
       <div className={styles.container}>
         {/* Main two-column layout */}

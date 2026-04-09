@@ -102,8 +102,7 @@ export default function Testimonios() {
 
   return (
     <section ref={sectionRef} className={styles.testimonios} id="testimonios">
-      <div className={styles.bgOrb1} />
-      <div className={styles.bgOrb2} />
+      <div className={styles.bgMesh} />
 
       <div className={styles.container}>
         {/* Header */}
