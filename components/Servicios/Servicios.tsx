@@ -93,11 +93,34 @@ export default function Servicios() {
   // Touch swipe
   const touchStartX = useRef(0);
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const touchEndX = e.changedTouches[0].clientX;
+    const diff = touchStartX.current - touchEndX;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) move(1);
+      else move(-1);
+    }
+  };
+
   const move = useCallback(
     (dir: number) => {
-      setIdx((prev) => Math.min(Math.max(0, prev + dir), maxIdx));
+      // jump by pages on PC, by 1 on mobile
+      const step = perPage > 1 ? perPage : 1;
+      setIdx((prev) => {
+        let next = prev + dir * step;
+        // logic for page alignment on PC
+        if (perPage > 1) {
+          if (dir > 0) next = Math.ceil(next / perPage) * perPage;
+          else next = Math.floor(next / perPage) * perPage;
+        }
+        return Math.min(Math.max(0, next), maxIdx);
+      });
     },
-    [maxIdx]
+    [maxIdx, perPage]
   );
 
   // Resize → recalc perPage and clamp idx
@@ -105,7 +128,11 @@ export default function Servicios() {
     const onResize = () => {
       const pp = getPerPage();
       setPerPage(pp);
-      setIdx((prev) => Math.min(prev, Math.max(0, total - pp)));
+      // Ensure we land on a valid index for the new perPage
+      setIdx((prev) => {
+        const currentPos = Math.min(prev, Math.max(0, total - pp));
+        return pp > 1 ? Math.floor(currentPos / pp) * pp : currentPos;
+      });
     };
     onResize();
     window.addEventListener('resize', onResize);
@@ -168,7 +195,11 @@ export default function Servicios() {
 
         {/* Carousel */}
         <div className={styles.carouselWrap}>
-          <div className={styles.carouselOuter}>
+          <div
+            className={styles.carouselOuter}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+          >
             <div
               ref={trackRef}
               className={styles.carouselTrack}
@@ -231,9 +262,13 @@ export default function Servicios() {
             </div>
 
             {/* Counter */}
-            <span className={styles.counter}>
-              <strong>{idx + 1}</strong> / {total}
-            </span>
+            <div className={styles.counter}>
+              {perPage === 1 ? (
+                <><strong>{idx + 1}</strong> / {total}</>
+              ) : (
+                <>Pág. <strong>{Math.floor(idx / perPage) + 1}</strong> / {pages}</>
+              )}
+            </div>
 
             {/* Arrows */}
             <div className={styles.arrows}>
