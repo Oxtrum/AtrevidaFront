@@ -8,6 +8,13 @@ export interface FechaDia {
   fecha: Date;
   esPasado: boolean;
 }
+export interface ReservasBDApiResponse {
+  code: number;
+  data: { reservas: ReservaBD[]; total: number };
+  error: boolean;
+  message: string | null;
+  status: string;
+}
 
 export const SERVICIOS_DISPONIBLES = [
   { value: 'ultracavitacion', label: 'Ultracavitación', categoria: 'Apartología', duracion: '50 min', costo: '70 Bs', sucursal: 'ambos' },
@@ -101,9 +108,9 @@ export interface ReservasData {
   total_locales: number;
 }
 
-export interface ApiResponse {
+export interface ApiResponse<T = ReservasData> {
   code: number;
-  data: ReservasData;
+  data: T;
   error: boolean;
   message: string | null;
   status: string;
@@ -154,12 +161,12 @@ export function getServiciosPorCategoria(servicios: readonly ServicioInfo[]) {
   return categorias;
 }
 
-export function getTipoFromServicio(servicioValue: string): 'm' | 'b' {
+export function getTipoFromServicio(servicioValue: string): string {
   const servicio = SERVICIOS_DISPONIBLES.find(s => s.value === servicioValue);
   if (servicio?.categoria === 'Bicicleta') {
-    return 'b';
+    return 'B';
   }
-  return 'm';
+  return 'M';
 }
 
 export function getTipoColor(tipo: string): { bg: string; border: string; accent: string } {
@@ -211,18 +218,31 @@ export function esFechaPasada(fecha: Date): boolean {
 export function generarSemanas(cantidad: number = 6): { valor: string; titulo: string; fechaInicio: Date }[] {
   const semanas: { valor: string; titulo: string; fechaInicio: Date }[] = [];
   const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
 
+  // Obtener el lunes de la semana ACTUAL
   const diaActual = hoy.getDay();
   const offsetLunes = diaActual === 0 ? -6 : 1 - diaActual;
   const lunesActual = new Date(hoy);
   lunesActual.setDate(hoy.getDate() + offsetLunes);
   lunesActual.setHours(0, 0, 0, 0);
 
+  // Si hoy es lunes o después, empezar desde ESTE lunes
+  // Si hoy es domingo o antes, empezar desde el próximo lunes
+  let fechaInicioSemana: Date;
+  if (diaActual === 0) {
+    // Es domingo, empezar desde el próximo lunes
+    fechaInicioSemana = new Date(lunesActual);
+    fechaInicioSemana.setDate(fechaInicioSemana.getDate() + 7);
+  } else {
+    fechaInicioSemana = new Date(lunesActual);
+  }
+
   const MESES_ES = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
 
   for (let i = 0; i < cantidad; i++) {
-    const fechaInicio = new Date(lunesActual);
-    fechaInicio.setDate(lunesActual.getDate() + (i * 7));
+    const fechaInicio = new Date(fechaInicioSemana);
+    fechaInicio.setDate(fechaInicioSemana.getDate() + (i * 7));
 
     const fechaFin = new Date(fechaInicio);
     fechaFin.setDate(fechaInicio.getDate() + 5);
@@ -272,4 +292,21 @@ export function getFechasDeSemana(fechaInicio: Date): Map<DiaSemana, FechaDia> {
   });
 
   return resultado;
+}
+
+// ── Tipos para BD API (backend /bd/reservas) ─────────────────────
+export interface ReservaBD {
+  id: number;
+  local: string;
+  tipo: string;
+  fecha: string; // "2025-04-04"
+  hora_desde: string; // "8:00"
+  hora_hasta: string; // "9:30"
+  cliente: string;
+  servicio: string;
+}
+
+export interface ReservasBDResponse {
+  reservas: ReservaBD[];
+  total: number;
 }

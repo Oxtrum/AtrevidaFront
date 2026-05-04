@@ -26,37 +26,27 @@ export default function Header() {
   useEffect(() => {
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-
-      // Logo slides in from left
-      tl.fromTo(
-        logoRef.current,
+      tl.fromTo(logoRef.current,
         { x: -60, opacity: 0 },
         { x: 0, opacity: 1, duration: 0.8 }
-      );
-
-      // Nav links stagger from top
-      tl.fromTo(
-        navLinksRef.current,
-        { y: -30, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.5, stagger: 0.1 },
-        '-=0.4'
-      );
-
-      // CTA button pops in
-      tl.fromTo(
-        ctaRef.current,
-        { scale: 0.8, opacity: 0 },
-        { scale: 1, opacity: 1, duration: 0.5 },
-        '-=0.2'
-      );
+      )
+        .fromTo(navLinksRef.current,
+          { y: -30, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.5, stagger: 0.1 },
+          '-=0.4'
+        )
+        .fromTo(ctaRef.current,
+          { scale: 0.8, opacity: 0 },
+          { scale: 1, opacity: 1, duration: 0.5 },
+          '-=0.2'
+        );
 
       // Gradient line fades in
       if (headerRef.current) {
-        tl.fromTo(
+        gsap.fromTo(
           headerRef.current,
-          { '--line-opacity': 0 } as any,
-          { '--line-opacity': 0.6, duration: 0.6 } as any,
-          '-=0.3'
+          { opacity: 0 },
+          { opacity: 1, duration: 0.6 }
         );
       }
     }, headerRef);
@@ -66,9 +56,7 @@ export default function Header() {
 
   // Scroll listener
   useEffect(() => {
-    const onScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
+    const onScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
@@ -100,7 +88,7 @@ export default function Header() {
       <header ref={headerRef} className={headerClasses}>
         {/* Logo */}
         <Link href="/">
-          <div ref={logoRef} className={styles.logoContainer}>
+          <div ref={logoRef} className={styles.logo}>
             <Image
               src="/estrella.png"
               alt="AtrevidaFit Logo"
@@ -128,7 +116,7 @@ export default function Header() {
           <a
             ref={ctaRef}
             href="#contacto"
-            className={styles.ctaButton}
+            className={styles.headerCta}
           >
             <span className={styles.ctaButtonText}>✦ Reservar</span>
           </a>
@@ -149,7 +137,7 @@ export default function Header() {
       {/* Mobile Menu */}
       <div className={`${styles.mobileMenu} ${mobileOpen ? styles.mobileMenuOpen : ''}`}>
         <div className={styles.mobileMenuOrb} />
-        <div className={styles.mobileMenuOrb} />
+        <div className={styles.mobileMenuOrb2} />
         {NAV_LINKS.map((link) => (
           <a
             key={link.href}
@@ -162,7 +150,7 @@ export default function Header() {
         ))}
         <a
           href="#contacto"
-          className={`${styles.ctaButton} mobileNavItem`}
+          className={`${styles.headerCta} mobileNavItem`}
           onClick={() => setMobileOpen(false)}
           style={{ marginTop: '1rem', fontSize: '1rem', padding: '0.8rem 2.5rem' }}
         >

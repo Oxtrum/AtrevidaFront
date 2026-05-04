@@ -29,7 +29,7 @@ function getSlots(data: ApiResponse | null, fechas: Map<DiaSemana, FechaDia> | n
 
   for (const hora of HORAS) {
     const idx = HORAS.indexOf(hora);
-    const horaFin = HORAS[idx+1] || '20:30';
+    const horaFin = HORAS[idx + 1] || '20:30';
 
     const fila: TimeSlotInfo[] = DIAS.map(dia => {
       const fechaInfo = fechas?.get(dia);
@@ -47,12 +47,12 @@ function getSlots(data: ApiResponse | null, fechas: Map<DiaSemana, FechaDia> | n
     for (const local of reservasData) {
       for (const semana of local.semanas ?? []) {
         for (const reserva of semana.reservas ?? []) {
-          const match = reserva.hora.match(/^(\d{1,2}:\d{2})/);
+          const match = reserva.hora.match(/^(\d{1,2})(:\d{2})?/);
           if (!match) continue;
-          const horaReserva = match[1];
+          const raw = match[1] + (match[2] ?? ':00'); // "8" → "8:00", "8:30" → "8:30"
+          const horaReserva = raw;
 
           if (horaReserva !== hora) continue;
-
           for (const [diaKey, items] of Object.entries(reserva.dias ?? {})) {
             const dia = diaKey.toUpperCase() as DiaSemana;
             if (!DIAS.includes(dia)) continue;

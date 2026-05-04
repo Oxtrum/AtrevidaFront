@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { apiClient } from '@/lib/api/client';
+import { getReservasDB } from '@/lib/api/reservas';
 import type { ApiResponse } from '@/types/reserva';
 
 interface UseReservasParams {
     local: string;
     semana: number;
+    fecha_desde?: string;
+    fecha_hasta?: string;
 }
 
 interface UseReservasReturn {
@@ -18,8 +20,7 @@ interface UseReservasReturn {
 
 /**
  * Hook para obtener reservas directamente del API.
-
- * Responsabilidad única: fetch directo + estado.
+ * Soporta tanto el endpoint nuevo (DB) como el anterior (Sheets).
  */
 export function useReservas(): UseReservasReturn {
     const [data, setData] = useState<ApiResponse | null>(null);
@@ -37,14 +38,16 @@ export function useReservas(): UseReservasReturn {
         setError(null);
 
         try {
-            const result = await apiClient.get<ApiResponse>('/reservas', {
-                params: {
-                    local: params.local,
-                    semana: params.semana,
-                },
+            const result = await getReservasDB({
+                local: params.local,
+                fecha_desde: params.fecha_desde,
+                fecha_hasta: params.fecha_hasta,
             });
+            console.log('>>> getReservasDB result:', result);
+            
             setData(result);
         } catch (err) {
+            console.log('>>> getReservasDB ERROR:', err);
             setError(err instanceof Error ? err.message : 'Error desconocido');
             setData(null);
         } finally {

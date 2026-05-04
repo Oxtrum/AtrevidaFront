@@ -20,31 +20,40 @@ export function TimeSlotPicker({
 }: TimeSlotPickerProps) {
   const [selecting, setSelecting] = useState<string | null>(null);
 
-  // Solo mostrar horas que no sean 'unavailable'
-  const visibleHoras = HORAS.filter(h => hoursAvailability.get(h) !== 'unavailable');
+  // SIEMPRE mostrar todas las horas 8:00-20:00
+  const visibleHoras = HORAS;
 
   const handleClick = (hora: string) => {
     const status = hoursAvailability.get(hora);
-    if (status !== 'free') return;
+    
+    // No permitir seleccionar horas pasadas
+    if (status === 'past') return;
 
     if (!selecting) {
+      // Primera selección - hora de inicio
       const idx = HORAS.indexOf(hora);
       const siguiente = HORAS[idx + 1] || hora;
       setSelecting(hora);
       onSelect(hora, siguiente);
     } else {
+      // Segunda selección - hora de fin
       if (hora === selecting) {
+        // Deseleccionar
         setSelecting(null);
         onSelect('', '');
         return;
       }
+      
+      // Asegurar que hora fin > hora inicio
       if (hora < selecting) {
+        // Si seleccionan en orden inverso
         const idx = HORAS.indexOf(hora);
         const siguiente = HORAS[idx + 1] || hora;
         setSelecting(hora);
         onSelect(hora, siguiente);
         return;
       }
+      
       onSelect(selecting, hora);
       setSelecting(null);
     }
@@ -53,17 +62,13 @@ export function TimeSlotPicker({
   const isInRange = (hora: string) =>
     horaDesde && horaHasta && hora >= horaDesde && hora < horaHasta;
 
+  const getStatus = (hora: string): SlotStatus => {
+    return hoursAvailability.get(hora) ?? 'free';
+  };
+
   const hint = selecting
     ? `Selecciona la hora de fin (después de ${selecting})`
     : 'Selecciona la hora de inicio';
-
-  if (visibleHoras.length === 0) {
-    return (
-      <div className={styles.pickerPlaceholder}>
-        No hay horarios disponibles para este servicio en el día seleccionado
-      </div>
-    );
-  }
 
   return (
     <div className={styles.timeSlotPicker}>
@@ -106,9 +111,10 @@ export function TimeSlotPicker({
       {/* Grid */}
       <div className={styles.timeSlotGrid}>
         {visibleHoras.map((hora) => {
-          const status = hoursAvailability.get(hora) ?? 'unavailable';
+          const status = getStatus(hora);
           const inRange = isInRange(hora);
           const isStart = hora === horaDesde;
+          const isPast = status === 'past';
 
           return (
             <button
@@ -116,18 +122,15 @@ export function TimeSlotPicker({
               type="button"
               className={[
                 styles.timeChip,
-                status === 'full' ? styles.timeChipReserved : '',
-                status === 'past' ? styles.timeChipPast : '',
+                isPast ? styles.timeChipPast : '',
                 inRange ? styles.timeChipSelected : '',
                 isStart ? styles.timeChipStart : '',
-              ]
-                .filter(Boolean)
-                .join(' ')}
+              ].filter(Boolean).join(' ')}
               onClick={() => handleClick(hora)}
-              disabled={status !== 'free'}
+              disabled={isPast}
               title={
-                status === 'full' ? `${hora} — Ocupado`
-                  : status === 'past' ? `${hora} — Pasado`
+                isPast ? `${hora} — Pasado`
+                  : status === 'occupied' ? `${hora} — Ocupado (el backend validará)`
                     : hora
               }
             >

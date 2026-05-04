@@ -6,10 +6,57 @@
 import { apiClient } from './client';
 import type { ApiResponse, ReservaFormData } from '@/types/reserva';
 
-export interface GetReservasParams {
+// ─── Parámetros (Sheets - DEPRECATED) ──────────────────────────────────────
+
+export interface GetReservasSheetsParams {
   local: string;
   /** Número de semana relativo (1 = semana actual, 2 = siguiente, …) */
   semana?: number;
+  dia?: string;
+  tipo?: string;
+  cliente?: string;
+  reservados?: boolean;
+}
+
+// ─── Parámetros (DB) ────────────────────────────────────────────────────────
+
+export interface GetReservasDBParams {
+  local: string;
+  fecha_desde?: string;
+  fecha_hasta?: string;
+  tipo?: string;
+  cliente?: string;
+  reservados?: boolean;
+}
+
+export interface GetReservasCalendarioParams {
+  local: string;
+  fecha_desde: string;
+  fecha_hasta: string;
+  tipo?: string;
+  cliente?: string;
+  reservados?: boolean;
+}
+
+export interface CrearReservaDBData {
+  local: string;
+  fecha: string;
+  hora_desde: string;
+  hora_hasta: string;
+  tipo: string;
+  cliente: string;
+  servicio?: string;
+}
+
+export interface ActualizarReservaDBData {
+  local: string;
+  fecha: string;
+  hora: string;
+  tipo: string;
+  cliente: string;
+  nueva_fecha?: string;
+  nueva_hora_desde?: string;
+  nuevo_tipo?: string;
 }
 
 export interface CrearReservaResult {
@@ -17,19 +64,65 @@ export interface CrearReservaResult {
   mensaje: string;
 }
 
-// ─── Queries ──────────────────────────────────────────────────────────────────
+// ─── Queries (Sheets - DEPRECATED) ──────────────────────────────────────────
 
-/** Obtiene la grilla de reservas para una sucursal y semana. */
-export async function getReservas(params: GetReservasParams): Promise<ApiResponse> {
+/** (DEPRECATED) Obtiene la grilla de reservas para una sucursal y semana. */
+export async function getReservasSheets(params: GetReservasSheetsParams): Promise<ApiResponse> {
   return apiClient.get<ApiResponse>('/reservas', {
     params: {
       local: params.local,
       semana: params.semana,
+      dia: params.dia,
+      tipo: params.tipo,
+      cliente: params.cliente,
+      reservados: params.reservados?.toString(),
     },
   });
 }
 
-/** Crea una nueva reserva. */
+// ─── Queries (DB) ───────────────────────────────────────────────────────────
+
+/** Obtiene reservas filtradas desde la base de datos. */
+export async function getReservasDB(params: GetReservasDBParams): Promise<ApiResponse> {
+  return apiClient.get<ApiResponse>('/bd/reservas', {
+    params: {
+      local: params.local,
+      fecha_desde: params.fecha_desde,
+      fecha_hasta: params.fecha_hasta,
+      tipo: params.tipo,
+      cliente: params.cliente,
+      reservados: params.reservados?.toString(),
+    },
+  });
+}
+
+/** Obtiene reservas para vista calendario desde la base de datos. */
+export async function getReservasCalendario(params: GetReservasCalendarioParams): Promise<ApiResponse> {
+  return apiClient.get<ApiResponse>('/bd/reservas/calendario', {
+    params: {
+      local: params.local,
+      fecha_desde: params.fecha_desde,
+      fecha_hasta: params.fecha_hasta,
+      tipo: params.tipo,
+      cliente: params.cliente,
+      reservados: params.reservados?.toString(),
+    },
+  });
+}
+
+/** Crea una nueva reserva en la base de datos. */
+export async function crearReservaDB(data: CrearReservaDBData): Promise<CrearReservaResult> {
+  return apiClient.post<CrearReservaResult>('/bd/reservas', data);
+}
+
+/** Actualiza una reserva existente en la base de datos. */
+export async function actualizarReservaDB(data: ActualizarReservaDBData): Promise<CrearReservaResult> {
+  return apiClient.patch<CrearReservaResult>('/api/bd/reservas', data);
+}
+
+// ─── Helpers (Sheets - DEPRECATED) ─────────────────────────────────────────
+
+/** (DEPRECATED) Crea una nueva reserva. */
 export async function crearReserva(data: ReservaFormData): Promise<CrearReservaResult> {
   return apiClient.post<CrearReservaResult>('/reservas', data);
 }

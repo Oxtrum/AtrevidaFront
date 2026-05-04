@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import gsap from 'gsap';
-import { TimeSlotInfo, SUCURSALES, DiaSemana, generarSemanas, getFechasDeSemana } from '@/types/reserva';
-import { useReservas } from '@/lib/hooks/useReservas';
+import { TimeSlotInfo, DiaSemana, generarSemanas, getFechasDeSemana } from '@/types/reserva';
+
+import { useLocales } from '@/lib/hooks/useLocales'; import { useReservasCalendario } from '@/lib/hooks/useReservasCalendario';
 import CalendarGrid from './CalendarGrid';
 import styles from './Calendar.module.css';
 import { CustomSelect } from '../Custom/CustomSelect';
@@ -12,14 +13,22 @@ interface CalendarProps {
   localInicial?: string;
   semanaInicial?: string;
   onSlotClick?: (slot: TimeSlotInfo) => void;
+  onSucursalChange?: (sucursal: string) => void; // ← nuevo
+  onSemanaChange?: (semana: string) => void;      // ← nuevo
 }
-
-export default function Calendar({ localInicial = '', onSlotClick }: CalendarProps) {
+export default function Calendar({
+  localInicial = '',
+  onSlotClick,
+  onSucursalChange,
+  onSemanaChange,
+}: CalendarProps) {
   const [sucursal, setSucursal] = useState(localInicial);
   const [semanaIndex, setSemanaIndex] = useState(0);
   const [selectedDay, setSelectedDay] = useState<DiaSemana | null>(null);
 
-  const { data, loading, error, fetch: fetchReservas } = useReservas();
+  const { data, loading, error, fetch: fetchReservas } = useReservasCalendario();
+  const { locales } = useLocales();
+  const sucursalEfectiva = sucursal || locales[0]?.nombre || '';
 
   const controlsRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -29,11 +38,27 @@ export default function Calendar({ localInicial = '', onSlotClick }: CalendarPro
   const semanaActual = semanasDisponibles[semanaIndex];
   const fechas = useMemo(() => semanaActual ? getFechasDeSemana(semanaActual.fechaInicio) : null, [semanaActual]);
 
+
   // Fetch reservas cuando cambian sucursal o semana
   useEffect(() => {
-    fetchReservas({ local: sucursal, semana: semanaIndex + 1 });
-  }, [sucursal, semanaIndex, fetchReservas]);
+    if (sucursalEfectiva && semanaActual) {
+      const fechaInicio = semanaActual.fechaInicio.toISOString().split('T')[0];
+      const fechaFin = new Date(semanaActual.fechaInicio);
+      fechaFin.setDate(fechaFin.getDate() + 5);
+      const fechaHasta = fechaFin.toISOString().split('T')[0];
 
+      fetchReservas({
+        local: sucursalEfectiva, // ← usar sucursalEfectiva
+        fecha_desde: fechaInicio,
+        fecha_hasta: fechaHasta,
+      });
+    }
+  }, [sucursalEfectiva, semanaIndex, semanaActual, fetchReservas]);
+  const handleSucursalChange = (value: string) => {
+    setSucursal(value);
+    setSelectedDay(null);
+    onSucursalChange?.(value); // ← agregar esta línea
+  };
   useEffect(() => {
     const ctx = gsap.context(() => {
       gsap.fromTo(controlsRef.current,
@@ -63,10 +88,15 @@ export default function Calendar({ localInicial = '', onSlotClick }: CalendarPro
     }
   }, [loading, data]);
 
-  const handleSucursalChange = (value: string) => {
-    setSucursal(value);
-    setSelectedDay(null);
+  const handleSemanaChange = (value: string) => {
+    setSemanaIndex(Number(value));
+    onSemanaChange?.(value); // ← notificar al padre
   };
+
+  const sucursalOptions = useMemo(
+    () => locales.map(l => ({ value: l.nombre, label: l.nombre })),
+    [locales]
+  );
 
   return (
     <div ref={wrapperRef} className={styles.calendarWrapper}>
@@ -79,18 +109,18 @@ export default function Calendar({ localInicial = '', onSlotClick }: CalendarPro
       <div ref={controlsRef} className={styles.controls}>
         <div className={styles.controlGroup}>
           <label >Sucursal</label>
-          <CustomSelect onChange={(e) => handleSucursalChange(e)}
-            value={sucursal}
-            options={SUCURSALES.map(s => ({ value: s.value, label: s.label }))}
+          <CustomSelect
+            onChange={(e) => handleSucursalChange(e)}
+            value={sucursalEfectiva}
+            options={sucursalOptions}
             placeholder='Seleccionar sucursal'
-
           />
         </div>
 
         <div className={styles.controlGroup}>
           <label htmlFor="semana-select">Semana</label>
           <CustomSelect
-            onChange={(e) => setSemanaIndex(Number(e))}
+            onChange={handleSemanaChange}
             value={semanaIndex.toString()}
             options={semanasDisponibles.map((semana, idx) => ({ value: idx.toString(), label: semana.titulo }))}
           />
@@ -106,7 +136,7 @@ export default function Calendar({ localInicial = '', onSlotClick }: CalendarPro
           <h3>Error al cargar</h3>
           <p>{error}</p>
         </div>
-      ) : !sucursal ? (
+      ) : !sucursalEfectiva ? (
         <div className={styles.emptyState}>
           <h3>Selecciona una sucursal</h3>
           <p>Elige una sucursal para ver las reservas disponibles</p>
