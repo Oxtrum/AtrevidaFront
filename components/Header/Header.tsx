@@ -7,10 +7,10 @@ import styles from './Header.module.css';
 import Link from 'next/link';
 
 const NAV_LINKS = [
-  { label: 'Inicio', href: '#inicio' },
-  { label: 'Servicios', href: '#servicios' },
-  { label: 'Nosotros', href: '#nosotros' },
-  { label: 'Contacto', href: '#contacto' },
+  { label: 'Inicio', href: '/' },
+  { label: 'Servicios', href: '/#servicios' },
+  { label: 'Nosotros', href: '/#nosotros' },
+  { label: 'Contacto', href: '/#contacto' },
   { label: 'Reservas', href: '/reservas' },
 ];
 
@@ -104,22 +104,15 @@ export default function Header() {
         {/* Desktop Nav */}
         <nav className={styles.nav}>
           {NAV_LINKS.map((link, i) => (
-            <a
+            <Link
               key={link.href}
-              ref={(el) => { if (el) navLinksRef.current[i] = el; }}
               href={link.href}
               className={styles.navLink}
+              ref={(el) => { if (el) navLinksRef.current[i] = el; }}
             >
               {link.label}
-            </a>
+            </Link>
           ))}
-          <a
-            ref={ctaRef}
-            href="#contacto"
-            className={styles.headerCta}
-          >
-            <span className={styles.ctaButtonText}>✦ Reservar</span>
-          </a>
         </nav>
 
         {/* Hamburger */}
@@ -139,23 +132,15 @@ export default function Header() {
         <div className={styles.mobileMenuOrb} />
         <div className={styles.mobileMenuOrb2} />
         {NAV_LINKS.map((link) => (
-          <a
+          <Link
             key={link.href}
             href={link.href}
             className={`${styles.mobileNavLink} mobileNavItem`}
             onClick={() => setMobileOpen(false)}
           >
             {link.label}
-          </a>
+          </Link>
         ))}
-        <a
-          href="#contacto"
-          className={`${styles.headerCta} mobileNavItem`}
-          onClick={() => setMobileOpen(false)}
-          style={{ marginTop: '1rem', fontSize: '1rem', padding: '0.8rem 2.5rem' }}
-        >
-          <span className={styles.ctaButtonText}>✦ Reservar</span>
-        </a>
       </div>
       <div className='h-10'> </div>
     </>
