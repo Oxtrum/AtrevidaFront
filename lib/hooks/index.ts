@@ -15,3 +15,4 @@
 
 export { useReservas } from './useReservas';
 export { useCrearReserva } from './useCrearReserva';
+export { useLocales } from './useLocales';

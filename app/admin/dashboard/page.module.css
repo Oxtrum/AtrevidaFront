@@ -1,0 +1,505 @@
+/* =====================================================
+   Admin Dashboard — AtrevidaFit CSS Module
+   ===================================================== */
+
+/* ── Page shell ────────────────────────────────────── */
+.pageContainer {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #030303;
+  position: relative;
+  overflow-x: hidden;
+  font-family: var(--font-poppins, sans-serif);
+}
+
+.main {
+  flex: 1;
+  padding: 3.5rem 1.5rem 5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ── Background mesh ────────────────────────────────── */
+.bgMesh {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 65% 55% at 0%   10%,  rgba(146, 39, 143, 0.11) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 100% 70%,  rgba(20,  174, 239, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 50%  100%, rgba(236, 0,  140, 0.06) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+/* ── Ambient orbs ───────────────────────────────────── */
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(110px);
+  pointer-events: none;
+}
+
+.orb1 {
+  top: 5%;
+  left: -5%;
+  width: 420px;
+  height: 420px;
+  background: rgba(236, 0, 140, 0.10);
+}
+
+.orb2 {
+  bottom: 10%;
+  right: -3%;
+  width: 350px;
+  height: 350px;
+  background: rgba(146, 39, 143, 0.09);
+}
+
+/* ── Decorative particles ───────────────────────────── */
+.particle {
+  position: absolute;
+  font-size: 1.4rem;
+  color: rgba(236, 0, 140, 0.2);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ══════════════════════════════════════════════════════
+   Page header
+   ══════════════════════════════════════════════════════ */
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+  margin-bottom: 3rem;
+  flex-wrap: wrap;
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 1.1rem;
+  border: 1px solid rgba(236, 0, 140, 0.45);
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: #EC008C;
+  background: rgba(236, 0, 140, 0.08);
+  width: fit-content;
+}
+
+.badgeDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #EC008C;
+  box-shadow: 0 0 6px #EC008C;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.45; transform: scale(0.7); }
+}
+
+.title {
+  font-size: clamp(1.9rem, 4.5vw, 3rem);
+  font-weight: 800;
+  line-height: 1.1;
+  color: #F5F5F5;
+  letter-spacing: -0.5px;
+}
+
+.titleAccent {
+  background: linear-gradient(120deg, #EC008C, #92278F, #14AEEF);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  font-size: 0.9rem;
+  color: rgba(245, 245, 245, 0.45);
+  line-height: 1.6;
+  max-width: 440px;
+}
+
+/* Header actions */
+.headerActions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.9rem;
+  padding-top: 0.3rem;
+}
+
+.dateBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 100px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  font-size: 0.82rem;
+  color: rgba(245, 245, 245, 0.5);
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.dateIcon {
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.logoutButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.6rem 1.4rem;
+  border-radius: 100px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: transparent;
+  color: rgba(245, 245, 245, 0.65);
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: var(--font-poppins, sans-serif);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.logoutButton:hover {
+  border-color: rgba(236, 0, 140, 0.5);
+  color: #EC008C;
+  background: rgba(236, 0, 140, 0.07);
+}
+
+/* ══════════════════════════════════════════════════════
+   Stats bar
+   ══════════════════════════════════════════════════════ */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 3rem;
+  position: relative;
+}
+
+/* Gradient line on top */
+.statsGrid::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    #EC008C 20%,
+    #92278F 40%,
+    #14AEEF 60%,
+    #FFE600 80%,
+    transparent 100%
+  );
+  opacity: 0.5;
+  z-index: 1;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  padding: 2rem 1.2rem;
+  background: #0c0c0c;
+  transition: background 0.3s ease;
+}
+
+.statItem:hover {
+  background: #111;
+}
+
+.statIcon {
+  color: var(--stat-color, #EC008C);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.25rem;
+  opacity: 0.85;
+}
+
+.statValue {
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 800;
+  color: var(--stat-color, #EC008C);
+  line-height: 1;
+  letter-spacing: -1px;
+}
+
+.statLabel {
+  font-size: 0.78rem;
+  color: rgba(245, 245, 245, 0.4);
+  font-weight: 500;
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+
+/* ══════════════════════════════════════════════════════
+   Grid section label
+   ══════════════════════════════════════════════════════ */
+.gridLabel {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.gridLabelText {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 245, 0.3);
+  white-space: nowrap;
+}
+
+.gridLabelLine {
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* ══════════════════════════════════════════════════════
+   Action cards grid
+   ══════════════════════════════════════════════════════ */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+}
+
+/* ── Single card ────────────────────────────────────── */
+.card {
+  position: relative;
+  background: #0c0c0c;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 22px;
+  padding: 1.8rem 1.7rem 1.5rem;
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+    border-color 0.4s ease,
+    box-shadow 0.4s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  outline: none;
+}
+
+.card:hover,
+.card:focus-visible {
+  transform: translateY(-8px);
+  border-color: rgba(var(--card-color-rgb, 236, 0, 140), 0.25);
+  box-shadow:
+    0 20px 55px rgba(0, 0, 0, 0.5),
+    0 0 30px rgba(var(--card-color-rgb, 236, 0, 140), 0.08);
+}
+
+/* Color top bar */
+.cardBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--card-color, #EC008C);
+  opacity: 0.8;
+}
+
+/* Optional badge */
+.cardBadge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.22rem 0.65rem;
+  border-radius: 100px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--card-color, #EC008C);
+  background: rgba(var(--card-color-rgb, 236, 0, 140), 0.12);
+  border: 1px solid rgba(var(--card-color-rgb, 236, 0, 140), 0.25);
+}
+
+/* Icon wrapper */
+.cardIconWrapper {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(var(--card-color-rgb, 236, 0, 140), 0.1);
+  border: 1px solid rgba(var(--card-color-rgb, 236, 0, 140), 0.2);
+  border-radius: 16px;
+  margin-bottom: 1.3rem;
+  color: var(--card-color, #EC008C);
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  flex-shrink: 0;
+}
+
+.card:hover .cardIconWrapper {
+  transform: scale(1.1) rotate(-6deg);
+  background: var(--card-color, #EC008C);
+  border-color: var(--card-color, #EC008C);
+  box-shadow: 0 0 20px rgba(var(--card-color-rgb, 236, 0, 140), 0.4);
+  color: #000;
+}
+
+.cardIcon {
+  /* SVG icon inherits color from wrapper via currentColor */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Content */
+.cardContent {
+  flex: 1;
+}
+
+.cardTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #F5F5F5;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.cardDesc {
+  font-size: 0.83rem;
+  line-height: 1.6;
+  color: rgba(245, 245, 245, 0.42);
+}
+
+/* Footer row */
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1.3rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.cardCta {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--card-color, #EC008C);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.cardArrow {
+  color: var(--card-color, #EC008C);
+  display: flex;
+  align-items: center;
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+
+.card:hover .cardArrow {
+  transform: translateX(5px);
+}
+
+/* Hover glow overlay */
+.cardGlow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 80% 60% at 50% 0%,
+    rgba(var(--card-color-rgb, 236, 0, 140), 0.05) 0%,
+    transparent 70%
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  border-radius: 22px;
+}
+
+.card:hover .cardGlow {
+  opacity: 1;
+}
+
+/* ── Footer note ────────────────────────────────────── */
+.footerNote {
+  margin-top: 4rem;
+  text-align: center;
+  font-size: 0.78rem;
+  color: rgba(245, 245, 245, 0.18);
+  letter-spacing: 0.06em;
+}
+
+/* ══════════════════════════════════════════════════════
+   Responsive
+   ══════════════════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .pageHeader {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .headerActions {
+    align-items: flex-start;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .statItem {
+    padding: 1.5rem 0.8rem;
+  }
+}

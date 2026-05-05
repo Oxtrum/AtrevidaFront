@@ -191,7 +191,7 @@
   scrollbar-width: thin;
   scrollbar-color: rgba(146, 39, 143, 0.4) transparent;
   position: relative;
-  z-index: 1;
+
 }
 
 .calendarContainer::-webkit-scrollbar { height: 4px; }

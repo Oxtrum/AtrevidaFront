@@ -1,0 +1,440 @@
+/* =====================================================
+   Admin Login — AtrevidaFit CSS Module
+   ===================================================== */
+
+/* ── Page shell ────────────────────────────────────── */
+.pageContainer {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #030303;
+  position: relative;
+  overflow: hidden;
+  font-family: var(--font-poppins, sans-serif);
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem 4rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Background mesh ────────────────────────────────── */
+.bgMesh {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 60% at 5%  15%,  rgba(146, 39, 143, 0.13) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 45% at 95% 85%,  rgba(20, 174, 239, 0.09) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 35% at 50% 100%, rgba(236, 0,  140, 0.07) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+/* ── Ambient orbs ───────────────────────────────────── */
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px);
+  pointer-events: none;
+}
+
+.orb1 {
+  top: 10%;
+  left: 5%;
+  width: 380px;
+  height: 380px;
+  background: rgba(236, 0, 140, 0.13);
+}
+
+.orb2 {
+  bottom: 15%;
+  right: 8%;
+  width: 300px;
+  height: 300px;
+  background: rgba(146, 39, 143, 0.11);
+}
+
+.orb3 {
+  top: 50%;
+  right: 25%;
+  width: 200px;
+  height: 200px;
+  background: rgba(20, 174, 239, 0.07);
+  filter: blur(80px);
+}
+
+/* ── Decorative particles ───────────────────────────── */
+.particle {
+  position: absolute;
+  font-size: 1.4rem;
+  color: rgba(236, 0, 140, 0.22);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ── Login card ─────────────────────────────────────── */
+.loginCard {
+  background: rgba(10, 10, 10, 0.9);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 28px;
+  padding: 0 2.8rem 2.8rem;
+  width: 100%;
+  max-width: 460px;
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Gradient top line */
+.cardLine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    #EC008C 20%,
+    #92278F 40%,
+    #14AEEF 60%,
+    #FFE600 80%,
+    transparent 100%
+  );
+  opacity: 0.75;
+}
+
+/* Subtle inner glow top */
+.loginCard::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 120px;
+  background: radial-gradient(ellipse at top, rgba(236, 0, 140, 0.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ── Login header ───────────────────────────────────── */
+.loginHeader {
+  text-align: center;
+  padding-top: 2.8rem;
+  margin-bottom: 2.4rem;
+}
+
+.loginBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.38rem 1.1rem;
+  border: 1px solid rgba(236, 0, 140, 0.45);
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #EC008C;
+  background: rgba(236, 0, 140, 0.08);
+  margin-bottom: 1.3rem;
+}
+
+.badgeDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #EC008C;
+  box-shadow: 0 0 6px #EC008C;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.75); }
+}
+
+.title {
+  font-size: clamp(2.2rem, 5vw, 3rem);
+  font-weight: 800;
+  line-height: 1.05;
+  color: #F5F5F5;
+  margin-bottom: 0.65rem;
+  letter-spacing: -0.5px;
+  font-style: normal;
+}
+
+.titleAccent {
+  background: linear-gradient(120deg, #EC008C, #92278F, #14AEEF);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-style: italic;
+  padding-right: 10px;
+}
+
+.subtitle {
+  color: rgba(245, 245, 245, 0.45);
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+/* ── Form ───────────────────────────────────────────── */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 245, 0.6);
+}
+
+.labelIcon {
+  font-size: 0.7rem;
+  color: #EC008C;
+  opacity: 0.8;
+}
+
+/* Input wrapper for glow effect */
+.inputWrapper {
+  position: relative;
+}
+
+.input {
+  width: 100%;
+  padding: 0.95rem 1.2rem;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: #F5F5F5;
+  font-size: 0.975rem;
+  font-family: var(--font-poppins, sans-serif);
+  transition: border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+}
+
+.inputPadRight {
+  padding-right: 3rem;
+}
+
+.input:focus {
+  outline: none;
+  border-color: rgba(236, 0, 140, 0.55);
+  background: rgba(236, 0, 140, 0.04);
+  box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.08);
+}
+
+.input::placeholder {
+  color: rgba(245, 245, 245, 0.25);
+}
+
+/* Subtle bottom glow on focus */
+.input:focus ~ .inputGlow {
+  opacity: 1;
+}
+
+.inputGlow {
+  position: absolute;
+  bottom: -1px;
+  left: 10%;
+  width: 80%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #EC008C, transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 1px;
+}
+
+/* Eye toggle button */
+.eyeToggle {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: rgba(245, 245, 245, 0.35);
+  font-size: 0.65rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  z-index: 2;
+  transition: color 0.2s ease;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.eyeToggle:hover {
+  color: #EC008C;
+}
+
+/* ── Error state ────────────────────────────────────── */
+.errorBox {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: 12px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  color: #f87171;
+  font-size: 0.865rem;
+  animation: slideDown 0.3s ease;
+}
+
+.errorIcon {
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Submit button ──────────────────────────────────── */
+.submitButton {
+  margin-top: 0.4rem;
+  padding: 1.1rem 2.8rem;
+  border-radius: 100px;
+  border: none;
+  background: linear-gradient(135deg, #EC008C 0%, #92278F 100%);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: var(--font-poppins, sans-serif);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.2s;
+  box-shadow:
+    0 10px 40px rgba(236, 0, 140, 0.4),
+    0 0 0 1px rgba(236, 0, 140, 0.15);
+  width: 100%;
+}
+
+.submitButton:hover:not(:disabled) {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow:
+    0 18px 50px rgba(236, 0, 140, 0.55),
+    0 0 0 1px rgba(236, 0, 140, 0.2);
+}
+
+.submitButton:active:not(:disabled) {
+  transform: translateY(-1px) scale(0.99);
+}
+
+.submitButton:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.loadingInner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+}
+
+/* Spinner */
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Divider ────────────────────────────────────────── */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.8rem 0 1.2rem;
+}
+
+.dividerLine {
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.dividerText {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(245, 245, 245, 0.25);
+  white-space: nowrap;
+}
+
+/* ── Back link ──────────────────────────────────────── */
+.backLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  color: rgba(245, 245, 245, 0.4);
+  font-size: 0.865rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s ease;
+  padding: 0.4rem;
+  border-radius: 8px;
+}
+
+.backLink:hover {
+  color: #EC008C;
+}
+
+.backIcon {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+.backLink:hover .backIcon {
+  transform: translateX(-4px);
+}
+
+/* ── Responsive ─────────────────────────────────────── */
+@media (max-width: 480px) {
+  .loginCard {
+    padding: 0 1.8rem 2rem;
+    border-radius: 20px;
+  }
+
+  .loginHeader {
+    padding-top: 2rem;
+    margin-bottom: 1.8rem;
+  }
+}

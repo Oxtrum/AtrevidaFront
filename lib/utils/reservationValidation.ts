@@ -43,23 +43,38 @@ export function validateReservationForm(
 }
 
 export function buildReservaPayload(
-    sucursal: string,
-    semanaTitle: string,
-    dia: DiaSemana,
-    horaDesde: string,
-    horaHasta: string,
-    tipo: 'm' | 'b',
-    cliente: string,
-    servicio: string,
-): ReservaFormData {
+  local: string,
+  semanaTitle: string,
+  dia: DiaSemana,
+  horaDesde: string,
+  horaHasta: string,
+  tipo: string, // 'mesa' o 'bicicleta'
+  cliente: string,
+  servicio: string,
+  fecha?: string, // Fecha ISO para DB: "2025-04-04"
+): any {
+  // Para BD, usar fecha (si se proporciona)
+  if (fecha && fecha.trim() !== '') {
     return {
-        local: sucursal,
-        semana: semanaTitle,
-        dia,
-        hora_desde: horaDesde,
-        hora_hasta: horaHasta,
-        tipo,
-        cliente,
-        servicio,
+      local,
+      fecha,
+      hora_desde: horaDesde,
+      hora_hasta: horaHasta,
+      tipo, // 'mesa' o 'bicicleta' (lowercase, full name)
+      cliente,
+      servicio,
     };
+  }
+  
+  // Para Sheets (legacy), usar semana/dia
+  return {
+    local,
+    semana: semanaTitle,
+    dia,
+    hora_desde: horaDesde,
+    hora_hasta: horaHasta,
+    tipo,
+    cliente,
+    servicio,
+  };
 }

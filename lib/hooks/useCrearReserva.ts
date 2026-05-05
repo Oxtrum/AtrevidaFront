@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { apiClient } from '@/lib/api/client';
-import type { ReservaFormData } from '@/types/reserva';
+import { crearReservaDB } from '@/lib/api/reservas';
 
 interface CrearReservaResult {
     id: string;
@@ -12,24 +11,38 @@ interface CrearReservaResult {
 interface UseCrearReservaReturn {
     loading: boolean;
     error: string | null;
-    crearReserva: (data: ReservaFormData) => Promise<CrearReservaResult>;
+    crearReserva: (data: any) => Promise<CrearReservaResult>;
 }
 
 /**
- * Hook para crear una reserva directamente en el API.
- * Responsabilidad única: POST directo + estado.
+ * Hook para crear una reserva en la base de datos.
  */
 export function useCrearReserva(): UseCrearReservaReturn {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const crearReserva = useCallback(async (data: ReservaFormData): Promise<CrearReservaResult> => {
+    const crearReservaFn = useCallback(async (data: any): Promise<CrearReservaResult> => {
         setLoading(true);
         setError(null);
 
         try {
-            const result = await apiClient.post<CrearReservaResult>('/reservas', data);
-            return result;
+            // Si tiene fecha (BD), usar crearReservaDB
+            if (data.fecha) {
+                const result = await crearReservaDB({
+                    local: data.local,
+                    fecha: data.fecha,
+                    hora_desde: data.hora_desde,
+                    hora_hasta: data.hora_hasta,
+                    tipo: data.tipo,
+                    cliente: data.cliente,
+                    servicio: data.servicio,
+                });
+                return result;
+            }
+            
+            // Si no tiene fecha, usar Sheets (legacy)
+            const { crearReserva } = await import('@/lib/api/reservas');
+            return await crearReserva(data);
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : 'Error desconocido';
             setError(errorMsg);
@@ -39,5 +52,5 @@ export function useCrearReserva(): UseCrearReservaReturn {
         }
     }, []);
 
-    return { loading, error, crearReserva };
+    return { loading, error, crearReserva: crearReservaFn };
 }
