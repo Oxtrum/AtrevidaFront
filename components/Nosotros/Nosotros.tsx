@@ -129,8 +129,8 @@ export default function Nosotros() {
           <div ref={leftRef} className={styles.imageCollage}>
             <div className={styles.imageMain}>
               <Image
-                src="/Foto grupal.JPEG"
-                alt="Equipo AtrevidaFit"
+                src="/modelos2.jpg"
+                alt="AtrevidaFit modelo"
                 fill
                 className={styles.img}
                 sizes="(max-width: 768px) 100vw, 50vw"
@@ -139,7 +139,7 @@ export default function Nosotros() {
             </div>
             <div className={styles.imageSecond}>
               <Image
-                src="/AtrevidaPose.jpeg"
+                src="/modelos3.jpg"
                 alt="Tratamiento AtrevidaFit"
                 fill
                 className={styles.imgSecond}
