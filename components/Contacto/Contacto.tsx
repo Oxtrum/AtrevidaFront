@@ -5,6 +5,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { MapPin, MessageCircle, Camera, Clock } from 'lucide-react';
 import styles from './Contacto.module.css';
+import Link from 'next/link';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -148,9 +149,9 @@ export default function Contacto() {
         {/* CTA button section */}
         <div ref={ctaRef} className={styles.ctaSection}>
           <p className={styles.ctaEyebrow}>¿Estás lista?</p>
-          <a href="/reservar" className={styles.ctaBtn}>
+          <Link href="/reservas" className={styles.ctaBtn}>
             ✦ Reservar cita
-          </a>
+          </Link>
         </div>
       </div>
     </section>
