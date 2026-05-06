@@ -168,13 +168,8 @@
   min-height: 300px;
   border-radius: var(--af-radius-lg);
   overflow: hidden;
-  transition: var(--af-t-mid);
   cursor: pointer;
   group: card;
-}
-
-/* Glass Container with inner refraction */
-.serviceCard {
   background: var(--af-glass-sm);
   border: 1px solid var(--af-border);
   backdrop-filter: var(--af-blur);
@@ -182,15 +177,37 @@
   box-shadow: 
     inset 0 1px 0 rgba(255, 255, 255, 0.05),
     0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Modern gradient border pseudo-element */
+.serviceCard::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--accent-color, var(--af-accent-primary)), transparent 70%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+  z-index: 3;
 }
 
 .serviceCard:hover {
-  border-color: var(--accent-color, var(--af-accent-primary));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 8px 24px rgba(0, 0, 0, 0.3),
-    0 0 1px var(--accent-color, var(--af-accent-primary));
-  transform: translateY(-4px);
+    0 8px 30px rgba(0, 0, 0, 0.4);
+  transform: translateY(-2px);
+  /* Subtly change the real border to be slightly brighter, avoiding the solid color jump */
+  border-color: rgba(255, 255, 255, 0.15); 
+}
+
+.serviceCard:hover::after {
+  opacity: 1;
 }
 
 .serviceCard.grande {
@@ -207,17 +224,21 @@
   width: 100%;
   height: 100%;
   z-index: 0;
+  overflow: hidden;
 }
 
 .image {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform var(--af-t-mid);
+  /* Smooth, modern long transition for the zoom effect */
+  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
 }
 
 .serviceCard:hover .image {
-  transform: scale(1.08);
+  /* More noticeable but very smooth scale */
+  transform: scale(1.12);
 }
 
 /* Overlay gradient (dark glass effect) */
@@ -231,7 +252,8 @@
     rgba(9, 9, 11, 0.0) 100%
   );
   z-index: 1;
-  transition: opacity var(--af-t-fast);
+  /* Smooth fade for the overlay */
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .serviceCard:hover .cardOverlay {
