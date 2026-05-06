@@ -23,6 +23,7 @@ export interface ReservationFormInitialData {
   hora_desde?: string;
   hora_hasta?: string;
   servicio?: string;
+  isAdmin?: boolean;
 }
 
 export function useReservationForm(
@@ -40,14 +41,60 @@ export function useReservationForm(
   const [slotWarning, setSlotWarning] = useState<string | null>(null);
 
   // Inicializar sucursal con el primer valor disponible
+  // Normalizar horas que vienen del URL
+  const normalizarHora = (hora: string): string => {
+    if (!hora) return '';
+
+    // Si ya está en HORAS exactamente, usarla tal cual
+    if (HORAS.includes(hora)) return hora;
+
+    // Intentar sin leading zero: "09:00" → "9:00"
+    const sinCero = hora.replace(/^0(\d)/, '$1');
+    if (HORAS.includes(sinCero)) return sinCero;
+
+    // Intentar con leading zero: "9:00" → "09:00"
+    const conCero = hora.replace(/^(\d):/, '0$1:');
+    if (HORAS.includes(conCero)) return conCero;
+
+    // Número simple como "9" → probar "9:00" y "09:00"
+    if (!hora.includes(':')) {
+      const num = parseInt(hora, 10);
+      if (!isNaN(num)) {
+        const opcion1 = `${num}:00`;
+        if (HORAS.includes(opcion1)) return opcion1;
+        const opcion2 = `${num.toString().padStart(2, '0')}:00`;
+        if (HORAS.includes(opcion2)) return opcion2;
+      }
+    }
+
+    return hora; // fallback
+  };
   const [sucursal, setSucursal] = useState(initialData?.local || SUCURSALES[0]?.value || 'SAN MARTIN');
-  const [semanaIndex, setSemanaIndex] = useState(0);
+  const [semanaIndex, setSemanaIndex] = useState(initialData?.semana ? parseInt(initialData.semana, 10) : 0);
   const [dia, setDia] = useState<DiaSemana>(initialData?.dia || 'LUNES');
-  const [horaDesde, setHoraDesde] = useState(initialData?.hora_desde || '');
-  const [horaHasta, setHoraHasta] = useState(initialData?.hora_hasta || '');
+  const [horaDesde, setHoraDesde] = useState(normalizarHora(initialData?.hora_desde || ''));
+  const [horaHasta, setHoraHasta] = useState(normalizarHora(initialData?.hora_hasta || ''));
   const [cliente, setCliente] = useState('');
   const [servicio, setServicio] = useState(initialData?.servicio || '');
+  const [horaPreestablecida] = useState(!!initialData?.hora_desde); // Marca si hora vino del URL
 
+  // Calcular horaHasta cuando hora viene del URL y se selecciona servicio
+  useEffect(() => {
+    if (!horaPreestablecida || !horaDesde || !servicio) return;
+
+    const servicioInfo = SERVICIOS_DISPONIBLES.find(s => s.value === servicio);
+    if (!servicioInfo) return;
+
+    const match = servicioInfo.duracion.match(/(\d+)/);
+    const duracionMin = match ? parseInt(match[1]) : 60;
+    const duracionSlots = Math.ceil(duracionMin / 30);
+
+    const idxInicio = HORAS.indexOf(horaDesde);
+    if (idxInicio !== -1) {
+      const idxFin = Math.min(idxInicio + duracionSlots, HORAS.length - 1);
+      setHoraHasta(HORAS[idxFin]);
+    }
+  }, [horaPreestablecida, horaDesde, servicio]);
   useEffect(() => {
     console.log('>>> useReservationForm MONTADO');
     return () => console.log('>>> useReservationForm DESMONTADO');
@@ -105,7 +152,7 @@ export function useReservationForm(
   }, [sucursal, semanaIndex, semanaActual, fetchReservas]);
 
   // ── Hours availability ──────────────────────────────────
-  // SIEMPRE mostrar 8:00-20:00, marcar ocupados si hay datos
+  // Solo marcar como 'past' las horas pasadas. El backend validará disponibilidad real.
   const hoursAvailability = useMemo(() => {
     console.log('>>> useMemo ejecutado, reservasData:', reservasData);
     const map = new Map<string, SlotStatus>();
@@ -141,46 +188,13 @@ export function useReservationForm(
       map.set(hora, 'free');
     }
 
-    // 2. Si hay datos del backend, marcar ocupados
-    // El backend devuelve: { data: { reservas: ReservaBD[], total } }
-    console.log('hoursAvailability - reservasData:', reservasData);
-    console.log('hoursAvailability - dia:', dia);
-    console.log('hoursAvailability - fechasSemana:', fechasSemana);
+    // 2. No marcar ocupados aquí - dejar que el backend valide en submission.
+    // Si hay slots disponibles en el calendario, el usuario debe poder seleccionar la hora.
+    // El backend rechazará si la hora ya está ocupada.
 
-    if (reservasData?.data?.reservas && fechasSemana) {
-      const fechaDia = fechasSemana.get(dia)?.fecha;
-      if (fechaDia) {
-        const fechaStr = fechaDia.toISOString().split('T')[0];
-        const reservas = reservasData.data.reservas as unknown as ReservaBD[];
-        const tipoServicio = getTipoFromServicio(servicio).toLowerCase(); // 'm' o 'b'
-
-        for (const reserva of reservas) {
-          if (reserva.fecha?.slice(0, 10) !== fechaStr) continue;
-
-          const tipoReserva = normalizeTipo(reserva.tipo); // 'm' o 'b'
-
-          // Solo bloquear si el tipo de reserva coincide con el tipo del servicio
-          // O si no hay servicio seleccionado, bloquear todo
-          const debeBloquear = !servicio || tipoReserva === tipoServicio;
-          if (!debeBloquear) continue;
-
-          const horaInicio = reserva.hora_desde?.slice(0, 5);
-          const horaFin = reserva.hora_hasta?.slice(0, 5);
-          if (!horaInicio) continue;
-
-          const idxInicio = HORAS.indexOf(horaInicio);
-          const idxFin = horaFin ? HORAS.indexOf(horaFin) : idxInicio;
-          const idxFinSafe = idxFin === -1 ? idxInicio : idxFin;
-
-          for (let i = idxInicio; i <= idxFinSafe && i < HORAS.length; i++) {
-            map.set(HORAS[i], 'occupied');
-          }
-        }
-      }
-    }
-    console.log('Map final:', Array.from(map.entries()));
+    console.log('Map final (solo pasadas marcadas):', Array.from(map.entries()));
     return map;
-  }, [reservasData, dia, fechasSemana, servicio]);
+  }, [dia, fechasSemana]);
 
 
   // ── Limpiar servicio si cambia sucursal y no aplica ───────────
@@ -251,15 +265,21 @@ export function useReservationForm(
 
   const handleServicioChange = (value: string) => {
     setServicio(value);
-    setHoraDesde('');
-    setHoraHasta('');
+    // Solo resetear hora si NO fue preestablecida desde el URL
+    if (!horaPreestablecida) {
+      setHoraDesde('');
+      setHoraHasta('');
+    }
     setSlotWarning(null);
   };
 
   const handleDiaChange = (value: DiaSemana) => {
     setDia(value);
-    setHoraDesde('');
-    setHoraHasta('');
+    // Solo resetear hora si NO fue preestablecida desde el URL
+    if (!horaPreestablecida) {
+      setHoraDesde('');
+      setHoraHasta('');
+    }
     setSlotWarning(null);
   };
 
@@ -292,8 +312,10 @@ export function useReservationForm(
     const e = validateReservationForm(
       sucursal, semanaActual, cliente, servicio, horaDesde, horaHasta,
     );
-    if (horaDesde && hoursAvailability.get(horaDesde) === 'occupied') {
-      e.horaDesde = 'El horario seleccionado ya no está disponible';
+    // No validar aquí si está ocupado - dejar que el backend lo valide
+    // para permitir cambios de último minuto si hay slots disponibles
+    if (horaDesde && hoursAvailability.get(horaDesde) === 'past') {
+      e.horaDesde = 'No se pueden hacer reservas en horarios pasados';
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -302,40 +324,76 @@ export function useReservationForm(
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Calcular fechaISO - requerido para BD
     const fechaDia = fechasSemana?.get(dia)?.fecha;
     const fechaISO = fechaDia ? fechaDia.toISOString().split('T')[0] : '';
-
     if (!fechaISO) {
-      setError('Error: No se pudo determinar la fecha. Selecciona una semana y día válidos.');
+      setError('Error: No se pudo determinar la fecha.');
       return;
     }
-
     if (!validate()) return;
 
     setError(null);
-    const tipo = getTipoFromServicio(servicio); // Returns 'M' or 'B'
+    const tipo = getTipoFromServicio(servicio);
+    const horaDesdeNorm = normalizarHora(horaDesde);
+    const horaHastaNorm = normalizarHora(horaHasta);
 
-    // Payload para BD
-    const payload = {
-      local: sucursal,
-      fecha: fechaISO,
-      hora_desde: horaDesde,
-      hora_hasta: horaHasta,
-      tipo,
-      cliente,
-      servicio,
+    // Generar slots de 30 min entre horaDesde y horaHasta
+    const generarSlots = (desde: string, hasta: string) => {
+      const slots: { hora_desde: string; hora_hasta: string }[] = [];
+      const idxInicio = HORAS.indexOf(desde);
+      const idxFin = HORAS.indexOf(hasta);
+
+      if (idxInicio === -1 || idxFin === -1) {
+        // Fallback: enviar como un solo slot
+        return [{ hora_desde: desde, hora_hasta: hasta }];
+      }
+
+      for (let i = idxInicio; i < idxFin; i++) {
+        slots.push({
+          hora_desde: HORAS[i],
+          hora_hasta: HORAS[i + 1],
+        });
+      }
+      return slots;
     };
 
+    let slots = generarSlots(horaDesdeNorm, horaHastaNorm);
+
+    if (slots.length > 0) {
+      const primero = slots[0];
+      slots = [primero]
+    }
+
     try {
-      await crearReserva(payload);
-      if (onSuccess) { onSuccess(); } else { router.push('/reservas'); }
+      // Enviar una petición por cada slot de 30 min
+      await Promise.all(
+        slots.map(slot =>
+          crearReserva({
+            local: sucursal,
+            fecha: fechaISO,
+            hora_desde: slot.hora_desde,
+            hora_hasta: slot.hora_hasta,
+            tipo,
+            cliente,
+            servicio,
+          })
+        )
+      );
+
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('reservaFromAdmin');
+      }
+
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        router.push(initialData?.isAdmin ? '/admin/reservas' : '/reservas');
+      }
       router.refresh();
     } catch {
       setError(hookError || 'Error al crear la reserva');
     }
   };
-
   return {
     // State
     sucursal, setSucursal,
