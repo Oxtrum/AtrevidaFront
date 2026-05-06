@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import Image from 'next/image';
 import gsap from 'gsap';
 import styles from './Hero.module.css';
 
@@ -109,14 +110,33 @@ export default function Hero() {
 
         {/* Visual Side */}
         <div ref={visualRef} className={styles.visualSide}>
-          <div className={styles.visualCard}>
-            <div className={styles.visualPlaceholder}>
-              <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="100" cy="100" r="95" stroke="currentColor" strokeWidth="2" opacity="0.2" />
-                <circle cx="100" cy="100" r="70" stroke="currentColor" strokeWidth="1.5" opacity="0.3" />
-                <circle cx="100" cy="100" r="45" stroke="currentColor" strokeWidth="1" opacity="0.4" />
-              </svg>
+          <div className={styles.imageWrapper}>
+            <div className={`${styles.imageFrame} ${styles.frameMain}`}>
+              <Image 
+                src="/reina1.jpg" 
+                alt="Atrevida Fit" 
+                fill 
+                priority
+                className={styles.heroImage}
+                sizes="(max-width: 768px) 100vw, 50vw"
+              />
+              <div className={styles.imageOverlay} />
             </div>
+            
+            <div className={`${styles.imageFrame} ${styles.frameSub}`}>
+              <Image 
+                src="/reina2.jpg" 
+                alt="Belleza Atrevida" 
+                fill 
+                className={styles.heroImage}
+                sizes="(max-width: 768px) 100vw, 50vw"
+              />
+              <div className={styles.imageOverlay} />
+            </div>
+
+            {/* Decorative Elements */}
+            <div className={styles.decorCircle} />
+            <div className={styles.decorDots} />
           </div>
         </div>
       </div>

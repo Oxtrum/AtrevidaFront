@@ -24,7 +24,8 @@ const INFO_ITEMS = [
     valor: '+591 77411855',
     sub: 'Lun – Sáb, 8am – 7pm',
     color: '#14AEEF',
-    rgb: '20, 174, 239'
+    rgb: '20, 174, 239',
+    link: 'https://wa.me/59177411855'
   },
   {
     icono: <Camera strokeWidth={1.5} />,
@@ -32,7 +33,8 @@ const INFO_ITEMS = [
     valor: '@atrevida.fit',
     sub: 'Síguenos para ver resultados',
     color: '#92278F',
-    rgb: '146, 39, 143'
+    rgb: '146, 39, 143',
+    link: 'https://instagram.com/atrevida.fit'
   },
   {
     icono: <Clock strokeWidth={1.5} />,
@@ -125,23 +127,48 @@ export default function Contacto() {
             </p>
 
             <div className={styles.infoList}>
-              {INFO_ITEMS.map((item) => (
-                <div
-                  key={item.titulo}
-                  className={styles.infoItem}
-                  style={{
-                    '--icon-color': item.color,
-                    '--icon-color-rgb': item.rgb
-                  } as React.CSSProperties}
-                >
-                  <span className={styles.infoIcon}>{item.icono}</span>
-                  <div>
-                    <p className={styles.infoTitulo}>{item.titulo}</p>
-                    <p className={styles.infoValor}>{item.valor}</p>
-                    <p className={styles.infoSub}>{item.sub}</p>
+              {INFO_ITEMS.map((item) => {
+                const content = (
+                  <>
+                    <span className={styles.infoIcon}>{item.icono}</span>
+                    <div>
+                      <p className={styles.infoTitulo}>{item.titulo}</p>
+                      <p className={styles.infoValor}>{item.valor}</p>
+                      <p className={styles.infoSub}>{item.sub}</p>
+                    </div>
+                  </>
+                );
+
+                const itemStyle = {
+                  '--icon-color': item.color,
+                  '--icon-color-rgb': item.rgb
+                } as React.CSSProperties;
+
+                if (item.link) {
+                  return (
+                    <a
+                      key={item.titulo}
+                      href={item.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.infoItem}
+                      style={{ ...itemStyle, textDecoration: 'none' }}
+                    >
+                      {content}
+                    </a>
+                  );
+                }
+
+                return (
+                  <div
+                    key={item.titulo}
+                    className={styles.infoItem}
+                    style={itemStyle}
+                  >
+                    {content}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
