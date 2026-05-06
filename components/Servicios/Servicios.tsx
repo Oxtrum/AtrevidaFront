@@ -10,14 +10,15 @@ gsap.registerPlugin(ScrollTrigger);
 
 const SERVICIOS = [
   {
-    id: 'epulse-bike',
-    nombre: 'E Pulse Bike',
+    id: 'maderoterapia',
+    nombre: 'Maderoterapia',
     descripcion:
-      'Bicicleta de estimulación eléctrica de alta intensidad. Activa músculo profundo sin impacto articular.',
-    imagen: '/E-Pulse Bike.JPEG',
-    color: '#dc2626',
-    icono: '⚡',
-    tamaño: 'grande', // Will take 2x2 grid space on desktop
+      'Masaje con herramientas de madera que moldea y tonifica el cuerpo, reduce celulitis.',
+    imagen: '/maderoterapiaNuevo.jpg',
+    color: '#7c3aed',
+    icono: '🌿',
+    tamaño: 'grande',
+    position: 'center 70%',
   },
   {
     id: 'lipo-laser',
@@ -30,15 +31,14 @@ const SERVICIOS = [
     tamaño: 'normal',
   },
   {
-    id: 'maderoterapia',
-    nombre: 'Maderoterapia',
+    id: 'epulse-bike',
+    nombre: 'E Pulse Bike',
     descripcion:
-      'Masaje con herramientas de madera que moldea y tonifica el cuerpo, reduce celulitis.',
-    imagen: '/Maderoterapia.JPEG',
-    color: '#7c3aed',
-    icono: '🌿',
+      'Bicicleta de estimulación eléctrica de alta intensidad. Activa músculo profundo sin impacto articular.',
+    imagen: '/E-Pulse Bike.JPEG',
+    color: '#dc2626',
+    icono: '⚡',
     tamaño: 'normal',
-    position: 'center 70%',
   },
   {
     id: 'ondas-rusas',
@@ -51,17 +51,6 @@ const SERVICIOS = [
     tamaño: 'normal',
   },
   {
-    id: 'radiofrecuencia',
-    nombre: 'Radiofrecuencia',
-    descripcion:
-      'Ondas electromagnéticas que estimulan colágeno y elastina. Rejuvenece la piel progresivamente.',
-    imagen: '/Radiofrecuencia.JPEG',
-    color: '#dc2626',
-    icono: '◉',
-    tamaño: 'normal',
-    position: 'center 65%',
-  },
-  {
     id: 'vacumterapia',
     nombre: 'Vacumterapia',
     descripcion:
@@ -72,10 +61,31 @@ const SERVICIOS = [
     tamaño: 'normal',
     position: 'center 85%',
   },
+  {
+    id: 'radiofrecuencia',
+    nombre: 'Radiofrecuencia',
+    descripcion:
+      'Ondas electromagnéticas que estimulan colágeno y elastina. Rejuvenece la piel progresivamente.',
+    imagen: '/radiofrecuenciaNuevo.jpg',
+    color: '#dc2626',
+    icono: '◉',
+    tamaño: 'normal',
+    position: 'center 65%',
+  },
+  {
+    id: 'criolipolisis',
+    nombre: 'Criolipolisis',
+    descripcion:
+      'Eliminación de grasa localizada mediante la aplicación controlada de frío. Resultados definitivos sin cirugía.',
+    imagen: '/crioliposis.jpg',
+    color: '#0ea5e9',
+    icono: '❄️',
+    tamaño: 'normal',
+  },
 ];
 
 export default function Servicios() {
-  const sectionRef = useRef<HTMLSection>(null);
+  const sectionRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const [isHovering, setIsHovering] = useState<string | null>(null);
@@ -157,8 +167,10 @@ export default function Servicios() {
                   src={servicio.imagen}
                   alt={servicio.nombre}
                   fill
+                  quality={100}
+                  unoptimized={true}
                   className={styles.image}
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 50vw"
                   style={{ objectPosition: servicio.position || 'center' }}
                 />
                 <div className={styles.cardOverlay} />
