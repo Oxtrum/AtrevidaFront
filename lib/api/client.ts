@@ -56,7 +56,7 @@ async function request<T>(
 
   if (!res.ok) {
     throw new ApiError(
-      json?.error ?? `HTTP ${res.status}`,
+      json?.message ?? `HTTP ${res.status}`,
       res.status,
       json,
     );

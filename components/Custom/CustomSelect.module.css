@@ -1,4 +1,3 @@
-
 /* ─── Custom Select ───────────────────────────────────────────── */
 
 .customSelect {
@@ -11,8 +10,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.75rem 1.1rem 0.75rem 1.25rem;
+  gap: 0.68rem;
+  padding: 0.68rem 1.1rem 0.68rem 1.25rem;
   background: rgba(0, 0, 0, 0.60);
   border: 1px solid rgba(146, 39, 143, 0.8);
   border-radius: 50px;
@@ -58,7 +57,9 @@
   transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.customSelectArrowOpen { transform: rotate(180deg); }
+.customSelectArrowOpen {
+  transform: rotate(180deg);
+}
 
 /* Dropdown list */
 
@@ -81,15 +82,25 @@
   scrollbar-color: rgba(146, 39, 143, 0.4) transparent;
 }
 
-.selectDropdown::-webkit-scrollbar { width: 4px; }
+.selectDropdown::-webkit-scrollbar {
+  width: 4px;
+}
+
 .selectDropdown::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, #92278F, #EC008C);
   border-radius: 4px;
 }
 
 @keyframes dropdownIn {
-  from { opacity: 0; transform: scaleY(0.90) translateY(-6px); }
-  to   { opacity: 1; transform: scaleY(1) translateY(0); }
+  from {
+    opacity: 0;
+    transform: scaleY(0.90) translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scaleY(1) translateY(0);
+  }
 }
 
 /* Stripe at top of dropdown */
@@ -141,5 +152,6 @@
   background: rgba(146, 39, 143, 0.05);
 }
 
-.selectGroup:first-child { border-top: none; }
-
+.selectGroup:first-child {
+  border-top: none;
+}

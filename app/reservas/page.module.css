@@ -18,8 +18,8 @@
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(ellipse 600px 500px at 10% 20%,  rgba(146, 39, 143, 0.6) 0%, transparent 70%),
-    radial-gradient(ellipse 500px 400px at 90% 70%,  rgba(236, 0, 142, 0.6)  0%, transparent 70%),
+    radial-gradient(ellipse 600px 500px at 10% 20%, rgba(146, 39, 143, 0.6) 0%, transparent 70%),
+    radial-gradient(ellipse 500px 400px at 90% 70%, rgba(236, 0, 142, 0.6) 0%, transparent 70%),
     radial-gradient(ellipse 400px 350px at 50% 100%, rgba(173, 20, 239, 0.6) 0%, transparent 70%);
   animation: orbsFloat 5s ease-in-out infinite alternate;
   pointer-events: none;
@@ -27,13 +27,26 @@
 }
 
 @keyframes orbsFloat {
-  0%   { background-position: 0% 0%,   100% 100%, 50% 100%; opacity: 1; }
-  50%  { opacity: 0.7; }
-  100% { background-position: 5% 10%, 95%  90%,  55% 95%;  opacity: 1; }
+  0% {
+    background-position: 0% 0%, 100% 100%, 50% 100%;
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+
+  100% {
+    background-position: 5% 10%, 95% 90%, 55% 95%;
+    opacity: 1;
+  }
 }
 
 /* Asegurar que el contenido esté por encima de los orbs */
-.main { position: relative; z-index: 1; }
+.main {
+  position: relative;
+  z-index: 1;
+}
 
 .main {
   max-width: 1400px;
@@ -66,15 +79,25 @@
 }
 
 .badgeDot {
-  width: 6px; height: 6px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: #FFE600;
   animation: pulse 2s ease-in-out infinite;
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.5; transform: scale(1.5); }
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: scale(1.5);
+  }
 }
 
 .title {
@@ -82,7 +105,7 @@
   font-weight: 800;
   letter-spacing: -1px;
   line-height: 1.1;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.68rem;
   /* Gradiente de marca — estándar del design system */
   background: linear-gradient(135deg, #FFE600 0%, #EC008C 35%, #92278F 60%, #14AEEF 100%);
   background-size: 200% 200%;
@@ -93,8 +116,15 @@
 }
 
 @keyframes gradientMove {
-  0%, 100% { background-position: 0% 50%; }
-  50%       { background-position: 100% 50%; }
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 .subtitle {
@@ -118,8 +148,9 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 1.75rem;
-  border-radius: 50px;           /* siempre 50px en botones */
+  padding: 0.68rem 1.75rem;
+  border-radius: 50px;
+  /* siempre 50px en botones */
   border: none;
   font-size: 0.9rem;
   font-weight: 600;
@@ -136,7 +167,8 @@
 .createButton::before {
   content: '';
   position: absolute;
-  inset: 0; border-radius: 50px;
+  inset: 0;
+  border-radius: 50px;
   background: linear-gradient(135deg, #EC008C, #92278F);
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -149,9 +181,13 @@
     0 0 50px rgba(255, 230, 0, 0.12);
 }
 
-.createButton:hover::before { opacity: 1; }
+.createButton:hover::before {
+  opacity: 1;
+}
 
-.createButton:active { transform: translateY(-1px); }
+.createButton:active {
+  transform: translateY(-1px);
+}
 
 .createButtonIcon {
   position: relative;
@@ -181,35 +217,50 @@
 .calendarSection::before {
   content: '';
   position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 2px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%, #EC008C 20%, #92278F 40%,
-    #14AEEF 60%, #FFE600 80%, transparent 100%
-  );
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg,
+      transparent 0%, #EC008C 20%, #92278F 40%,
+      #14AEEF 60%, #FFE600 80%, transparent 100%);
   opacity: 0.5;
 }
 
 /* ─── Responsive ───────────────────────────────────────────────────────────── */
 
 @media (max-width: 768px) {
-  .main { padding: 1rem; }
+  .main {
+    padding: 1rem;
+  }
 
-  .header { margin-bottom: 1.5rem; }
+  .header {
+    margin-bottom: 1.5rem;
+  }
 
   .actions {
     justify-content: center;
     margin-bottom: 1rem;
   }
 
-  .createButton { width: 100%; justify-content: center; }
+  .createButton {
+    width: 100%;
+    justify-content: center;
+  }
 
-  .calendarSection { padding: 1rem; border-radius: 16px; }
+  .calendarSection {
+    padding: 1rem;
+    border-radius: 16px;
+  }
 }
 
 @media (max-width: 480px) {
-  .main    { padding: 0.75rem; }
+  .main {
+    padding: 0.68rem;
+  }
 
-  .createButton { padding: 0.7rem 1.25rem; font-size: 0.875rem; }
+  .createButton {
+    padding: 0.7rem 1.25rem;
+    font-size: 0.875rem;
+  }
 }

@@ -1,0 +1,325 @@
+/* admin/reservas/editar/[id]/page.module.css */
+
+.pageContainer {
+  min-height: 100vh;
+  background: #000000;
+  color: #F5F5F5;
+  font-family: var(--font-poppins), sans-serif;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.pageContainer::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 600px 500px at 10% 20%, rgba(146, 39, 143, 0.55) 0%, transparent 70%),
+    radial-gradient(ellipse 500px 400px at 90% 70%, rgba(236, 0, 142, 0.55) 0%, transparent 70%),
+    radial-gradient(ellipse 400px 350px at 50% 100%, rgba(173, 20, 239, 0.50) 0%, transparent 70%);
+  animation: orbsFloat 6s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes orbsFloat {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate(8px, -12px);
+  }
+}
+
+.main {
+  position: relative;
+  z-index: 1;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.content {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(245, 245, 245, 0.7);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 1.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.backLink:hover {
+  color: #F5F5F5;
+  background: rgba(245, 245, 245, 0.1);
+}
+
+.backIcon {
+  font-size: 1.25rem;
+  transition: transform 0.2s ease;
+}
+
+.backLink:hover .backIcon {
+  transform: translateX(-4px);
+}
+
+.reservaInfo {
+  background: rgba(8, 8, 8, 0.6);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(146, 39, 143, 0.18);
+}
+
+.reservaInfo h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #FFE600 0%, #EC008C 35%, #92278F 60%, #14AEEF 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.infoRow {
+  display: flex;
+  gap: 0.68rem;
+  margin-bottom: 0.5rem;
+}
+
+.infoLabel {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: rgba(245, 245, 245, 0.5);
+  font-weight: 600;
+  min-width: 80px;
+}
+
+.infoValue {
+  font-size: 0.8rem;
+  color: #F5F5F5;
+  font-weight: 500;
+}
+
+.editForm {
+  background: rgba(8, 8, 8, 0.6);
+  border-radius: 20px;
+  padding: 2rem;
+  border: 1px solid rgba(146, 39, 143, 0.18);
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    inset 0 0 80px rgba(146, 39, 143, 0.04),
+    0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.editForm::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg,
+      transparent 0%, #FFE600 15%, #EC008C 40%,
+      #92278F 60%, #14AEEF 80%, transparent 100%);
+  opacity: 0.6;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.formGroup label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: rgba(245, 245, 245, 0.5);
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.formGroup:focus-within label {
+  color: rgba(236, 0, 140, 0.9);
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
+}
+
+.inputField {
+  padding: 0.625rem 1rem;
+  background: rgba(0, 0, 0, 0.60);
+  border: 1px solid rgba(146, 39, 143, 0.35);
+  border-radius: 50px;
+  color: #F5F5F5;
+  font-family: var(--font-poppins), sans-serif;
+  font-size: 0.85rem;
+  font-weight: 400;
+  width: 100%;
+  box-sizing: border-box;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.inputField:hover {
+  border-color: rgba(236, 0, 140, 0.55);
+  background: rgba(236, 0, 140, 0.04);
+  box-shadow: 0 0 18px rgba(236, 0, 140, 0.12);
+}
+
+.inputField:focus {
+  outline: none;
+  border-color: #EC008C;
+  background: rgba(236, 0, 140, 0.06);
+  box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.15), 0 0 25px rgba(236, 0, 140, 0.18);
+}
+
+.inputField::placeholder {
+  color: rgba(245, 245, 245, 0.25);
+  font-weight: 300;
+}
+
+.message {
+  padding: 0.68rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.success {
+  background: rgba(20, 174, 239, 0.15);
+  border: 1px solid rgba(20, 174, 239, 0.3);
+  color: #14AEEF;
+}
+
+.error {
+  background: rgba(236, 0, 140, 0.15);
+  border: 1px solid rgba(236, 0, 140, 0.3);
+  color: #EC008C;
+}
+
+.formActions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.cancelButton {
+  padding: 0.68rem 1.75rem;
+  border-radius: 50px;
+  border: 1px solid rgba(245, 245, 245, 0.2);
+  background: transparent;
+  color: rgba(245, 245, 245, 0.7);
+  font-family: var(--font-poppins), sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cancelButton:hover {
+  border-color: rgba(245, 245, 245, 0.4);
+  color: #F5F5F5;
+  background: rgba(245, 245, 245, 0.05);
+}
+
+.submitButton {
+  padding: 0.68rem 1.75rem;
+  border-radius: 50px;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #000000;
+  background: linear-gradient(135deg, #FFE600, #EC008C);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.submitButton:hover:not(:disabled) {
+  box-shadow: 0 6px 24px rgba(236, 0, 140, 0.5), 0 0 40px rgba(236, 0, 140, 0.2);
+  transform: translateY(-1px);
+}
+
+.submitButton:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  color: rgba(245, 245, 245, 0.6);
+  font-size: 1rem;
+  gap: 1rem;
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(146, 39, 143, 0.3);
+  border-top-color: #EC008C;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .main {
+    padding: 1rem;
+    padding-top: 4.5rem;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .formActions {
+    flex-direction: column;
+  }
+
+  .cancelButton,
+  .submitButton {
+    width: 100%;
+    text-align: center;
+  }
+}

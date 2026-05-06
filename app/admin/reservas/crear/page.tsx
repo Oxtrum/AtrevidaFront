@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import Header from '@/components/Header/Header';
 import { type ReservationFormInitialData } from '@/components/ReservationForm/useReservationForm';
@@ -12,12 +12,6 @@ import ReservationForm from '@/components/ReservationForm';
 function CrearReservaContent() {
   const searchParams = useSearchParams();
   const contentRef = useRef<HTMLDivElement>(null);
-  const [isAdmin] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return searchParams.get('from') === 'admin' || localStorage.getItem('reservaFromAdmin') === 'true';
-    }
-    return false;
-  });
 
   useEffect(() => {
     if (contentRef.current) {
@@ -36,14 +30,12 @@ function CrearReservaContent() {
     hora_desde: searchParams.get('hora_desde') || undefined,
     hora_hasta: searchParams.get('hora_hasta') || undefined,
     servicio:   searchParams.get('servicio')   || undefined,
-    isAdmin:    isAdmin,
+    isAdmin:    true,
   };
-
-  const backLink = isAdmin ? '/admin/reservas' : '/reservas';
 
   return (
     <div ref={contentRef} className={styles.content}>
-      <a href={backLink} className={styles.backLink}>
+      <a href="/admin/reservas" className={styles.backLink}>
         <span className={styles.backIcon}>{'<'}</span>
         Volver a Reservas
       </a>

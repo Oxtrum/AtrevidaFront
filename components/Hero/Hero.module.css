@@ -80,8 +80,9 @@
   border-radius: var(--af-radius-pill);
   border: 1px solid rgba(124, 58, 237, 0.2);
   background: rgba(124, 58, 237, 0.08);
-  color: #a78bfa; /* Soft purple */
-  font-size: 0.75rem;
+  color: #a78bfa;
+  /* Soft purple */
+  font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -104,10 +105,13 @@
 }
 
 @keyframes pulse-dot {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
+
   50% {
     opacity: 0.6;
     transform: scale(1.4);
@@ -133,8 +137,15 @@
 }
 
 @keyframes gradient-shift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 .subtitle {
@@ -265,7 +276,8 @@
 
 .heroImage {
   object-fit: cover;
-  object-position: top; /* Ensure faces are visible */
+  object-position: top;
+  /* Ensure faces are visible */
   transition: transform 1s var(--af-ease);
 }
 
@@ -306,19 +318,41 @@
 }
 
 @keyframes float-main {
-  0%, 100% { transform: translateY(-5%); }
-  50% { transform: translateY(-8%); }
+
+  0%,
+  100% {
+    transform: translateY(-5%);
+  }
+
+  50% {
+    transform: translateY(-8%);
+  }
 }
 
 @keyframes float-sub {
-  0%, 100% { transform: translateY(10%); }
-  50% { transform: translateY(13%); }
+
+  0%,
+  100% {
+    transform: translateY(10%);
+  }
+
+  50% {
+    transform: translateY(13%);
+  }
 }
 
 @keyframes float-decor {
-  0% { transform: rotate(0deg) translateY(0); }
-  50% { transform: rotate(180deg) translateY(-10px); }
-  100% { transform: rotate(360deg) translateY(0); }
+  0% {
+    transform: rotate(0deg) translateY(0);
+  }
+
+  50% {
+    transform: rotate(180deg) translateY(-10px);
+  }
+
+  100% {
+    transform: rotate(360deg) translateY(0);
+  }
 }
 
 /* Responsive */
@@ -362,7 +396,9 @@
     justify-content: center;
   }
 
-  .orb1, .orb2, .orb3 {
+  .orb1,
+  .orb2,
+  .orb3 {
     transform: scale(0.5);
   }
 }

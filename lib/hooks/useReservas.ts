@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { getReservasDB } from '@/lib/api/reservas';
-import type { ApiResponse } from '@/types/reserva';
+import type { ReservasBDApiResponse } from '@/types/reserva';
 
 interface UseReservasParams {
     local: string;
@@ -12,7 +12,7 @@ interface UseReservasParams {
 }
 
 interface UseReservasReturn {
-    data: ApiResponse | null;
+    data: ReservasBDApiResponse | null;
     loading: boolean;
     error: string | null;
     fetch: (params: UseReservasParams) => Promise<void>;
@@ -23,7 +23,7 @@ interface UseReservasReturn {
  * Soporta tanto el endpoint nuevo (DB) como el anterior (Sheets).
  */
 export function useReservas(): UseReservasReturn {
-    const [data, setData] = useState<ApiResponse | null>(null);
+    const [data, setData] = useState<ReservasBDApiResponse | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 

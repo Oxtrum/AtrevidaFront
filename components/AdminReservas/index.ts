@@ -1,0 +1,1 @@
+export { ReservasTable } from './ReservasTable';

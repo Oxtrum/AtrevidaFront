@@ -92,7 +92,10 @@ export function useReservationForm(
     const idxInicio = HORAS.indexOf(horaDesde);
     if (idxInicio !== -1) {
       const idxFin = Math.min(idxInicio + duracionSlots, HORAS.length - 1);
-      setHoraHasta(HORAS[idxFin]);
+      const timeoutId = window.setTimeout(() => {
+        setHoraHasta(HORAS[idxFin]);
+      }, 0);
+      return () => window.clearTimeout(timeoutId);
     }
   }, [horaPreestablecida, horaDesde, servicio]);
   useEffect(() => {
@@ -152,49 +155,75 @@ export function useReservationForm(
   }, [sucursal, semanaIndex, semanaActual, fetchReservas]);
 
   // ── Hours availability ──────────────────────────────────
-  // Solo marcar como 'past' las horas pasadas. El backend validará disponibilidad real.
+  // Marcar como 'past' las horas pasadas y 'occupied' las ya reservadas
   const hoursAvailability = useMemo(() => {
-    console.log('>>> useMemo ejecutado, reservasData:', reservasData);
     const map = new Map<string, SlotStatus>();
 
     // 1. Inicializar todos los horarios como 'free'
     for (const hora of HORAS) {
-      // Verificar si ya pasó
-      const fechaDia = fechasSemana?.get(dia)?.fecha ?? null;
-      if (fechaDia && esFechaPasada(fechaDia)) {
-        const hoy = new Date();
-        const [hh, mm] = hora.split(':').map(Number);
-        const slotMin = hh * 60 + mm;
-        const ahoraMin = hoy.getHours() * 60 + hoy.getMinutes();
-        const hoyMid = new Date(hoy);
-        hoyMid.setHours(0, 0, 0, 0);
-
-        const fechaDiaStr = fechaDia.toISOString().split('T')[0];
-        const hoyStr = new Date().toLocaleDateString('en-CA'); // "2026-05-04"
-
-        if (fechaDiaStr < hoyStr || (fechaDiaStr === hoyStr && slotMin <= ahoraMin)) {
-          map.set(hora, 'past');
-          continue;
-        }
-
-        if (fechaDia.getTime() === hoyMid.getTime() && slotMin <= ahoraMin) {
-          map.set(hora, 'past');
-          continue;
-        } else if (fechaDia.getTime() < hoyMid.getTime()) {
-          map.set(hora, 'past');
-          continue;
-        }
-      }
       map.set(hora, 'free');
     }
 
-    // 2. No marcar ocupados aquí - dejar que el backend valide en submission.
-    // Si hay slots disponibles en el calendario, el usuario debe poder seleccionar la hora.
-    // El backend rechazará si la hora ya está ocupada.
+    // 2. Marcar horas pasadas
+    const fechaDia = fechasSemana?.get(dia)?.fecha ?? null;
+    if (fechaDia) {
+      const hoy = new Date();
+      const hoyMid = new Date(hoy);
+      hoyMid.setHours(0, 0, 0, 0);
 
-    console.log('Map final (solo pasadas marcadas):', Array.from(map.entries()));
+      const fechaDiaStr = fechaDia.toISOString().split('T')[0];
+      const hoyStr = new Date().toLocaleDateString('en-CA');
+
+      for (const hora of HORAS) {
+        const [hh, mm] = hora.split(':').map(Number);
+        const slotMin = hh * 60 + mm;
+        const ahoraMin = hoy.getHours() * 60 + hoy.getMinutes();
+
+        if (fechaDiaStr < hoyStr || (fechaDiaStr === hoyStr && slotMin < ahoraMin)) {
+          map.set(hora, 'past');
+        } else if (fechaDia.getTime() < hoyMid.getTime()) {
+          map.set(hora, 'past');
+        }
+      }
+    }
+
+    // 3. Marcar horas ocupadas basado en reservasData
+    if (reservasData?.data?.reservas && fechaDia) {
+      const fechaDiaStr = fechaDia.toISOString().split('T')[0];
+
+      // Filtrar reservas para el día seleccionado
+      const reservasDelDia = reservasData.data.reservas.filter((r: any) => {
+        return r.fecha === fechaDiaStr;
+      });
+
+      // Marcar cada hora ocupada
+      for (const reserva of reservasDelDia) {
+        const horaInicio = reserva.hora_desde;
+        const horaFin = reserva.hora_hasta;
+
+        // Marcar todos los slots entre hora_desde y hora_hasta como ocupados
+        const idxInicio = HORAS.indexOf(horaInicio);
+        const idxFin = HORAS.indexOf(horaFin);
+
+        if (idxInicio !== -1 && idxFin !== -1) {
+          for (let i = idxInicio; i < idxFin; i++) {
+            const horaActual = HORAS[i];
+            // Solo marcar como occupied si no es 'past'
+            if (map.get(horaActual) !== 'past') {
+              map.set(horaActual, 'occupied');
+            }
+          }
+        } else if (idxInicio !== -1) {
+          // Si solo tenemos hora_inicio
+          if (map.get(horaInicio) !== 'past') {
+            map.set(horaInicio, 'occupied');
+          }
+        }
+      }
+    }
+
     return map;
-  }, [dia, fechasSemana]);
+  }, [dia, fechasSemana, reservasData]);
 
 
   // ── Limpiar servicio si cambia sucursal y no aplica ───────────
@@ -364,27 +393,23 @@ export function useReservationForm(
       slots = [primero]
     }
 
-    try {
-      // Enviar una petición por cada slot de 30 min
-      await Promise.all(
-        slots.map(slot =>
-          crearReserva({
-            local: sucursal,
-            fecha: fechaISO,
-            hora_desde: slot.hora_desde,
-            hora_hasta: slot.hora_hasta,
-            tipo,
-            cliente,
-            servicio,
-          })
-        )
-      );
+      try {
+        // Enviar una petición por cada slot de 30 min
+        await Promise.all(
+          slots.map(slot =>
+            crearReserva({
+              local: sucursal,
+              fecha: fechaISO,
+              hora_desde: slot.hora_desde,
+              hora_hasta: slot.hora_hasta,
+              tipo,
+              cliente,
+              servicio,
+            })
+          )
+        );
 
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('reservaFromAdmin');
-      }
-
-      if (onSuccess) {
+        if (onSuccess) {
         onSuccess();
       } else {
         router.push(initialData?.isAdmin ? '/admin/reservas' : '/reservas');

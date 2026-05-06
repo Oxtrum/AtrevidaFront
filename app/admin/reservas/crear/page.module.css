@@ -1,0 +1,108 @@
+/* admin/reservas/crear/page.module.css */
+
+.pageContainer {
+  min-height: 100vh;
+  background: #000000;
+  color: #F5F5F5;
+  font-family: var(--font-poppins), sans-serif;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.pageContainer::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 600px 500px at 10% 20%, rgba(146, 39, 143, 0.55) 0%, transparent 70%),
+    radial-gradient(ellipse 500px 400px at 90% 70%, rgba(236, 0, 142, 0.55)  0%, transparent 70%),
+    radial-gradient(ellipse 400px 350px at 50% 100%, rgba(173, 20, 239, 0.50) 0%, transparent 70%);
+  animation: orbsFloat 6s ease-in-out infinite alternate;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes orbsFloat {
+  0%   { opacity: 1;   transform: translate(0, 0); }
+  50%  { opacity: 0.7; }
+  100% { opacity: 1;   transform: translate(8px, -12px); }
+}
+
+.main {
+  position: relative;
+  z-index: 1;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+.content {
+  width: 100%;
+  max-width: 700px;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(245, 245, 245, 0.7);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 1.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.backLink:hover {
+  color: #F5F5F5;
+  background: rgba(245, 245, 245, 0.1);
+}
+
+.backIcon {
+  font-size: 1.25rem;
+  transition: transform 0.2s ease;
+}
+
+.backLink:hover .backIcon {
+  transform: translateX(-4px);
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  color: rgba(245, 245, 245, 0.6);
+  font-size: 1rem;
+  gap: 1rem;
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(146, 39, 143, 0.3);
+  border-top-color: #EC008C;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .main {
+    padding: 1rem;
+  }
+
+  .backLink {
+    margin-bottom: 1rem;
+  }
+}

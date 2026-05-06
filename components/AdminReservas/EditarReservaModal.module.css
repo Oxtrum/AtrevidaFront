@@ -1,0 +1,426 @@
+/* EditarReservaModal.module.css */
+
+/* ─── Overlay ──────────────────────────────────────────────────────────────── */
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  backdrop-filter: blur(24px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* ─── Modal card ───────────────────────────────────────────────────────────── */
+
+.modalContent {
+  background: rgba(3, 3, 3, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-shadow:
+    0 25px 60px rgba(0, 0, 0, 0.65),
+    0 0 80px rgba(146, 39, 143, 0.12),
+    0 0 1px rgba(236, 0, 140, 0.25);
+  animation: modalSlideUp 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(146, 39, 143, 0.4) transparent;
+  position: relative;
+  /* ✅ background-clip debe ser padding-box para que border-top funcione */
+  background-clip: padding-box;
+}
+
+/* ✅ Línea superior decorativa con gradiente de marca */
+.modalContent::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      #FFE600 15%,
+      #EC008C 40%,
+      #92278F 60%,
+      #14AEEF 80%,
+      transparent 100%);
+  border-radius: 24px 24px 0 0;
+  opacity: 0.7;
+  /* ✅ Asegurar que quede sobre el contenido del modal */
+  z-index: 1;
+  pointer-events: none;
+}
+
+.modalContent::-webkit-scrollbar {
+  width: 4px;
+}
+
+.modalContent::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #92278F, #EC008C);
+  border-radius: 4px;
+}
+
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ─── Modal header ─────────────────────────────────────────────────────────── */
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 1.5rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.modalTitle {
+  font-family: var(--font-poppins), sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #fafafa;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.closeButton {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  color: rgba(245, 245, 245, 0.50);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.closeButton:hover {
+  background: rgba(236, 0, 140, 0.12);
+  border-color: rgba(236, 0, 140, 0.45);
+  color: #EC008C;
+  box-shadow: 0 0 16px rgba(236, 0, 140, 0.18);
+  transform: rotate(90deg);
+}
+
+/* ─── Reserva info strip ───────────────────────────────────────────────────── */
+
+.reservaInfo {
+  padding: 1rem 1.5rem;
+  background: rgba(146, 39, 143, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.68rem;
+}
+
+.infoRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.625rem 0.875rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(146, 39, 143, 0.10);
+  border-radius: 10px;
+}
+
+.infoLabel {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: rgba(245, 245, 245, 0.35);
+}
+
+.infoValue {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #fafafa;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── Form wrapper ─────────────────────────────────────────────────────────── */
+
+.form {
+  padding: 1.5rem;
+}
+
+/* ─── Edit form ────────────────────────────────────────────────────────────── */
+
+.editForm {
+  width: 100%;
+}
+
+/*
+ * Grid de 2 columnas iguales.
+ * - Semana y Cliente ocupan 1 columna cada una (misma fila)
+ * - Día y Horario ocupan las 2 columnas (fullWidth)
+ */
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem 1.5rem;
+  /* ✅ gap vertical 1.25rem | horizontal 1.5rem */
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  position: relative;
+  /* ✅ Evitar overflow de children (p.ej. dropdown del select) */
+  min-width: 0;
+}
+
+.formGroup label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(245, 245, 245, 0.45);
+  transition: color 0.3s ease;
+  padding-left: 0.25rem;
+}
+
+.formGroup:focus-within label {
+  color: rgba(236, 0, 140, 0.90);
+}
+
+/* ─── Input field (shared pill style) ─────────────────────────────────────── */
+
+.inputField {
+  background: rgba(0, 0, 0, 0.60);
+  border: 1px solid rgba(146, 39, 143, 0.35);
+  border-radius: 50px;
+  padding: 0.68rem 1.25rem;
+  color: #F5F5F5;
+  font-family: var(--font-poppins), sans-serif;
+  font-size: 0.875rem;
+  /* ✅ height explícito para alinear con el CustomSelect */
+  height: 44px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.inputField::placeholder {
+  color: rgba(245, 245, 245, 0.22);
+  font-weight: 300;
+}
+
+.inputField:hover {
+  border-color: rgba(236, 0, 140, 0.55);
+  background: rgba(236, 0, 140, 0.04);
+  box-shadow: 0 0 18px rgba(236, 0, 140, 0.10);
+}
+
+.inputField:focus {
+  outline: none;
+  border-color: #EC008C;
+  background: rgba(236, 0, 140, 0.06);
+  box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.15), 0 0 25px rgba(236, 0, 140, 0.18);
+}
+
+/* ─── Message states ───────────────────────────────────────────────────────── */
+
+.message {
+  padding: 0.68rem 1.1rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-top: 1.25rem;
+  margin-bottom: 0;
+  text-align: center;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.success {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  color: #10b981;
+}
+
+.error {
+  background: rgba(255, 77, 77, 0.08);
+  border: 1px solid rgba(255, 77, 77, 0.28);
+  color: #ff4d4d;
+}
+
+/* ─── Form actions ─────────────────────────────────────────────────────────── */
+
+.formActions {
+  display: flex;
+  gap: 0.875rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* ✅ Botón secundario — outline style */
+.cancelButton {
+  flex: 1;
+  padding: 0.875rem 1.5rem;
+  border-radius: 50px;
+  font-family: var(--font-poppins), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  background: transparent;
+  border: 1px solid rgba(245, 245, 245, 0.12);
+  color: rgba(245, 245, 245, 0.50);
+}
+
+.cancelButton:hover:not(:disabled) {
+  border-color: rgba(245, 245, 245, 0.28);
+  color: #F5F5F5;
+  background: rgba(245, 245, 245, 0.04);
+  transform: translateY(-2px);
+}
+
+.cancelButton:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+/*
+ * ✅ Botón primario — fix crítico del overlay:
+ *    El ::before con z-index:0 estaba tapando los text nodes en hover.
+ *    Solución: el span del texto tiene z-index:1 y position:relative,
+ *    o bien se usa isolation:isolate en el botón y z-index negativo en ::before.
+ *    Aquí usamos z-index:-1 en ::before (más limpio, no requiere span).
+ */
+.submitButton {
+  flex: 1.3;
+  padding: 0.875rem 1.5rem;
+  border-radius: 50px;
+  font-family: var(--font-poppins), sans-serif;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  border: none;
+  color: #000;
+  background: linear-gradient(135deg, #FFE600, #EC008C);
+  position: relative;
+  overflow: hidden;
+  /* ✅ isolation crea un stacking context independiente */
+  isolation: isolate;
+  box-shadow: 0 4px 20px rgba(255, 230, 0, 0.25), 0 4px 20px rgba(236, 0, 140, 0.20);
+}
+
+/* ✅ z-index negativo: queda SIEMPRE detrás del contenido del botón sin necesitar span */
+.submitButton::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50px;
+  background: linear-gradient(135deg, #EC008C, #92278F);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+}
+
+.submitButton:hover:not(:disabled) {
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 28px rgba(236, 0, 140, 0.40),
+    0 0 50px rgba(236, 0, 140, 0.15);
+}
+
+.submitButton:hover:not(:disabled)::before {
+  opacity: 1;
+}
+
+.submitButton:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+.cancelButton:disabled,
+.submitButton:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ─── Responsive ───────────────────────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+  .reservaInfo {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  /* En mobile fullWidth no necesita override porque ya hay 1 columna */
+  .fullWidth {
+    grid-column: 1 / -1;
+  }
+
+  .formActions {
+    flex-direction: column-reverse;
+    gap: 0.625rem;
+  }
+
+  .cancelButton,
+  .submitButton {
+    width: 100%;
+    flex: unset;
+  }
+
+  .form {
+    padding: 1.25rem;
+  }
+}

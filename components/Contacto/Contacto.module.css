@@ -21,8 +21,13 @@
 }
 
 @keyframes meshShift {
-  0%   { transform: scale(1) translateX(0); }
-  100% { transform: scale(1.05) translateX(20px); }
+  0% {
+    transform: scale(1) translateX(0);
+  }
+
+  100% {
+    transform: scale(1.05) translateX(20px);
+  }
 }
 
 /* Floating particles */
@@ -129,11 +134,9 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(
-    circle at 20% 50%,
-    rgba(var(--icon-color-rgb), 0.08),
-    transparent 70%
-  );
+  background: radial-gradient(circle at 20% 50%,
+      rgba(var(--icon-color-rgb), 0.08),
+      transparent 70%);
   opacity: 0;
   transition: opacity 0.4s ease;
 }
@@ -142,7 +145,7 @@
   transform: translateY(-8px);
   border-color: rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.04);
-  box-shadow: 
+  box-shadow:
     0 20px 40px rgba(0, 0, 0, 0.4),
     0 0 0 1px rgba(var(--icon-color-rgb), 0.1) inset;
 }
@@ -204,7 +207,7 @@
 }
 
 .infoTitulo {
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.15em;
@@ -262,7 +265,7 @@
   font-weight: 700;
   letter-spacing: 0.02em;
   text-decoration: none;
-  box-shadow: 0 10px 40px rgba(236, 0, 140, 0.4), 0 0 0 1px rgba(236,0,140,0.15);
+  box-shadow: 0 10px 40px rgba(236, 0, 140, 0.4), 0 0 0 1px rgba(236, 0, 140, 0.15);
   transition: transform 0.3s ease, opacity 0.3s, box-shadow 0.3s;
 }
 

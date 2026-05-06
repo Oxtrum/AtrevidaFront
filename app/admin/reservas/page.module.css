@@ -9,27 +9,39 @@
   overflow-x: hidden;
 }
 
-/* Orbs flotantes */
+/* ─── Orbs flotantes ───────────────────────────────────────────────────────── */
+
 .pageContainer::after {
   content: '';
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(ellipse 600px 500px at 10% 20%,  rgba(146, 39, 143, 0.6) 0%, transparent 70%),
-    radial-gradient(ellipse 500px 400px at 90% 70%,  rgba(236, 0, 142, 0.6)  0%, transparent 70%),
-    radial-gradient(ellipse 400px 350px at 50% 100%, rgba(173, 20, 239, 0.6) 0%, transparent 70%);
-  animation: orbsFloat 5s ease-in-out infinite alternate;
+    radial-gradient(ellipse 600px 500px at 10% 20%, rgba(146, 39, 143, 0.55) 0%, transparent 70%),
+    radial-gradient(ellipse 500px 400px at 90% 70%, rgba(236, 0, 142, 0.55) 0%, transparent 70%),
+    radial-gradient(ellipse 400px 350px at 50% 100%, rgba(173, 20, 239, 0.50) 0%, transparent 70%);
+  animation: orbsFloat 6s ease-in-out infinite alternate;
   pointer-events: none;
   z-index: 0;
 }
 
 @keyframes orbsFloat {
-  0%   { background-position: 0% 0%,   100% 100%, 50% 100%; opacity: 1; }
-  50%  { opacity: 0.7; }
-  100% { background-position: 5% 10%, 95%  90%,  55% 95%;  opacity: 1; }
+  0% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate(8px, -12px);
+  }
 }
 
-/* Asegurar que el contenido esté por encima de los orbs */
+/* ─── Main content ─────────────────────────────────────────────────────────── */
+
 .main {
   position: relative;
   z-index: 1;
@@ -41,17 +53,28 @@
 /* ─── Page header ──────────────────────────────────────────────────────────── */
 
 .header {
-  margin-bottom: 2rem;
-  padding-top: 1rem;
+  margin-bottom: 1rem;
+  padding-top: 3rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
 }
 
+.headerText {
+  flex: 1;
+  min-width: 200px;
+}
+
+/* ✅ Gradiente correcto según design system: FFE600 → EC008C → 92278F → 14AEEF */
 .title {
   font-size: clamp(2rem, 5vw, 3.5rem);
   font-weight: 800;
   letter-spacing: -1px;
   line-height: 1.1;
-  margin-bottom: 0.75rem;
-  background: linear-gradient(135deg, #92278F 0%, #EC008C 35%, #14AEEF 60%, #FFE600 100%);
+  margin-bottom: 0.68rem;
+  background: linear-gradient(135deg, #FFE600 0%, #EC008C 35%, #92278F 60%, #14AEEF 100%);
   background-size: 200% 200%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -60,52 +83,289 @@
 }
 
 @keyframes gradientMove {
-  0%, 100% { background-position: 0% 50%; }
-  50%       { background-position: 100% 50%; }
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 .subtitle {
-  font-size: clamp(0.9rem, 2vw, 1.1rem);
-  color: rgba(245, 245, 245, 0.65);
+  font-size: clamp(0.85rem, 2vw, 1rem);
+  color: rgba(245, 245, 245, 0.55);
   font-weight: 300;
   line-height: 1.6;
+  max-width: 480px;
 }
 
-/* ─── Calendar section wrapper ─────────────────────────────────────────────── */
+/* ─── Vista toggle (pill switcher premium) ─────────────────────────────────── */
+
+.vistaToggle {
+  display: inline-flex;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(146, 39, 143, 0.25);
+  border-radius: 50px;
+  padding: 4px;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.vistaButton {
+  padding: 0.5rem 1.25rem;
+  border-radius: 50px;
+  border: none;
+  background: transparent;
+  color: rgba(245, 245, 245, 0.45);
+  font-family: var(--font-poppins), sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+  white-space: nowrap;
+}
+
+.vistaButton:hover {
+  color: rgba(245, 245, 245, 0.75);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* ✅ Active state con gradient del brand */
+.vistaActive {
+  background: linear-gradient(135deg, #EC008C, #92278F) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 16px rgba(236, 0, 140, 0.35), 0 0 30px rgba(236, 0, 140, 0.15);
+}
+
+/* ─── Calendar section ─────────────────────────────────────────────────────── */
 
 .calendarSection {
-  background: rgba(10, 10, 10, 0.5);
+  background: rgba(8, 8, 8, 0.6);
   border-radius: 20px;
   padding: 1.5rem;
-  border: 1px solid rgba(146, 39, 143, 0.2);
+  border: 1px solid rgba(146, 39, 143, 0.18);
   position: relative;
   overflow: hidden;
+  /* ✅ Inner glow sutil con color de marca */
+  box-shadow:
+    inset 0 0 80px rgba(146, 39, 143, 0.04),
+    0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
 /* Gradient top line */
 .calendarSection::before {
   content: '';
   position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 2px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%, #92278F 20%, #EC008C 40%,
-    #14AEEF 60%, #FFE600 80%, transparent 100%
-  );
-  opacity: 0.5;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg,
+      transparent 0%, #FFE600 15%, #EC008C 40%,
+      #92278F 60%, #14AEEF 80%, transparent 100%);
+  opacity: 0.6;
+}
+
+/* ─── Filtros Section ──────────────────────────────────────────────────────── */
+
+.filtrosSection {
+  background: rgba(8, 8, 8, 0.6);
+  border-radius: 20px;
+  padding: 1.5rem;
+  border: 1px solid rgba(146, 39, 143, 0.18);
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    inset 0 0 80px rgba(146, 39, 143, 0.04),
+    0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.filtrosSection::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg,
+      transparent 0%, #FFE600 15%, #EC008C 40%,
+      #92278F 60%, #14AEEF 80%, transparent 100%);
+  opacity: 0.6;
+}
+
+/* ─── Filtros layout ───────────────────────────────────────────────────────── */
+
+.filtrosRow {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.5rem;
+  /* ✅ Separador sutil con gradiente */
+  border-bottom: 1px solid rgba(146, 39, 143, 0.12);
+}
+
+.filtroGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filtroGroup label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: rgba(245, 245, 245, 0.50);
+  font-weight: 600;
+  /* ✅ Transición de color para focus-within */
+  transition: color 0.3s ease;
+}
+
+.filtroGroup:focus-within label {
+  color: rgba(236, 0, 140, 0.90);
+}
+
+/* ✅ Inputs comparten la misma forma de los inputs del form */
+.dateInput,
+.textInput {
+  padding: 0.625rem 1rem;
+  background: rgba(0, 0, 0, 0.60);
+  border: 1px solid rgba(146, 39, 143, 0.35);
+  border-radius: 50px;
+  color: #F5F5F5;
+  font-family: var(--font-poppins), sans-serif;
+  font-size: 0.85rem;
+  font-weight: 400;
+  width: 100%;
+  box-sizing: border-box;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dateInput:hover,
+.textInput:hover {
+  border-color: rgba(236, 0, 140, 0.55);
+  background: rgba(236, 0, 140, 0.04);
+  box-shadow: 0 0 18px rgba(236, 0, 140, 0.12);
+}
+
+.dateInput:focus,
+.textInput:focus {
+  outline: none;
+  border-color: #EC008C;
+  background: rgba(236, 0, 140, 0.06);
+  box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.15), 0 0 25px rgba(236, 0, 140, 0.18);
+}
+
+.dateInput::-webkit-calendar-picker-indicator {
+  filter: invert(0.7);
+  cursor: pointer;
+}
+
+.textInput::placeholder {
+  color: rgba(245, 245, 245, 0.25);
+  font-weight: 300;
 }
 
 /* ─── Responsive ───────────────────────────────────────────────────────────── */
 
+@media (max-width: 1024px) {
+  .filtrosRow {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
-  .main { padding: 1rem; }
+  .main {
+    padding: 1rem;
+    padding-top: 2rem;
+  }
 
-  .header { margin-bottom: 1.5rem; }
+  .header {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+  }
 
-  .calendarSection { padding: 1rem; border-radius: 16px; }
+  .calendarSection,
+  .filtrosSection {
+    padding: 1rem;
+    border-radius: 16px;
+  }
+
+  .filtrosRow {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 480px) {
-  .main { padding: 0.75rem; }
+  .main {
+    padding: 0.68rem;
+    padding-top: 4rem;
+  }
+
+  .filtrosRow {
+    grid-template-columns: 1fr;
+  }
+
+  .vistaToggle {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .vistaButton {
+    flex: 1;
+    text-align: center;
+  }
+}
+
+/* --- Header Actions ------------------------------------------- */
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+/* --- Create Button (matches public reservas page) ------------------ */
+
+.createButton {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.68rem 1.75rem;
+  border-radius: 50px;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #000000;
+  background: linear-gradient(135deg, #FFE600, #EC008C);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.createButton:hover {
+  box-shadow: 0 6px 24px rgba(236, 0, 140, 0.5), 0 0 40px rgba(236, 0, 140, 0.2);
+  transform: translateY(-1px);
+}
+
+.createButton:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.createButtonIcon {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.createButtonText {
+  white-space: nowrap;
 }

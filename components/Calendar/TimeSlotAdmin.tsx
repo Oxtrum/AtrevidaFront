@@ -3,7 +3,6 @@
 import { DiaSemana, ReservaDetalle, getTipoColor, getTipoLabel } from '@/types/reserva';
 import { extraerNombreServicio, esHoraDisponible } from '@/lib/utils/calendarHelpers';
 import styles from './Calendar.module.css';
-import { SlotBadges } from './SlotBadges';
 
 interface TimeSlotAdminProps {
   dia: DiaSemana;
@@ -44,7 +43,9 @@ export default function TimeSlotAdmin({
   // Agrupar reservas ocupadas por tipo
   const slotsPorTipo = slotsOcupados.reduce(
     (acc, slot) => {
-      const tipo = slot.tipo || 'mesa';
+      // Normalizar tipo: asegurar que 'b', 'B', 'bicicleta' se agrupen como 'b'
+      const tipoRaw = slot.tipo?.toLowerCase() || 'm';
+      const tipo = tipoRaw.includes('b') ? 'b' : 'm';
       if (!acc[tipo]) acc[tipo] = [];
       acc[tipo].push(slot);
       return acc;
@@ -87,7 +88,7 @@ export default function TimeSlotAdmin({
                     borderColor: colors.border,
                   }}
                 >
-                  <div style={{ fontSize: '0.75rem', lineHeight: '1.2' }}>
+                  <div style={{ fontSize: '0.68rem', lineHeight: '1.2' }}>
                     {slot.cliente && (
                       <span className={styles.reservationCliente} style={{ color: colors.accent, display: 'block' }}>
                         {slot.cliente}

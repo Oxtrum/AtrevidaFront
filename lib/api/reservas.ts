@@ -4,7 +4,7 @@
  */
 
 import { apiClient } from './client';
-import type { ApiResponse, ReservaFormData } from '@/types/reserva';
+import type { ApiResponse, ReservaFormData, ReservasBDApiResponse } from '@/types/reserva';
 
 // ─── Parámetros (Sheets - DEPRECATED) ──────────────────────────────────────
 
@@ -13,7 +13,7 @@ export interface GetReservasSheetsParams {
   /** Número de semana relativo (1 = semana actual, 2 = siguiente, …) */
   semana?: number;
   dia?: string;
-  tipo?: string;
+  tipo?: 'M' | 'B';
   cliente?: string;
   reservados?: boolean;
 }
@@ -24,7 +24,7 @@ export interface GetReservasDBParams {
   local: string;
   fecha_desde?: string;
   fecha_hasta?: string;
-  tipo?: string;
+  tipo?: string; // "mesa" | "bicicleta" (backend espera strings en GET)
   cliente?: string;
   reservados?: boolean;
 }
@@ -33,7 +33,7 @@ export interface GetReservasCalendarioParams {
   local: string;
   fecha_desde: string;
   fecha_hasta: string;
-  tipo?: string;
+  tipo?: 'M' | 'B';
   cliente?: string;
   reservados?: boolean;
 }
@@ -43,7 +43,7 @@ export interface CrearReservaDBData {
   fecha: string;
   hora_desde: string;
   hora_hasta: string;
-  tipo: string;
+  tipo: 'M' | 'B';
   cliente: string;
   servicio?: string;
 }
@@ -52,11 +52,11 @@ export interface ActualizarReservaDBData {
   local: string;
   fecha: string;
   hora: string;
-  tipo: string;
+  tipo: 'M' | 'B';
   cliente: string;
   nueva_fecha?: string;
   nueva_hora_desde?: string;
-  nuevo_tipo?: string;
+  nuevo_tipo?: 'M' | 'B';
 }
 
 export interface CrearReservaResult {
@@ -83,8 +83,8 @@ export async function getReservasSheets(params: GetReservasSheetsParams): Promis
 // ─── Queries (DB) ───────────────────────────────────────────────────────────
 
 /** Obtiene reservas filtradas desde la base de datos. */
-export async function getReservasDB(params: GetReservasDBParams): Promise<ApiResponse> {
-  return apiClient.get<ApiResponse>('/bd/reservas', {
+export async function getReservasDB(params: GetReservasDBParams): Promise<ReservasBDApiResponse> {
+  return apiClient.get<ReservasBDApiResponse>('/bd/reservas', {
     params: {
       local: params.local,
       fecha_desde: params.fecha_desde,
@@ -117,7 +117,7 @@ export async function crearReservaDB(data: CrearReservaDBData): Promise<CrearRes
 
 /** Actualiza una reserva existente en la base de datos. */
 export async function actualizarReservaDB(data: ActualizarReservaDBData): Promise<CrearReservaResult> {
-  return apiClient.patch<CrearReservaResult>('/api/bd/reservas', data);
+  return apiClient.patch<CrearReservaResult>('/bd/reservas', data);
 }
 
 // ─── Helpers (Sheets - DEPRECATED) ─────────────────────────────────────────

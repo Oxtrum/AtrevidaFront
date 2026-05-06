@@ -1,0 +1,502 @@
+/* ReservasTable.module.css — Premium Dark Edition */
+
+/* ─── Container ────────────────────────────────────────────────────────────── */
+
+.tableContainer {
+  position: relative;
+  background: rgba(9, 9, 11, 0.7);
+  border-radius: 20px;
+  border: 1px solid rgba(146, 39, 143, 0.18);
+  overflow: hidden;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.4),
+    0 8px 48px rgba(0, 0, 0, 0.5),
+    inset 0 0 80px rgba(146, 39, 143, 0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Gradient border glow on top edge */
+.tableContainer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 5%;
+  right: 5%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #92278F 30%, #EC008C 60%, transparent);
+  opacity: 0.6;
+  z-index: 1;
+}
+
+/* ─── Table header row ─────────────────────────────────────────────────────── */
+
+.tableHeader {
+  padding: 1.1rem 1.75rem;
+  border-bottom: 1px solid rgba(146, 39, 143, 0.14);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(90deg,
+      rgba(146, 39, 143, 0.08) 0%,
+      rgba(236, 0, 140, 0.05) 50%,
+      rgba(20, 174, 239, 0.04) 100%);
+  position: relative;
+  z-index: 1;
+}
+
+.totalCount {
+  font-size: 0.68rem;
+  color: rgba(245, 245, 245, 0.45);
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.totalCount strong {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: rgba(245, 245, 245, 0.75);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.totalCount::before {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #FFE600;
+  box-shadow: 0 0 8px rgba(255, 230, 0, 0.6);
+  animation: pulse 2.4s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    box-shadow: 0 0 8px rgba(255, 230, 0, 0.5);
+  }
+
+  50% {
+    opacity: 0.6;
+    transform: scale(1.6);
+    box-shadow: 0 0 14px rgba(255, 230, 0, 0.2);
+  }
+}
+
+/* ─── Table wrapper ────────────────────────────────────────────────────────── */
+
+.tableWrapper {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 560px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(146, 39, 143, 0.4) transparent;
+}
+
+.tableWrapper::-webkit-scrollbar {
+  height: 3px;
+}
+
+.tableWrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tableWrapper::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, #92278F, #EC008C);
+  border-radius: 4px;
+}
+
+/* ─── Table ────────────────────────────────────────────────────────────────── */
+
+.table {
+  min-width: 800px;
+  width: 100%;
+}
+
+/* ─── Column grid
+ *  Fecha | Hora    | Cliente | Tipo   | Servicio | Local  | Acciones
+ *  115px | 150px   | 1fr     | 115px  | 160px    | 120px  | 95px
+ * ─────────────────────────────────────────────────────────────────── */
+
+.tableHead,
+.tableRow {
+  display: grid;
+  grid-template-columns: 115px 150px 1fr 115px 160px 120px 95px;
+  align-items: center;
+  padding: 0 1.75rem;
+  gap: 0;
+}
+
+/* ─── Table head ───────────────────────────────────────────────────────────── */
+
+.tableHead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  background: rgba(12, 10, 16, 0.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(146, 39, 143, 0.2);
+  /* Typography */
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: rgba(245, 245, 245, 0.45);
+  text-transform: none;
+  letter-spacing: 0.2px;
+}
+
+/* ─── Table row ────────────────────────────────────────────────────────────── */
+
+.tableRow {
+  padding-top: 0.9rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.035);
+  transition: background 0.25s ease, box-shadow 0.25s ease;
+  position: relative;
+}
+
+/* Left accent bar */
+.tableRow::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 0;
+  background: linear-gradient(180deg, #EC008C, #92278F);
+  border-radius: 0 3px 3px 0;
+  transition: width 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+/* Subtle scanline shimmer on hover */
+.tableRow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(236, 0, 140, 0.03) 50%,
+      transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.tableRow:hover {
+  background: rgba(146, 39, 143, 0.07);
+  box-shadow: inset 0 0 40px rgba(236, 0, 140, 0.04);
+}
+
+.tableRow:hover::before {
+  width: 3px;
+}
+
+.tableRow:hover::after {
+  opacity: 1;
+}
+
+.tableRow:last-child {
+  border-bottom: none;
+}
+
+/* ─── Cell ─────────────────────────────────────────────────────────────────── */
+
+.cell {
+  font-size: 0.875rem;
+  color: rgba(245, 245, 245, 0.78);
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  padding-right: 0.68rem;
+}
+
+/* Date cell — slightly muted, monospaced feel */
+.cell:first-child {
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  color: rgba(245, 245, 245, 0.55);
+  letter-spacing: 0.3px;
+}
+
+/* Time cell */
+.cell:nth-child(2) {
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  color: rgba(20, 174, 239, 0.75);
+  letter-spacing: 0.3px;
+}
+
+/* Client cell — primary info, brighter */
+.cell:nth-child(3) {
+  color: rgba(245, 245, 245, 0.9);
+  font-weight: 500;
+}
+
+/* ─── Tipo badges ──────────────────────────────────────────────────────────── */
+
+.tipoBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.28rem 0.68rem;
+  border-radius: 50px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.tipoBadge::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.85;
+  flex-shrink: 0;
+}
+
+.tipoBicicleta {
+  background: rgba(20, 174, 239, 0.1);
+  color: #14AEEF;
+  border: 1px solid rgba(20, 174, 239, 0.25);
+  box-shadow: 0 0 10px rgba(20, 174, 239, 0.08), inset 0 1px 0 rgba(20, 174, 239, 0.1);
+}
+
+.tipoMesa {
+  background: rgba(236, 0, 140, 0.1);
+  color: #EC008C;
+  border: 1px solid rgba(236, 0, 140, 0.25);
+  box-shadow: 0 0 10px rgba(236, 0, 140, 0.08), inset 0 1px 0 rgba(236, 0, 140, 0.1);
+}
+
+.tableRow:hover .tipoBicicleta {
+  box-shadow: 0 0 16px rgba(20, 174, 239, 0.2), inset 0 1px 0 rgba(20, 174, 239, 0.12);
+}
+
+.tableRow:hover .tipoMesa {
+  box-shadow: 0 0 16px rgba(236, 0, 140, 0.2), inset 0 1px 0 rgba(236, 0, 140, 0.12);
+}
+
+/* ─── Local badge ──────────────────────────────────────────────────────────── */
+
+.localBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  color: rgba(245, 245, 245, 0.5);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 0.2rem 0.55rem;
+  white-space: nowrap;
+}
+
+/* ─── Servicio text ────────────────────────────────────────────────────────── */
+
+.servicioText {
+  font-size: 0.825rem;
+  color: rgba(245, 245, 245, 0.62);
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ─── Edit button ──────────────────────────────────────────────────────────── */
+
+.editButton {
+  position: relative;
+  background: transparent;
+  color: rgba(245, 245, 245, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.375rem 0.9rem;
+  border-radius: 50px;
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.22s ease, border-color 0.22s ease, background 0.22s ease,
+    box-shadow 0.22s ease, transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+  white-space: nowrap;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+/* Gradient fill on hover via pseudo */
+.editButton::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(236, 0, 140, 0.15), rgba(146, 39, 143, 0.1));
+  opacity: 0;
+  transition: opacity 0.22s ease;
+  border-radius: inherit;
+}
+
+.editButton:hover {
+  border-color: rgba(236, 0, 140, 0.5);
+  color: #EC008C;
+  box-shadow: 0 0 18px rgba(236, 0, 140, 0.2), inset 0 0 12px rgba(236, 0, 140, 0.06);
+  transform: translateY(-1px);
+}
+
+.editButton:hover::before {
+  opacity: 1;
+}
+
+.editButton:active {
+  transform: translateY(0) scale(0.96);
+  box-shadow: 0 0 8px rgba(236, 0, 140, 0.12);
+}
+
+/* ─── States: loading / error / empty ─────────────────────────────────────── */
+
+.loadingContainer,
+.errorContainer,
+.emptyContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 2rem;
+  text-align: center;
+  gap: 1rem;
+  background: rgba(9, 9, 11, 0.5);
+  border-radius: 20px;
+  border: 1px solid rgba(146, 39, 143, 0.12);
+}
+
+/* Loading spinner — dual gradient */
+.loadingSpinner {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: #EC008C;
+  border-right-color: rgba(146, 39, 143, 0.5);
+  border-bottom-color: rgba(20, 174, 239, 0.3);
+  animation: spin 0.65s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loadingContainer p {
+  color: rgba(245, 245, 245, 0.35);
+  font-size: 0.85rem;
+  letter-spacing: 0.3px;
+  margin: 0;
+}
+
+/* Empty state */
+.emptyIcon {
+  font-size: 2.25rem;
+  opacity: 0.2;
+  margin-bottom: 0.25rem;
+  filter: grayscale(1);
+}
+
+.emptyMessage {
+  color: rgba(245, 245, 245, 0.35) !important;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+.emptyHint {
+  color: rgba(245, 245, 245, 0.18);
+  font-size: 0.78rem;
+  margin: 0;
+}
+
+/* Error state */
+.errorIcon {
+  font-size: 2rem;
+  opacity: 0.5;
+  margin-bottom: 0.25rem;
+}
+
+.errorMessage {
+  color: rgba(255, 90, 90, 0.9) !important;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* ─── Responsive ───────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .tableHead {
+    display: none;
+  }
+
+  .tableRow {
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: unset;
+    gap: 0.55rem;
+    padding: 1.1rem 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+  }
+
+  .tableRow::before {
+    top: 0;
+    bottom: 0;
+    border-radius: 0;
+  }
+
+  .cell {
+    justify-content: space-between;
+    white-space: normal;
+    padding-right: 0;
+    font-size: 0.875rem;
+    color: rgba(245, 245, 245, 0.82);
+  }
+
+  /* Override per-column tinting on mobile */
+  .cell:first-child,
+  .cell:nth-child(2) {
+    color: rgba(245, 245, 245, 0.55);
+  }
+
+  .cell[data-label]::before {
+    content: attr(data-label);
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: rgba(146, 39, 143, 0.7);
+    flex-shrink: 0;
+    min-width: 5rem;
+  }
+
+  .tableHeader {
+    padding: 0.9rem 1.25rem;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+}
