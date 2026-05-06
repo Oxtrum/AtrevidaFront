@@ -6,66 +6,64 @@ import styles from './Hero.module.css';
 
 export default function Hero() {
   const heroRef = useRef<HTMLElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const badgeRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const visualRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({
         defaults: { ease: 'power3.out' },
-        delay: 0.6, // Wait for header animations
+        delay: 0.3,
       });
 
-      // Badge fades in
+      // Content side animations
       tl.fromTo(
         badgeRef.current,
-        { y: 20, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.6 }
+        { x: -30, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.6 }
       );
 
-      // Title slides up
       tl.fromTo(
         titleRef.current,
-        { y: 50, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.8 },
+        { x: -50, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.8 },
         '-=0.3'
       );
 
-      // Subtitle fades in
       tl.fromTo(
         subtitleRef.current,
-        { y: 30, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.6 },
+        { x: -40, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.6 },
         '-=0.4'
       );
 
-      // CTA buttons pop in
       tl.fromTo(
         ctaRef.current,
-        { y: 20, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.5 },
+        { x: -30, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.5 },
         '-=0.3'
       );
 
-      // Scroll indicator
+      // Visual side animations
       tl.fromTo(
-        scrollRef.current,
-        { opacity: 0 },
-        { opacity: 0.5, duration: 0.8 },
-        '-=0.2'
+        visualRef.current,
+        { x: 50, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.8 },
+        '-=0.8'
       );
 
-      // Animate orbs floating
+      // Animate orbs with spring physics
       gsap.to('.heroOrb', {
-        y: '+=20',
-        duration: 3,
+        y: '+=24',
+        duration: 3.5,
         ease: 'sine.inOut',
         yoyo: true,
         repeat: -1,
-        stagger: { each: 0.5 },
+        stagger: { each: 0.6 },
       });
     }, heroRef);
 
@@ -74,49 +72,53 @@ export default function Hero() {
 
   return (
     <section ref={heroRef} className={styles.hero} id="inicio">
-      {/* Ambient orbs */}
+      {/* Background orbs */}
       <div className={styles.orbContainer}>
         <div className={`${styles.orb} ${styles.orb1} heroOrb`} />
         <div className={`${styles.orb} ${styles.orb2} heroOrb`} />
         <div className={`${styles.orb} ${styles.orb3} heroOrb`} />
       </div>
 
-      {/* Content */}
-      <div className={styles.content}>
-        <div ref={badgeRef} className={styles.badge}>
-          <span className={styles.badgeDot} />
-          Belleza &bull; Cosmética &bull; Cuidado Personal
+      {/* Split Layout: Content (Left) + Visual (Right) */}
+      <div className={styles.container}>
+        {/* Content Side */}
+        <div ref={contentRef} className={styles.contentSide}>
+          <div ref={badgeRef} className={styles.badge}>
+            <span className={styles.badgeDot} />
+            Belleza Premium
+          </div>
+
+          <h1 ref={titleRef} className={styles.title}>
+            Tu mejor versión<br />
+            <span className={styles.titleAccent}>comienza aquí</span>
+          </h1>
+
+          <p ref={subtitleRef} className={styles.subtitle}>
+            Descubre servicios de belleza y cuidado personal que transforman tu rutina. Tecnología y salud al servicio de tu bienestar.
+          </p>
+
+          <div ref={ctaRef} className={styles.ctaGroup}>
+            <a href="#servicios" className={styles.ctaPrimary}>
+              <span style={{ position: 'relative', zIndex: 2 }}>Ver Servicios</span>
+            </a>
+            <a href="/reservas" className={styles.ctaSecondary}>
+              <span style={{ position: 'relative', zIndex: 2 }}>Reservar Cita →</span>
+            </a>
+          </div>
         </div>
 
-        <h1 ref={titleRef} className={styles.title}>
-          <span className={styles.titleGradient}>
-            Tu mejor versión comienza aquí
-          </span>
-        </h1>
-
-        <p ref={subtitleRef} className={styles.subtitle}>
-          Descubre nuestros servicios de belleza y cuidado personal que transforman tu rutina.
-          Tecnología y salud al servicio de tu bienestar.
-        </p>
-
-        <div ref={ctaRef} className={styles.ctaGroup}>
-          <a href="#servicios" className={styles.ctaPrimary}>
-            <span className={styles.ctaPrimaryText}>Ver Servicios</span>
-          </a>
-          <a href="/reservas" className={styles.ctaSecondary}>
-            ✦ Reservar Cita →
-          </a>
+        {/* Visual Side */}
+        <div ref={visualRef} className={styles.visualSide}>
+          <div className={styles.visualCard}>
+            <div className={styles.visualPlaceholder}>
+              <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="100" cy="100" r="95" stroke="currentColor" strokeWidth="2" opacity="0.2" />
+                <circle cx="100" cy="100" r="70" stroke="currentColor" strokeWidth="1.5" opacity="0.3" />
+                <circle cx="100" cy="100" r="45" stroke="currentColor" strokeWidth="1" opacity="0.4" />
+              </svg>
+            </div>
+          </div>
         </div>
-      </div>
-
-      {/* Swipe indicator */}
-      <div ref={scrollRef} className={styles.scrollIndicator}>
-        <div className={styles.swipeIndicator}>
-          <span className={styles.chevron} />
-          <span className={styles.chevron} />
-          <span className={styles.chevron} />
-        </div>
-        <span className={styles.scrollText}>Deslizar</span>
       </div>
     </section>
   );

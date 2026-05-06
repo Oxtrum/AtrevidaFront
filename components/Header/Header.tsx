@@ -142,7 +142,6 @@ export default function Header() {
           </Link>
         ))}
       </div>
-      <div className='h-10'> </div>
     </>
   );
 }

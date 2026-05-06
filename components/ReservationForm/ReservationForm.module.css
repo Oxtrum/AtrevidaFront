@@ -1,31 +1,601 @@
-/* ═══════════════════════════════════════════════════════════════
-   ReservationForm.module.css — consistente con Calendar
-   ═══════════════════════════════════════════════════════════════ */
+/* ────────────────────────────────────────────────────────────────
+   RESERVATION FORM — PREMIUM LIQUID GLASS DESIGN
+   ──────────────────────────────────────────────────────────────── */
 
-/* ─── Wrapper ─────────────────────────────────────────────────── */
-
+/* Main Form Container */
 .form {
   width: 100%;
-  max-width: 680px;
+  max-width: 700px;
   margin: 0 auto;
   position: relative;
-  background: rgba(0, 0, 0, 0.70);
-  border: 1px solid rgba(146, 39, 143, 0.30);
-  border-radius: 24px;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  overflow: visible; /* necesario para que los dropdowns no queden recortados */
+  background: var(--af-glass);
+  border: 1px solid var(--af-border);
+  border-radius: var(--af-radius-lg);
+  backdrop-filter: var(--af-blur);
+  -webkit-backdrop-filter: var(--af-blur);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 8px 32px rgba(0, 0, 0, 0.3);
+  overflow: visible;
 }
 
+/* Top accent line */
 .form::before {
   content: '';
-  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 2px;
-  border-radius: 24px 24px 0 0;
-  background: linear-gradient(90deg, transparent 0%, #EC008C 20%, #92278F 40%, #14AEEF 60%, #FFE600 80%, transparent 100%);
+  border-radius: var(--af-radius-lg) var(--af-radius-lg) 0 0;
+  background: var(--af-grad-brand);
+  opacity: 0.8;
 }
 
-.formBody { padding: 2.25rem 2.5rem 2.75rem; }
+.formBody {
+  padding: 2.5rem;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   FORM HEADER
+   ──────────────────────────────────────────────────────────────── */
+
+.formHeader {
+  margin-bottom: 2rem;
+}
+
+.formEyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 1rem;
+  border-radius: var(--af-radius-pill);
+  border: 1px solid var(--af-border-hover);
+  background: rgba(220, 38, 38, 0.08);
+  color: var(--af-accent-primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 1.25rem;
+  transition: var(--af-t-fast);
+}
+
+.eyebrowDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--af-accent-primary);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.4); }
+}
+
+.formTitle {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 0 0 0.5rem;
+  color: var(--af-text);
+}
+
+.formSubtitle {
+  font-size: 0.9rem;
+  color: var(--af-muted);
+  font-weight: 400;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   ERROR ALERT (Inline Validation)
+   ──────────────────────────────────────────────────────────────── */
+
+.errorAlert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid var(--af-border-focus);
+  border-radius: var(--af-radius-md);
+  color: #fca5a5;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  animation: slide-in-right 0.3s var(--af-ease);
+}
+
+/* ────────────────────────────────────────────────────────────────
+   FORM GRID (Premium Spacing)
+   ──────────────────────────────────────────────────────────────── */
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   FORM GROUP — Label Above Pattern
+   ──────────────────────────────────────────────────────────────── */
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  position: relative;
+}
+
+.formGroup label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--af-dim);
+  transition: color var(--af-t-fast);
+}
+
+.formGroup:focus-within label {
+  color: var(--af-accent-primary);
+}
+
+/* ────────────────────────────────────────────────────────────────
+   INPUT FIELDS (Optimized for Focus)
+   ──────────────────────────────────────────────────────────────── */
+
+.formGroup input,
+.formGroup select {
+  background: var(--af-input-bg);
+  border: 1px solid var(--af-border);
+  border-radius: var(--af-input-radius);
+  padding: 0.875rem 1.25rem;
+  color: var(--af-text);
+  font-family: inherit;
+  font-size: 0.95rem;
+  width: 100%;
+  transition: var(--af-t-mid);
+  box-sizing: border-box;
+}
+
+.formGroup input::placeholder,
+.formGroup select::placeholder {
+  color: var(--af-dim);
+  font-weight: 400;
+}
+
+.formGroup input:hover:not(:disabled),
+.formGroup select:hover:not(:disabled) {
+  border-color: var(--af-border-hover);
+  background: var(--af-input-bg-hov);
+}
+
+.formGroup input:focus,
+.formGroup select:focus {
+  outline: none;
+  border-color: var(--af-accent-primary);
+  background: var(--af-input-bg-foc);
+  box-shadow:
+    0 0 0 3px rgba(220, 38, 38, 0.1),
+    0 0 12px rgba(220, 38, 38, 0.2);
+}
+
+/* Error State */
+.inputError {
+  border-color: var(--af-border-focus) !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+}
+
+.errorText {
+  font-size: 0.75rem;
+  color: #fca5a5;
+  letter-spacing: 0.3px;
+  padding-left: 0.5rem;
+  animation: fade-in-up 0.3s var(--af-ease);
+}
+
+/* ────────────────────────────────────────────────────────────────
+   DAY SELECTOR (Chip Component)
+   ──────────────────────────────────────────────────────────────── */
+
+.daySelector {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.dayChip {
+  flex: 1;
+  min-width: 70px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.7rem 0.5rem;
+  background: var(--af-input-bg);
+  border: 1px solid var(--af-border);
+  border-radius: var(--af-input-radius);
+  color: var(--af-dim);
+  font-family: inherit;
+  cursor: pointer;
+  transition: var(--af-t-mid);
+}
+
+.dayChip:hover:not(:disabled) {
+  border-color: var(--af-border-hover);
+  background: var(--af-input-bg-hov);
+  color: var(--af-text);
+  transform: translateY(-2px);
+}
+
+.dayChipActive {
+  background: var(--af-accent-primary);
+  border-color: var(--af-accent-primary);
+  color: #fff;
+  box-shadow: var(--af-shadow-accent);
+  transform: translateY(-2px);
+}
+
+.dayChipDisabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.dayChipLabel {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.dayChipDate {
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   TIME SLOT PICKER
+   ──────────────────────────────────────────────────────────────── */
+
+.pickerPlaceholder {
+  padding: 1.5rem;
+  background: var(--af-surface-1);
+  border: 1px dashed var(--af-border-subtle);
+  border-radius: var(--af-radius-md);
+  color: var(--af-dim);
+  font-size: 0.9rem;
+  font-style: italic;
+  font-weight: 400;
+  text-align: center;
+  transition: var(--af-t-fast);
+}
+
+.pickerPlaceholder:hover {
+  border-color: var(--af-border);
+  background: var(--af-surface-2);
+}
+
+.timeSlotPicker {
+  background: var(--af-surface-1);
+  border: 1px solid var(--af-border);
+  border-radius: var(--af-radius-md);
+  overflow: hidden;
+}
+
+.timeSlotPicker::before {
+  content: '';
+  display: block;
+  height: 1px;
+  background: var(--af-grad-brand);
+  opacity: 0.6;
+}
+
+.timeSlotPickerLegend {
+  display: flex;
+  gap: 1.5rem;
+  padding: 0.8rem 1.25rem;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--af-border-subtle);
+}
+
+.timeSlotPickerLegend span {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--af-dim);
+}
+
+.legendDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.timeSlotGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
+}
+
+/* Time Slot Chips */
+.timeChip {
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--af-border);
+  background: var(--af-input-bg);
+  color: var(--af-text);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: var(--af-t-fast);
+  white-space: nowrap;
+}
+
+.timeChip:hover:not(:disabled) {
+  border-color: var(--af-accent-primary);
+  background: var(--af-input-bg-foc);
+  color: var(--af-accent-primary);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);
+}
+
+.timeChipReserved {
+  border-color: var(--af-border-subtle) !important;
+  background: var(--af-surface-3) !important;
+  color: var(--af-dim) !important;
+  cursor: not-allowed !important;
+  text-decoration: line-through;
+  opacity: 0.5;
+}
+
+.timeChipPast {
+  border-color: var(--af-border-subtle) !important;
+  background: transparent !important;
+  color: var(--af-dim) !important;
+  cursor: not-allowed !important;
+  opacity: 0.3;
+}
+
+.timeChipSelected {
+  border-color: var(--af-accent-primary);
+  background: var(--af-accent-primary);
+  color: #fff;
+  box-shadow: 0 0 12px rgba(220, 38, 38, 0.3);
+}
+
+/* Selected Range Display */
+.selectedRange {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1.25rem;
+  margin: 0 1.25rem 0.75rem;
+  background: var(--af-input-bg-foc);
+  border: 1px solid var(--af-border-focus);
+  border-radius: var(--af-radius-pill);
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--af-text);
+  letter-spacing: 0.5px;
+}
+
+.selectedRangeIcon {
+  color: var(--af-accent-primary);
+  font-size: 0.75rem;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   FORM DIVIDER
+   ──────────────────────────────────────────────────────────────── */
+
+.formDivider {
+  grid-column: 1 / -1;
+  height: 1px;
+  background: var(--af-border);
+  margin: 0.5rem 0;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   FORM ACTIONS (CTA Buttons)
+   ──────────────────────────────────────────────────────────────── */
+
+.formActions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--af-border);
+}
+
+.cancelButton {
+  flex: 1;
+  padding: 0.875rem 1.5rem;
+  border-radius: var(--af-radius-pill);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: var(--af-t-mid);
+  background: transparent;
+  border: 1px solid var(--af-border);
+  color: var(--af-text);
+}
+
+.cancelButton:hover:not(:disabled) {
+  border-color: var(--af-accent-primary);
+  background: var(--af-input-bg-hov);
+  color: var(--af-accent-primary);
+  transform: translateY(-2px);
+}
+
+.cancelButton:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+/* Primary Submit Button */
+.submitButton {
+  flex: 1.4;
+  padding: 0.875rem 1.5rem;
+  border-radius: var(--af-radius-pill);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: var(--af-t-mid);
+  border: none;
+  color: #fff;
+  background: var(--af-accent-primary);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--af-shadow-accent);
+}
+
+.submitButton::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--af-radius-pill);
+  background: var(--af-grad-cta);
+  opacity: 0;
+  transition: opacity var(--af-t-fast);
+}
+
+.submitButtonText {
+  position: relative;
+  z-index: 1;
+}
+
+.submitButton:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.4);
+}
+
+.submitButton:hover:not(:disabled)::before {
+  opacity: 1;
+}
+
+.submitButton:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+.cancelButton:disabled,
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   WARNING STATE (Slot Validation)
+   ──────────────────────────────────────────────────────────────── */
+
+.slotWarning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.875rem 1.25rem;
+  border-radius: var(--af-radius-md);
+  background: rgba(202, 138, 4, 0.08);
+  border: 1px solid rgba(202, 138, 4, 0.3);
+  color: var(--af-yellow);
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+  animation: slide-in-right 0.3s var(--af-ease);
+}
+
+.slotWarning span:first-child {
+  flex-shrink: 0;
+  margin-top: 0.05rem;
+}
+
+.servicioPlaceholder {
+  padding: 0.875rem 1.25rem;
+  background: var(--af-surface-1);
+  border: 1px dashed var(--af-border-subtle);
+  border-radius: var(--af-radius-md);
+  color: var(--af-dim);
+  font-size: 0.9rem;
+  font-style: italic;
+  font-weight: 400;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   RESPONSIVE DESIGN
+   ──────────────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .form {
+    border-radius: var(--af-radius-md);
+  }
+
+  .form::before {
+    border-radius: var(--af-radius-md) var(--af-radius-md) 0 0;
+  }
+
+  .formBody {
+    padding: 1.75rem 1.5rem 2rem;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .daySelector {
+    gap: 0.35rem;
+  }
+
+  .dayChip {
+    min-width: 60px;
+    padding: 0.6rem 0.4rem;
+  }
+
+  .dayChipLabel {
+    font-size: 0.6rem;
+  }
+
+  .dayChipDate {
+    font-size: 0.75rem;
+  }
+
+  .timeChip {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.6rem;
+  }
+
+  .formActions {
+    flex-direction: column-reverse;
+    gap: 0.75rem;
+  }
+
+  .cancelButton,
+  .submitButton {
+    flex: unset;
+    width: 100%;
+  }
+}
 
 /* ─── Header ──────────────────────────────────────────────────── */
 
