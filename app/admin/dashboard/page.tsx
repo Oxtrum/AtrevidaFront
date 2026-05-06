@@ -120,7 +120,7 @@ export default function AdminDashboardPage() {
       title:       'Gestionar Reservas',
       description: 'Ver, editar y administrar todas las citas del centro',
       icon:        <CalendarCheck size={24} strokeWidth={1.5} />,
-      action:      () => router.push('/reservas'),
+      action:      () => router.push('/admin/reservas'),
       color:       '#92278F',
       colorRgb:    '146, 39, 143',
     },

@@ -25,7 +25,7 @@ export function TimeSlotPicker({
 
   const handleClick = (hora: string) => {
     const status = hoursAvailability.get(hora);
-    
+
     // No permitir seleccionar horas pasadas
     if (status === 'past') return;
 
@@ -43,9 +43,9 @@ export function TimeSlotPicker({
         onSelect('', '');
         return;
       }
-      
+
       // Asegurar que hora fin > hora inicio
-      if (hora < selecting) {
+      if (HORAS.indexOf(hora) < HORAS.indexOf(selecting)) {
         // Si seleccionan en orden inverso
         const idx = HORAS.indexOf(hora);
         const siguiente = HORAS[idx + 1] || hora;
@@ -53,15 +53,20 @@ export function TimeSlotPicker({
         onSelect(hora, siguiente);
         return;
       }
-      
+
       onSelect(selecting, hora);
       setSelecting(null);
     }
   };
 
-  const isInRange = (hora: string) =>
-    horaDesde && horaHasta && hora >= horaDesde && hora < horaHasta;
-
+  const isInRange = (hora: string): boolean => {
+    if (!horaDesde || !horaHasta) return false;
+    const idxHora = HORAS.indexOf(hora);
+    const idxDesde = HORAS.indexOf(horaDesde);
+    const idxHasta = HORAS.indexOf(horaHasta);
+    if (idxHora === -1 || idxDesde === -1 || idxHasta === -1) return false;
+    return idxHora >= idxDesde && idxHora < idxHasta;
+  };
   const getStatus = (hora: string): SlotStatus => {
     return hoursAvailability.get(hora) ?? 'free';
   };
@@ -130,8 +135,7 @@ export function TimeSlotPicker({
               disabled={isPast}
               title={
                 isPast ? `${hora} — Pasado`
-                  : status === 'occupied' ? `${hora} — Ocupado (el backend validará)`
-                    : hora
+                  : hora
               }
             >
               {hora}

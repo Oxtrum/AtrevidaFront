@@ -3,14 +3,13 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import gsap from 'gsap';
 import { DiaSemana, generarSemanas, getFechasDeSemana } from '@/types/reserva';
-
-import { useLocales } from '@/lib/hooks/useLocales'; 
+import { useLocales } from '@/lib/hooks/useLocales';
 import { useReservasCalendario } from '@/lib/hooks/useReservasCalendario';
 import CalendarGrid from './CalendarGrid';
 import styles from './Calendar.module.css';
 import { CustomSelect } from '../Custom/CustomSelect';
 
-interface CalendarProps {
+interface CalendarAdminProps {
   localInicial?: string;
   semanaInicial?: string;
   onSlotClick?: (hora: string, dia: DiaSemana, slots: any) => void;
@@ -19,15 +18,17 @@ interface CalendarProps {
 }
 
 /**
- * Calendar - Componente heredado (DEPRECADO)
- * Usar CalendarPublico o CalendarAdmin en su lugar
+ * CalendarAdmin - Versión para administrador
+ * - Muestra detalles completos: nombres de clientes y servicios
+ * - Permite ver todas las reservas en detalle
+ * - Dirigido a gestión interna
  */
-export default function Calendar({
+export default function CalendarAdmin({
   localInicial = '',
   onSlotClick,
   onSucursalChange,
   onSemanaChange,
-}: CalendarProps) {
+}: CalendarAdminProps) {
   const [sucursal, setSucursal] = useState(localInicial);
   const [semanaIndex, setSemanaIndex] = useState(0);
   const [selectedDay, setSelectedDay] = useState<DiaSemana | null>(null);
@@ -42,8 +43,7 @@ export default function Calendar({
 
   const semanasDisponibles = useMemo(() => generarSemanas(6), []);
   const semanaActual = semanasDisponibles[semanaIndex];
-  const fechas = useMemo(() => semanaActual ? getFechasDeSemana(semanaActual.fechaInicio) : null, [semanaActual]);
-
+  const fechas = useMemo(() => (semanaActual ? getFechasDeSemana(semanaActual.fechaInicio) : null), [semanaActual]);
 
   // Fetch reservas cuando cambian sucursal o semana
   useEffect(() => {
@@ -60,16 +60,17 @@ export default function Calendar({
       });
     }
   }, [sucursalEfectiva, semanaIndex, semanaActual, fetchReservas]);
-  
+
   const handleSucursalChange = (value: string) => {
     setSucursal(value);
     setSelectedDay(null);
     onSucursalChange?.(value);
   };
-  
+
   useEffect(() => {
     const ctx = gsap.context(() => {
-      gsap.fromTo(controlsRef.current,
+      gsap.fromTo(
+        controlsRef.current,
         { opacity: 0, y: -30 },
         { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }
       );
@@ -89,7 +90,8 @@ export default function Calendar({
 
   useEffect(() => {
     if (!loading && gridRef.current) {
-      gsap.fromTo(gridRef.current,
+      gsap.fromTo(
+        gridRef.current,
         { opacity: 0, y: 20, scale: 0.98 },
         { opacity: 1, y: 0, scale: 1, duration: 0.5, ease: 'power2.out' }
       );
@@ -122,12 +124,12 @@ export default function Calendar({
 
       <div ref={controlsRef} className={styles.controls}>
         <div className={styles.controlGroup}>
-          <label >Sucursal</label>
+          <label>Sucursal</label>
           <CustomSelect
-            onChange={(e) => handleSucursalChange(e)}
+            onChange={handleSucursalChange}
             value={sucursalEfectiva}
             options={sucursalOptions}
-            placeholder='Seleccionar sucursal'
+            placeholder="Seleccionar sucursal"
           />
         </div>
 
@@ -136,7 +138,10 @@ export default function Calendar({
           <CustomSelect
             onChange={handleSemanaChange}
             value={semanaIndex.toString()}
-            options={semanasDisponibles.map((semana, idx) => ({ value: idx.toString(), label: semana.titulo }))}
+            options={semanasDisponibles.map((semana, idx) => ({
+              value: idx.toString(),
+              label: semana.titulo,
+            }))}
           />
         </div>
       </div>
@@ -153,14 +158,14 @@ export default function Calendar({
       ) : !sucursalEfectiva ? (
         <div className={styles.emptyState}>
           <h3>Selecciona una sucursal</h3>
-          <p>Elige una sucursal para ver las reservas disponibles</p>
+          <p>Elige una sucursal para ver las reservas</p>
         </div>
       ) : (
         <div ref={gridRef}>
           <CalendarGrid
             data={data}
             fechas={fechas}
-            isAdmin={false}
+            isAdmin={true}
             onSlotClick={handleSlotClick}
             selectedDay={selectedDay}
             onDayChange={setSelectedDay}
