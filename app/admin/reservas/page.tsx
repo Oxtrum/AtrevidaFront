@@ -10,7 +10,7 @@ import { useReservasFiltradas } from '@/lib/hooks/useReservasFiltradas';
 import { ReservasTable } from '@/components/AdminReservas';
 import { CustomSelect } from '@/components/Custom/CustomSelect';
 import { Input } from '@/components/Shared';
-import Header from '@/components/Header/Header';
+import Header from '@/components/AdminHeader/Header';
 import styles from './page.module.css';
 
 /**

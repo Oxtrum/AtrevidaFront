@@ -14,14 +14,14 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const cardRef      = useRef<HTMLDivElement>(null);
-  const orb1Ref      = useRef<HTMLSpanElement>(null);
-  const orb2Ref      = useRef<HTMLSpanElement>(null);
-  const orb3Ref      = useRef<HTMLSpanElement>(null);
-  const badgeRef     = useRef<HTMLSpanElement>(null);
-  const titleRef     = useRef<HTMLHeadingElement>(null);
-  const subtitleRef  = useRef<HTMLParagraphElement>(null);
-  const formRef      = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const orb1Ref = useRef<HTMLSpanElement>(null);
+  const orb2Ref = useRef<HTMLSpanElement>(null);
+  const orb3Ref = useRef<HTMLSpanElement>(null);
+  const badgeRef = useRef<HTMLSpanElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const subtitleRef = useRef<HTMLParagraphElement>(null);
+  const formRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -39,15 +39,15 @@ export default function AdminLoginPage() {
 
       // Inner elements stagger
       const tl = gsap.timeline({ delay: 0.45, defaults: { ease: 'power3.out' } });
-      tl.fromTo(badgeRef.current,  { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5 })
-        .fromTo(titleRef.current,  { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6 }, '-=0.3')
+      tl.fromTo(badgeRef.current, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5 })
+        .fromTo(titleRef.current, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6 }, '-=0.3')
         .fromTo(subtitleRef.current, { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4 }, '-=0.3')
-        .fromTo(formRef.current,   { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5 }, '-=0.2');
+        .fromTo(formRef.current, { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5 }, '-=0.2');
 
       // Orbs float loops
       gsap.to(orb1Ref.current, { y: '+=35', duration: 4.2, ease: 'sine.inOut', yoyo: true, repeat: -1 });
       gsap.to(orb2Ref.current, { y: '-=28', duration: 3.6, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 0.6 });
-      gsap.to(orb3Ref.current, { y: '+=20', x: '+=10', duration: 5,   ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 1.2 });
+      gsap.to(orb3Ref.current, { y: '+=20', x: '+=10', duration: 5, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 1.2 });
     }, containerRef);
 
     return () => ctx.revert();
@@ -59,7 +59,7 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
-      const res  = await fetch('/api/admin/login', {
+      const res = await fetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials),
@@ -68,10 +68,12 @@ export default function AdminLoginPage() {
 
       if (res.ok && data.success) {
         // Success flash before navigation
-        gsap.to(cardRef.current, { scale: 1.02, opacity: 0.8, duration: 0.3, ease: 'power2.in', onComplete: () => {
-          localStorage.setItem('adminToken', data.token);
-          router.push('/admin/dashboard');
-        }});
+        gsap.to(cardRef.current, {
+          scale: 1.02, opacity: 0.8, duration: 0.3, ease: 'power2.in', onComplete: () => {
+            localStorage.setItem('adminToken', data.token);
+            router.push('/admin/dashboard');
+          }
+        });
       } else {
         setError(data.message || 'Credenciales inválidas');
         // Shake on error

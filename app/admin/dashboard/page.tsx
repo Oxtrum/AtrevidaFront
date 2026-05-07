@@ -15,7 +15,7 @@ import {
   LogOut,
   ArrowRight,
 } from 'lucide-react';
-import Header from '@/components/Header/Header';
+import Header from '@/components/AdminHeader/Header';
 import styles from './page.module.css';
 
 interface AdminOption {
@@ -30,21 +30,21 @@ interface AdminOption {
 
 const STATS = [
   { value: '—', label: 'Reservas Hoy', icon: <CalendarDays size={20} strokeWidth={1.5} />, color: '#EC008C' },
-  { value: '—', label: 'Esta Semana',  icon: <BarChart2    size={20} strokeWidth={1.5} />, color: '#92278F' },
-  { value: '—', label: 'Pendientes',   icon: <Clock        size={20} strokeWidth={1.5} />, color: '#FFE600' },
-  { value: '—', label: 'Completadas',  icon: <CheckCircle2 size={20} strokeWidth={1.5} />, color: '#14AEEF' },
+  { value: '—', label: 'Esta Semana', icon: <BarChart2 size={20} strokeWidth={1.5} />, color: '#92278F' },
+  { value: '—', label: 'Pendientes', icon: <Clock size={20} strokeWidth={1.5} />, color: '#FFE600' },
+  { value: '—', label: 'Completadas', icon: <CheckCircle2 size={20} strokeWidth={1.5} />, color: '#14AEEF' },
 ];
 
 export default function AdminDashboardPage() {
-  const router   = useRouter();
+  const router = useRouter();
   const [adminName, setAdminName] = useState('Admin');
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const headerRef    = useRef<HTMLDivElement>(null);
-  const statsRef     = useRef<HTMLDivElement>(null);
-  const gridRef      = useRef<HTMLDivElement>(null);
-  const orb1Ref      = useRef<HTMLSpanElement>(null);
-  const orb2Ref      = useRef<HTMLSpanElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const orb1Ref = useRef<HTMLSpanElement>(null);
+  const orb2Ref = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -60,16 +60,16 @@ export default function AdminDashboardPage() {
         { y: -24, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.7 }
       )
-      .fromTo(statsRef.current?.children ? Array.from(statsRef.current.children) : [],
-        { y: 30, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.55, stagger: 0.08 },
-        '-=0.3'
-      )
-      .fromTo('.admin-card',
-        { y: 40, opacity: 0, scale: 0.97 },
-        { y: 0, opacity: 1, scale: 1, duration: 0.55, stagger: 0.1 },
-        '-=0.2'
-      );
+        .fromTo(statsRef.current?.children ? Array.from(statsRef.current.children) : [],
+          { y: 30, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.55, stagger: 0.08 },
+          '-=0.3'
+        )
+        .fromTo('.admin-card',
+          { y: 40, opacity: 0, scale: 0.97 },
+          { y: 0, opacity: 1, scale: 1, duration: 0.55, stagger: 0.1 },
+          '-=0.2'
+        );
 
       // Orbs float
       gsap.to(orb1Ref.current, { y: '+=30', duration: 4.5, ease: 'sine.inOut', yoyo: true, repeat: -1 });
@@ -92,7 +92,7 @@ export default function AdminDashboardPage() {
   const handleImportar = async () => {
     try {
       const token = localStorage.getItem('adminToken');
-      const res   = await fetch('/api/admin/importar', {
+      const res = await fetch('/api/admin/importar', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -108,39 +108,39 @@ export default function AdminDashboardPage() {
 
   const options: AdminOption[] = [
     {
-      title:       'Importar Datos',
+      title: 'Importar Datos',
       description: 'Sincronizar reservas desde Google Sheets al sistema de gestión',
-      icon:        <Download      size={24} strokeWidth={1.5} />,
-      action:      handleImportar,
-      color:       '#EC008C',
-      colorRgb:    '236, 0, 140',
-      badge:       'Sincronizar',
+      icon: <Download size={24} strokeWidth={1.5} />,
+      action: handleImportar,
+      color: '#EC008C',
+      colorRgb: '236, 0, 140',
+      badge: 'Sincronizar',
     },
     {
-      title:       'Gestionar Reservas',
+      title: 'Gestionar Reservas',
       description: 'Ver, editar y administrar todas las citas del centro',
-      icon:        <CalendarCheck size={24} strokeWidth={1.5} />,
-      action:      () => router.push('/admin/reservas'),
-      color:       '#92278F',
-      colorRgb:    '146, 39, 143',
+      icon: <CalendarCheck size={24} strokeWidth={1.5} />,
+      action: () => router.push('/admin/reservas'),
+      color: '#92278F',
+      colorRgb: '146, 39, 143',
     },
     {
-      title:       'Reportes',
+      title: 'Reportes',
       description: 'Consultar estadísticas de servicios, clientes y rendimiento',
-      icon:        <BarChart3     size={24} strokeWidth={1.5} />,
-      action:      () => alert('Próximamente'),
-      color:       '#14AEEF',
-      colorRgb:    '20, 174, 239',
-      badge:       'Pronto',
+      icon: <BarChart3 size={24} strokeWidth={1.5} />,
+      action: () => alert('Próximamente'),
+      color: '#14AEEF',
+      colorRgb: '20, 174, 239',
+      badge: 'Pronto',
     },
     {
-      title:       'Configuración',
+      title: 'Configuración',
       description: 'Ajustes del sistema, horarios, servicios y personal',
-      icon:        <Settings      size={24} strokeWidth={1.5} />,
-      action:      () => alert('Próximamente'),
-      color:       '#FFE600',
-      colorRgb:    '255, 230, 0',
-      badge:       'Pronto',
+      icon: <Settings size={24} strokeWidth={1.5} />,
+      action: () => alert('Próximamente'),
+      color: '#FFE600',
+      colorRgb: '255, 230, 0',
+      badge: 'Pronto',
     },
   ];
 
@@ -158,7 +158,7 @@ export default function AdminDashboardPage() {
       <div className={styles.bgMesh} />
 
       {/* Decorative particles */}
-      <span className={styles.particle} style={{ top: '8%',  left: '6%' }}>✦</span>
+      <span className={styles.particle} style={{ top: '8%', left: '6%' }}>✦</span>
       <span className={styles.particle} style={{ top: '70%', right: '4%', opacity: 0.1 }}>◎</span>
 
       <Header />
@@ -188,10 +188,6 @@ export default function AdminDashboardPage() {
                   weekday: 'long', day: 'numeric', month: 'long'
                 })}
               </div>
-              <button onClick={handleLogout} className={styles.logoutButton}>
-                <LogOut size={15} strokeWidth={1.5} />
-                Cerrar Sesión
-              </button>
             </div>
           </div>
 
@@ -219,7 +215,7 @@ export default function AdminDashboardPage() {
                 key={index}
                 className={`admin-card ${styles.card}`}
                 style={{
-                  '--card-color':     option.color,
+                  '--card-color': option.color,
                   '--card-color-rgb': option.colorRgb,
                 } as React.CSSProperties}
                 onClick={option.action}
