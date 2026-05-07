@@ -42,8 +42,11 @@ export default function TimeSlotPublico({ dia, slots, hora, fecha, onClick, esPa
         {esPasado ? (
           <div className={styles.passedSlot}><span className={styles.passedIcon}>—</span></div>
         ) : hayDisponibilidad ? (
-          <div className={styles.freeSlot}>
-            <span className={styles.freeIcon}>+</span>  {/* Solo esto */}
+          <div className={styles.freeSlotWithBadges}>
+            <div className={styles.freeSlot}>
+              <span className={styles.freeIcon}>+</span>
+            </div>
+            <SlotBadges mesas={mesasLibres} bicicletas={bicicletasLibres} />
           </div>
         ) : (
           <div className={styles.passedSlot}><span className={styles.passedIcon}>—</span></div>

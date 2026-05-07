@@ -3,6 +3,7 @@
 import { DiaSemana, ReservaDetalle, getTipoColor, getTipoLabel } from '@/types/reserva';
 import { extraerNombreServicio, esHoraDisponible } from '@/lib/utils/calendarHelpers';
 import styles from './Calendar.module.css';
+import { SlotBadges } from './SlotBadges';
 
 interface TimeSlotAdminProps {
   dia: DiaSemana;
@@ -106,14 +107,17 @@ export default function TimeSlotAdmin({
                 </div>
               ));
             })}
-            {/* {hayDisponibilidad && (
+            {hayDisponibilidad && (
               <SlotBadges mesas={mesasLibres} bicicletas={bicicletasLibres} />
-            )} */}
+            )}
           </div>
         ) : hayDisponibilidad ? (
           // Solo disponibles, mostrar "+"
-          <div className={styles.freeSlot}>
-            <span className={styles.freeIcon}>+</span>
+          <div className={styles.freeSlotWithBadges}>
+            <div className={styles.freeSlot}>
+              <span className={styles.freeIcon}>+</span>
+            </div>
+            <SlotBadges mesas={mesasLibres} bicicletas={bicicletasLibres} />
           </div>
         ) : esPasado ? (
           <div className={styles.passedSlot}>

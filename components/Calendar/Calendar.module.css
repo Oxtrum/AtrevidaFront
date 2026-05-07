@@ -432,6 +432,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 1;
   padding: 0.4rem;
   /* FIX: prevent content from expanding beyond cell */
   min-width: 0;
@@ -440,9 +441,10 @@
 
 /* Free slot */
 .freeSlot {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  padding: 0.35rem 0;
+  border-radius: 100%;
   border: 1px dashed rgba(245, 245, 245, 0.15);
   display: flex;
   align-items: center;
@@ -451,10 +453,30 @@
   flex-shrink: 0;
 }
 
+.freeIcon {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgba(245, 245, 245, 0.25);
+  transition: color 0.25s ease;
+}
+
 .timeSlotLibre:hover .freeSlot {
   border-color: rgba(236, 0, 140, 0.5);
-  background: rgba(236, 0, 140, 0.1);
-  transform: scale(1.1);
+  background: rgba(236, 0, 140, 0.08);
+}
+
+.timeSlotLibre:hover .freeIcon {
+  color: rgba(236, 0, 140, 0.9);
+}
+
+.freeSlotWithBadges {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+width: 100%;
 }
 
 .freeIcon {
@@ -764,4 +786,41 @@
   .reservationTipo {
     font-size: 0.52rem;
   }
+}
+
+/* ─── Slot Badges ──────────────────────────────────────────────────────────── */
+
+.slotBadges {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  justify-content: center;
+  margin-top: 0.3rem;
+  width: 100%;
+}
+
+.slotBadgeMesa {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 0.15rem 0.5rem;
+  border-radius: 50px;
+  background: rgba(236, 0, 140, 0.12);
+  border: 1px solid rgba(236, 0, 140, 0.4);
+  color: #EC008C;
+  white-space: nowrap;
+}
+
+.slotBadgeBicicleta {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 0.15rem 0.5rem;
+  border-radius: 50px;
+  background: rgba(20, 174, 239, 0.12);
+  border: 1px solid rgba(20, 174, 239, 0.4);
+  color: #14AEEF;
+  white-space: nowrap;
 }
