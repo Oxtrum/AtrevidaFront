@@ -30,23 +30,19 @@ function CrearReservaContent() {
   }, []);
 
   const initialData: ReservationFormInitialData = {
-    local:      searchParams.get('local')      || undefined,
-    semana:     searchParams.get('semana')     || undefined,
-    dia:       (searchParams.get('dia') as DiaSemana) || undefined,
+    local: searchParams.get('local') || undefined,
+    semana: searchParams.get('semana') || undefined,
+    dia: (searchParams.get('dia') as DiaSemana) || undefined,
     hora_desde: searchParams.get('hora_desde') || undefined,
     hora_hasta: searchParams.get('hora_hasta') || undefined,
-    servicio:   searchParams.get('servicio')   || undefined,
-    isAdmin:    isAdmin,
+    servicio: searchParams.get('servicio') || undefined,
+    isAdmin: isAdmin,
   };
 
   const backLink = isAdmin ? '/admin/reservas' : '/reservas';
 
   return (
     <div ref={contentRef} className={styles.content}>
-      <a href={backLink} className={styles.backLink}>
-        <span className={styles.backIcon}>{'<'}</span>
-        Volver a Reservas
-      </a>
       <ReservationForm initialData={initialData} />
     </div>
   );
