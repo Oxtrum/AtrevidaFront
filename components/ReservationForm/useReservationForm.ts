@@ -11,6 +11,7 @@ import {
 import { useCrearReserva } from '@/lib/hooks/useCrearReserva';
 import { useReservas } from '@/lib/hooks/useReservas';
 import { useLocales } from '@/lib/hooks/useLocales';
+import { toast } from '../Shared/Toast';
 import { validateReservationForm, } from '@/lib/utils/reservationValidation';
 import { type SlotStatus } from '@/lib/utils/hoursAvailability';
 import { HORAS, DIAS_SEMANA } from '@/lib/constants/reservationForm';
@@ -389,6 +390,7 @@ export function useReservationForm(
         };
 
         const result = await crearReserva(payload);
+        toast.success('¡Reserva registrada con éxito!');
 
         if (onSuccess) {
           onSuccess();

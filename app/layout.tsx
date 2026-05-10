@@ -20,6 +20,8 @@ export const metadata: Metadata = {
     "AtrevidaFit: Tecnología y salud al servicio de tu belleza. Productos de cosmética y cuidado personal que transforman tu rutina.",
 };
 
+import ToastContainer from "@/components/Shared/Toast";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -27,7 +29,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className={`${geist.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="flex flex-col min-h-full">{children}</body>
+      <body className="flex flex-col min-h-full">
+        {children}
+        <ToastContainer />
+      </body>
     </html>
   );
 }
