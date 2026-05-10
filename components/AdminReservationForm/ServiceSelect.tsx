@@ -1,6 +1,6 @@
 'use client';
 
-import { CustomSelect } from '../Custom/CustomSelect';
+import { CustomSelect } from '../Custom/CustomSelectAdmin';
 import styles from './ReservationForm.module.css';
 
 interface ServiceGroup {
