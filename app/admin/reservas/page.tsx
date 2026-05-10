@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useEffect, useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import gsap from 'gsap';
 import { DiaSemana } from '@/types/reserva';
 import { CalendarAdmin } from '@/components/Calendar';
@@ -18,11 +18,18 @@ import styles from './page.module.css';
  */
 export default function AdminReservasPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const containerRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const calendarRef = useRef<HTMLDivElement>(null);
   const [sucursalActiva, setSucursalActiva] = useState('');
   const [semanaActiva, setSemanaActiva] = useState('');
+  const [refreshKey, setRefreshKey] = useState(0);
+  useEffect(() => {
+    if (pathname.startsWith('/admin/reservas')) {
+      setRefreshKey(k => k + 1);
+    }
+  }, [pathname]);
 
   // Estado para filtros de lista de reservas
   const [vistaActiva, setVistaActiva] = useState<'calendario' | 'lista'>('calendario');
@@ -77,7 +84,7 @@ export default function AdminReservasPage() {
         .fromTo(calendarRef.current, { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6 }, '-=0.2');
     }, containerRef);
 
-    return () => ctx.revert();
+    return () => ctx.kill();
   }, []);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -224,6 +231,7 @@ export default function AdminReservasPage() {
         {vistaActiva === 'calendario' && (
           <div ref={calendarRef} className={styles.calendarSection}>
             <CalendarAdmin
+              key={refreshKey}
               localInicial="SAN MARTIN"
               onSlotClick={handleSlotClick}
               onSucursalChange={handleSucursalChange}

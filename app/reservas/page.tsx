@@ -1,6 +1,7 @@
 'use client';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import { useCallback } from 'react';
 import gsap from 'gsap';
 import Header from '@/components/Header/Header';
 import { CalendarPublico } from '@/components/Calendar';
@@ -9,6 +10,7 @@ import styles from './page.module.css';
 
 export default function ReservasPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const containerRef = useRef<HTMLDivElement>(null);
   const badgeRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
@@ -17,6 +19,12 @@ export default function ReservasPage() {
 
   const [sucursalActiva, setSucursalActiva] = useState('');
   const [semanaActiva, setSemanaActiva] = useState('');
+  const [refreshKey, setRefreshKey] = useState(0);
+  useEffect(() => {
+    if (pathname.startsWith('/reservas')) {
+      setRefreshKey(k => k + 1);
+    }
+  }, [pathname]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -26,7 +34,7 @@ export default function ReservasPage() {
         .fromTo(actionsRef.current, { x: 20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5 }, '-=0.3')
         .fromTo(calendarRef.current, { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6 }, '-=0.2');
     }, containerRef);
-    return () => ctx.revert();
+    return () => ctx.kill();
   }, []);
 
   const handleSlotClick = (hora: string, dia: DiaSemana, slots: any) => {
@@ -66,6 +74,7 @@ export default function ReservasPage() {
 
         <div ref={calendarRef} className={styles.calendarSection}>
           <CalendarPublico
+            key={refreshKey}
             onSlotClick={handleSlotClick}
             onSucursalChange={setSucursalActiva}
             onSemanaChange={setSemanaActiva}

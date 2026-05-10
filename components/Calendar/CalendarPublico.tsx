@@ -85,7 +85,7 @@ export default function CalendarPublico({
       });
     }, wrapperRef);
 
-    return () => ctx.revert();
+    return () => ctx.kill();
   }, []);
 
   useEffect(() => {

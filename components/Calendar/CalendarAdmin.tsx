@@ -85,7 +85,7 @@ export default function CalendarAdmin({
       });
     }, wrapperRef);
 
-    return () => ctx.revert();
+    return () => ctx.kill();
   }, []);
 
   useEffect(() => {

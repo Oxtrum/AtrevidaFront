@@ -24,20 +24,63 @@ export function CustomSelect({ value, onChange, options = [], groups, placeholde
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  // Cerrar al hacer click afuera
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
+  // Manejo robusto de listeners globales y BFCache
+  // Guardar referencias para poder remover/volver a añadir cuando el navegador
+  // restaure la página desde el bfcache (pageshow/pagehide).
+  const handlersRef = useRef<{ m?: (e: any) => void; k?: (e: any) => void }>({});
+
+  const attachHandlers = () => {
+    // Evitar re-attach
+    if (handlersRef.current.m && handlersRef.current.k) return;
+
+    const m = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
+    const k = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
 
-  // Cerrar con Escape
+    document.addEventListener('mousedown', m);
+    document.addEventListener('keydown', k);
+    handlersRef.current = { m, k };
+  };
+
+  const removeHandlers = () => {
+    if (handlersRef.current.m) document.removeEventListener('mousedown', handlersRef.current.m);
+    if (handlersRef.current.k) document.removeEventListener('keydown', handlersRef.current.k);
+    handlersRef.current = {};
+  };
+
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
+    attachHandlers();
+
+    const onPageShow = (ev: PageTransitionEvent) => {
+      // Si la página fue restaurada desde BFCache (ev.persisted === true)
+      // re-attach handlers y cerrar cualquier dropdown abierto para tener
+      // un estado consistente.
+      if ((ev as any).persisted) {
+        removeHandlers();
+        attachHandlers();
+        setOpen(false);
+      }
+    };
+
+    const onPageHide = (ev: PageTransitionEvent) => {
+      // Si el navegador va a guardar la página en BFCache, remover handlers
+      // para evitar que el estado del listener quede corrupto cuando se restaure.
+      if ((ev as any).persisted) {
+        removeHandlers();
+      }
+    };
+
+    window.addEventListener('pageshow', onPageShow);
+    window.addEventListener('pagehide', onPageHide);
+
+    return () => {
+      removeHandlers();
+      window.removeEventListener('pageshow', onPageShow);
+      window.removeEventListener('pagehide', onPageHide);
+    };
   }, []);
 
   const allOptions = groups ? groups.flatMap(g => g.options) : options;
@@ -54,7 +97,7 @@ export function CustomSelect({ value, onChange, options = [], groups, placeholde
       className={`${styles.selectOption}
         ${opt.value === value ? styles.selectOptionActive : ''}
         ${opt.disabled ? styles.selectOptionDisabled : ''}`}
-      onClick={() => !opt.disabled && handleSelect(opt.value)}
+      onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); !opt.disabled && handleSelect(opt.value); }}
       role="option"
       aria-selected={opt.value === value}
     >
@@ -71,7 +114,7 @@ export function CustomSelect({ value, onChange, options = [], groups, placeholde
     >
       <div
         className={styles.customSelectTrigger}
-        onClick={() => setOpen(prev => !prev)}
+        onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(prev => !prev); }}
         tabIndex={0}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(prev => !prev); } }}
       >

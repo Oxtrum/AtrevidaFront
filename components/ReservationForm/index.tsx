@@ -158,7 +158,10 @@ export default function ReservationForm({ initialData, onSuccess }: ReservationF
         <div className={styles.formActions}>
           <button
             type="button"
-            onClick={() => router.back()}
+            // Usar push a una ruta conocida en lugar de router.back() para
+            // forzar un desmontado consistente (evita problemas con BFCache
+            // y restauraciones que no desmontan el componente).
+            onClick={() => router.push(initialData?.isAdmin ? '/admin/reservas' : '/reservas')}
             className={styles.cancelButton}
             disabled={loading}
           >
