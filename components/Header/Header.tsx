@@ -101,7 +101,7 @@ export default function Header() {
   const headerClasses = [
     styles.header,
     scrolled ? styles.headerScrolled : '',
-  ].join(' ');
+  ].join(' ').trim();
 
   return (
     <>

@@ -20,7 +20,6 @@ export default function Header() {
   const logoRef = useRef<HTMLDivElement>(null);
   const navLinksRef = useRef<HTMLAnchorElement[]>([]);
   const ctaRef = useRef<HTMLButtonElement>(null);
-  const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
 
@@ -79,14 +78,7 @@ export default function Header() {
       }
     }, headerRef);
 
-    return () => ctx.revert();
-  }, []);
-
-  // Scroll listener
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    return () => ctx.kill();
   }, []);
 
   // Lock body scroll when mobile menu is open
@@ -109,10 +101,7 @@ export default function Header() {
     }
   }, [mobileOpen]);
 
-  const headerClasses = [
-    styles.header,
-    scrolled ? styles.headerScrolled : '',
-  ].join(' ');
+  const headerClasses = styles.header.trim();
 
   return (
     <>

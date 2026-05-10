@@ -38,6 +38,7 @@ const STATS = [
 export default function AdminDashboardPage() {
   const router = useRouter();
   const [adminName, setAdminName] = useState('Admin');
+  const [mounted, setMounted] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
@@ -87,6 +88,7 @@ export default function AdminDashboardPage() {
       }
     }, containerRef);
 
+    setMounted(true);
     return () => ctx.revert();
   }, [router]);
 
@@ -162,8 +164,10 @@ export default function AdminDashboardPage() {
   ];
 
   // Current hour greeting
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Buenos días' : hour < 18 ? 'Buenas tardes' : 'Buenas noches';
+  const greeting = !mounted ? 'Hola' : (new Date().getHours() < 12 ? 'Buenos días' : new Date().getHours() < 18 ? 'Buenas tardes' : 'Buenas noches');
+  const dateString = !mounted ? '' : new Date().toLocaleDateString('es-BO', {
+    weekday: 'long', day: 'numeric', month: 'long'
+  });
 
   return (
     <div ref={containerRef} className={styles.pageContainer}>
@@ -201,9 +205,7 @@ export default function AdminDashboardPage() {
             <div className={styles.headerActions}>
               <div className={styles.dateBadge}>
                 <Calendar size={14} strokeWidth={1.5} className={styles.dateIcon} />
-                {new Date().toLocaleDateString('es-BO', {
-                  weekday: 'long', day: 'numeric', month: 'long'
-                })}
+                {dateString}
               </div>
             </div>
           </div>
