@@ -20,11 +20,8 @@ export function TimeSlotPicker({
 
   const handleClick = (hora: string) => {
     const status = hoursAvailability.get(hora);
-
-    // No permitir seleccionar horas pasadas u ocupadas
     if (status === 'past' || status === 'occupied') return;
 
-    // Selección inmediata de 1 hora
     const idx = HORAS.indexOf(hora);
     const siguiente = HORAS[idx + 1] || hora;
     onSelect(hora, siguiente);
@@ -45,28 +42,36 @@ export function TimeSlotPicker({
 
   return (
     <div className={styles.timeSlotPicker}>
+
       {/* Leyenda */}
       <div className={styles.timeSlotPickerLegend}>
         <span>
           <span
             className={styles.legendDot}
-            style={{ background: 'rgba(20,174,239,0.65)', border: '1px solid rgba(20,174,239,0.4)' }}
+            style={{ background: '#7dd3fc', border: '1px solid #0ea5e9' }}
           />
           Libre
         </span>
         <span>
           <span
             className={styles.legendDot}
-            style={{ background: 'rgba(255,230,0,0.50)', border: '1px solid rgba(255,230,0,0.3)' }}
+            style={{ background: '#fbbf24', border: '1px solid #d97706' }}
           />
           Ocupado
         </span>
         <span>
           <span
             className={styles.legendDot}
-            style={{ background: '#EC008C', boxShadow: '0 0 6px rgba(236,0,140,0.6)' }}
+            style={{ background: 'var(--admin-accent-primary)' }}
           />
           Seleccionado
+        </span>
+        <span>
+          <span
+            className={styles.legendDot}
+            style={{ background: '#cbd5e1', border: '1px solid #94a3b8' }}
+          />
+          Pasado
         </span>
       </div>
 
@@ -111,6 +116,7 @@ export function TimeSlotPicker({
           {horaDesde} → {horaHasta}
         </div>
       )}
+
     </div>
   );
 }
