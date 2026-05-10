@@ -386,38 +386,26 @@ export function useReservationForm(
       return slots;
     };
 
-    let slots = generarSlots(horaDesdeNorm, horaHastaNorm);
-
-    if (slots.length > 0) {
-      const primero = slots[0];
-      slots = [primero]
-    }
-
       try {
-        // Enviar una petición por cada slot de 30 min
-        await Promise.all(
-          slots.map(slot =>
-            crearReserva({
-              local: sucursal,
-              fecha: fechaISO,
-              hora_desde: slot.hora_desde,
-              hora_hasta: slot.hora_hasta,
-              tipo,
-              cliente,
-              servicio,
-            })
-          )
-        );
+        await crearReserva({
+          local: sucursal,
+          fecha: fechaISO,
+          hora_desde: horaDesdeNorm,
+          hora_hasta: horaHastaNorm,
+          tipo,
+          cliente,
+          servicio,
+        });
 
         if (onSuccess) {
-        onSuccess();
-      } else {
-        router.push(initialData?.isAdmin ? '/admin/reservas' : '/reservas');
+          onSuccess();
+        } else {
+          router.push(initialData?.isAdmin ? '/admin/reservas' : '/reservas');
+        }
+        router.refresh();
+      } catch {
+        setError(hookError || 'Error al crear la reserva');
       }
-      router.refresh();
-    } catch {
-      setError(hookError || 'Error al crear la reserva');
-    }
   };
   return {
     // State

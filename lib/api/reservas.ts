@@ -49,6 +49,7 @@ export interface CrearReservaDBData {
 }
 
 export interface ActualizarReservaDBData {
+  id: number;
   local: string;
   fecha: string;
   hora: string;
@@ -94,6 +95,11 @@ export async function getReservasDB(params: GetReservasDBParams): Promise<Reserv
       reservados: params.reservados?.toString(),
     },
   });
+}
+
+/** Obtiene una reserva por su ID. */
+export async function getReservaByID(id: string | number): Promise<ApiResponse<{ reserva: ReservaBD }>> {
+  return apiClient.get<ApiResponse<{ reserva: ReservaBD }>>(`/bd/reservas/${id}`);
 }
 
 /** Obtiene reservas para vista calendario desde la base de datos. */

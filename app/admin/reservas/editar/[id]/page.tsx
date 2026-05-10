@@ -4,8 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useRef, useState, useEffect, useMemo } from 'react';
 import gsap from 'gsap';
 import Header from '@/components/Header/Header';
-import { useReservasFiltradas } from '@/lib/hooks/useReservasFiltradas';
-import { actualizarReservaDB } from '@/lib/api/reservas';
+import { actualizarReservaDB, getReservaByID } from '@/lib/api/reservas';
 import { DiaSemana, ReservaBD, generarSemanas, getFechasDeSemana, esFechaPasada } from '@/types/reserva';
 import { HORAS, DIAS_SEMANA } from '@/lib/constants/reservationForm';
 import { DaySelector } from '@/components/ReservationForm/DaySelector';
@@ -19,16 +18,17 @@ function EditarReservaContent() {
   const router = useRouter();
   const contentRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const reservaId = params.id as string;
 
   const [reserva, setReserva] = useState<ReservaBD | null>(null);
-  const { reservas, fetch: fetchReservas } = useReservasFiltradas();
 
   const [nuevaFecha, setNuevaFecha] = useState('');
   const [nuevaHoraDesde, setNuevaHoraDesde] = useState('');
   const [nuevaHoraHasta, setNuevaHoraHasta] = useState('');
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [clienteName, setClienteName] = useState('');
 
   const semanasDisponibles = useMemo(() => generarSemanas(6), []);
@@ -95,23 +95,41 @@ function EditarReservaContent() {
   }, [nuevaFecha]);
 
   useEffect(() => {
-    if (reservaId && !reserva) {
-      const found = reservas.find(r => r.id.toString() === reservaId);
-      if (found) {
-        setReserva(found);
-        setNuevaFecha(found.fecha);
-        setNuevaHoraDesde(found.hora_desde);
-        setNuevaHoraHasta(found.hora_hasta);
-        setClienteName(found.cliente);
-      } else {
-        fetchReservas({
-          local: 'SAN MARTIN',
-          fecha_desde: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          fecha_hasta: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        });
+    const loadReserva = async () => {
+      if (!reservaId) return;
+      setInitialLoading(true);
+      try {
+        const response = await getReservaByID(reservaId);
+        if (response.data?.reserva) {
+          const found = response.data.reserva;
+          setReserva(found);
+          setNuevaFecha(found.fecha);
+          setNuevaHoraDesde(found.hora_desde);
+          setNuevaHoraHasta(found.hora_hasta);
+          setClienteName(found.cliente);
+          
+          // Buscar en qué semana está la reserva
+          const reservaDate = new Date(found.fecha + 'T00:00:00');
+          const weekIdx = semanasDisponibles.findIndex(s => {
+            const start = new Date(s.fechaInicio);
+            const end = new Date(s.fechaInicio);
+            end.setDate(end.getDate() + 6);
+            return reservaDate >= start && reservaDate <= end;
+          });
+          if (weekIdx !== -1) setSemanaIndex(weekIdx);
+
+        } else {
+          setMessage({ type: 'error', text: 'Reserva no encontrada' });
+        }
+      } catch (err) {
+        setMessage({ type: 'error', text: 'Error al cargar reserva' });
+      } finally {
+        setInitialLoading(false);
       }
-    }
-  }, [reservaId, reserva, reservas, fetchReservas]);
+    };
+
+    loadReserva();
+  }, [reservaId, semanasDisponibles]);
 
   useEffect(() => {
     if (contentRef.current) {
@@ -159,15 +177,18 @@ function EditarReservaContent() {
     setMessage(null);
 
     try {
+      const tipoMapping = (reserva.tipo.toLowerCase().startsWith('b')) ? 'B' as const : 'M' as const;
+      
       const result = await actualizarReservaDB({
+        id: reserva.id,
         local: reserva.local,
         fecha: reserva.fecha,
         hora: reserva.hora_desde,
-        tipo: reserva.tipo === 'B' ? 'B' : 'M',
+        tipo: tipoMapping,
         cliente: reserva.cliente,
         nueva_fecha: nuevaFecha,
         nueva_hora_desde: nuevaHoraDesde,
-        nuevo_tipo: reserva.tipo === 'B' ? 'B' : 'M',
+        nuevo_tipo: tipoMapping,
       });
 
       if (result.mensaje?.toLowerCase().includes('error') || result.mensaje?.toLowerCase().includes('no encontrada')) {
@@ -185,7 +206,7 @@ function EditarReservaContent() {
     }
   };
 
-  if (!reserva) {
+  if (initialLoading) {
     return (
       <div className={styles.pageContainer}>
         <Header />
@@ -193,6 +214,21 @@ function EditarReservaContent() {
           <div className={styles.loading}>
             <div className={styles.loadingSpinner} />
             <p>Cargando reserva...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (!reserva) {
+    return (
+      <div className={styles.pageContainer}>
+        <Header />
+        <main className={styles.main}>
+          <div className={styles.emptyState}>
+            <h3>Reserva no encontrada</h3>
+            <p>La reserva que buscas no existe o fue eliminada.</p>
+            <button onClick={() => router.push('/admin/reservas')}>Volver</button>
           </div>
         </main>
       </div>
