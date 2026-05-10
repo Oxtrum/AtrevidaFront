@@ -1,6 +1,6 @@
 'use client';
 
-import { DiaSemana, ReservaDetalle, getTipoColor, getTipoLabel } from '@/types/reserva';
+import { DiaSemana, ReservaDetalle, getTipoColor2, getTipoLabel } from '@/types/reserva';
 import { extraerNombreServicio, esHoraDisponible } from '@/lib/utils/calendarHelpers';
 import styles from './CalendarAdmin.module.css';
 import { SlotBadges } from './SlotBadges';
@@ -79,7 +79,7 @@ export default function TimeSlotAdmin({
           // Mostrar reservas ocupadas
           <div className={styles.reservationList}>
             {Object.entries(slotsPorTipo).map(([tipo, reservas]) => {
-              const colors = getTipoColor(tipo.toLowerCase());
+              const colors = getTipoColor2(tipo.toLowerCase());
               return reservas.map((slot, idx) => (
                 <div
                   key={`${tipo}-${idx}`}
@@ -96,7 +96,7 @@ export default function TimeSlotAdmin({
                       </span>
                     )}
                     {slot.servicio && (
-                      <span className={styles.reservationServicio} style={{ display: 'block', color: 'rgba(255, 255, 255, 0.8)' }}>
+                      <span className={styles.reservationServicio} style={{ display: 'block', color: '#010101ff' }}>
                         {extraerNombreServicio(slot.servicio)}
                       </span>
                     )}

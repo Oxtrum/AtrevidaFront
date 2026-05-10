@@ -157,18 +157,236 @@
   transform: translateY(-1px);
 }
 
+/* ─── Override Input shared component para admin ───────────────────────── */
+
+.filtroGroup :global(.inputWrapper) input,
+.filtroGroup input {
+  background: #ffffff !important;
+  color: #111827 !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  padding: 0.75rem 1rem !important;
+  font-size: 0.875rem !important;
+  min-height: 44px !important;
+  transition: all 0.2s ease !important;
+  -webkit-appearance: none;
+  appearance: none;
+  /* Fuerza el ícono del date picker a color oscuro */
+  color-scheme: light;
+}
+
+.filtroGroup :global(.inputWrapper) input:focus,
+.filtroGroup input:focus {
+  outline: none !important;
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+}
+
+.filtroGroup :global(.inputWrapper) input::placeholder {
+  color: #9ca3af !important;
+}
+
+/* ─── Override ReservasTable para modo claro ────────────────────────────── */
+
+.filtrosSection :global(.tableContainer) {
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+  backdrop-filter: none !important;
+}
+
+.filtrosSection :global(.tableContainer)::before {
+  display: none !important;
+}
+
+.filtrosSection :global(.tableContainer)::after {
+  display: none !important;
+}
+
+.filtrosSection :global(.tableHeader) {
+  background: #f9fafb !important;
+  border-bottom: 1px solid #e5e7eb !important;
+}
+
+.filtrosSection :global(.totalCount) {
+  color: #6b7280 !important;
+}
+
+.filtrosSection :global(.totalCount) strong {
+  color: #111827 !important;
+}
+
+.filtrosSection :global(.tableHead) {
+  background: #f3f4f6 !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  backdrop-filter: none !important;
+}
+
+.filtrosSection :global(.tableHead)::after {
+  display: none !important;
+}
+
+.filtrosSection :global(.tableHead) :global(.cell) {
+  color: #6b7280 !important;
+}
+
+/* Colores por columna — reemplazar neon por neutros */
+.filtrosSection :global(.tableHead) :global(.cell):nth-child(1) {
+  color: #9ca3af !important;
+}
+
+.filtrosSection :global(.tableHead) :global(.cell):nth-child(2) {
+  color: #2563eb !important;
+}
+
+.filtrosSection :global(.tableHead) :global(.cell):nth-child(3) {
+  color: #374151 !important;
+}
+
+.filtrosSection :global(.tableHead) :global(.cell):nth-child(4) {
+  color: #db2777 !important;
+}
+
+.filtrosSection :global(.tableHead) :global(.cell):nth-child(5) {
+  color: #6b7280 !important;
+}
+
+.filtrosSection :global(.tableHead) :global(.cell):nth-child(6) {
+  color: #7c3aed !important;
+}
+
+.filtrosSection :global(.tableHead) :global(.cell):nth-child(7) {
+  color: #9ca3af !important;
+}
+
+.filtrosSection :global(.tableRow) {
+  border-bottom: 1px solid #f3f4f6 !important;
+  background: transparent !important;
+}
+
+.filtrosSection :global(.tableRow):nth-child(even) {
+  background: #fafafa !important;
+}
+
+.filtrosSection :global(.tableRow):hover {
+  background: #eff6ff !important;
+  box-shadow: none !important;
+}
+
+.filtrosSection :global(.tableRow)::before {
+  background: #2563eb !important;
+}
+
+.filtrosSection :global(.tableRow)::after {
+  display: none !important;
+}
+
+.filtrosSection :global(.cell) {
+  color: #374151 !important;
+}
+
+.filtrosSection :global(.cell):first-child {
+  color: #9ca3af !important;
+}
+
+.filtrosSection :global(.cell):nth-child(2) {
+  color: #2563eb !important;
+  background: rgba(37, 99, 235, 0.06) !important;
+  border-color: rgba(37, 99, 235, 0.15) !important;
+}
+
+.filtrosSection :global(.cell):nth-child(3) {
+  color: #111827 !important;
+}
+
+.filtrosSection :global(.tableRow):hover :global(.cell):nth-child(3) {
+  color: #111827 !important;
+}
+
+.filtrosSection :global(.servicioText) {
+  color: #6b7280 !important;
+}
+
+.filtrosSection :global(.tableRow):hover :global(.servicioText) {
+  color: #374151 !important;
+}
+
+.filtrosSection :global(.localBadge) {
+  color: #374151 !important;
+  background: #f3f4f6 !important;
+  border-color: #e5e7eb !important;
+}
+
+.filtrosSection :global(.tableRow):hover :global(.localBadge) {
+  border-color: #7c3aed !important;
+  color: #7c3aed !important;
+}
+
+.filtrosSection :global(.editButton) {
+  color: #6b7280 !important;
+  border-color: #e5e7eb !important;
+}
+
+.filtrosSection :global(.editButton):hover {
+  color: #db2777 !important;
+  border-color: #db2777 !important;
+  box-shadow: 0 0 12px rgba(219, 39, 119, 0.15) !important;
+  transform: translateY(-1px);
+}
+
+.filtrosSection :global(.editButton)::before {
+  display: none !important;
+}
+
+.filtrosSection :global(.loadingContainer),
+.filtrosSection :global(.errorContainer),
+.filtrosSection :global(.emptyContainer) {
+  background: #f9fafb !important;
+  border-color: #e5e7eb !important;
+}
+
+.filtrosSection :global(.loadingContainer) p {
+  color: #9ca3af !important;
+}
+
+.filtrosSection :global(.emptyMessage) {
+  color: #6b7280 !important;
+}
+
+.filtrosSection :global(.emptyHint) {
+  color: #9ca3af !important;
+}
+
+.filtrosSection :global(.tableWrapper) {
+  scrollbar-color: #cbd5e1 transparent !important;
+}
+
 /* ─── Responsive ───────────────────────────────────────────────────────────── */
 
 @media (max-width: 1200px) {
-  .filtrosRow { grid-template-columns: repeat(3, 1fr); }
+  .filtrosRow {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 @media (max-width: 768px) {
-  .header { flex-direction: column; align-items: stretch; }
-  .headerActions { flex-direction: column; align-items: stretch; }
-  .filtrosRow { grid-template-columns: repeat(2, 1fr); }
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .headerActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filtrosRow {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 480px) {
-  .filtrosRow { grid-template-columns: 1fr; }
+  .filtrosRow {
+    grid-template-columns: 1fr;
+  }
 }

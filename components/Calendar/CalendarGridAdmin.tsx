@@ -37,8 +37,8 @@ function obtenerHorasFijas(data: ApiResponse | null): ReservaPorHora[] {
   const grid: ReservaPorHora[] = [];
   for (let i = 0; i < HORAS.length; i++) {
     const start = HORAS[i];
-    let end = HORAS[i+1];
-    
+    let end = HORAS[i + 1];
+
     if (!end) {
       const [hh, mm] = start.split(':').map(Number);
       end = `${(hh + 1).toString().padStart(2, '0')}:${mm.toString().padStart(2, '0')}`;
@@ -69,7 +69,7 @@ function obtenerHorasFijas(data: ApiResponse | null): ReservaPorHora[] {
     for (const horaObj of semana.reservas ?? []) {
       const horaInicioAPI = toMin(horaObj.hora.split(' a ')[0]);
       const targetSlot = grid.find(s => toMin(s.hora.split(' a ')[0]) === horaInicioAPI);
-      
+
       if (targetSlot) {
         for (const [dia, slots] of Object.entries(horaObj.dias)) {
           const diaKey = dia as DiaSemana;
@@ -194,32 +194,30 @@ export default function CalendarGrid({
           );
         })}
 
-        {/* Filas de horas */}
+        {/* Filas de horas — cada celda va directo al grid, sin wrapper */}
         {horasGrid.map((horaObj, rowIdx) => {
-          // Extraer hora inicio y fin del formato "14:30 a 15:00" o "14 a 14:30"
           const horaPartes = horaObj.hora.split(' a ').map(h => h.trim());
           const horaInicio = horaPartes[0] || '';
           const horaFin = horaPartes[1] || '';
 
           return (
-            <div key={rowIdx} className={styles.calendarRow}>
-              {/* Celda de tiempo */}
-              <div className={styles.timeCell}>
+            <>
+              {/* Celda de tiempo — columna 1 */}
+              <div key={`time-${rowIdx}`} className={styles.timeCell}>
                 <span className={styles.timeStart}>{horaInicio}</span>
                 <span className={styles.timeEnd}>{horaFin}</span>
               </div>
 
-              {/* Slots de cada día */}
+              {/* Slots — columnas 2 a 7 */}
               {(mobile ? diasVisibles : DIAS).map(dia => {
                 const fechaInfo = fechas?.get(dia);
                 const esPasado = fechaInfo?.esPasado || false;
-                const slots = horaObj.dias[dia];
 
                 return (
                   <TimeSlotComponent
                     key={`${rowIdx}-${dia}`}
                     dia={dia}
-                    slots={slots}
+                    slots={horaObj.dias[dia]}
                     hora={horaObj.hora}
                     fecha={fechaInfo?.fecha || new Date()}
                     onClick={() => handleSlotClick(horaObj.hora, dia, horaObj)}
@@ -227,7 +225,7 @@ export default function CalendarGrid({
                   />
                 );
               })}
-            </div>
+            </>
           );
         })}
       </div>

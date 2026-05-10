@@ -182,6 +182,37 @@ export function getTipoColor(tipo: string): { bg: string; border: string; accent
   }
 }
 
+export function getTipoColor2(tipo: string): { bg: string; border: string; accent: string } {
+  switch (tipo) {
+    case 'b':
+      // Azul — bicicleta
+      return {
+        bg: 'rgba(37, 99, 235, 0.10)',
+        border: 'rgba(37, 99, 235, 0.35)',
+        accent: '#1d4ed8',
+      };
+    case 'm':
+      // Rosa/fucsia — mesa
+      return {
+        bg: 'rgba(219, 39, 119, 0.10)',
+        border: 'rgba(219, 39, 119, 0.35)',
+        accent: '#be185d',
+      };
+    case 'feriado':
+      return {
+        bg: 'rgba(202, 138, 4, 0.10)',
+        border: 'rgba(202, 138, 4, 0.35)',
+        accent: '#b45309',
+      };
+    default:
+      return {
+        bg: 'rgba(124, 58, 237, 0.10)',
+        border: 'rgba(124, 58, 237, 0.35)',
+        accent: '#6d28d9',
+      };
+  }
+}
+
 export function getTipoLabel(tipo: string): string {
   switch (tipo) {
     case 'b': return 'Bicicleta';

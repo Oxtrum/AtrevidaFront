@@ -59,7 +59,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ─── Calendar container ───────────────────────────────────────────────────── */
@@ -78,17 +80,24 @@
 .calendarGrid {
   display: grid;
   grid-template-columns: 80px repeat(6, minmax(140px, 1fr));
-  gap: 1px;
+  gap: 0;
   min-width: 1000px;
   background: var(--admin-border-subtle);
 }
 
-/* ─── Header cells ─────────────────────────────────────────────────────────── */
+.calendarGrid>* {
+  background: var(--admin-surface-1);
+  border-right: 1px solid var(--admin-border-subtle);
+  border-bottom: 1px solid var(--admin-border-subtle);
+}
 
-.cornerCell {
+.cornerCell,
+.calendarHeader,
+.timeCell {
   background: var(--admin-bg-secondary);
 }
 
+/* ─── Header cells ─────────────────────────────────────────────────────────── */
 .calendarHeader {
   background: var(--admin-bg-secondary);
   padding: 1.25rem 0.5rem;
@@ -211,9 +220,20 @@
   text-transform: uppercase;
 }
 
-.slotBadgeMesa { background: #dcfce7; color: #166534; }
-.slotBadgeBicicleta { background: #dbeafe; color: #1e40af; }
-.slotBadgeOcupado { background: #fee2e2; color: #991b1b; }
+.slotBadgeMesa {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.slotBadgeBicicleta {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.slotBadgeOcupado {
+  background: #fee2e2;
+  color: #991b1b;
+}
 
 /* ─── Mobile View ────────────────────────────────────────────────────────── */
 
@@ -225,7 +245,18 @@
 }
 
 @media (max-width: 900px) {
-  .calendarGrid { display: none; }
-  .daySelectorMobile { display: flex; }
-  .calendarGridMobile { display: grid; grid-template-columns: 80px 1fr; gap: 1px; background: var(--admin-border-subtle); }
+  .calendarGrid {
+    display: none;
+  }
+
+  .daySelectorMobile {
+    display: flex;
+  }
+
+  .calendarGridMobile {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 1px;
+    background: var(--admin-border-subtle);
+  }
 }

@@ -1,69 +1,45 @@
-/* ReservasTable.module.css — Premium Dark Edition v2 */
+/* ReservasTable.module.css — Admin Light Edition */
 
-/* ─── Container ────────────────────────────────────────────────────────────── */
+/* ─── Container ─────────────────────────────────────────────────────────── */
 
 .tableContainer {
   position: relative;
-  background: rgba(6, 6, 9, 0.85);
-  border-radius: 20px;
-  border: 1px solid rgba(146, 39, 143, 0.2);
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
   overflow: hidden;
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.5),
-    0 20px 60px rgba(0, 0, 0, 0.6),
-    inset 0 0 120px rgba(146, 39, 143, 0.03);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 
-/* Gradient line top */
 .tableContainer::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 2px;
-  background: linear-gradient(90deg,
-      transparent 0%,
-      #FFE600 12%,
-      #EC008C 38%,
-      #92278F 58%,
-      #14AEEF 80%,
-      transparent 100%);
-  opacity: 0.7;
+  height: 3px;
+  background: linear-gradient(90deg, #2563eb 0%, #7c3aed 50%, #db2777 100%);
   z-index: 2;
 }
 
-/* Ambient inner glow bottom-right */
 .tableContainer::after {
-  content: '';
-  position: absolute;
-  bottom: -60px;
-  right: -60px;
-  width: 280px;
-  height: 280px;
-  background: radial-gradient(circle, rgba(236, 0, 140, 0.06) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
+  display: none;
 }
 
-/* ─── Table header bar ─────────────────────────────────────────────────────── */
+/* ─── Table header bar ──────────────────────────────────────────────────── */
 
 .tableHeader {
-  padding: 1.1rem 1.75rem;
-  border-bottom: 1px solid rgba(146, 39, 143, 0.12);
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #f3f4f6;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(146, 39, 143, 0.04);
-  position: relative;
-  z-index: 1;
+  background: #f9fafb;
 }
 
 .totalCount {
   font-size: 0.65rem;
-  color: rgba(245, 245, 245, 0.4);
+  color: #6b7280;
   font-weight: 600;
   letter-spacing: 1.5px;
   text-transform: uppercase;
@@ -72,15 +48,14 @@
   gap: 0.75rem;
 }
 
-/* Live dot */
 .totalCount::before {
   content: '';
   display: inline-block;
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #FFE600;
-  box-shadow: 0 0 8px rgba(255, 230, 0, 0.7), 0 0 20px rgba(255, 230, 0, 0.3);
+  background: #2563eb;
+  box-shadow: 0 0 8px rgba(37, 99, 235, 0.5);
   animation: pulse 2.2s ease-in-out infinite;
   flex-shrink: 0;
 }
@@ -88,7 +63,7 @@
 .totalCount strong {
   font-size: 1rem;
   font-weight: 800;
-  color: #F5F5F5;
+  color: #111827;
   letter-spacing: -0.5px;
   text-transform: none;
 }
@@ -99,24 +74,22 @@
   100% {
     opacity: 1;
     transform: scale(1);
-    box-shadow: 0 0 8px rgba(255, 230, 0, 0.7);
   }
 
   50% {
     opacity: 0.5;
-    transform: scale(1.7);
-    box-shadow: 0 0 16px rgba(255, 230, 0, 0.2);
+    transform: scale(1.6);
   }
 }
 
-/* ─── Table wrapper (scroll) ───────────────────────────────────────────────── */
+/* ─── Table wrapper ─────────────────────────────────────────────────────── */
 
 .tableWrapper {
   overflow-x: auto;
   overflow-y: auto;
   max-height: 560px;
   scrollbar-width: thin;
-  scrollbar-color: rgba(146, 39, 143, 0.35) transparent;
+  scrollbar-color: #e5e7eb transparent;
 }
 
 .tableWrapper::-webkit-scrollbar {
@@ -129,11 +102,15 @@
 }
 
 .tableWrapper::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #92278F, #EC008C);
+  background: #d1d5db;
   border-radius: 4px;
 }
 
-/* ─── Table ────────────────────────────────────────────────────────────────── */
+.tableWrapper::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* ─── Table ─────────────────────────────────────────────────────────────── */
 
 .table {
   min-width: 820px;
@@ -142,65 +119,44 @@
   z-index: 1;
 }
 
-/* ─── Column grid
- *  Fecha | Hora  | Cliente | Tipo  | Servicio | Local | Acciones
- *  110px | 145px | 1fr     | 110px | 155px    | 115px | 90px
- * ─────────────────────────────────────────────────────────────── */
+/* ─── Column grid ───────────────────────────────────────────────────────── */
 
 .tableHead,
 .tableRow {
   display: grid;
   grid-template-columns: 110px 145px 1fr 110px 155px 115px 90px;
   align-items: center;
-  padding: 0 1.75rem;
+  padding: 0 1.5rem;
 }
 
-/* ─── Column headers ───────────────────────────────────────────────────────── */
+/* ─── Column headers ────────────────────────────────────────────────────── */
 
 .tableHead {
   position: sticky;
   top: 0;
   z-index: 10;
-  padding-top: 0.85rem;
-  padding-bottom: 0.85rem;
-  background: rgba(10, 8, 15, 0.97);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(146, 39, 143, 0.15);
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  background: #f3f4f6;
+  border-bottom: 1px solid #e5e7eb;
   font-size: 0.6rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1.8px;
 }
 
-/* Gradient underline */
 .tableHead::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg,
-      transparent 0%,
-      rgba(255, 230, 0, 0.3) 10%,
-      rgba(236, 0, 140, 0.5) 35%,
-      rgba(146, 39, 143, 0.5) 55%,
-      rgba(20, 174, 239, 0.3) 80%,
-      transparent 100%);
+  display: none;
 }
 
-/* Base color for all header cells */
 .tableHead .cell {
   font-size: 0.6rem;
   font-weight: 700;
   letter-spacing: 1.8px;
-  color: rgba(245, 245, 245, 0.5);
+  color: #6b7280;
   gap: 0.45rem;
-  transition: color 0.2s ease;
 }
 
-/* Dot indicator before each label */
 .tableHead .cell::before {
   content: '';
   display: inline-block;
@@ -208,43 +164,36 @@
   height: 4px;
   border-radius: 50%;
   background: currentColor;
-  opacity: 0.9;
+  opacity: 0.8;
   flex-shrink: 0;
 }
 
-/* Fecha — amarillo */
 .tableHead .cell:nth-child(1) {
-  color: rgba(255, 230, 0, 0.8);
+  color: #9ca3af;
 }
 
-/* Hora — azul */
 .tableHead .cell:nth-child(2) {
-  color: rgba(20, 174, 239, 0.85);
+  color: #2563eb;
 }
 
-/* Cliente — blanco */
 .tableHead .cell:nth-child(3) {
-  color: rgba(245, 245, 245, 0.75);
+  color: #374151;
 }
 
-/* Tipo — rosa */
 .tableHead .cell:nth-child(4) {
-  color: rgba(236, 0, 140, 0.85);
+  color: #db2777;
 }
 
-/* Servicio — muted */
 .tableHead .cell:nth-child(5) {
-  color: rgba(245, 245, 245, 0.5);
+  color: #6b7280;
 }
 
-/* Local — púrpura */
 .tableHead .cell:nth-child(6) {
-  color: rgba(180, 80, 180, 0.9);
+  color: #7c3aed;
 }
 
-/* Acciones — sin dot */
 .tableHead .cell:nth-child(7) {
-  color: rgba(245, 245, 245, 0.4);
+  color: #9ca3af;
   letter-spacing: 1px;
 }
 
@@ -252,20 +201,17 @@
   display: none;
 }
 
-/* ─── Data rows ────────────────────────────────────────────────────────────── */
+/* ─── Data rows ─────────────────────────────────────────────────────────── */
 
 .tableRow {
-  padding-top: 0.85rem;
-  padding-bottom: 0.85rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-  transition:
-    background 0.22s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  padding-top: 0.8rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background 0.15s ease;
   position: relative;
   cursor: default;
 }
 
-/* Left accent bar (hidden by default) */
 .tableRow::before {
   content: '';
   position: absolute;
@@ -273,53 +219,36 @@
   top: 6px;
   bottom: 6px;
   width: 0;
-  background: linear-gradient(180deg, #FFE600 0%, #EC008C 50%, #92278F 100%);
+  background: linear-gradient(180deg, #2563eb, #7c3aed);
   border-radius: 0 3px 3px 0;
-  transition: width 0.2s cubic-bezier(0.22, 1, 0.36, 1);
-  pointer-events: none;
+  transition: width 0.2s ease;
 }
 
-/* Scanline shimmer */
 .tableRow::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(236, 0, 140, 0.025) 50%, transparent 100%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
+  display: none;
 }
 
-/* Alternating row tint */
 .tableRow:nth-child(even) {
-  background: rgba(255, 255, 255, 0.01);
+  background: #fafafa;
 }
 
 .tableRow:hover {
-  background: rgba(146, 39, 143, 0.06);
-  box-shadow:
-    inset 0 0 60px rgba(236, 0, 140, 0.04),
-    0 1px 0 rgba(236, 0, 140, 0.08),
-    0 -1px 0 rgba(236, 0, 140, 0.08);
+  background: #eff6ff;
 }
 
 .tableRow:hover::before {
   width: 3px;
 }
 
-.tableRow:hover::after {
-  opacity: 1;
-}
-
 .tableRow:last-child {
   border-bottom: none;
 }
 
-/* ─── Cells ────────────────────────────────────────────────────────────────── */
+/* ─── Cells ─────────────────────────────────────────────────────────────── */
 
 .cell {
-  font-size: 0.85rem;
-  color: rgba(245, 245, 245, 0.75);
+  font-size: 0.78rem;
+  color: #374151;
   font-weight: 400;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -327,66 +256,36 @@
   display: flex;
   align-items: center;
   padding-right: 0.75rem;
-  transition: color 0.2s ease;
-  font-size: 0.78rem;
+  transition: color 0.15s ease;
 }
 
-/* Fecha — monospaced, dimmed */
 .cell:first-child {
-  font-size: 0.78rem;
   font-variant-numeric: tabular-nums;
-  color: rgba(245, 245, 245, 0.4);
+  color: #9ca3af;
   letter-spacing: 0.4px;
 }
 
-/* Hora — blue accent chip */
 .cell:nth-child(2) {
-  font-size: 0.78rem;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.3px;
-}
-.cell:nth-child(3) {
-  font-variant-numeric: tabular-nums;
-  font-size: 0.78rem;
-}
-.cell:nth-child(4) {
-  font-size: 0.78rem;
-}
-.cell:nth-child(5) {
-  font-size: 0.78rem;
-}
-.cell:nth-child(6) {
-  font-size: 0.78rem;
-}
-.cell:nth-child(7) {
-  font-size: 0.78rem;
-}
-
-/* Wrap the time text in a subtle pill — done via the cell itself */
-.cell:nth-child(2) {
-  color: #14AEEF;
-  background: rgba(20, 174, 239, 0.06);
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.07);
   border-radius: 6px;
   padding: 0.25rem 0.6rem 0.25rem 0.5rem;
-  border: 1px solid rgba(20, 174, 239, 0.1);
+  border: 1px solid rgba(37, 99, 235, 0.15);
   max-width: fit-content;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
-/* Cliente — primary, bright */
 .cell:nth-child(3) {
-  font-size: 0.78rem;
-  color: rgba(245, 245, 245, 0.92);
-
-  letter-spacing: 0.1px;
+  color: #111827;
+  font-weight: 500;
 }
-
 
 .tableRow:hover .cell:nth-child(3) {
-  color: #F5F5F5;
+  color: #111827;
 }
 
-/* ─── Tipo badges ──────────────────────────────────────────────────────────── */
+/* ─── Tipo badges ───────────────────────────────────────────────────────── */
 
 .tipoBadge {
   display: inline-flex;
@@ -399,10 +298,9 @@
   letter-spacing: 1.2px;
   text-transform: uppercase;
   white-space: nowrap;
-  transition: box-shadow 0.22s ease, transform 0.18s ease;
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
 }
 
-/* Leading dot */
 .tipoBadge::before {
   content: '';
   width: 5px;
@@ -414,78 +312,75 @@
 }
 
 .tipoBicicleta {
-  background: rgba(20, 174, 239, 0.1);
-  color: #14AEEF;
-  border: 1px solid rgba(20, 174, 239, 0.28);
-  box-shadow: 0 0 12px rgba(20, 174, 239, 0.08), inset 0 1px 0 rgba(20, 174, 239, 0.12);
+  background: rgba(37, 99, 235, 0.08);
+  color: #2563eb;
+  border: 1px solid rgba(37, 99, 235, 0.25);
 }
 
 .tipoMesa {
-  background: rgba(236, 0, 140, 0.1);
-  color: #EC008C;
-  border: 1px solid rgba(236, 0, 140, 0.28);
-  box-shadow: 0 0 12px rgba(236, 0, 140, 0.08), inset 0 1px 0 rgba(236, 0, 140, 0.12);
+  background: rgba(219, 39, 119, 0.08);
+  color: #db2777;
+  border: 1px solid rgba(219, 39, 119, 0.25);
 }
 
 .tableRow:hover .tipoBicicleta {
-  box-shadow: 0 0 20px rgba(20, 174, 239, 0.22), inset 0 1px 0 rgba(20, 174, 239, 0.15);
+  box-shadow: 0 0 12px rgba(37, 99, 235, 0.2);
   transform: translateY(-1px);
 }
 
 .tableRow:hover .tipoMesa {
-  box-shadow: 0 0 20px rgba(236, 0, 140, 0.22), inset 0 1px 0 rgba(236, 0, 140, 0.15);
+  box-shadow: 0 0 12px rgba(219, 39, 119, 0.2);
   transform: translateY(-1px);
 }
 
-/* ─── Local badge ──────────────────────────────────────────────────────────── */
+/* ─── Local badge ───────────────────────────────────────────────────────── */
 
 .localBadge {
   display: inline-flex;
   align-items: center;
   font-size: 0.72rem;
   font-weight: 500;
-  color: rgba(245, 245, 245, 0.45);
-  background: rgba(255, 255, 255, 0.035);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  color: #6b7280;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 0.22rem 0.6rem;
   white-space: nowrap;
   letter-spacing: 0.3px;
-  transition: border-color 0.2s ease, color 0.2s ease;
+  transition: border-color 0.15s ease, color 0.15s ease;
 }
 
 .tableRow:hover .localBadge {
-  border-color: rgba(146, 39, 143, 0.3);
-  color: rgba(245, 245, 245, 0.6);
+  border-color: #7c3aed;
+  color: #7c3aed;
 }
 
-/* ─── Servicio ─────────────────────────────────────────────────────────────── */
+/* ─── Servicio ──────────────────────────────────────────────────────────── */
 
 .servicioText {
   font-size: 0.8rem;
-  color: rgba(245, 245, 245, 0.5);
+  color: #6b7280;
   font-weight: 400;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-style: italic;
-  transition: color 0.2s ease;
+  transition: color 0.15s ease;
 }
 
 .tableRow:hover .servicioText {
-  color: rgba(245, 245, 245, 0.68);
+  color: #374151;
 }
 
-/* ─── Edit button ──────────────────────────────────────────────────────────── */
+/* ─── Edit button ───────────────────────────────────────────────────────── */
 
 .editButton {
-  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: transparent;
-  color: rgba(245, 245, 245, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #6b7280;
+  border: 1px solid #e5e7eb;
   padding: 0.38rem 1rem;
   border-radius: 50px;
   font-family: inherit;
@@ -495,44 +390,28 @@
   text-transform: uppercase;
   text-decoration: none;
   cursor: pointer;
-  transition:
-    color 0.22s ease,
-    border-color 0.22s ease,
-    box-shadow 0.22s ease,
-    transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: color 0.2s ease, border-color 0.2s ease,
+    box-shadow 0.2s ease, transform 0.15s ease;
   white-space: nowrap;
   flex-shrink: 0;
-  overflow: hidden;
 }
 
-/* Gradient fill via ::before */
 .editButton::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255, 230, 0, 0.12), rgba(236, 0, 140, 0.12));
-  opacity: 0;
-  transition: opacity 0.22s ease;
-  border-radius: inherit;
+  display: none;
 }
 
 .editButton:hover {
-  border-color: rgba(236, 0, 140, 0.55);
-  color: #EC008C;
-  box-shadow: 0 0 20px rgba(236, 0, 140, 0.2), inset 0 0 14px rgba(236, 0, 140, 0.06);
-  transform: translateY(-2px);
-}
-
-.editButton:hover::before {
-  opacity: 1;
+  border-color: #db2777;
+  color: #db2777;
+  box-shadow: 0 0 12px rgba(219, 39, 119, 0.15);
+  transform: translateY(-1px);
 }
 
 .editButton:active {
   transform: translateY(0) scale(0.96);
-  box-shadow: 0 0 8px rgba(236, 0, 140, 0.12);
 }
 
-/* ─── States: loading / error / empty ─────────────────────────────────────── */
+/* ─── States: loading / error / empty ──────────────────────────────────── */
 
 .loadingContainer,
 .errorContainer,
@@ -544,37 +423,25 @@
   padding: 5rem 2rem;
   text-align: center;
   gap: 1.1rem;
-  background: rgba(6, 6, 9, 0.7);
-  border-radius: 20px;
-  border: 1px solid rgba(146, 39, 143, 0.12);
-  position: relative;
-  overflow: hidden;
+  background: #f9fafb;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
 }
 
-/* Ambient glow behind states */
 .loadingContainer::before,
 .emptyContainer::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse 60% 50% at 50% 60%,
-      rgba(146, 39, 143, 0.06) 0%,
-      transparent 70%);
-  pointer-events: none;
+  display: none;
 }
 
-/* Loading — tri-color spinner */
 .loadingSpinner {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   border: 2.5px solid transparent;
-  border-top-color: #FFE600;
-  border-right-color: #EC008C;
-  border-bottom-color: rgba(20, 174, 239, 0.5);
+  border-top-color: #2563eb;
+  border-right-color: #7c3aed;
+  border-bottom-color: rgba(219, 39, 119, 0.4);
   animation: spin 0.7s linear infinite;
-  position: relative;
-  z-index: 1;
 }
 
 @keyframes spin {
@@ -584,54 +451,43 @@
 }
 
 .loadingContainer p {
-  color: rgba(245, 245, 245, 0.3);
+  color: #9ca3af;
   font-size: 0.82rem;
   letter-spacing: 0.5px;
   margin: 0;
-  position: relative;
-  z-index: 1;
 }
 
-/* Empty state */
 .emptyIcon {
   font-size: 2.5rem;
-  opacity: 0.15;
-  filter: grayscale(1);
-  position: relative;
-  z-index: 1;
+  opacity: 0.25;
 }
 
 .emptyMessage {
-  color: rgba(245, 245, 245, 0.38) !important;
+  color: #6b7280 !important;
   font-size: 0.9rem;
   font-weight: 500;
   margin: 0;
-  position: relative;
-  z-index: 1;
 }
 
 .emptyHint {
-  color: rgba(245, 245, 245, 0.18);
+  color: #9ca3af;
   font-size: 0.75rem;
   margin: 0;
-  position: relative;
-  z-index: 1;
 }
 
-/* Error state */
 .errorIcon {
   font-size: 2rem;
   opacity: 0.5;
 }
 
 .errorMessage {
-  color: rgba(255, 80, 80, 0.85) !important;
+  color: #ef4444 !important;
   font-size: 0.875rem;
   font-weight: 500;
   margin: 0;
 }
 
-/* ─── Responsive — card layout ─────────────────────────────────────────────── */
+/* ─── Responsive ────────────────────────────────────────────────────────── */
 
 @media (max-width: 768px) {
   .tableHead {
@@ -643,8 +499,8 @@
     flex-direction: column;
     grid-template-columns: unset;
     gap: 0.6rem;
-    padding: 1.1rem 1.25rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #f3f4f6;
     border-radius: 0;
   }
 
@@ -659,31 +515,29 @@
     white-space: normal;
     padding-right: 0;
     font-size: 0.875rem;
-    color: rgba(245, 245, 245, 0.8);
+    color: #374151;
   }
 
-  /* Remove time pill on mobile */
   .cell:nth-child(2) {
     background: transparent;
     border: none;
     padding: 0;
+    color: #6b7280;
   }
 
-  /* Override per-column tints on mobile */
   .cell:first-child,
   .cell:nth-child(2) {
-    color: rgba(245, 245, 245, 0.5);
+    color: #9ca3af;
     font-size: 0.8rem;
   }
 
-  /* Label prefix from data-label attr */
   .cell[data-label]::before {
     content: attr(data-label);
     font-size: 0.6rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1.3px;
-    color: rgba(146, 39, 143, 0.65);
+    color: #7c3aed;
     flex-shrink: 0;
     min-width: 5rem;
   }
