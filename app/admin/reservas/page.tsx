@@ -144,7 +144,13 @@ export default function AdminReservasPage() {
           <div className={styles.headerActions}>
             <button
               className={styles.createButton}
-              onClick={() => router.push('/admin/reservas/crear')}
+              onClick={() => {
+                const params = new URLSearchParams({
+                  local: sucursalActiva,
+                  semana: semanaActiva,
+                });
+                router.push(`/admin/reservas/crear?${params.toString()}`);
+              }}
             >
               <span>+</span>
               <span>Nueva Reserva</span>
