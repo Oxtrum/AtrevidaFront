@@ -11,6 +11,7 @@ import { LogOut } from 'lucide-react';
 const NAV_LINKS = [
   { label: 'Inicio', href: '/admin/dashboard' },
   { label: 'Reservas', href: '/admin/reservas' },
+  { label: 'Configuración', href: '/admin/configuracion' },
 ];
 
 export default function Header() {

@@ -222,10 +222,9 @@ export default function AdminDashboardPage() {
       description:
         'Ajustes del sistema, horarios, servicios y personal',
       icon: <Settings size={24} strokeWidth={1.5} />,
-      action: () => alert('Próximamente'),
+      action: () => router.push('/admin/configuracion'),
       color: '#FFE600',
       colorRgb: '255, 230, 0',
-      badge: 'Pronto',
     },
   ];
 

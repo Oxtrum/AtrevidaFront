@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8080";
 
-export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const queryString = searchParams.toString();
-  const url = `${BACKEND_URL}/bd/servicios${queryString ? `?${queryString}` : ""}`;
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  const url = `${BACKEND_URL}/bd/servicios/${id}`;
 
   const res = await fetch(url, {
     method: "GET",
@@ -16,12 +18,16 @@ export async function GET(request: NextRequest) {
   return NextResponse.json(data, { status: res.status });
 }
 
-export async function POST(request: NextRequest) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
   const body = await request.json();
-  const url = `${BACKEND_URL}/bd/servicios`;
+  const url = `${BACKEND_URL}/bd/servicios/${id}`;
 
   const res = await fetch(url, {
-    method: "POST",
+    method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });

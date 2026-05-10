@@ -1,0 +1,192 @@
+/* servicios/page.module.css
+   DataTable es self-contained → no necesita wrapper .content con borde.
+   La filterBar vive en su propia card.
+*/
+
+.pageContainer {
+  min-height: 100vh;
+  background: var(--admin-bg);
+  color: var(--admin-foreground);
+  font-family: var(--admin-font-family);
+  position: relative;
+  overflow-x: hidden;
+}
+
+.main {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Stack vertical con gap uniforme */
+.contentStack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ── Filter card ─────────────────────────────────────────────────── */
+.filterCard {
+  background: var(--admin-surface-1);
+  border-radius: var(--admin-radius-xl);
+  border: 1px solid var(--admin-border-subtle);
+  box-shadow: var(--admin-shadow-sm);
+  padding: 1.25rem 1.5rem;
+}
+
+.filterBar {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  flex: 1;
+  min-width: 140px;
+}
+
+.filterGroup label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--admin-text-muted);
+  font-weight: 600;
+}
+
+.filterGroup input,
+.filterGroup select {
+  padding: 0.55rem 0.875rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-surface-2);
+  color: var(--admin-foreground);
+  font-size: 0.83rem;
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  /* Fix para dark mode en <select> */
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2rem;
+}
+
+.filterGroup input:focus,
+.filterGroup select:focus {
+  outline: none;
+  border-color: var(--admin-accent-primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* ── Hint (sin filtro seleccionado) ─────────────────────────────── */
+.hint {
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--admin-radius-xl);
+  border: 1px dashed var(--admin-border);
+  background: var(--admin-surface-1);
+  color: var(--admin-text-dim);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.hint strong {
+  color: var(--admin-text-muted);
+  font-weight: 600;
+}
+
+/* ── Total label ────────────────────────────────────────────────── */
+.totalLabel {
+  font-size: 0.78rem;
+  color: var(--admin-text-dim);
+  margin: 0;          /* el gap del contentStack maneja el espacio */
+}
+
+/* ── Form fields (modal) ─────────────────────────────────────────── */
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 1.25rem;
+}
+
+.colSpan2 {
+  grid-column: 1 / -1;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.field label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--admin-foreground);
+}
+
+.field input,
+.field select {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-surface-1);
+  color: var(--admin-foreground);
+  font-size: 0.875rem;
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.875rem center;
+  padding-right: 2.25rem;
+}
+
+/* Para inputs numéricos/texto que NO necesitan la flecha */
+.field input[type="text"],
+.field input[type="number"] {
+  background-image: none;
+  padding-right: 1rem;
+}
+
+.field input:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--admin-accent-primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.inputError {
+  border-color: var(--admin-accent-danger) !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.08) !important;
+}
+
+.fieldError {
+  font-size: 0.72rem;
+  color: var(--admin-accent-danger);
+}
+
+/* ── Submit error banner ─────────────────────────────────────────── */
+.submitError {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--admin-radius-md);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.06);
+  color: var(--admin-accent-danger);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+/* ── Responsive ────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .main { padding: 1rem; }
+  .filterBar { gap: 0.75rem; }
+  .filterGroup { min-width: calc(50% - 0.5rem); }
+  .formGrid { grid-template-columns: 1fr; }
+  .colSpan2 { grid-column: 1; }
+}
