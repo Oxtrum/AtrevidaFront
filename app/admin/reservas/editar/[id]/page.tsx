@@ -107,7 +107,7 @@ function EditarReservaContent() {
           setNuevaHoraDesde(found.hora_desde);
           setNuevaHoraHasta(found.hora_hasta);
           setClienteName(found.cliente);
-          
+
           // Buscar en qué semana está la reserva
           const reservaDate = new Date(found.fecha + 'T00:00:00');
           const weekIdx = semanasDisponibles.findIndex(s => {
@@ -178,7 +178,7 @@ function EditarReservaContent() {
 
     try {
       const tipoMapping = (reserva.tipo.toLowerCase().startsWith('b')) ? 'B' as const : 'M' as const;
-      
+
       const result = await actualizarReservaDB({
         id: reserva.id,
         local: reserva.local,

@@ -91,7 +91,7 @@ export default function AdminReservasPage() {
     } else {
       hora_desde = hora.includes(':') ? hora : `${hora}:00`;
       const [hh, mm] = hora_desde.split(':').map(Number);
-      const minutos = (mm || 0) + 30;
+      const minutos = (mm || 0) + 60;
       if (minutos >= 60) {
         hora_hasta = `${(hh + 1).toString().padStart(2, '0')}:00`;
       } else {

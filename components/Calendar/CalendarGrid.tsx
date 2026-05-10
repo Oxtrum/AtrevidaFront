@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { DiaSemana, ApiResponse, FechaDia, ReservaPorHora, type ReservaDetalle } from '@/types/reserva';
+import { HORAS } from '@/lib/constants/reservationForm';
 import TimeSlotPublico from './TimeSlotPublico';
 import TimeSlotAdmin from './TimeSlotAdmin';
 import styles from './Calendar.module.css';
@@ -31,43 +32,55 @@ interface CalendarGridProps {
 /**
  * Extrae las horas de reserva de la API (solo las que existen, no hardcodeadas)
  */
-function obtenerHorasDelAPI(data: ApiResponse | null): ReservaPorHora[] {
-  const reservasData = data?.data?.reservas ?? [];
-  if (reservasData.length === 0) return [];
+function obtenerHorasFijas(data: ApiResponse | null): ReservaPorHora[] {
+  // Crear el esqueleto basado en HORAS (que ahora son de hora en hora)
+  const grid: ReservaPorHora[] = [];
+  for (let i = 0; i < HORAS.length - 1; i++) {
+    grid.push({
+      hora: `${HORAS[i]} a ${HORAS[i+1]}`,
+      dias: {}
+    });
+  }
+
+  if (!data?.data?.reservas) return grid;
+
+  const reservasData = data.data.reservas;
+  if (reservasData.length === 0) return grid;
 
   const primerLocal = reservasData[0];
-  if (!primerLocal?.semanas || primerLocal.semanas.length === 0) return [];
+  if (!primerLocal?.semanas) return grid;
 
-  // Mergear TODAS las semanas en un mapa keyed by hora
-  const horaMap = new Map<string, ReservaPorHora>();
+  // Llenar el grid con los datos de la API
+  console.log('[CalendarGrid] Procesando', primerLocal.semanas.length, 'semanas');
+  
+  const toMin = (h: string) => {
+    if (!h) return -1;
+    const clean = h.trim().replace(/^0/, '');
+    const [hh, mm] = clean.split(':').map(Number);
+    return hh * 60 + (mm || 0);
+  };
 
   for (const semana of primerLocal.semanas) {
     for (const horaObj of semana.reservas ?? []) {
-      if (!horaMap.has(horaObj.hora)) {
-        horaMap.set(horaObj.hora, { hora: horaObj.hora, dias: {} });
-      }
-
-      const existing = horaMap.get(horaObj.hora)!;
-
-      // Mergear los días, concatenando sus slots
-      for (const [dia, slots] of Object.entries(horaObj.dias)) {
-        const diaKey = dia as DiaSemana;
-        if (!existing.dias[diaKey]) {
-          existing.dias[diaKey] = [];
+      const horaInicioAPI = toMin(horaObj.hora.split(' a ')[0]);
+      
+      // Buscar el slot que empieza a esa misma hora en minutos
+      const targetSlot = grid.find(s => toMin(s.hora.split(' a ')[0]) === horaInicioAPI);
+      
+      if (targetSlot) {
+        console.log(`[CalendarGrid] Match encontrado para hora API ${horaObj.hora}`);
+        for (const [dia, slots] of Object.entries(horaObj.dias)) {
+          const diaKey = dia as DiaSemana;
+          if (!targetSlot.dias[diaKey]) targetSlot.dias[diaKey] = [];
+          targetSlot.dias[diaKey]!.push(...(slots as ReservaDetalle[]));
         }
-        existing.dias[diaKey]!.push(...(slots as ReservaDetalle[]));
+      } else {
+        console.warn(`[CalendarGrid] NO se encontró slot para hora API: ${horaObj.hora} (inicio en min: ${horaInicioAPI})`);
       }
     }
   }
 
-  const parseMinutos = (hora: string) => {
-    const match = hora.match(/^(\d+)(?::(\d+))?/);
-    return parseInt(match?.[1] ?? '0') * 60 + parseInt(match?.[2] ?? '0');
-  };
-
-  return Array.from(horaMap.values()).sort(
-    (a, b) => parseMinutos(a.hora) - parseMinutos(b.hora)
-  );
+  return grid;
 }
 
 export default function CalendarGrid({
@@ -90,8 +103,8 @@ export default function CalendarGrid({
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // Obtener solo las horas que existen en la API (sin hardcodear)
-  const horasDelAPI = useMemo(() => obtenerHorasDelAPI(data), [data]);
+  // Usar horas fijas basadas en la constante HORAS
+  const horasGrid = useMemo(() => obtenerHorasFijas(data), [data]);
 
   const diaActual = selectedDay ?? activeDay;
   const diasVisibles = mobile ? [diaActual] : DIAS;
@@ -124,10 +137,10 @@ export default function CalendarGrid({
     );
   }
 
-  if (horasDelAPI.length === 0) {
+  if (horasGrid.length === 0) {
     return (
       <div className={styles.loadingContainer}>
-        <div className={styles.emptyMessage}>No hay datos disponibles</div>
+        <div className={styles.emptyMessage}>No hay horarios configurados</div>
       </div>
     );
   }
@@ -182,7 +195,7 @@ export default function CalendarGrid({
         })}
 
         {/* Filas de horas */}
-        {horasDelAPI.map((horaObj, rowIdx) => {
+        {horasGrid.map((horaObj, rowIdx) => {
           // Extraer hora inicio y fin del formato "14:30 a 15:00" o "14 a 14:30"
           const horaPartes = horaObj.hora.split(' a ').map(h => h.trim());
           const horaInicio = horaPartes[0] || '';

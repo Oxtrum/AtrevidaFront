@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { type SlotStatus } from '@/lib/utils/hoursAvailability';
+import { SlotStatus } from '@/lib/utils/hoursAvailability';
 import { HORAS } from '@/lib/constants/reservationForm';
 import styles from './ReservationForm.module.css';
 
@@ -18,10 +17,6 @@ export function TimeSlotPicker({
   hoursAvailability,
   onSelect,
 }: TimeSlotPickerProps) {
-  const [selecting, setSelecting] = useState<string | null>(null);
-
-  // SIEMPRE mostrar todas las horas 8:00-20:00
-  const visibleHoras = HORAS;
 
   const handleClick = (hora: string) => {
     const status = hoursAvailability.get(hora);
@@ -29,34 +24,10 @@ export function TimeSlotPicker({
     // No permitir seleccionar horas pasadas
     if (status === 'past') return;
 
-    if (!selecting) {
-      // Primera selección - hora de inicio
-      const idx = HORAS.indexOf(hora);
-      const siguiente = HORAS[idx + 1] || hora;
-      setSelecting(hora);
-      onSelect(hora, siguiente);
-    } else {
-      // Segunda selección - hora de fin
-      if (hora === selecting) {
-        // Deseleccionar
-        setSelecting(null);
-        onSelect('', '');
-        return;
-      }
-
-      // Asegurar que hora fin > hora inicio
-      if (HORAS.indexOf(hora) < HORAS.indexOf(selecting)) {
-        // Si seleccionan en orden inverso
-        const idx = HORAS.indexOf(hora);
-        const siguiente = HORAS[idx + 1] || hora;
-        setSelecting(hora);
-        onSelect(hora, siguiente);
-        return;
-      }
-
-      onSelect(selecting, hora);
-      setSelecting(null);
-    }
+    // Selección inmediata de 1 hora
+    const idx = HORAS.indexOf(hora);
+    const siguiente = HORAS[idx + 1] || hora;
+    onSelect(hora, siguiente);
   };
 
   const isInRange = (hora: string): boolean => {
@@ -67,13 +38,10 @@ export function TimeSlotPicker({
     if (idxHora === -1 || idxDesde === -1 || idxHasta === -1) return false;
     return idxHora >= idxDesde && idxHora < idxHasta;
   };
+
   const getStatus = (hora: string): SlotStatus => {
     return hoursAvailability.get(hora) ?? 'free';
   };
-
-  const hint = selecting
-    ? `Selecciona la hora de fin (después de ${selecting})`
-    : 'Selecciona la hora de inicio';
 
   return (
     <div className={styles.timeSlotPicker}>
@@ -100,22 +68,11 @@ export function TimeSlotPicker({
           />
           Seleccionado
         </span>
-        <span
-          style={{
-            marginLeft: 'auto',
-            fontStyle: 'italic',
-            color: 'rgba(245,245,245,0.35)',
-            textTransform: 'none',
-            letterSpacing: 0,
-          }}
-        >
-          {hint}
-        </span>
       </div>
 
       {/* Grid */}
       <div className={styles.timeSlotGrid}>
-        {visibleHoras.map((hora) => {
+        {HORAS.map((hora) => {
           const status = getStatus(hora);
           const inRange = isInRange(hora);
           const isStart = hora === horaDesde;

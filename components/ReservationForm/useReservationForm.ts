@@ -87,7 +87,7 @@ export function useReservationForm(
 
     const match = servicioInfo.duracion.match(/(\d+)/);
     const duracionMin = match ? parseInt(match[1]) : 60;
-    const duracionSlots = Math.ceil(duracionMin / 30);
+    const duracionSlots = Math.ceil(duracionMin / 60);
 
     const idxInicio = HORAS.indexOf(horaDesde);
     if (idxInicio !== -1) {
@@ -312,29 +312,20 @@ export function useReservationForm(
     setSlotWarning(null);
   };
 
-  const handleSlotSelect = (desde: string, hasta: string) => {
+  const handleSlotSelect = (desde: string, _hasta: string) => {
     setHoraDesde(desde);
 
-    // Auto-calcular hora fin basado en duración del servicio
-    if (servicio) {
-      const servicioInfo = SERVICIOS_DISPONIBLES.find(s => s.value === servicio);
-      if (servicioInfo) {
-        const match = servicioInfo.duracion.match(/(\d+)/);
-        const duracionMin = match ? parseInt(match[1]) : 60;
-        const duracionSlots = Math.ceil(duracionMin / 30); // 30 min por slot
-
-        const idxInicio = HORAS.indexOf(desde);
-        if (idxInicio !== -1) {
-          const idxFin = Math.min(idxInicio + duracionSlots, HORAS.length - 1);
-          setHoraHasta(HORAS[idxFin]);
-        }
-      }
+    // Auto‑calcular hora fin como la siguiente hora disponible
+    const idxInicio = HORAS.indexOf(desde);
+    if (idxInicio !== -1 && idxInicio + 1 < HORAS.length) {
+        setHoraHasta(HORAS[idxInicio + 1]);
     } else {
-      setHoraHasta(hasta);
+        // Si no hay siguiente, usar el mismo valor (no cambia)
+        setHoraHasta(desde);
     }
 
     setSlotWarning(null);
-  };
+};
 
   // ── Validación y submit ────────────────────────────────
   const validate = (): boolean => {
@@ -387,7 +378,7 @@ export function useReservationForm(
     };
 
       try {
-        await crearReserva({
+        const payload = {
           local: sucursal,
           fecha: fechaISO,
           hora_desde: horaDesdeNorm,
@@ -395,7 +386,11 @@ export function useReservationForm(
           tipo,
           cliente,
           servicio,
-        });
+        };
+        console.log('>>> Intentando guardar reserva con payload:', payload);
+
+        const result = await crearReserva(payload);
+        console.log('<<< Reserva guardada exitosamente. ID:', result.id);
 
         if (onSuccess) {
           onSuccess();
@@ -403,8 +398,9 @@ export function useReservationForm(
           router.push(initialData?.isAdmin ? '/admin/reservas' : '/reservas');
         }
         router.refresh();
-      } catch {
-        setError(hookError || 'Error al crear la reserva');
+      } catch (err: any) {
+        console.error('Error al guardar reserva:', err);
+        setError(err?.message || hookError || 'Error al crear la reserva');
       }
   };
   return {

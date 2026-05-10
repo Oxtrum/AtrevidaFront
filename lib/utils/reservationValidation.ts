@@ -31,11 +31,16 @@ export function validateReservationForm(
         errors.servicio = 'Selecciona un servicio';
     }
 
+    const toMin = (h: string) => {
+        const [hh, mm] = h.split(':').map(Number);
+        return hh * 60 + (mm || 0);
+    };
+
     if (!horaDesde) {
         errors.horaDesde = 'Selecciona hora de inicio';
     } else if (!horaHasta) {
         errors.horaHasta = 'Selecciona hora de fin';
-    } else if (horaDesde >= horaHasta) {
+    } else if (toMin(horaDesde) >= toMin(horaHasta)) {
         errors.horaHasta = 'La hora de fin debe ser mayor a la de inicio';
     }
 
