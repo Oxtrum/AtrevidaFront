@@ -387,10 +387,8 @@ export function useReservationForm(
           cliente,
           servicio,
         };
-        console.log('>>> Intentando guardar reserva con payload:', payload);
 
         const result = await crearReserva(payload);
-        console.log('<<< Reserva guardada exitosamente. ID:', result.id);
 
         if (onSuccess) {
           onSuccess();
@@ -399,7 +397,6 @@ export function useReservationForm(
         }
         router.refresh();
       } catch (err: any) {
-        console.error('Error al guardar reserva:', err);
         setError(err?.message || hookError || 'Error al crear la reserva');
       }
   };

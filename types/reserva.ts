@@ -174,7 +174,7 @@ export function getTipoColor(tipo: string): { bg: string; border: string; accent
     case 'b':
       return { bg: 'rgba(20, 174, 239, 0.15)', border: 'rgba(20, 174, 239, 0.4)', accent: '#14AEEF' };
     case 'm':
-      return { bg: 'rgba(146, 39, 143, 0.2)', border: 'rgba(236, 0, 140, 0.4)', accent: '#EC008C' };
+      return { bg: 'rgba(255, 230, 0, 0.15)', border: 'rgba(255, 230, 0, 0.4)', accent: '#FFE600' };
     case 'feriado':
       return { bg: 'rgba(255, 230, 0, 0.1)', border: 'rgba(255, 230, 0, 0.3)', accent: '#FFE600' };
     default:

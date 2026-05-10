@@ -35,9 +35,17 @@ interface CalendarGridProps {
 function obtenerHorasFijas(data: ApiResponse | null): ReservaPorHora[] {
   // Crear el esqueleto basado en HORAS (que ahora son de hora en hora)
   const grid: ReservaPorHora[] = [];
-  for (let i = 0; i < HORAS.length - 1; i++) {
+  for (let i = 0; i < HORAS.length; i++) {
+    const start = HORAS[i];
+    let end = HORAS[i+1];
+    
+    if (!end) {
+      const [hh, mm] = start.split(':').map(Number);
+      end = `${(hh + 1).toString().padStart(2, '0')}:${mm.toString().padStart(2, '0')}`;
+    }
+
     grid.push({
-      hora: `${HORAS[i]} a ${HORAS[i+1]}`,
+      hora: `${start} a ${end}`,
       dias: {}
     });
   }
@@ -50,9 +58,6 @@ function obtenerHorasFijas(data: ApiResponse | null): ReservaPorHora[] {
   const primerLocal = reservasData[0];
   if (!primerLocal?.semanas) return grid;
 
-  // Llenar el grid con los datos de la API
-  console.log('[CalendarGrid] Procesando', primerLocal.semanas.length, 'semanas');
-  
   const toMin = (h: string) => {
     if (!h) return -1;
     const clean = h.trim().replace(/^0/, '');
@@ -63,19 +68,14 @@ function obtenerHorasFijas(data: ApiResponse | null): ReservaPorHora[] {
   for (const semana of primerLocal.semanas) {
     for (const horaObj of semana.reservas ?? []) {
       const horaInicioAPI = toMin(horaObj.hora.split(' a ')[0]);
-      
-      // Buscar el slot que empieza a esa misma hora en minutos
       const targetSlot = grid.find(s => toMin(s.hora.split(' a ')[0]) === horaInicioAPI);
       
       if (targetSlot) {
-        console.log(`[CalendarGrid] Match encontrado para hora API ${horaObj.hora}`);
         for (const [dia, slots] of Object.entries(horaObj.dias)) {
           const diaKey = dia as DiaSemana;
           if (!targetSlot.dias[diaKey]) targetSlot.dias[diaKey] = [];
           targetSlot.dias[diaKey]!.push(...(slots as ReservaDetalle[]));
         }
-      } else {
-        console.warn(`[CalendarGrid] NO se encontró slot para hora API: ${horaObj.hora} (inicio en min: ${horaInicioAPI})`);
       }
     }
   }
