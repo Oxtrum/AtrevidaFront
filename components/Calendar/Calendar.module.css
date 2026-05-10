@@ -539,7 +539,7 @@ width: 100%;
   top: 0;
   bottom: 0;
   width: 3px;
-  background: linear-gradient(180deg, #EC008C, #92278F);
+  background: linear-gradient(180deg, #FFE600, #FF9900);
   opacity: 0.8;
   flex-shrink: 0;
 }

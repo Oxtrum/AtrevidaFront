@@ -57,7 +57,7 @@ export function TimeSlotPicker({
         <span>
           <span
             className={styles.legendDot}
-            style={{ background: 'rgba(236,0,140,0.50)', border: '1px solid rgba(236,0,140,0.3)' }}
+            style={{ background: 'rgba(255,230,0,0.50)', border: '1px solid rgba(255,230,0,0.3)' }}
           />
           Ocupado
         </span>
