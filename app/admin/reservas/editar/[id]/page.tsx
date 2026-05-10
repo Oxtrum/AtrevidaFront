@@ -3,15 +3,15 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useRef, useState, useEffect, useMemo } from 'react';
 import gsap from 'gsap';
-import Header from '@/components/Header/Header';
+import Header from '@/components/AdminHeader/Header';
 import { actualizarReservaDB, getReservaByID } from '@/lib/api/reservas';
 import { useReservas } from '@/lib/hooks/useReservas';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { DiaSemana, ReservaBD, generarSemanas, getFechasDeSemana, esFechaPasada, getTipoFromServicio } from '@/types/reserva';
 import { HORAS, DIAS_SEMANA } from '@/lib/constants/reservationForm';
-import { DaySelector } from '@/components/ReservationForm/DaySelector';
-import { TimeSlotPicker } from '@/components/ReservationForm/TimeSlotPicker';
-import { CustomSelect } from '@/components/Custom/CustomSelect';
+import { DaySelector } from '@/components/AdminReservationForm/DaySelector';
+import { TimeSlotPicker } from '@/components/AdminReservationForm/TimeSlotPicker';
+import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import type { SlotStatus } from '@/lib/utils/hoursAvailability';
 import styles from './page.module.css';
 

@@ -8,7 +8,7 @@ import { CalendarAdmin } from '@/components/Calendar';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { useReservasFiltradas } from '@/lib/hooks/useReservasFiltradas';
 import { ReservasTable } from '@/components/AdminReservas';
-import { CustomSelect } from '@/components/Custom/CustomSelect';
+import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { Input } from '@/components/Shared';
 import Header from '@/components/AdminHeader/Header';
 import styles from './page.module.css';

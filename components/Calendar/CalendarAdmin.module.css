@@ -1,0 +1,231 @@
+/* CalendarAdmin.module.css - LIGHT MODE VERSION FOR ADMIN */
+
+.calendarWrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: relative;
+  background: var(--admin-bg);
+  color: var(--admin-foreground);
+}
+
+/* ─── Controls ─────────────────────────────────────────────────────────────── */
+
+.controls {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  padding: 1.5rem;
+  background: var(--admin-surface-1);
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-lg);
+  box-shadow: var(--admin-shadow-sm);
+  z-index: 1;
+}
+
+.controlGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 200px;
+}
+
+.controlGroup label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--admin-text-muted);
+}
+
+/* ─── Loading / Empty ──────────────────────────────────────────────────────── */
+
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--admin-border-subtle);
+  border-top-color: var(--admin-accent-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Calendar container ───────────────────────────────────────────────────── */
+
+.calendarContainer {
+  width: 100%;
+  overflow-x: auto;
+  background: var(--admin-surface-1);
+  border-radius: var(--admin-radius-xl);
+  border: 1px solid var(--admin-border-subtle);
+  box-shadow: var(--admin-shadow-md);
+}
+
+/* ─── Grid ─────────────────────────────────────────────────────────── */
+
+.calendarGrid {
+  display: grid;
+  grid-template-columns: 80px repeat(6, minmax(140px, 1fr));
+  gap: 1px;
+  min-width: 1000px;
+  background: var(--admin-border-subtle);
+}
+
+/* ─── Header cells ─────────────────────────────────────────────────────────── */
+
+.cornerCell {
+  background: var(--admin-bg-secondary);
+}
+
+.calendarHeader {
+  background: var(--admin-bg-secondary);
+  padding: 1.25rem 0.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.headerDay {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--admin-text-muted);
+}
+
+.headerDate {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--admin-foreground);
+}
+
+/* ─── Time cells ───────────────────────────────────────────────────────────── */
+
+.timeCell {
+  background: var(--admin-bg-secondary);
+  padding: 1rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100px;
+}
+
+.timeStart {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--admin-accent-primary);
+}
+
+.timeEnd {
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
+}
+
+/* ─── Time slots ───────────────────────────────────────────────────────────── */
+
+.timeSlot {
+  background: white;
+  min-height: 100px;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.timeSlotLibre {
+  cursor: pointer;
+}
+
+.timeSlotLibre:hover {
+  background: var(--admin-bg-secondary);
+}
+
+.timeSlotReservado {
+  background: white;
+}
+
+.timeSlotPasado {
+  background: var(--admin-bg-tertiary);
+  opacity: 0.6;
+}
+
+/* ─── Slot content ─────────────────────────────────────────────────────────── */
+
+.timeSlotContent {
+  flex: 1;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.reservationCard {
+  padding: 0.5rem;
+  border-radius: var(--admin-radius-sm);
+  background: white;
+  border: 1px solid var(--admin-border);
+  box-shadow: var(--admin-shadow-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.reservationCliente {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--admin-foreground);
+}
+
+.reservationServicio {
+  font-size: 0.65rem;
+  color: var(--admin-text-muted);
+}
+
+/* ─── Badges ──────────────────────────────────────────────────────────── */
+
+.slotBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-top: auto;
+}
+
+.slotBadge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--admin-radius-full);
+  text-transform: uppercase;
+}
+
+.slotBadgeMesa { background: #dcfce7; color: #166534; }
+.slotBadgeBicicleta { background: #dbeafe; color: #1e40af; }
+.slotBadgeOcupado { background: #fee2e2; color: #991b1b; }
+
+/* ─── Mobile View ────────────────────────────────────────────────────────── */
+
+.daySelectorMobile {
+  display: none;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+}
+
+@media (max-width: 900px) {
+  .calendarGrid { display: none; }
+  .daySelectorMobile { display: flex; }
+  .calendarGridMobile { display: grid; grid-template-columns: 80px 1fr; gap: 1px; background: var(--admin-border-subtle); }
+}

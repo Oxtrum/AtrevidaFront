@@ -1,43 +1,12 @@
-/* admin/reservas/page.module.css */
+/* admin/reservas/page.module.css - LIGHT MODE */
 
 .pageContainer {
   min-height: 100vh;
-  background: #000000;
-  color: #F5F5F5;
-  font-family: var(--font-poppins), sans-serif;
+  background: var(--admin-bg);
+  color: var(--admin-foreground);
+  font-family: var(--admin-font-family);
   position: relative;
   overflow-x: hidden;
-}
-
-/* ─── Orbs flotantes ───────────────────────────────────────────────────────── */
-
-.pageContainer::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 600px 500px at 10% 20%, rgba(146, 39, 143, 0.55) 0%, transparent 70%),
-    radial-gradient(ellipse 500px 400px at 90% 70%, rgba(236, 0, 142, 0.55) 0%, transparent 70%),
-    radial-gradient(ellipse 400px 350px at 50% 100%, rgba(173, 20, 239, 0.50) 0%, transparent 70%);
-  animation: orbsFloat 6s ease-in-out infinite alternate;
-  pointer-events: none;
-  z-index: 0;
-}
-
-@keyframes orbsFloat {
-  0% {
-    opacity: 1;
-    transform: translate(0, 0);
-  }
-
-  50% {
-    opacity: 0.7;
-  }
-
-  100% {
-    opacity: 1;
-    transform: translate(8px, -12px);
-  }
 }
 
 /* ─── Main content ─────────────────────────────────────────────────────────── */
@@ -45,7 +14,7 @@
 .main {
   position: relative;
   z-index: 1;
-  max-width: 1400px;
+  max-width: 1600px;
   margin: 0 auto;
   padding: 2rem;
 }
@@ -53,161 +22,95 @@
 /* ─── Page header ──────────────────────────────────────────────────────────── */
 
 .header {
-  margin-bottom: 1rem;
-  padding-top: 3rem;
+  margin-bottom: 2rem;
+  padding-top: 1rem;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
   flex-wrap: wrap;
+  border-bottom: 1px solid var(--admin-border-subtle);
+  padding-bottom: 1.5rem;
 }
 
-.headerText {
-  flex: 1;
-  min-width: 200px;
-}
-
-/* ✅ Gradiente correcto según design system: FFE600 → EC008C → 92278F → 14AEEF */
 .title {
-  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
   font-weight: 800;
-  letter-spacing: -1px;
+  letter-spacing: -0.5px;
   line-height: 1.1;
-  margin-bottom: 0.68rem;
-  background: linear-gradient(135deg, #FFE600 0%, #EC008C 35%, #92278F 60%, #14AEEF 100%);
-  background-size: 200% 200%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: gradientMove 4s ease-in-out infinite;
-}
-
-@keyframes gradientMove {
-
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
-  }
+  margin-bottom: 0.5rem;
+  color: var(--admin-foreground);
 }
 
 .subtitle {
-  font-size: clamp(0.85rem, 2vw, 1rem);
-  color: rgba(245, 245, 245, 0.55);
-  font-weight: 300;
-  line-height: 1.6;
-  max-width: 480px;
+  font-size: 1rem;
+  color: var(--admin-text-muted);
+  font-weight: 400;
+  line-height: 1.5;
+  max-width: 600px;
 }
 
-/* ─── Vista toggle (pill switcher premium) ─────────────────────────────────── */
+/* ─── Vista toggle ─────────────────────────────────── */
 
 .vistaToggle {
   display: inline-flex;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(146, 39, 143, 0.25);
-  border-radius: 50px;
+  background: var(--admin-surface-2);
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-lg);
   padding: 4px;
-  gap: 2px;
-  flex-shrink: 0;
+  gap: 4px;
 }
 
 .vistaButton {
   padding: 0.5rem 1.25rem;
-  border-radius: 50px;
+  border-radius: var(--admin-radius-md);
   border: none;
   background: transparent;
-  color: rgba(245, 245, 245, 0.45);
-  font-family: var(--font-poppins), sans-serif;
-  font-size: 0.8rem;
+  color: var(--admin-text-muted);
+  font-size: 0.875rem;
   font-weight: 600;
-  letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
-  position: relative;
-  white-space: nowrap;
+  transition: all 0.2s ease;
 }
 
 .vistaButton:hover {
-  color: rgba(245, 245, 245, 0.75);
-  background: rgba(255, 255, 255, 0.05);
+  color: var(--admin-foreground);
+  background: var(--admin-surface-3);
 }
 
-/* ✅ Active state con gradient del brand */
 .vistaActive {
-  background: linear-gradient(135deg, #EC008C, #92278F) !important;
-  color: #fff !important;
-  box-shadow: 0 4px 16px rgba(236, 0, 140, 0.35), 0 0 30px rgba(236, 0, 140, 0.15);
+  background: white !important;
+  color: var(--admin-accent-primary) !important;
+  box-shadow: var(--admin-shadow-sm);
 }
 
 /* ─── Calendar section ─────────────────────────────────────────────────────── */
 
 .calendarSection {
-  background: rgba(8, 8, 8, 0.6);
-  border-radius: 20px;
-  padding: 1.5rem;
-  border: 1px solid rgba(146, 39, 143, 0.18);
-  position: relative;
-  overflow: hidden;
-  /* ✅ Inner glow sutil con color de marca */
-  box-shadow:
-    inset 0 0 80px rgba(146, 39, 143, 0.04),
-    0 1px 3px rgba(0, 0, 0, 0.6);
-}
-
-/* Gradient top line */
-.calendarSection::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(90deg,
-      transparent 0%, #FFE600 15%, #EC008C 40%,
-      #92278F 60%, #14AEEF 80%, transparent 100%);
-  opacity: 0.6;
+  background: var(--admin-surface-1);
+  border-radius: var(--admin-radius-xl);
+  padding: 2rem;
+  border: 1px solid var(--admin-border-subtle);
+  box-shadow: var(--admin-shadow-sm);
 }
 
 /* ─── Filtros Section ──────────────────────────────────────────────────────── */
 
 .filtrosSection {
-  background: rgba(8, 8, 8, 0.6);
-  border-radius: 20px;
-  padding: 1.5rem;
-  border: 1px solid rgba(146, 39, 143, 0.18);
-  position: relative;
-  overflow: hidden;
-  box-shadow:
-    inset 0 0 80px rgba(146, 39, 143, 0.04),
-    0 1px 3px rgba(0, 0, 0, 0.6);
+  background: var(--admin-surface-1);
+  border-radius: var(--admin-radius-xl);
+  padding: 2rem;
+  border: 1px solid var(--admin-border-subtle);
+  box-shadow: var(--admin-shadow-sm);
 }
-
-.filtrosSection::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: linear-gradient(90deg,
-      transparent 0%, #FFE600 15%, #EC008C 40%,
-      #92278F 60%, #14AEEF 80%, transparent 100%);
-  opacity: 0.6;
-}
-
-/* ─── Filtros layout ───────────────────────────────────────────────────────── */
 
 .filtrosRow {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 1rem;
-  margin-bottom: 1.75rem;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
   padding-bottom: 1.5rem;
-  /* ✅ Separador sutil con gradiente */
-  border-bottom: 1px solid rgba(146, 39, 143, 0.12);
+  border-bottom: 1px solid var(--admin-border-subtle);
 }
 
 .filtroGroup {
@@ -217,155 +120,55 @@
 }
 
 .filtroGroup label {
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
-  color: rgba(245, 245, 245, 0.50);
+  letter-spacing: 0.5px;
+  color: var(--admin-text-muted);
   font-weight: 600;
-  /* ✅ Transición de color para focus-within */
-  transition: color 0.3s ease;
 }
 
-.filtroGroup:focus-within label {
-  color: rgba(236, 0, 140, 0.90);
-}
-
-/* ✅ Inputs comparten la misma forma de los inputs del form */
-.dateInput,
-.textInput {
-  padding: 0.625rem 1rem;
-  background: rgba(0, 0, 0, 0.60);
-  border: 1px solid rgba(146, 39, 143, 0.35);
-  border-radius: 50px;
-  color: #F5F5F5;
-  font-family: var(--font-poppins), sans-serif;
-  font-size: 0.85rem;
-  font-weight: 400;
-  width: 100%;
-  box-sizing: border-box;
-  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.dateInput:hover,
-.textInput:hover {
-  border-color: rgba(236, 0, 140, 0.55);
-  background: rgba(236, 0, 140, 0.04);
-  box-shadow: 0 0 18px rgba(236, 0, 140, 0.12);
-}
-
-.dateInput:focus,
-.textInput:focus {
-  outline: none;
-  border-color: #EC008C;
-  background: rgba(236, 0, 140, 0.06);
-  box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.15), 0 0 25px rgba(236, 0, 140, 0.18);
-}
-
-.dateInput::-webkit-calendar-picker-indicator {
-  filter: invert(0.7);
-  cursor: pointer;
-}
-
-.textInput::placeholder {
-  color: rgba(245, 245, 245, 0.25);
-  font-weight: 300;
-}
-
-/* ─── Responsive ───────────────────────────────────────────────────────────── */
-
-@media (max-width: 1024px) {
-  .filtrosRow {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .main {
-    padding: 1rem;
-    padding-top: 2rem;
-  }
-
-  .header {
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 1.5rem;
-  }
-
-  .calendarSection,
-  .filtrosSection {
-    padding: 1rem;
-    border-radius: 16px;
-  }
-
-  .filtrosRow {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 480px) {
-  .main {
-    padding: 0.68rem;
-    padding-top: 4rem;
-  }
-
-  .filtrosRow {
-    grid-template-columns: 1fr;
-  }
-
-  .vistaToggle {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .vistaButton {
-    flex: 1;
-    text-align: center;
-  }
-}
-
-/* --- Header Actions ------------------------------------------- */
+/* ─── Header Actions ─────────────────────────────────────────── */
 
 .headerActions {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  flex-shrink: 0;
+  gap: 1.5rem;
 }
 
-/* --- Create Button (matches public reservas page) ------------------ */
-
 .createButton {
-  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.68rem 1.75rem;
-  border-radius: 50px;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--admin-radius-lg);
   border: none;
   font-size: 0.9rem;
   font-weight: 600;
-  letter-spacing: 0.5px;
-  color: #000000;
-  background: linear-gradient(135deg, #FFE600, #EC008C);
+  color: white;
+  background: var(--admin-accent-primary);
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: all 0.2s ease;
+  box-shadow: var(--admin-shadow-sm);
 }
 
 .createButton:hover {
-  box-shadow: 0 6px 24px rgba(236, 0, 140, 0.5), 0 0 40px rgba(236, 0, 140, 0.2);
+  background: #1d4ed8;
+  box-shadow: var(--admin-shadow-md);
   transform: translateY(-1px);
 }
 
-.createButton:active {
-  transform: translateY(0) scale(0.98);
+/* ─── Responsive ───────────────────────────────────────────────────────────── */
+
+@media (max-width: 1200px) {
+  .filtrosRow { grid-template-columns: repeat(3, 1fr); }
 }
 
-.createButtonIcon {
-  font-size: 1.1rem;
-  font-weight: 700;
+@media (max-width: 768px) {
+  .header { flex-direction: column; align-items: stretch; }
+  .headerActions { flex-direction: column; align-items: stretch; }
+  .filtrosRow { grid-template-columns: repeat(2, 1fr); }
 }
 
-.createButtonText {
-  white-space: nowrap;
+@media (max-width: 480px) {
+  .filtrosRow { grid-template-columns: 1fr; }
 }

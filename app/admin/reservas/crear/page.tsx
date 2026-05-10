@@ -3,11 +3,11 @@
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useRef } from 'react';
 import gsap from 'gsap';
-import Header from '@/components/Header/Header';
-import { type ReservationFormInitialData } from '@/components/ReservationForm/useReservationForm';
+import Header from '@/components/AdminHeader/Header';
+import { type ReservationFormInitialData } from '@/components/AdminReservationForm/useReservationForm';
 import { DiaSemana } from '@/types/reserva';
 import styles from './page.module.css';
-import ReservationForm from '@/components/ReservationForm';
+import ReservationForm from '@/components/AdminReservationForm';
 
 function CrearReservaContent() {
   const searchParams = useSearchParams();

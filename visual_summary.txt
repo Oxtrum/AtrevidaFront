@@ -1,0 +1,465 @@
+================================================================================
+                    ATREVIDA FIT - ARQUITECTURA DEL ADMIN
+                          ANÁLISIS VISUAL COMPLETO
+================================================================================
+
+PROJECT ROOT: /home/skully/Progra/Atrevida/AtrevidaFront
+
+================================================================================
+1. ESTRUCTURA DE CARPETAS PRINCIPAL
+================================================================================
+
+AtrevidaFront/
+|
++-- app/                              # Next.js App Router (File-based routing)
+|   |
+|   +-- admin/                        # SECCIÓN ADMINISTRATIVA
+|   |   +-- login/
+|   |   |   ├── page.tsx              # Formulario login (223 líneas, 'use client')
+|   |   |   └── page.module.css       # 456 líneas
+|   |   |
+|   |   +-- dashboard/
+|   |   |   ├── page.tsx              # Dashboard principal (283 líneas, 'use client')
+|   |   |   └── page.module.css       # 509 líneas
+|   |   |
+|   |   +-- reservas/
+|   |   |   ├── page.tsx              # Gestión de reservas (251 líneas, 'use client')
+|   |   |   ├── page.module.css       # 370 líneas
+|   |   |   ├── crear/
+|   |   |   |   ├── page.tsx
+|   |   |   |   └── page.module.css   # 108 líneas
+|   |   |   └── editar/[id]/
+|   |   |       ├── page.tsx
+|   |   |       └── page.module.css   # 324 líneas
+|   |   |
+|   |   └── [NO EXISTE layout.tsx] ⚠ LIMITACIÓN IDENTIFICADA
+|   |
+|   +-- api/                          # API Routes (Backend)
+|   |   +-- admin/
+|   |   |   ├── login/route.ts        # POST - Mock auth
+|   |   |   └── importar/route.ts     # POST - Importar datos
+|   |   |
+|   |   +-- bd/
+|   |   |   ├── reservas/route.ts
+|   |   |   ├── reservas/calendario/route.ts
+|   |   |   ├── servicios/route.ts
+|   |   |   ├── locales/route.ts
+|   |   |   └── combos/route.ts
+|   |   |
+|   |   └-- reservas/route.ts
+|   |
+|   +-- reservas/                     # SECCIÓN PÚBLICA
+|   |   +-- page.tsx
+|   |   ├── crear/
+|   |   └── page.module.css
+|   |
+|   +-- layout.tsx                    # ROOT LAYOUT (38 líneas)
+|   +-- globals.css                   # ESTILOS GLOBALES (452 líneas) ⭐
+|   └-- page.tsx                      # Home /
+|
++-- components/                       # React Components
+|   +-- AdminHeader/
+|   |   ├── Header.tsx                # 199 líneas
+|   |   └── Header.module.css         # 413 líneas
+|   |
+|   +-- AdminReservas/
+|   |   ├── ReservasTable.tsx         # 160 líneas
+|   |   ├── ReservasTable.module.css  # 16668 líneas (ENORME)
+|   |   ├── EditarReservaModal.module.css
+|   |   └── index.ts
+|   |
+|   +-- Calendar/
+|   |   ├── CalendarAdmin.tsx
+|   |   ├── CalendarPublico.tsx
+|   |   └── ... (6 archivos más)
+|   |
+|   +-- ReservationForm/ (Formularios públicos)
+|   +-- Shared/                       # Componentes compartidos
+|   |   ├── Button.tsx
+|   |   ├── Input.tsx
+|   |   ├── Toast.tsx
+|   |   └── Shared.module.css
+|   |
+|   +-- Custom/
+|   |   └── CustomSelect.tsx
+|   |
+|   +-- Header/                       # Header público
+|   +-- Footer/
+|   +-- Hero/
+|   +-- Servicios/
+|   +-- Contacto/
+|   +-- CtaBanner/
+|   +-- Nosotros/
+|   └-- Testimonios/
+|
++-- lib/                              # Lógica reutilizable
+|   +-- api/
+|   |   ├── client.ts
+|   |   ├── reservas.ts
+|   |   └── servicios.ts
+|   |
+|   +-- hooks/
+|   |   ├── useCrearReserva.ts
+|   |   ├── useLocales.ts
+|   |   ├── useReservas.ts
+|   |   ├── useReservasCalendario.ts
+|   |   ├── useReservasFiltradas.ts
+|   |   └── index.ts
+|   |
+|   +-- utils/
+|   |   ├── calendarHelpers.ts
+|   |   ├── hoursAvailability.ts
+|   |   └── reservationValidation.ts
+|   |
+|   └-- constants/
+|       └── reservationForm.ts
+|
++-- types/
+|   └-- reserva.ts                    # TypeScript type definitions
+|
++-- public/                           # Static assets
+|   └-- estrella.png (logo)
+|
++-- CONFIGURACIÓN
+|   ├-- package.json                  # Dependencias
+|   ├-- postcss.config.mjs           # PostCSS config
+|   ├-- next.config.ts               # Next.js config
+|   ├-- tsconfig.json                # TypeScript config
+|   ├-- eslint.config.mjs            # ESLint config
+|   └-- AGENTS.md                    # Guía para agentes IA
+
+================================================================================
+2. RUTAS DEL ADMIN - MAPA DE NAVEGACIÓN
+================================================================================
+
+                            ┌─────────────────────────┐
+                            │   / (Public Home)       │
+                            └────────────┬────────────┘
+                                         │
+                                         │ Link
+                                         │
+                                    ┌────▼────┐
+                                    │ /admin   │
+                                    └────┬────┘
+                                         │
+                    ┌────────────────────┴────────────────────┐
+                    │                                         │
+              NO AUTH             PROTEGIDAS (Require Token)  │
+                    │                                         │
+            ┌───────▼────────┐                               │
+            │ /admin/login   │                               │
+            │                │                               │
+            │ • Username     │                               │
+            │ • Password     │                               │
+            │ • Animation    │                               │
+            │ • POST login   │────────────────┐              │
+            │ • Save token   │                │              │
+            └────────────────┘                │              │
+                                              │              │
+                                    ┌─────────▼──────────────▼─────────┐
+                                    │   /admin/dashboard                │
+                                    │                                   │
+                                    │ • 4 Stats (Hoy/Semana/Pend/Comp) │
+                                    │ • 4 Actions (Import/Manage/etc)   │
+                                    │ • Greeting by hour                │
+                                    │ • Logout button                   │
+                                    └──────┬─────────┬──────────────┬──┘
+                                           │         │              │
+                          ┌────────────────┘         │              │
+                          │              ┌──────────┘               │
+                          │              │          ┌───────────────┘
+                          │              │          │
+                    ┌─────▼──────┐  ┌────▼──────────▼──────┐  ┌──────────┐
+                    │ POST login │  │ /admin/reservas      │  │ POST     │
+                    │ /api/admin/│  │                      │  │ /api/    │
+                    │    login   │  │ • Toggle: Calendario│  │ admin/   │
+                    │            │  │           / Lista    │  │ importar │
+                    │ Returns:   │  │ • Filters            │  │          │
+                    │ • token    │  │ • Table/Calendar     │  │ Sincro   │
+                    │ • user     │  │ • Nueva Reserva btn  │  │ datos    │
+                    └────────────┘  └──────┬─────────┬──────┘  └──────────┘
+                                          │         │
+                        ┌─────────────────┘         │
+                        │                   ┌──────┘
+                        │                   │
+                    ┌───▼────────────────────▼──┐
+                    │ /admin/reservas/crear      │
+                    │                            │
+                    │ • Formulario vacío         │
+                    │ • Local, Fecha, Hora, etc  │
+                    │ • POST /api/bd/reservas    │
+                    └────────────────────────────┘
+                                 │
+                                 │
+                    ┌────────────┴─────────────┐
+                    │ CLICK EN RESERVA EXISTENTE
+                    │
+                    ▼
+                    /admin/reservas/editar/[id]
+                    
+                    • Formulario pre-poblado
+                    • PUT /api/bd/reservas
+
+================================================================================
+3. SISTEMA DE DISEÑO - VARIABLES CSS GLOBALES (app/globals.css)
+================================================================================
+
+COLORES BASE:
+  --af-bg:           #09090b              (Fondo casi negro)
+  --af-text:         #fafafa              (Texto casi blanco)
+
+COLORES DE MARCA (LEGACY - Heredados del público):
+  --af-pink:         #c2185b              (Rosa suave)
+  --af-purple:       #7c3aed              (Púrpura suave)
+  --af-blue:         #0ea5e9              (Azul suave)
+  --af-yellow:       #ca8a04              (Amarillo suave)
+
+COLORES PRIMARIOS (NUEVOS - Desaturados):
+  --af-accent-primary:   #dc2626          (Rojo profundo) ← USADO MUCHO
+  --af-accent-secondary: #0ea5e9          (Azul eléctrico)
+  --af-accent-tertiary:  #10b981          (Verde esmeralda)
+
+SUPERFICIES (GLASSMORPHISM):
+  --af-surface-1:    rgba(15,15,15, 0.50) (Vidrio suave)
+  --af-surface-2:    rgba(15,15,15, 0.70) (Vidrio medio)
+  --af-surface-3:    rgba(15,15,15, 0.90) (Vidrio oscuro)
+
+BORDES:
+  --af-border:       rgba(228,228,231, 0.10)      (Sutil)
+  --af-border-hover: rgba(220,38,38, 0.30)        (Rojo hover)
+  --af-border-focus: rgba(220,38,38, 0.50)        (Rojo focus)
+  --af-border-subtle:rgba(250,250,250, 0.06)      (Muy sutil)
+
+GRADIENTES:
+  --af-grad-brand:   Yellow → Red → Purple → Blue
+  --af-grad-cta:     Red → Purple (botones principales)
+  --af-grad-accent:  Blue → Green (acentos)
+  --af-grad-subtle:  Blanco semi-transparente
+
+SOMBRAS:
+  --af-shadow-sm:    0 1px 2px rgba(0,0,0, 0.05)
+  --af-shadow-md:    0 4px 6px rgba(0,0,0, 0.10)
+  --af-shadow-lg:    0 10px 15px rgba(0,0,0, 0.15)
+  --af-shadow-xl:    0 20px 25px rgba(0,0,0, 0.20)
+
+TRANSICIONES:
+  --af-ease:         cubic-bezier(0.16, 1, 0.3, 1)       (Spring)
+  --af-ease-spring:  cubic-bezier(0.34, 1.56, 0.64, 1)   (Spring+)
+  --af-t-fast:       all 0.2s var(--af-ease)
+  --af-t-mid:        all 0.3s var(--af-ease)
+  --af-t-slow:       all 0.5s var(--af-ease)
+
+GLASS & BLUR:
+  --af-glass:        rgba(9,9,11, 0.80)  (80% opaco)
+  --af-glass-sm:     rgba(9,9,11, 0.60)  (60% opaco)
+  --af-blur:         blur(16px)
+
+CLASES GLOBALES:
+  .af-glass          → Card con vidrio líquido
+  .af-badge          → Badge amarillo con ícono
+  .af-stripe         → Línea degradada arcoíris
+  .af-title-gradient → Título con gradiente animado
+
+================================================================================
+4. TEMA - ANÁLISIS ACTUAL
+================================================================================
+
+TIPO DE TEMA:     Modo oscuro GLOBAL (hardcodeado)
+
+SÍ TIENE:
+  ✓ CSS Variables bien organizadas
+  ✓ Glassmorphism premium
+  ✓ Animaciones suaves (GSAP)
+  ✓ Colores coherentes
+  ✓ Responsive design
+
+NO TIENE:
+  ✗ Light mode
+  ✗ ThemeProvider / Context
+  ✗ Alternancia light/dark dinámica
+  ✗ LocalStorage para preferencia de tema
+  ✗ CSS @media (prefers-color-scheme)
+
+HERENCIA:
+  • Los colores del admin heredan los colores "legacy" del público
+  • Colores legacy: #EC008C, #92278F, #14AEEF, #FFE600
+  • Estos se usan en todos lados (botones, borders, gradientes)
+
+CONCLUSIÓN:
+  Sistema de theming está basado ÚNICAMENTE en CSS Variables.
+  Todo el proyecto está diseñado para DARK MODE PERMANENTE.
+  NO hay forma de cambiar a light mode sin reescribir CSS.
+
+================================================================================
+5. COMPONENTES ADMIN - MATRIZ
+================================================================================
+
+COMPONENTE                    LÍNEAS  ARCHIVO
+════════════════════════════════════════════════════════════════════════════════
+
+AdminHeader/Header.tsx        199     /components/AdminHeader/
+AdminHeader/Header.module.css 413     /components/AdminHeader/
+
+ReservasTable.tsx             160     /components/AdminReservas/
+ReservasTable.module.css      16,668  /components/AdminReservas/ ⚠ GIGANTE
+
+Login Page                    223     /app/admin/login/
+Login Styles                  456     /app/admin/login/
+
+Dashboard Page                283     /app/admin/dashboard/
+Dashboard Styles              509     /app/admin/dashboard/
+
+Reservas Page                 251     /app/admin/reservas/
+Reservas Styles               370     /app/admin/reservas/
+
+Crear Reserva Page            ?       /app/admin/reservas/crear/
+Crear Styles                  108     /app/admin/reservas/crear/
+
+Editar Reserva Page           ?       /app/admin/reservas/editar/[id]/
+Editar Styles                 324     /app/admin/reservas/editar/[id]/
+
+════════════════════════════════════════════════════════════════════════════════
+TOTAL CSS MODULES ADMIN:      ~2,650 líneas
+TOTAL TS/TSX ADMIN:           ~1,300 líneas
+
+================================================================================
+6. TECNOLOGÍAS STACK
+================================================================================
+
+FRAMEWORK:        Next.js 16.2.2       (App Router, no Pages Router)
+REACT:            19.2.4
+TIPOS:            TypeScript 5
+ESTILOS:          CSS Modules + CSS Variables
+                  Tailwind CSS 4 (instalado pero poco usado)
+ANIMACIONES:      GSAP 3.14.2          (Profesional)
+ICONOS:           Lucide-React 1.8.0
+COMPONENTES:      Custom (no UI library)
+
+PATTERN:
+  • Server Components por defecto
+  • 'use client' en componentes interactivos
+  • CSS Modules para aislamiento de estilos
+  • CSS Variables para theming global
+
+================================================================================
+7. AUTENTICACIÓN Y SEGURIDAD
+================================================================================
+
+ESTADO ACTUAL:    MOCK AUTHENTICATION
+
+Login Endpoint:   POST /api/admin/login
+  Acepta:         { username, password }
+  Retorna:        { success, token, user }
+  Token:          "mock-admin-token-12345" (hardcoded)
+
+Almacenamiento:   localStorage.setItem('adminToken', token)
+
+Verificación:     En cada página admin:
+                  if (!localStorage.getItem('adminToken'))
+                    router.push('/admin/login')
+
+⚠ SEGURIDAD:
+  • Token en localStorage (vulnerable a XSS)
+  • Sin autenticación real (mock)
+  • Sin refresh tokens
+  • Sin expiración de token
+  • Sin validación en backend
+
+================================================================================
+8. ANIMACIONES GSAP UTILIZADAS
+================================================================================
+
+LOGIN PAGE:
+  • Page fade-in: opacity 0→1 (0.5s)
+  • Card entrance: y(-40), scale(0.96) → y(0), scale(1) (0.7s)
+  • Elements stagger: fade-in con delay (5 elementos)
+  • Orbs float: y-translation continua (3 orbs, diferentes duraciones)
+  • Error shake: x(-10)→x(0) con elastic.out
+  • Success flash: scale(1.02), opacity(0.8) antes de redireccionar
+
+DASHBOARD PAGE:
+  • Header slide-down: y(-24, opacity 0) → y(0, opacity 1)
+  • Stats stagger: y(30, opacity 0) → y(0, opacity 1) con delay
+  • Cards scale-in: y(40, opacity 0, scale 0.97) → scale 1
+  • Orbs float loops (2 orbs)
+
+ADMIN HEADER:
+  • Logo slide-in: x(-60, opacity 0) → x(0, opacity 1)
+  • Nav links stagger: y(-30, opacity 0) → y(0, opacity 1)
+  • Button scale-in: scale(0.8, opacity 0) → scale(1, opacity 1)
+  • Logout animation: opacity 0, y -10 antes de logout
+
+GENERAL:
+  • Easing: power3.out principalmente
+  • Stagger: entre 0.08-0.1s
+  • Duración: 0.3-0.7s para entradas
+
+================================================================================
+9. LIMITACIONES IDENTIFICADAS
+================================================================================
+
+ARQUITECTURA:
+  ✗ NO existe layout.tsx en /app/admin/
+    → Cada página importa Header manualmente
+    → No hay wrapper global para rutas admin
+    → Repetición de código
+
+  ✗ Autenticación es mock
+    → Token hardcodeado
+    → Sin validación real
+
+THEMING:
+  ✗ Solo dark mode
+    → Sin light mode
+    → Sin ThemeProvider
+    → Sin alternancia dinámica
+
+COMPONENTES:
+  ✗ ReservasTable.module.css tiene 16,668 líneas (DEMASIADO)
+    → Necesita refactoring y splitting
+
+  ✗ CSS duplicado en múltiples CSS Modules
+    → Colores, borders, glassmorphism repetidos
+
+  ✗ No hay componentes reutilizables para Forms
+    → Cada página de reserva (crear/editar) duplica lógica
+
+STATE MANAGEMENT:
+  ✗ Sin contexto global
+    → Sin estado compartido del admin
+    → Sin manejo de temas global
+
+API:
+  ✗ Mock authentication
+    → Sin validación real en backend
+
+================================================================================
+10. RUTAS ABSOLUTAS - ARCHIVOS CLAVE
+================================================================================
+
+CONFIGURACIÓN:
+  /app/globals.css                 ← Sistema de diseño completo
+  /app/layout.tsx                  ← Root layout
+  /postcss.config.mjs
+  /next.config.ts
+  /package.json
+
+ADMIN PAGES:
+  /app/admin/login/page.tsx
+  /app/admin/dashboard/page.tsx
+  /app/admin/reservas/page.tsx
+  /app/admin/reservas/crear/page.tsx
+  /app/admin/reservas/editar/[id]/page.tsx
+
+ADMIN COMPONENTS:
+  /components/AdminHeader/Header.tsx
+  /components/AdminReservas/ReservasTable.tsx
+  /components/AdminReservas/EditarReservaModal.module.css
+
+ADMIN API:
+  /app/api/admin/login/route.ts
+  /app/api/admin/importar/route.ts
+
+================================================================================
+                              FIN DEL ANÁLISIS
+================================================================================

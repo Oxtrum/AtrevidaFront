@@ -1,0 +1,322 @@
+/* ────────────────────────────────────────────────────────────────
+   ADMIN RESERVATION FORM — LIGHT & PROFESSIONAL
+   ──────────────────────────────────────────────────────────────── */
+
+.form {
+  width: 100%;
+  max-width: 750px;
+  margin: 0 auto;
+  position: relative;
+  background: var(--admin-surface-1);
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-xl);
+  box-shadow: var(--admin-shadow-lg);
+  overflow: visible;
+}
+
+.formBody {
+  padding: 2.5rem;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   FORM HEADER
+   ──────────────────────────────────────────────────────────────── */
+
+.formHeader {
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--admin-border-subtle);
+  padding-bottom: 1.5rem;
+}
+
+.formEyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--admin-radius-full);
+  background: var(--admin-bg-secondary);
+  color: var(--admin-accent-primary);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.eyebrowDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--admin-accent-primary);
+}
+
+.formTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--admin-foreground);
+  margin: 0 0 0.5rem;
+}
+
+.formSubtitle {
+  font-size: 0.9rem;
+  color: var(--admin-text-muted);
+  line-height: 1.5;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   ERROR ALERT
+   ──────────────────────────────────────────────────────────────── */
+
+.errorAlert {
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  background: rgba(239, 64, 64, 0.1);
+  border: 1px solid rgba(239, 64, 64, 0.2);
+  border-radius: var(--admin-radius-md);
+  color: var(--admin-accent-danger);
+  font-size: 0.875rem;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   FORM GRID
+   ──────────────────────────────────────────────────────────────── */
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   FORM GROUP
+   ──────────────────────────────────────────────────────────────── */
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.formGroup label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--admin-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.formGroup input,
+.formGroup select {
+  padding: 0.75rem 1rem;
+  background: var(--admin-bg);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-md);
+  color: var(--admin-foreground);
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.formGroup input:focus,
+.formGroup select:focus {
+  outline: none;
+  border-color: var(--admin-accent-primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.inputError {
+  border-color: var(--admin-accent-danger) !important;
+}
+
+.errorText {
+  font-size: 0.75rem;
+  color: var(--admin-accent-danger);
+  margin-top: 0.25rem;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   DAY SELECTOR
+   ──────────────────────────────────────────────────────────────── */
+
+.daySelector {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.dayChip {
+  flex: 1;
+  min-width: 80px;
+  padding: 0.75rem 0.5rem;
+  background: var(--admin-surface-2);
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dayChip:hover:not(:disabled) {
+  background: var(--admin-surface-3);
+  border-color: var(--admin-border);
+}
+
+.dayChipActive {
+  background: var(--admin-accent-primary) !important;
+  border-color: var(--admin-accent-primary) !important;
+  color: white !important;
+}
+
+.dayChipActive .dayChipDate,
+.dayChipActive .dayChipLabel {
+  color: white !important;
+}
+
+.dayChipLabel {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--admin-text-muted);
+}
+
+.dayChipDate {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--admin-foreground);
+}
+
+.dayChipDisabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   TIME SLOT PICKER
+   ──────────────────────────────────────────────────────────────── */
+
+.timeSlotPicker {
+  background: var(--admin-bg-secondary);
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  padding: 1rem;
+}
+
+.timeSlotGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 0.5rem;
+}
+
+.timeChip {
+  padding: 0.5rem;
+  text-align: center;
+  background: white;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.timeChip:hover:not(:disabled) {
+  border-color: var(--admin-accent-primary);
+  color: var(--admin-accent-primary);
+}
+
+.timeChipSelected {
+  background: var(--admin-accent-primary) !important;
+  color: white !important;
+  border-color: var(--admin-accent-primary) !important;
+}
+
+.timeChipReserved {
+  background: var(--admin-bg-tertiary) !important;
+  color: var(--admin-text-light) !important;
+  cursor: not-allowed;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   FORM ACTIONS
+   ──────────────────────────────────────────────────────────────── */
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--admin-border-subtle);
+}
+
+.cancelButton {
+  padding: 0.75rem 1.5rem;
+  background: white;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-md);
+  color: var(--admin-foreground);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.submitButton {
+  padding: 0.75rem 2rem;
+  background: var(--admin-accent-primary);
+  border: none;
+  border-radius: var(--admin-radius-md);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--admin-shadow-sm);
+}
+
+.submitButton:hover {
+  background: #1d4ed8;
+  box-shadow: var(--admin-shadow-md);
+}
+
+/* ────────────────────────────────────────────────────────────────
+   SLOT VALIDATION & PLACEHOLDERS
+   ──────────────────────────────────────────────────────────────── */
+
+.slotWarning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.68rem;
+  padding: 0.875rem 1.25rem;
+  border-radius: var(--admin-radius-md);
+  background: rgba(202, 138, 4, 0.08);
+  border: 1px solid rgba(202, 138, 4, 0.3);
+  color: #ca8a04;
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.servicioPlaceholder,
+.pickerPlaceholder {
+  padding: 1rem;
+  background: var(--admin-bg-secondary);
+  border: 1px dashed var(--admin-border);
+  border-radius: var(--admin-radius-md);
+  color: var(--admin-text-muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   RESPONSIVE
+   ──────────────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .formBody { padding: 1.5rem; }
+  .formGrid { grid-template-columns: 1fr; }
+  .formActions { flex-direction: column-reverse; }
+  .cancelButton, .submitButton { width: 100%; }
+}

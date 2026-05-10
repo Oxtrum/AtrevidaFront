@@ -1,0 +1,117 @@
+/* ─── Custom Select Admin ───────────────────────────────────────────── */
+
+.customSelect {
+  position: relative;
+  width: 100%;
+  user-select: none;
+}
+
+.customSelectTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.68rem;
+  padding: 0.75rem 1rem;
+  background: white;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 44px;
+}
+
+.customSelectTrigger:hover {
+  border-color: var(--admin-accent-primary);
+  background: var(--admin-bg-secondary);
+}
+
+.customSelectOpen .customSelectTrigger {
+  border-color: var(--admin-accent-primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.customSelectValue {
+  font-size: 0.875rem;
+  color: var(--admin-foreground);
+  font-weight: 500;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.customSelectPlaceholder {
+  font-size: 0.875rem;
+  color: var(--admin-text-muted);
+  font-weight: 400;
+  flex: 1;
+}
+
+.customSelectArrow {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.customSelectArrowOpen {
+  transform: rotate(180deg);
+}
+
+/* Dropdown list */
+
+.selectDropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-lg);
+  overflow: hidden;
+  z-index: 10050;
+  max-height: 280px;
+  overflow-y: auto;
+  box-shadow: var(--admin-shadow-lg);
+  animation: dropdownIn 0.2s ease;
+}
+
+@keyframes dropdownIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.selectOption {
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: var(--admin-foreground);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.selectOption:hover {
+  background: var(--admin-bg-secondary);
+  color: var(--admin-accent-primary);
+}
+
+.selectOptionActive {
+  background: var(--admin-bg-secondary) !important;
+  color: var(--admin-accent-primary) !important;
+  font-weight: 600;
+}
+
+.selectOptionDisabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.selectGroup {
+  padding: 0.75rem 1rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--admin-text-muted);
+  background: var(--admin-bg-secondary);
+}

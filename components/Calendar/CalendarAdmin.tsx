@@ -5,9 +5,9 @@ import gsap from 'gsap';
 import { DiaSemana, generarSemanas, getFechasDeSemana } from '@/types/reserva';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { useReservasCalendario } from '@/lib/hooks/useReservasCalendario';
-import CalendarGrid from './CalendarGrid';
-import styles from './Calendar.module.css';
-import { CustomSelect } from '../Custom/CustomSelect';
+import CalendarGrid from './CalendarGridAdmin';
+import styles from './CalendarAdmin.module.css';
+import { CustomSelect } from '../Custom/CustomSelectAdmin';
 
 interface CalendarAdminProps {
   localInicial?: string;
