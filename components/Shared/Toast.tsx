@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import gsap from 'gsap';
 import { CheckCircle2, XCircle, X } from 'lucide-react';
 import styles from './Toast.module.css';
@@ -51,6 +51,7 @@ export default function ToastContainer() {
     type: 'success',
     isVisible: false,
   });
+  const toastRef = useRef<HTMLDivElement>(null);
 
   globalShowToast = (message: string, type: ToastType = 'success') => {
     if (toastTimeout) clearTimeout(toastTimeout);
@@ -62,27 +63,34 @@ export default function ToastContainer() {
   };
 
   useEffect(() => {
-    if (state.isVisible) {
-      gsap.fromTo(
-        '#toast-notification',
-        { x: 100, opacity: 0, scale: 0.9 },
-        { x: 0, opacity: 1, scale: 1, duration: 0.5, ease: 'elastic.out(1, 0.8)' }
-      );
-    } else {
-      gsap.to('#toast-notification', {
-        x: 50,
-        opacity: 0,
-        scale: 0.9,
-        duration: 0.3,
-        ease: 'power2.in',
-      });
-    }
+    if (!toastRef.current) return;
+
+    const ctx = gsap.context(() => {
+      if (state.isVisible) {
+        gsap.fromTo(
+          toastRef.current,
+          { x: 100, opacity: 0, scale: 0.9 },
+          { x: 0, opacity: 1, scale: 1, duration: 0.5, ease: 'elastic.out(1, 0.8)' }
+        );
+      } else {
+        gsap.to(toastRef.current, {
+          x: 50,
+          opacity: 0,
+          scale: 0.9,
+          duration: 0.3,
+          ease: 'power2.in',
+        });
+      }
+    });
+
+    return () => ctx.revert();
   }, [state.isVisible]);
 
   if (!state.isVisible && !state.message) return null;
 
   return (
     <div 
+      ref={toastRef}
       id="toast-notification" 
       className={`${styles.toast} ${styles[state.type]}`}
       style={{ display: state.isVisible ? 'flex' : 'none' }}
