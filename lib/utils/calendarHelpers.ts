@@ -13,7 +13,7 @@ export function contarSlotsPorTipo(
   if (!dia || dia.length === 0) return 0;
   const tipoNorm = tipo === 'mesa' ? 'm' : tipo === 'bicicleta' ? 'b' : tipo;
   // Solo contar los que NO tienen cliente (están libres)
-  return dia.filter(slot => 
+  return dia.filter(slot =>
     normalizeTipo(slot.tipo) === tipoNorm && (!slot.cliente || slot.cliente.trim() === '')
   ).length;
 }

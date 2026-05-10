@@ -21,8 +21,8 @@ export function TimeSlotPicker({
   const handleClick = (hora: string) => {
     const status = hoursAvailability.get(hora);
 
-    // No permitir seleccionar horas pasadas
-    if (status === 'past') return;
+    // No permitir seleccionar horas pasadas u ocupadas
+    if (status === 'past' || status === 'occupied') return;
 
     // Selección inmediata de 1 hora
     const idx = HORAS.indexOf(hora);
@@ -77,6 +77,7 @@ export function TimeSlotPicker({
           const inRange = isInRange(hora);
           const isStart = hora === horaDesde;
           const isPast = status === 'past';
+          const isOccupied = status === 'occupied';
 
           return (
             <button
@@ -85,14 +86,16 @@ export function TimeSlotPicker({
               className={[
                 styles.timeChip,
                 isPast ? styles.timeChipPast : '',
+                isOccupied ? styles.timeChipOccupied : '',
                 inRange ? styles.timeChipSelected : '',
                 isStart ? styles.timeChipStart : '',
               ].filter(Boolean).join(' ')}
               onClick={() => handleClick(hora)}
-              disabled={isPast}
+              disabled={isPast || isOccupied}
               title={
                 isPast ? `${hora} — Pasado`
-                  : hora
+                  : isOccupied ? `${hora} — Ocupado`
+                    : hora
               }
             >
               {hora}

@@ -928,6 +928,14 @@
   box-shadow: 0 3px 10px rgba(20, 174, 239, 0.20);
 }
 
+.timeChipOccupied {
+  border-color: rgba(220, 38, 38, 0.40) !important;
+  background: rgba(220, 38, 38, 0.12) !important;
+  color: rgba(245, 245, 245, 0.25) !important;
+  cursor: not-allowed !important;
+  opacity: 0.6;
+}
+
 .timeChipReserved {
   border-color: rgba(236, 0, 140, 0.30) !important;
   background: rgba(236, 0, 140, 0.12) !important;

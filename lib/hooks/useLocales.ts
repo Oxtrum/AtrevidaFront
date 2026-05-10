@@ -8,6 +8,8 @@ interface Local {
   nombre: string;
   activo: boolean;
   espacios: Array<{ tipo_espacio: string; cantidad_espacios: number }> | null;
+  capacidad_mesas?: number;
+  capacidad_bicis?: number;
 }
 
 interface UseLocalesReturn {

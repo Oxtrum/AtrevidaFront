@@ -131,6 +131,7 @@ export function useReservationForm(
     [semanaActual],
   );
 
+  const tipo = useMemo(() => getTipoFromServicio(servicio), [servicio]);
 
   // ── Fetch reservas cuando cambian sucursal o semana ─────────
   useEffect(() => {
@@ -188,43 +189,50 @@ export function useReservationForm(
       }
     }
 
-    // 3. Marcar horas ocupadas basado en reservasData
-    if (reservasData?.data?.reservas && fechaDia) {
+    // 3. Marcar horas ocupadas basado en reservasData y capacidad
+    if (reservasData?.data?.reservas && fechaDia && sucursal && tipo) {
       const fechaDiaStr = fechaDia.toISOString().split('T')[0];
+      const currentLocal = locales.find(l => l.nombre === sucursal) as any;
+      const capacidadMaxima = tipo.toLowerCase() === 'm' || tipo.toLowerCase() === 'mesa' 
+        ? (currentLocal?.capacidad_mesas || 3) 
+        : (currentLocal?.capacidad_bicis || 2);
 
-      // Filtrar reservas para el día seleccionado
+      // Filtrar reservas para el día y tipo seleccionado
       const reservasDelDia = reservasData.data.reservas.filter((r: any) => {
-        return r.fecha === fechaDiaStr;
+        const tipoReserva = r.tipo?.toLowerCase();
+        const matchesTipo = tipo.toLowerCase() === 'm' 
+          ? (tipoReserva === 'm' || tipoReserva === 'mesa')
+          : (tipoReserva === 'b' || tipoReserva === 'bicicleta');
+        return r.fecha === fechaDiaStr && matchesTipo;
       });
 
-      // Marcar cada hora ocupada
-      for (const reserva of reservasDelDia) {
-        const horaInicio = reserva.hora_desde;
-        const horaFin = reserva.hora_hasta;
+      // Contar reservas por cada slot horario
+      const conteoPorHora = new Map<string, number>();
 
-        // Marcar todos los slots entre hora_desde y hora_hasta como ocupados
-        const idxInicio = HORAS.indexOf(horaInicio);
-        const idxFin = HORAS.indexOf(horaFin);
+      for (const reserva of reservasDelDia) {
+        const idxInicio = HORAS.indexOf(reserva.hora_desde);
+        const idxFin = HORAS.indexOf(reserva.hora_hasta);
 
         if (idxInicio !== -1 && idxFin !== -1) {
           for (let i = idxInicio; i < idxFin; i++) {
-            const horaActual = HORAS[i];
-            // Solo marcar como occupied si no es 'past'
-            if (map.get(horaActual) !== 'past') {
-              map.set(horaActual, 'occupied');
-            }
+            const h = HORAS[i];
+            conteoPorHora.set(h, (conteoPorHora.get(h) || 0) + 1);
           }
         } else if (idxInicio !== -1) {
-          // Si solo tenemos hora_inicio
-          if (map.get(horaInicio) !== 'past') {
-            map.set(horaInicio, 'occupied');
-          }
+          conteoPorHora.set(reserva.hora_desde, (conteoPorHora.get(reserva.hora_desde) || 0) + 1);
+        }
+      }
+
+      // Marcar como ocupado solo si se alcanza la capacidad máxima
+      for (const [hora, conteo] of conteoPorHora.entries()) {
+        if (conteo >= capacidadMaxima && map.get(hora) !== 'past') {
+          map.set(hora, 'occupied');
         }
       }
     }
 
     return map;
-  }, [dia, fechasSemana, reservasData]);
+  }, [dia, fechasSemana, reservasData, sucursal, tipo, locales]);
 
 
   // ── Limpiar servicio si cambia sucursal y no aplica ───────────
