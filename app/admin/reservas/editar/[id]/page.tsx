@@ -5,7 +5,9 @@ import { useRef, useState, useEffect, useMemo } from 'react';
 import gsap from 'gsap';
 import Header from '@/components/Header/Header';
 import { actualizarReservaDB, getReservaByID } from '@/lib/api/reservas';
-import { DiaSemana, ReservaBD, generarSemanas, getFechasDeSemana, esFechaPasada } from '@/types/reserva';
+import { useReservas } from '@/lib/hooks/useReservas';
+import { useLocales } from '@/lib/hooks/useLocales';
+import { DiaSemana, ReservaBD, generarSemanas, getFechasDeSemana, esFechaPasada, getTipoFromServicio } from '@/types/reserva';
 import { HORAS, DIAS_SEMANA } from '@/lib/constants/reservationForm';
 import { DaySelector } from '@/components/ReservationForm/DaySelector';
 import { TimeSlotPicker } from '@/components/ReservationForm/TimeSlotPicker';
@@ -22,6 +24,8 @@ function EditarReservaContent() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const reservaId = params.id as string;
+  const { data: reservasData, fetch: fetchReservas } = useReservas();
+  const { locales } = useLocales();
 
   const [reserva, setReserva] = useState<ReservaBD | null>(null);
 
@@ -74,9 +78,12 @@ function EditarReservaContent() {
 
   const hoursAvailability = useMemo(() => {
     const map = new Map<string, SlotStatus>();
+    const hoy = new Date();
+    const hoyMid = new Date(hoy);
+    hoyMid.setHours(0, 0, 0, 0);
 
+    // 1. Marcar pasados
     for (const hora of HORAS) {
-      const hoy = new Date();
       const [hh, mm] = hora.split(':').map(Number);
       const slotMin = hh * 60 + mm;
       const ahoraMin = hoy.getHours() * 60 + hoy.getMinutes();
@@ -91,8 +98,45 @@ function EditarReservaContent() {
       }
     }
 
+    // 2. Marcar ocupados
+    if (reservasData?.data?.reservas && nuevaFecha && reserva && locales.length > 0) {
+      const currentLocal = locales.find(l => l.nombre === reserva.local) as any;
+      const tipo = getTipoFromServicio(reserva.servicio);
+      const capacidadMaxima = tipo.toLowerCase() === 'm' 
+        ? (currentLocal?.capacidad_mesas || 3) 
+        : (currentLocal?.capacidad_bicis || 2);
+
+      // Filtrar reservas para el día y tipo, EXCLUYENDO la actual
+      const reservasDelDia = reservasData.data.reservas.filter((r: any) => {
+        if (r.id === reserva.id) return false; // IGNORARSE A SÍ MISMO
+        const tipoReserva = r.tipo?.toLowerCase();
+        const matchesTipo = tipo.toLowerCase() === 'm' 
+          ? (tipoReserva === 'm' || tipoReserva === 'mesa')
+          : (tipoReserva === 'b' || tipoReserva === 'bicicleta');
+        return r.fecha === nuevaFecha && matchesTipo;
+      });
+
+      const conteoPorHora = new Map<string, number>();
+      for (const r of reservasDelDia) {
+        const idxInicio = HORAS.indexOf(r.hora_desde);
+        const idxFin = HORAS.indexOf(r.hora_hasta);
+        if (idxInicio !== -1 && idxFin !== -1) {
+          for (let i = idxInicio; i < idxFin; i++) {
+            const h = HORAS[i];
+            conteoPorHora.set(h, (conteoPorHora.get(h) || 0) + 1);
+          }
+        }
+      }
+
+      for (const [hora, conteo] of conteoPorHora.entries()) {
+        if (conteo >= capacidadMaxima && map.get(hora) !== 'past') {
+          map.set(hora, 'occupied');
+        }
+      }
+    }
+
     return map;
-  }, [nuevaFecha]);
+  }, [nuevaFecha, reservasData, reserva, locales]);
 
   useEffect(() => {
     const loadReserva = async () => {
@@ -130,6 +174,18 @@ function EditarReservaContent() {
 
     loadReserva();
   }, [reservaId, semanasDisponibles]);
+
+  // FETCH reservas reales cuando cambia local o fecha
+  useEffect(() => {
+    if (reserva?.local && nuevaFecha) {
+      fetchReservas({
+        local: reserva.local,
+        semana: 0,
+        fecha_desde: nuevaFecha,
+        fecha_hasta: nuevaFecha,
+      });
+    }
+  }, [reserva?.local, nuevaFecha, fetchReservas]);
 
   useEffect(() => {
     if (contentRef.current) {
