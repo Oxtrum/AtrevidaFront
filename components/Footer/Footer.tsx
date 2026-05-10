@@ -36,6 +36,8 @@ export default function Footer() {
                 width={44}
                 height={44}
                 className={styles.logoImg}
+                // Ensure aspect ratio is preserved if CSS adjusts one dimension
+                style={{ width: 'auto', height: 'auto' }}
               />
               <span className={styles.logoText}>ATREVIDAFIT</span>
             </div>

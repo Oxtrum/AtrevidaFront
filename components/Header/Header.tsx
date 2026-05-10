@@ -24,22 +24,38 @@ export default function Header() {
 
   // Entrance animations
   useEffect(() => {
+    // Guarded GSAP entrance animations: only run when targets exist.
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-      tl.fromTo(logoRef.current,
-        { x: -60, opacity: 0 },
-        { x: 0, opacity: 1, duration: 0.8 }
-      )
-        .fromTo(navLinksRef.current,
+
+      if (logoRef.current) {
+        tl.fromTo(
+          logoRef.current,
+          { x: -60, opacity: 0 },
+          { x: 0, opacity: 1, duration: 0.8 }
+        );
+      }
+
+      // navLinksRef may be an array of anchors; ensure at least one exists
+      const navTargets = navLinksRef.current.filter(Boolean);
+      if (navTargets.length > 0) {
+        tl.fromTo(
+          navTargets,
           { y: -30, opacity: 0 },
           { y: 0, opacity: 1, duration: 0.5, stagger: 0.1 },
           '-=0.4'
-        )
-        .fromTo(ctaRef.current,
+        );
+      }
+
+      // ctaRef is optional; animate if present
+      if (ctaRef.current) {
+        tl.fromTo(
+          ctaRef.current,
           { scale: 0.8, opacity: 0 },
           { scale: 1, opacity: 1, duration: 0.5 },
           '-=0.2'
         );
+      }
 
       // Gradient line fades in
       if (headerRef.current) {
@@ -70,11 +86,15 @@ export default function Header() {
   // Animate mobile menu links in
   useEffect(() => {
     if (mobileOpen) {
-      gsap.fromTo(
-        '.mobileNavItem',
-        { y: 40, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: 'power3.out', delay: 0.1 }
-      );
+      // Only animate items that are present in the DOM
+      const items = Array.from(document.querySelectorAll('.mobileNavItem'));
+      if (items.length > 0) {
+        gsap.fromTo(
+          items,
+          { y: 40, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: 'power3.out', delay: 0.1 }
+        );
+      }
     }
   }, [mobileOpen]);
 

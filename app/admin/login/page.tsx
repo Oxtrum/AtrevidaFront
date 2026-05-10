@@ -26,28 +26,32 @@ export default function AdminLoginPage() {
   useEffect(() => {
     const ctx = gsap.context(() => {
       // Page fade-in
-      gsap.fromTo(containerRef.current,
-        { opacity: 0 },
-        { opacity: 1, duration: 0.5, ease: 'power2.out' }
-      );
+      if (containerRef.current) {
+        gsap.fromTo(containerRef.current,
+          { opacity: 0 },
+          { opacity: 1, duration: 0.5, ease: 'power2.out' }
+        );
+      }
 
       // Card entrance
-      gsap.fromTo(cardRef.current,
-        { y: 40, opacity: 0, scale: 0.96 },
-        { y: 0, opacity: 1, scale: 1, duration: 0.7, delay: 0.15, ease: 'power3.out' }
-      );
+      if (cardRef.current) {
+        gsap.fromTo(cardRef.current,
+          { y: 40, opacity: 0, scale: 0.96 },
+          { y: 0, opacity: 1, scale: 1, duration: 0.7, delay: 0.15, ease: 'power3.out' }
+        );
+      }
 
-      // Inner elements stagger
+      // Inner elements stagger - only include existing targets
       const tl = gsap.timeline({ delay: 0.45, defaults: { ease: 'power3.out' } });
-      tl.fromTo(badgeRef.current, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5 })
-        .fromTo(titleRef.current, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6 }, '-=0.3')
-        .fromTo(subtitleRef.current, { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4 }, '-=0.3')
-        .fromTo(formRef.current, { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5 }, '-=0.2');
+      if (badgeRef.current) tl.fromTo(badgeRef.current, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5 });
+      if (titleRef.current) tl.fromTo(titleRef.current, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6 }, '-=0.3');
+      if (subtitleRef.current) tl.fromTo(subtitleRef.current, { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4 }, '-=0.3');
+      if (formRef.current) tl.fromTo(formRef.current, { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5 }, '-=0.2');
 
-      // Orbs float loops
-      gsap.to(orb1Ref.current, { y: '+=35', duration: 4.2, ease: 'sine.inOut', yoyo: true, repeat: -1 });
-      gsap.to(orb2Ref.current, { y: '-=28', duration: 3.6, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 0.6 });
-      gsap.to(orb3Ref.current, { y: '+=20', x: '+=10', duration: 5, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 1.2 });
+      // Orbs float loops (guard refs)
+      if (orb1Ref.current) gsap.to(orb1Ref.current, { y: '+=35', duration: 4.2, ease: 'sine.inOut', yoyo: true, repeat: -1 });
+      if (orb2Ref.current) gsap.to(orb2Ref.current, { y: '-=28', duration: 3.6, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 0.6 });
+      if (orb3Ref.current) gsap.to(orb3Ref.current, { y: '+=20', x: '+=10', duration: 5, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 1.2 });
     }, containerRef);
 
     return () => ctx.revert();

@@ -69,10 +69,12 @@ export default function Calendar({
   
   useEffect(() => {
     const ctx = gsap.context(() => {
-      gsap.fromTo(controlsRef.current,
-        { opacity: 0, y: -30 },
-        { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }
-      );
+      if (controlsRef.current) {
+        gsap.fromTo(controlsRef.current,
+          { opacity: 0, y: -30 },
+          { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }
+        );
+      }
 
       gsap.to('.calendarOrb', {
         y: '+=25',

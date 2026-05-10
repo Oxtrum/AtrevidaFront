@@ -56,30 +56,47 @@ export default function AdminDashboardPage() {
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
-      tl.fromTo(headerRef.current,
-        { y: -24, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.7 }
-      )
-        .fromTo(statsRef.current?.children ? Array.from(statsRef.current.children) : [],
+      if (headerRef.current) {
+        tl.fromTo(headerRef.current,
+          { y: -24, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.7 }
+        );
+      }
+
+      const statsChildren = statsRef.current?.children ? Array.from(statsRef.current.children) : [];
+      if (statsChildren.length > 0) {
+        tl.fromTo(statsChildren,
           { y: 30, opacity: 0 },
           { y: 0, opacity: 1, duration: 0.55, stagger: 0.08 },
           '-=0.3'
-        )
-        .fromTo('.admin-card',
-          { y: 40, opacity: 0, scale: 0.97 },
-          { y: 0, opacity: 1, scale: 1, duration: 0.55, stagger: 0.1 },
-          '-=0.2'
         );
+      }
 
-      // Orbs float
-      gsap.to(orb1Ref.current, { y: '+=30', duration: 4.5, ease: 'sine.inOut', yoyo: true, repeat: -1 });
-      gsap.to(orb2Ref.current, { y: '-=22', duration: 3.8, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 0.7 });
+      tl.fromTo('.admin-card',
+        { y: 40, opacity: 0, scale: 0.97 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.55, stagger: 0.1 },
+        '-=0.2'
+      );
+
+      // Orbs float (guard refs)
+      if (orb1Ref.current) {
+        gsap.to(orb1Ref.current, { y: '+=30', duration: 4.5, ease: 'sine.inOut', yoyo: true, repeat: -1 });
+      }
+      if (orb2Ref.current) {
+        gsap.to(orb2Ref.current, { y: '-=22', duration: 3.8, ease: 'sine.inOut', yoyo: true, repeat: -1, delay: 0.7 });
+      }
     }, containerRef);
 
     return () => ctx.revert();
   }, [router]);
 
   const handleLogout = () => {
+    if (!containerRef.current) {
+      localStorage.removeItem('adminToken');
+      router.push('/admin/login');
+      return;
+    }
+
     gsap.to(containerRef.current, {
       opacity: 0, y: -10, duration: 0.3, ease: 'power2.in',
       onComplete: () => {

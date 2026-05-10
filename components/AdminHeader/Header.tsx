@@ -26,6 +26,12 @@ export default function Header() {
 
   const router = useRouter();
   const handleLogout = () => {
+    if (!headerRef.current) {
+      localStorage.removeItem('adminToken');
+      router.push('/admin/login');
+      return;
+    }
+
     gsap.to(headerRef.current, {
       opacity: 0, y: -10, duration: 0.3, ease: 'power2.in',
       onComplete: () => {
@@ -38,20 +44,30 @@ export default function Header() {
   useEffect(() => {
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-      tl.fromTo(logoRef.current,
-        { x: -60, opacity: 0 },
-        { x: 0, opacity: 1, duration: 0.8 }
-      )
-        .fromTo(navLinksRef.current,
+
+      if (logoRef.current) {
+        tl.fromTo(logoRef.current,
+          { x: -60, opacity: 0 },
+          { x: 0, opacity: 1, duration: 0.8 }
+        );
+      }
+
+      const navTargets = navLinksRef.current.filter(Boolean);
+      if (navTargets.length > 0) {
+        tl.fromTo(navTargets,
           { y: -30, opacity: 0 },
           { y: 0, opacity: 1, duration: 0.5, stagger: 0.1 },
           '-=0.4'
-        )
-        .fromTo(ctaRef.current,
+        );
+      }
+
+      if (ctaRef.current) {
+        tl.fromTo(ctaRef.current,
           { scale: 0.8, opacity: 0 },
           { scale: 1, opacity: 1, duration: 0.5 },
           '-=0.2'
         );
+      }
 
       // Gradient line fades in
       if (headerRef.current) {
@@ -82,11 +98,14 @@ export default function Header() {
   // Animate mobile menu links in
   useEffect(() => {
     if (mobileOpen) {
-      gsap.fromTo(
-        '.mobileNavItem',
-        { y: 40, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: 'power3.out', delay: 0.1 }
-      );
+      const items = Array.from(document.querySelectorAll('.mobileNavItem'));
+      if (items.length > 0) {
+        gsap.fromTo(
+          items,
+          { y: 40, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: 'power3.out', delay: 0.1 }
+        );
+      }
     }
   }, [mobileOpen]);
 
