@@ -19,7 +19,7 @@ interface CalendarPublicoProps {
 
 /**
  * CalendarPublico - Versión para cliente público
- * - Muestra disponibilidad general (+ o ocupado)
+ * - Muestra disponibilidad general (+ o ocupado) 
  * - No muestra nombres de clientes
  * - Dirigido a usuario que quiere hacer una reserva
  */
