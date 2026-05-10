@@ -66,10 +66,19 @@ export default function ReservasPage() {
         </div>
 
         <div ref={actionsRef} className={styles.actions}>
-          <a href="/reservas/crear" className={styles.createButton}>
+          <button
+            className={styles.createButton}
+            onClick={() => {
+              const params = new URLSearchParams({
+                local: sucursalActiva,
+                semana: semanaActiva,
+              });
+              router.push(`/reservas/crear?${params.toString()}`);
+            }}
+          >
             <span className={styles.createButtonIcon}>+</span>
             <span className={styles.createButtonText}>Nueva Reserva</span>
-          </a>
+          </button>
         </div>
 
         <div ref={calendarRef} className={styles.calendarSection}>
