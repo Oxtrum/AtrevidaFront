@@ -90,12 +90,14 @@ export default function Servicios() {
   const gridRef = useRef<HTMLDivElement>(null);
   const [isHovering, setIsHovering] = useState<string | null>(null);
 
-  // GSAP entrance animations
   useEffect(() => {
+    // Animate only compositor‑friendly properties and give the browser
+    // a hint that these will change frequently (will‑change) and force
+    // a GPU layer (force3D). Stagger is limited to ~1 s of total time.
     const ctx = gsap.context(() => {
       gsap.fromTo(
         titleRef.current,
-        { y: 40, opacity: 0 },
+        { y: 40, opacity: 0, willChange: 'transform, opacity', force3D: true },
         {
           y: 0,
           opacity: 1,
@@ -109,22 +111,30 @@ export default function Servicios() {
         }
       );
 
-      // Stagger cards entrance from grid
+      // Stagger cards entrance from grid – animate only transform & opacity
       const cards = gridRef.current?.querySelectorAll(`.${styles.serviceCard}`);
       if (cards && cards.length > 0) {
         gsap.fromTo(
           cards,
-          { y: 40, opacity: 0 },
+          { y: 40, opacity: 0, willChange: 'transform, opacity', force3D: true },
           {
             y: 0,
             opacity: 1,
             duration: 0.6,
             ease: 'power3.out',
-            stagger: { amount: 0.4 },
+            // Limit concurrent animations to keep main‑thread work low
+            stagger: { each: 0.07, amount: 1 },
             scrollTrigger: {
               trigger: gridRef.current,
               start: 'top 75%',
               toggleActions: 'play none none none',
+            },
+            onComplete: () => {
+              // Clean up will‑change after animation finishes
+              gsap.utils.toArray(cards).forEach((el) => {
+                // @ts-ignore – el is an Element
+                el.style.willChange = '';
+              });
             },
           }
         );
@@ -167,8 +177,9 @@ export default function Servicios() {
                   src={servicio.imagen}
                   alt={servicio.nombre}
                   fill
-                  quality={100}
-                  unoptimized={true}
+                  quality={75}
+                  // Allow Next.js to optimize; removed unoptimized flag
+                  loading="lazy"
                   className={styles.image}
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 50vw"
                   style={{ objectPosition: servicio.position || 'center' }}
