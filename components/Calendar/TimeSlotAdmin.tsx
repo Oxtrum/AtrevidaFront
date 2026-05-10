@@ -108,7 +108,7 @@ export default function TimeSlotAdmin({
               ));
             })}
             {hayDisponibilidad && (
-              <SlotBadges mesas={mesasLibres} bicicletas={bicicletasLibres} />
+              <SlotBadges mesas={mesasLibres} bicicletas={bicicletasLibres} slots={slots} />
             )}
           </div>
         ) : hayDisponibilidad ? (
@@ -123,8 +123,13 @@ export default function TimeSlotAdmin({
           <div className={styles.passedSlot}>
             <span className={styles.passedIcon}>—</span>
           </div>
+        ) : !esPasado ? (
+          // Completamente ocupado (pero no es pasado)
+          <div className={styles.freeSlotWithBadges}>
+            <SlotBadges mesas={mesasLibres} bicicletas={bicicletasLibres} slots={slots} />
+          </div>
         ) : (
-          // Completamente ocupado
+          // Completamente ocupado y es pasado
           <div className={styles.passedSlot}>
             <span className={styles.passedIcon}>—</span>
           </div>

@@ -12,7 +12,10 @@ export function contarSlotsPorTipo(
 ): number {
   if (!dia || dia.length === 0) return 0;
   const tipoNorm = tipo === 'mesa' ? 'm' : tipo === 'bicicleta' ? 'b' : tipo;
-  return dia.filter(slot => normalizeTipo(slot.tipo) === tipoNorm).length;
+  // Solo contar los que NO tienen cliente (están libres)
+  return dia.filter(slot => 
+    normalizeTipo(slot.tipo) === tipoNorm && (!slot.cliente || slot.cliente.trim() === '')
+  ).length;
 }
 
 /**
@@ -66,13 +69,13 @@ export function obtenerDisponibilidadEnHora(
   const slotsDelDia = horaObj.dias[diaSemana];
   const mesas = contarSlotsPorTipo(slotsDelDia, 'm');
   const bicicletas = contarSlotsPorTipo(slotsDelDia, 'b');
-  const total = (slotsDelDia?.length || 0);
+  const totalLibres = mesas + bicicletas;
 
   return {
-    tieneDisponibilidad: total > 0,
+    tieneDisponibilidad: totalLibres > 0,
     conMesas: mesas > 0,
     conBicicletas: bicicletas > 0,
-    totalSlots: total,
+    totalSlots: totalLibres,
     slotsMesa: mesas,
     slotsBicicleta: bicicletas,
   };

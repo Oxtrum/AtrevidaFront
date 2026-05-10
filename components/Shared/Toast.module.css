@@ -1,0 +1,108 @@
+.toast {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  z-index: 9999;
+  min-width: 300px;
+  max-width: 450px;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 
+              0 0 0 1px rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+}
+
+.toast::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  padding: 1.5px;
+  background: linear-gradient(135deg, #EC008C, #14AEEF);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.5;
+}
+
+.iconContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  flex-shrink: 0;
+}
+
+.success .icon {
+  color: #00FF88;
+  filter: drop-shadow(0 0 8px rgba(0, 255, 136, 0.5));
+}
+
+.error .icon {
+  color: #FF4444;
+  filter: drop-shadow(0 0 8px rgba(255, 68, 68, 0.5));
+}
+
+.content {
+  flex: 1;
+}
+
+.message {
+  color: #F5F5F5;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+.closeBtn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  border-radius: 8px;
+}
+
+.closeBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #F5F5F5;
+}
+
+.progressBar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #EC008C, #14AEEF);
+  width: 100%;
+  animation: progress 4s linear forwards;
+}
+
+@keyframes progress {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+@media (max-width: 640px) {
+  .toast {
+    top: 1rem;
+    left: 1rem;
+    right: 1rem;
+    min-width: 0;
+  }
+}
