@@ -155,13 +155,12 @@ export function DataTable<T extends Record<string, unknown>>({
               </tr>
             )}
 
-            {/* Data rows */}
             {!loading &&
               !error &&
-              filtered.map((row) => (
-                <tr key={getRowKey(row)}>
+              filtered.map((row, index) => (
+                <tr key={`${getRowKey(row)}-${index}`}>
                   {columns.map((col) => (
-                    <td key={col.key}>
+                    <td key={`${col.key}-${index}`}>
                       {col.render
                         ? col.render(row[col.key], row)
                         : String(row[col.key] ?? '')}

@@ -4,7 +4,7 @@
  */
 
 import { apiClient } from './client';
-import type { ApiResponse, ReservaFormData, ReservasBDApiResponse } from '@/types/reserva';
+import type { ApiResponse, ReservaBD, ReservaFormData, ReservasBDApiResponse } from '@/types/reserva';
 
 // ─── Parámetros (Sheets - DEPRECATED) ──────────────────────────────────────
 

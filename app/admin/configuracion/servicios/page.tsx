@@ -14,7 +14,7 @@ import styles from './page.module.css';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-interface ServicioRow {
+interface ServicioRow extends Record<string, unknown> {
   nombre: string;
   categoria: string;
   local: string;
@@ -101,7 +101,7 @@ export default function ServiciosPage() {
     setError(null);
     try {
       const res = await getServiciosDB({
-        local: filtroLocal ,
+        local: filtroLocal,
         categoria: filtroCategoria || undefined,
         nombre: filtroNombre || undefined,
         sesiones: filtroSesiones ? Number(filtroSesiones) : undefined,
@@ -204,7 +204,12 @@ export default function ServiciosPage() {
       key: 'tipoEspacio',
       label: 'Espacio',
       searchable: false,
-      render: (val) => (val === 'M' ? 'Mesas' : val === 'B' ? 'Bicicletas' : val),
+      render: (val) =>
+        val === 'M'
+          ? 'Mesas'
+          : val === 'B'
+            ? 'Bicicletas'
+            : String(val),
     },
   ];
 
@@ -255,7 +260,7 @@ export default function ServiciosPage() {
                   ]}
                 />
               </div>
-              
+
             </div>
           </div>
 
