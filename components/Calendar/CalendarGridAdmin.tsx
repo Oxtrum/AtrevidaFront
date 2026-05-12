@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Fragment } from 'react';
 import { DiaSemana, ApiResponse, FechaDia, ReservaPorHora, type ReservaDetalle } from '@/types/reserva';
 import { HORAS } from '@/lib/constants/reservationForm';
 import TimeSlotPublico from './TimeSlotPublico';
@@ -201,9 +201,9 @@ export default function CalendarGrid({
           const horaFin = horaPartes[1] || '';
 
           return (
-            <>
+            <Fragment key={rowIdx}>
               {/* Celda de tiempo — columna 1 */}
-              <div key={`time-${rowIdx}`} className={styles.timeCell}>
+              <div className={styles.timeCell}>
                 <span className={styles.timeStart}>{horaInicio}</span>
                 <span className={styles.timeEnd}>{horaFin}</span>
               </div>
@@ -225,7 +225,7 @@ export default function CalendarGrid({
                   />
                 );
               })}
-            </>
+            </Fragment>
           );
         })}
       </div>
