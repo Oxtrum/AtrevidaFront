@@ -6,7 +6,7 @@
 ───────────────────────────────────────────── */
 
 .wrapper {
-  background: linear-gradient(180deg, var(--admin-surface-1), rgba(12, 12, 18, 0.84));
+  background: var(--admin-panel-bg);
   border-radius: var(--admin-radius-xl);
   border: 1px solid var(--admin-border-subtle);
   box-shadow: var(--admin-shadow-sm);
@@ -43,7 +43,7 @@
   padding: 0.5rem 0.875rem 0.5rem 2.25rem;
   border: 1px solid var(--admin-border-subtle);
   border-radius: var(--admin-radius-md);
-  background: rgba(9, 9, 11, 0.42);
+  background: var(--admin-input-bg);
   color: var(--admin-foreground);
   font-size: 0.8rem;
   font-family: inherit;

@@ -82,9 +82,7 @@
   padding: 0 2.25rem 2.25rem;
   border: 1px solid var(--admin-border-subtle);
   border-radius: var(--admin-radius-2xl);
-  background:
-    linear-gradient(180deg, rgba(24, 24, 34, 0.88), rgba(12, 12, 18, 0.88)),
-    rgba(12, 12, 18, 0.78);
+  background: var(--admin-panel-elevated);
   box-shadow: var(--admin-shadow-lg);
   backdrop-filter: blur(20px);
 }
@@ -193,7 +191,7 @@
   padding: 0.86rem 0.95rem;
   border-radius: var(--admin-radius-md);
   border: 1px solid var(--admin-border-subtle);
-  background: rgba(9, 9, 11, 0.42);
+  background: var(--admin-input-bg);
   color: var(--admin-foreground);
   font-size: 0.95rem;
   font-family: var(--admin-font-family);
@@ -213,7 +211,7 @@
 .input:focus {
   outline: none;
   border-color: var(--admin-border-focus);
-  background: rgba(236, 0, 140, 0.04);
+  background: var(--admin-input-bg-focus);
   box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.16);
 }
 

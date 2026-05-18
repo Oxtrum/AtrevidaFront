@@ -1,7 +1,7 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.62);
+  background: var(--admin-overlay-bg);
   backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
@@ -17,7 +17,7 @@
 }
 
 .modal {
-  background: linear-gradient(180deg, var(--admin-surface-1), rgba(12, 12, 18, 0.96));
+  background: var(--admin-panel-elevated);
   border: 1px solid var(--admin-border-subtle);
   border-radius: var(--admin-radius-xl);
   box-shadow: var(--admin-shadow-2xl);
@@ -89,7 +89,7 @@
   padding: 0.625rem 1.25rem;
   border-radius: var(--admin-radius-md);
   border: 1px solid var(--admin-border);
-  background: var(--admin-surface-1);
+  background: var(--admin-surface-solid-1);
   color: var(--admin-foreground);
   font-size: 0.875rem;
   font-weight: 500;

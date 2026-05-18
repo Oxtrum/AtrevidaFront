@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import { Moon, Sun } from 'lucide-react';
 import styles from './AdminThemeToggle.module.css';
 
@@ -12,13 +12,27 @@ interface AdminThemeToggleProps {
 
 const STORAGE_KEY = 'atrevida-admin-theme';
 
-function getStoredTheme(): AdminTheme {
-  if (typeof window === 'undefined') return 'dark';
+function subscribe(onStoreChange: () => void) {
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key === STORAGE_KEY) {
+      onStoreChange();
+    }
+  };
+
+  window.addEventListener('storage', handleStorage);
+  return () => window.removeEventListener('storage', handleStorage);
+}
+
+function getThemeSnapshot(): AdminTheme {
   return window.localStorage.getItem(STORAGE_KEY) === 'light' ? 'light' : 'dark';
 }
 
+function getServerThemeSnapshot(): AdminTheme {
+  return 'dark';
+}
+
 export function AdminThemeToggle({ className = '' }: AdminThemeToggleProps) {
-  const [theme, setTheme] = useState<AdminTheme>(getStoredTheme);
+  const theme = useSyncExternalStore(subscribe, getThemeSnapshot, getServerThemeSnapshot);
   const isLight = theme === 'light';
 
   useEffect(() => {
@@ -31,7 +45,11 @@ export function AdminThemeToggle({ className = '' }: AdminThemeToggleProps) {
     <button
       type="button"
       className={`${styles.themeToggle} ${className}`}
-      onClick={() => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))}
+      onClick={() => {
+        const nextTheme = theme === 'dark' ? 'light' : 'dark';
+        window.localStorage.setItem(STORAGE_KEY, nextTheme);
+        window.dispatchEvent(new StorageEvent('storage', { key: STORAGE_KEY, newValue: nextTheme }));
+      }}
       aria-label={isLight ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro'}
       title={isLight ? 'Modo oscuro' : 'Modo claro'}
     >

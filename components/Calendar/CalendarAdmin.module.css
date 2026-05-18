@@ -167,6 +167,10 @@
   border-color: rgba(236, 0, 140, 0.26);
 }
 
+:global([data-admin-theme="light"]) .timeSlotLibre:hover {
+  background: rgba(236, 0, 140, 0.05);
+}
+
 .timeSlotReservado {
   background: var(--admin-bg-secondary);
 }

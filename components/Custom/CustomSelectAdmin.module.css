@@ -13,7 +13,7 @@
   padding: 0.7rem 0.9rem;
   border: 1px solid var(--admin-border-subtle);
   border-radius: var(--admin-radius-md);
-  background: rgba(9, 9, 11, 0.42);
+  background: var(--admin-input-bg);
   cursor: pointer;
   transition:
     border-color var(--admin-t-normal) var(--admin-ease),
@@ -23,7 +23,7 @@
 
 .customSelectTrigger:hover {
   border-color: var(--admin-border-hover);
-  background: rgba(236, 0, 140, 0.04);
+  background: var(--admin-input-bg-hover);
 }
 
 .customSelectOpen .customSelectTrigger {
@@ -72,11 +72,11 @@
   overflow: hidden auto;
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius-xl);
-  background: rgba(15, 15, 22, 0.98);
+  background: var(--admin-surface-solid-1);
   box-shadow: var(--admin-shadow-lg);
   backdrop-filter: blur(18px);
   animation: dropdownIn 0.2s var(--admin-ease);
-  color-scheme: dark;
+  color-scheme: var(--admin-color-scheme);
 }
 
 @keyframes dropdownIn {
@@ -109,7 +109,7 @@
 
 .selectOptionActive {
   background: rgba(236, 0, 140, 0.16);
-  color: #ffffff;
+  color: var(--admin-option-active-fg);
   font-weight: 700;
 }
 
@@ -122,7 +122,7 @@
 .selectGroup {
   padding: 0.75rem 1rem 0.5rem;
   border-bottom: 1px solid var(--admin-border-subtle);
-  background: rgba(255, 255, 255, 0.035);
+  background: var(--admin-surface-solid-2);
   color: var(--admin-text-dim);
   font-size: 0.7rem;
   font-weight: 800;

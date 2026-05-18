@@ -3,7 +3,7 @@
   max-width: 750px;
   margin: 0 auto;
   position: relative;
-  background: linear-gradient(180deg, var(--admin-surface-1), rgba(12, 12, 18, 0.84));
+  background: var(--admin-panel-bg);
   border: 1px solid var(--admin-border-subtle);
   border-radius: var(--admin-radius-xl);
   box-shadow: var(--admin-shadow-lg);
@@ -108,7 +108,7 @@
 .formGroup input,
 .formGroup select {
   padding: 0.75rem 1rem;
-  background: rgba(9, 9, 11, 0.42);
+  background: var(--admin-input-bg);
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius-md);
   color: var(--admin-foreground);
@@ -196,7 +196,7 @@
    ──────────────────────────────────────────────────────────────── */
 
 .timeSlotPicker {
-  background: rgba(255, 255, 255, 0.035);
+  background: var(--admin-pill-bg);
   border: 1px solid var(--admin-border-subtle);
   border-radius: var(--admin-radius-md);
   padding: 1rem;

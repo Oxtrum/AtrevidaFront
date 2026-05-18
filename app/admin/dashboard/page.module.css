@@ -536,7 +536,7 @@
 .kpiCard {
   position: relative;
   padding: 1.75rem 1.5rem;
-  background: linear-gradient(180deg, var(--admin-surface-1), rgba(12, 12, 18, 0.82));
+  background: var(--admin-panel-bg);
   border: 1px solid var(--admin-border-subtle);
   border-radius: var(--admin-radius-lg);
   box-shadow: var(--admin-shadow-sm);
@@ -623,7 +623,7 @@
 }
 
 .panelCard {
-  background: var(--admin-surface-1);
+  background: var(--admin-panel-bg);
   border: 1px solid var(--admin-border-subtle);
   border-radius: var(--admin-radius-lg);
   box-shadow: var(--admin-shadow-sm);

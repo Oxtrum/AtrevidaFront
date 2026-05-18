@@ -8,7 +8,7 @@
   padding: 0.7rem 0.82rem;
   border: 1px solid var(--admin-border-subtle);
   border-radius: var(--admin-radius-md);
-  background: rgba(255, 255, 255, 0.035);
+  background: var(--admin-pill-bg);
   color: var(--admin-text-muted);
   font-family: inherit;
   font-size: 0.84rem;
