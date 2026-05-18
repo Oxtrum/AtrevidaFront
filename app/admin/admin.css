@@ -99,65 +99,65 @@
 }
 
 [data-admin="true"][data-admin-theme="light"] {
-   --admin-bg: #f8f6fa;
-   --admin-bg-secondary: #ffffff;
-   --admin-bg-tertiary: #f0ebf6;
-   --admin-foreground: #1a1420;
-   --admin-text-muted: rgba(26, 20, 32, 0.72);
-   --admin-text-dim: rgba(26, 20, 32, 0.50);
-   --admin-text-light: rgba(26, 20, 32, 0.88);
+  --admin-bg: #f8f6fa;
+  --admin-bg-secondary: #ffffff;
+  --admin-bg-tertiary: #f0ebf6;
+  --admin-foreground: #1a1420;
+  --admin-text-muted: rgba(26, 20, 32, 0.72);
+  --admin-text-dim: rgba(26, 20, 32, 0.50);
+  --admin-text-light: rgba(26, 20, 32, 0.88);
 
-   --admin-surface-1: #ffffff;
-   --admin-surface-2: #faf7fc;
-   --admin-surface-3: #f5f0f9;
-   --admin-surface-4: #f0ebf6;
-   --admin-surface-solid-1: #ffffff;
-   --admin-surface-solid-2: #f9f6fb;
-   --admin-surface-solid-3: #f3ecf7;
+  --admin-surface-1: #ffffff;
+  --admin-surface-2: #faf7fc;
+  --admin-surface-3: #f5f0f9;
+  --admin-surface-4: #f0ebf6;
+  --admin-surface-solid-1: #ffffff;
+  --admin-surface-solid-2: #f9f6fb;
+  --admin-surface-solid-3: #f3ecf7;
 
-   --admin-border-subtle: rgba(108, 84, 130, 0.10);
-   --admin-border: rgba(108, 84, 130, 0.14);
-   --admin-border-strong: rgba(108, 84, 130, 0.22);
-   --admin-border-focus: rgba(236, 0, 140, 0.50);
-   --admin-border-hover: rgba(236, 0, 140, 0.28);
+  --admin-border-subtle: rgba(108, 84, 130, 0.10);
+  --admin-border: rgba(108, 84, 130, 0.14);
+  --admin-border-strong: rgba(108, 84, 130, 0.22);
+  --admin-border-focus: rgba(236, 0, 140, 0.50);
+  --admin-border-hover: rgba(236, 0, 140, 0.28);
 
-   --admin-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.06);
-   --admin-shadow-sm: inset 0 1px 0 rgba(255, 255, 255, 1), 0 2px 8px rgba(26, 20, 32, 0.06);
-   --admin-shadow-md: inset 0 1px 0 rgba(255, 255, 255, 1), 0 4px 12px rgba(26, 20, 32, 0.08);
-   --admin-shadow-lg: inset 0 1px 0 rgba(255, 255, 255, 1), 0 8px 24px rgba(26, 20, 32, 0.10);
-   --admin-shadow-xl: 0 12px 32px rgba(26, 20, 32, 0.12);
-   --admin-shadow-2xl: 0 16px 48px rgba(26, 20, 32, 0.14);
+  --admin-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --admin-shadow-sm: inset 0 1px 0 rgba(255, 255, 255, 1), 0 2px 8px rgba(26, 20, 32, 0.06);
+  --admin-shadow-md: inset 0 1px 0 rgba(255, 255, 255, 1), 0 4px 12px rgba(26, 20, 32, 0.08);
+  --admin-shadow-lg: inset 0 1px 0 rgba(255, 255, 255, 1), 0 8px 24px rgba(26, 20, 32, 0.10);
+  --admin-shadow-xl: 0 12px 32px rgba(26, 20, 32, 0.12);
+  --admin-shadow-2xl: 0 16px 48px rgba(26, 20, 32, 0.14);
 
-   --admin-panel-bg: linear-gradient(180deg, #ffffff 0%, #f9f6fb 100%);
-   --admin-panel-elevated: linear-gradient(180deg, #ffffff 0%, #f7f3fb 100%);
-   --admin-input-bg: #ffffff;
-   --admin-input-bg-hover: #f9f6fb;
-   --admin-input-bg-focus: #ffffff;
-   --admin-pill-bg: rgba(236, 0, 140, 0.06);
-   --admin-overlay-bg: rgba(26, 20, 32, 0.12);
-   --admin-scroll-thumb: rgba(108, 84, 130, 0.26);
-   --admin-scroll-thumb-hover: rgba(236, 0, 140, 0.40);
-   --admin-option-active-fg: #1a1420;
-   --admin-sidebar-glow: radial-gradient(circle at 18% 0%, rgba(236, 0, 140, 0.06), transparent 13rem);
-   --admin-page-glow-a: radial-gradient(circle at 0% 0%, rgba(236, 0, 140, 0.04), transparent 28rem);
-   --admin-page-glow-b: radial-gradient(circle at 100% 12%, rgba(20, 174, 239, 0.04), transparent 30rem);
-   --admin-color-scheme: light;
+  --admin-panel-bg: linear-gradient(180deg, #ffffff 0%, #f9f6fb 100%);
+  --admin-panel-elevated: linear-gradient(180deg, #ffffff 0%, #f7f3fb 100%);
+  --admin-input-bg: #ffffff;
+  --admin-input-bg-hover: #f9f6fb;
+  --admin-input-bg-focus: #ffffff;
+  --admin-pill-bg: rgba(236, 0, 140, 0.06);
+  --admin-overlay-bg: rgba(26, 20, 32, 0.12);
+  --admin-scroll-thumb: rgba(108, 84, 130, 0.26);
+  --admin-scroll-thumb-hover: rgba(236, 0, 140, 0.40);
+  --admin-option-active-fg: #1a1420;
+  --admin-sidebar-glow: radial-gradient(circle at 18% 0%, rgba(236, 0, 140, 0.06), transparent 13rem);
+  --admin-page-glow-a: radial-gradient(circle at 0% 0%, rgba(236, 0, 140, 0.04), transparent 28rem);
+  --admin-page-glow-b: radial-gradient(circle at 100% 12%, rgba(20, 174, 239, 0.04), transparent 30rem);
+  --admin-color-scheme: light;
 
-   --admin-grad-subtle:
-     radial-gradient(circle at 12% 10%, rgba(236, 0, 140, 0.03), transparent 34%),
-     radial-gradient(circle at 88% 16%, rgba(20, 174, 239, 0.03), transparent 30%),
-     linear-gradient(135deg, rgba(146, 39, 143, 0.02), rgba(248, 246, 250, 0));
+  --admin-grad-subtle:
+    radial-gradient(circle at 12% 10%, rgba(236, 0, 140, 0.03), transparent 34%),
+    radial-gradient(circle at 88% 16%, rgba(20, 174, 239, 0.03), transparent 30%),
+    linear-gradient(135deg, rgba(146, 39, 143, 0.02), rgba(248, 246, 250, 0));
 
-   --color-background: var(--admin-bg) !important;
-   --color-foreground: var(--admin-foreground) !important;
-   --af-bg: var(--admin-bg) !important;
-   --af-text: var(--admin-foreground) !important;
-   --af-surface-1: var(--admin-surface-1) !important;
-   --af-surface-2: var(--admin-surface-2) !important;
-   --af-surface-3: var(--admin-surface-3) !important;
-   --af-glass: rgba(255, 255, 255, 0.85) !important;
-   --af-glass-sm: rgba(255, 255, 255, 0.65) !important;
- }
+  --color-background: var(--admin-bg) !important;
+  --color-foreground: var(--admin-foreground) !important;
+  --af-bg: var(--admin-bg) !important;
+  --af-text: var(--admin-foreground) !important;
+  --af-surface-1: var(--admin-surface-1) !important;
+  --af-surface-2: var(--admin-surface-2) !important;
+  --af-surface-3: var(--admin-surface-3) !important;
+  --af-glass: rgba(255, 255, 255, 0.85) !important;
+  --af-glass-sm: rgba(255, 255, 255, 0.65) !important;
+}
 
 [data-admin="true"] {
   min-height: 100dvh;
@@ -206,14 +206,14 @@
 }
 
 @media (min-width: 901px) {
-  [data-admin="true"] .admin-sidebar-shell + main[class] {
+  [data-admin="true"] .admin-sidebar-shell+main[class] {
     margin-left: var(--admin-sidebar-width) !important;
     width: calc(100% - var(--admin-sidebar-width)) !important;
   }
 }
 
 @media (max-width: 900px) {
-  [data-admin="true"] .admin-sidebar-shell + main[class] {
+  [data-admin="true"] .admin-sidebar-shell+main[class] {
     padding-top: calc(74px + 1rem) !important;
   }
 }
@@ -335,44 +335,44 @@
 }
 
 [data-admin="true"] .admin-badge-success,
- [data-admin="true"] .admin-status-active {
-   background: rgba(20, 174, 239, 0.12);
-   color: #0891b2;
-   border-color: rgba(20, 174, 239, 0.28);
- }
+[data-admin="true"] .admin-status-active {
+  background: rgba(20, 174, 239, 0.12);
+  color: #0891b2;
+  border-color: rgba(20, 174, 239, 0.28);
+}
 
- [data-admin="true"] .admin-badge-warning,
- [data-admin="true"] .admin-status-pending {
-   background: rgba(255, 230, 0, 0.10);
-   color: #ca8a04;
-   border-color: rgba(255, 230, 0, 0.24);
- }
+[data-admin="true"] .admin-badge-warning,
+[data-admin="true"] .admin-status-pending {
+  background: rgba(255, 230, 0, 0.10);
+  color: #ca8a04;
+  border-color: rgba(255, 230, 0, 0.24);
+}
 
- [data-admin="true"] .admin-badge-danger {
-   background: rgba(255, 77, 109, 0.10);
-   color: #dc2626;
-   border-color: rgba(255, 77, 109, 0.26);
- }
+[data-admin="true"] .admin-badge-danger {
+  background: rgba(255, 77, 109, 0.10);
+  color: #dc2626;
+  border-color: rgba(255, 77, 109, 0.26);
+}
 
- [data-admin="true"][data-admin-theme="light"] .admin-badge-success,
- [data-admin="true"][data-admin-theme="light"] .admin-status-active {
-   background: rgba(20, 174, 239, 0.12);
-   color: #0891b2;
-   border-color: rgba(20, 174, 239, 0.26);
- }
+[data-admin="true"][data-admin-theme="light"] .admin-badge-success,
+[data-admin="true"][data-admin-theme="light"] .admin-status-active {
+  background: rgba(20, 174, 239, 0.12);
+  color: #0891b2;
+  border-color: rgba(20, 174, 239, 0.26);
+}
 
- [data-admin="true"][data-admin-theme="light"] .admin-badge-warning,
- [data-admin="true"][data-admin-theme="light"] .admin-status-pending {
-   background: rgba(255, 200, 0, 0.12);
-   color: #b45309;
-   border-color: rgba(255, 200, 0, 0.24);
- }
+[data-admin="true"][data-admin-theme="light"] .admin-badge-warning,
+[data-admin="true"][data-admin-theme="light"] .admin-status-pending {
+  background: rgba(255, 200, 0, 0.12);
+  color: #b45309;
+  border-color: rgba(255, 200, 0, 0.24);
+}
 
- [data-admin="true"][data-admin-theme="light"] .admin-badge-danger {
-   background: rgba(255, 77, 109, 0.12);
-   color: #b91c1c;
-   border-color: rgba(255, 77, 109, 0.28);
- }
+[data-admin="true"][data-admin-theme="light"] .admin-badge-danger {
+  background: rgba(255, 77, 109, 0.12);
+  color: #b91c1c;
+  border-color: rgba(255, 77, 109, 0.28);
+}
 
 [data-admin="true"] .admin-status-inactive {
   background: var(--admin-pill-bg);
@@ -381,23 +381,49 @@
 }
 
 @keyframes admin-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes admin-scale-in {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes admin-slide-in-up {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes admin-slide-in-down {
-  from { opacity: 0; transform: translateY(-12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 [data-admin="true"] .animate-admin-fade-in {
@@ -479,6 +505,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   [data-admin="true"] *,
   [data-admin="true"] *::before,
   [data-admin="true"] *::after {

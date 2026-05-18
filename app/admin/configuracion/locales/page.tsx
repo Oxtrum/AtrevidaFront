@@ -42,9 +42,9 @@ export default function LocalesPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [nombre, setNombre] = useState('');
   const [espacios, setEspacios] = useState<Espacio[]>([
-  { tipo_espacio: 'M', cantidad_espacios: 0 },
-  { tipo_espacio: 'B', cantidad_espacios: 0 },
-]);
+    { tipo_espacio: 'M', cantidad_espacios: 0 },
+    { tipo_espacio: 'B', cantidad_espacios: 0 },
+  ]);
   const [saving, setSaving] = useState(false);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
 

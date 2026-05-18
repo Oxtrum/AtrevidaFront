@@ -235,8 +235,8 @@
 }
 
 .filtrosSection :global(.tableRow):nth-child(even) {
-   background: rgba(236, 0, 140, 0.02) !important;
- }
+  background: rgba(236, 0, 140, 0.02) !important;
+}
 
 .filtrosSection :global(.tableRow):hover {
   background: rgba(236, 0, 140, 0.06) !important;
@@ -263,10 +263,10 @@
 }
 
 .filtrosSection :global(.localBadge) {
-   color: var(--admin-foreground) !important;
-   background: var(--admin-surface-3) !important;
-   border-color: var(--admin-border) !important;
- }
+  color: var(--admin-foreground) !important;
+  background: var(--admin-surface-3) !important;
+  border-color: var(--admin-border) !important;
+}
 
 .filtrosSection :global(.tableRow):hover :global(.localBadge) {
   border-color: rgba(146, 39, 143, 0.44) !important;
@@ -274,10 +274,10 @@
 }
 
 .filtrosSection :global(.editButton) {
-   color: var(--admin-text-muted) !important;
-   border-color: var(--admin-border-subtle) !important;
-   background: var(--admin-surface-3) !important;
- }
+  color: var(--admin-text-muted) !important;
+  border-color: var(--admin-border-subtle) !important;
+  background: var(--admin-surface-3) !important;
+}
 
 .filtrosSection :global(.editButton):hover {
   border-color: rgba(236, 0, 140, 0.42) !important;
@@ -290,11 +290,11 @@
 }
 
 .filtrosSection :global(.loadingContainer),
- .filtrosSection :global(.errorContainer),
- .filtrosSection :global(.emptyContainer) {
-   background: var(--admin-surface-2) !important;
-   border-color: var(--admin-border-subtle) !important;
- }
+.filtrosSection :global(.errorContainer),
+.filtrosSection :global(.emptyContainer) {
+  background: var(--admin-surface-2) !important;
+  border-color: var(--admin-border-subtle) !important;
+}
 
 .filtrosSection :global(.tableWrapper) {
   scrollbar-color: rgba(146, 39, 143, 0.55) transparent !important;
