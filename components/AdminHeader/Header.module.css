@@ -24,6 +24,16 @@
   opacity: 0.82;
 }
 
+/* Light theme improvements for sidebar contrast */
+[data-admin="true"][data-admin-theme="light"] .sidebar {
+  background: var(--admin-panel-bg);
+}
+
+/* Ensure nav links have sufficient contrast in light mode */
+[data-admin="true"][data-admin-theme="light"] .navLink {
+  color: var(--admin-foreground);
+}
+
 .brandBlock {
   display: flex;
   flex-direction: column;
@@ -232,6 +242,11 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+/* Light mode: improve side panel label visibility */
+[data-admin="true"][data-admin-theme="light"] .sidePanelLabel {
+  color: var(--admin-foreground);
 }
 
 .sidePanel strong {

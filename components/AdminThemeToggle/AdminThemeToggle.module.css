@@ -40,6 +40,11 @@
   color: var(--admin-accent-yellow);
 }
 
+/* Light mode: improve icon visibility */
+[data-admin="true"][data-admin-theme="light"] .iconRail {
+  color: var(--admin-foreground);
+}
+
 .toggleText {
   white-space: nowrap;
 }
