@@ -6,7 +6,7 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, var(--admin-bg) 0%, var(--admin-surface-2) 100%);
+  background: var(--admin-grad-subtle), var(--admin-bg);
   position: relative;
   overflow-x: hidden;
   font-family: var(--admin-font-family);
@@ -15,7 +15,6 @@
 .main {
   flex: 1;
   padding: 2rem 1.5rem 4rem;
-  padding-top: calc(72px + 2rem);
   position: relative;
   z-index: 1;
 }
@@ -33,9 +32,9 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 65% 55% at 0% 10%, rgba(37, 99, 235, 0.05) 0%, transparent 60%),
-    radial-gradient(ellipse 50% 40% at 100% 70%, rgba(124, 58, 237, 0.04) 0%, transparent 60%),
-    radial-gradient(ellipse 40% 30% at 50% 100%, rgba(16, 185, 129, 0.03) 0%, transparent 60%);
+    radial-gradient(ellipse 65% 55% at 0% 10%, rgba(236, 0, 140, 0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 100% 70%, rgba(20, 174, 239, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 50% 100%, rgba(146, 39, 143, 0.08) 0%, transparent 60%);
   pointer-events: none;
 }
 
@@ -53,7 +52,7 @@
   left: -5%;
   width: 420px;
   height: 420px;
-  background: rgba(37, 99, 235, 0.08);
+  background: rgba(236, 0, 140, 0.18);
 }
 
 .orb2 {
@@ -61,16 +60,7 @@
   right: -3%;
   width: 350px;
   height: 350px;
-  background: rgba(124, 58, 237, 0.06);
-}
-
-/* Decorative particles */
-.particle {
-  position: absolute;
-  font-size: 1.4rem;
-  color: rgba(37, 99, 235, 0.08);
-  pointer-events: none;
-  user-select: none;
+  background: rgba(20, 174, 239, 0.14);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════
@@ -104,7 +94,7 @@
   letter-spacing: 0.5px;
   text-transform: uppercase;
   color: var(--admin-accent-primary);
-  background: rgba(37, 99, 235, 0.05);
+  background: rgba(236, 0, 140, 0.08);
   width: fit-content;
 }
 
@@ -200,7 +190,7 @@
 .logoutButton:hover {
   border-color: var(--admin-accent-danger);
   color: var(--admin-accent-danger);
-  background: rgba(239, 68, 68, 0.04);
+  background: rgba(255, 77, 109, 0.08);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════════
@@ -344,8 +334,8 @@
   letter-spacing: 0.5px;
   text-transform: uppercase;
   color: var(--card-color, var(--admin-accent-primary));
-  background: rgba(var(--card-color-rgb, 37, 99, 235), 0.1);
-  border: 1px solid rgba(var(--card-color-rgb, 37, 99, 235), 0.2);
+  background: rgba(var(--card-color-rgb, 236, 0, 140), 0.1);
+  border: 1px solid rgba(var(--card-color-rgb, 236, 0, 140), 0.2);
 }
 
 /* Icon wrapper */
@@ -355,8 +345,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(var(--card-color-rgb, 37, 99, 235), 0.1);
-  border: 1px solid rgba(var(--card-color-rgb, 37, 99, 235), 0.15);
+  background: rgba(var(--card-color-rgb, 236, 0, 140), 0.1);
+  border: 1px solid rgba(var(--card-color-rgb, 236, 0, 140), 0.15);
   border-radius: var(--admin-radius-md);
   color: var(--card-color, var(--admin-accent-primary));
   transition: all var(--admin-t-normal) var(--admin-ease);
@@ -367,7 +357,7 @@
   transform: scale(1.08) rotate(-4deg);
   background: var(--card-color, var(--admin-accent-primary));
   border-color: var(--card-color, var(--admin-accent-primary));
-  box-shadow: 0 0 16px rgba(var(--card-color-rgb, 37, 99, 235), 0.3);
+  box-shadow: 0 14px 34px rgba(var(--card-color-rgb, 236, 0, 140), 0.18);
   color: white;
 }
 
@@ -431,7 +421,7 @@
   position: absolute;
   inset: 0;
   background: radial-gradient(ellipse 80% 60% at 50% 0%,
-      rgba(var(--card-color-rgb, 37, 99, 235), 0.05) 0%,
+      rgba(var(--card-color-rgb, 236, 0, 140), 0.05) 0%,
       transparent 70%);
   opacity: 0;
   transition: opacity var(--admin-t-normal) var(--admin-ease);
@@ -472,7 +462,6 @@
 @media (max-width: 768px) {
   .main {
     padding: 1.5rem 1rem 3rem;
-    padding-top: calc(64px + 1.5rem);
   }
 
   .pageHeader {
@@ -547,7 +536,7 @@
 .kpiCard {
   position: relative;
   padding: 1.75rem 1.5rem;
-  background: var(--admin-surface-1);
+  background: linear-gradient(180deg, var(--admin-surface-1), rgba(12, 12, 18, 0.82));
   border: 1px solid var(--admin-border-subtle);
   border-radius: var(--admin-radius-lg);
   box-shadow: var(--admin-shadow-sm);
@@ -699,6 +688,7 @@
 .bar {
   width: 100%;
   border-radius: 4px 4px 0 0;
+  box-shadow: 0 10px 24px rgba(236, 0, 140, 0.14);
   transition: transform var(--admin-t-normal) var(--admin-ease);
 }
 

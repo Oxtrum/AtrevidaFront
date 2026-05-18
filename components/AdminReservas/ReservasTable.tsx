@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
+import { AlertTriangle, ClipboardList } from 'lucide-react';
 import type { ReservaBD } from '@/types/reserva';
 import styles from './ReservasTable.module.css';
 
@@ -52,7 +53,7 @@ export function ReservasTable({
   if (error) {
     return (
       <div className={styles.errorContainer}>
-        <span className={styles.errorIcon}>⚠</span>
+        <AlertTriangle size={32} strokeWidth={1.5} className={styles.errorIcon} />
         <p className={styles.errorMessage}>{error}</p>
       </div>
     );
@@ -62,7 +63,7 @@ export function ReservasTable({
   if (reservas.length === 0) {
     return (
       <div className={styles.emptyContainer}>
-        <span className={styles.emptyIcon}>📋</span>
+        <ClipboardList size={40} strokeWidth={1.4} className={styles.emptyIcon} />
         <p className={styles.emptyMessage}>
           No se encontraron reservas para los filtros seleccionados
         </p>

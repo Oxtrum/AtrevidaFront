@@ -1,5 +1,6 @@
 'use client';
 
+import { Clock3 } from 'lucide-react';
 import { SlotStatus } from '@/lib/utils/hoursAvailability';
 import { HORAS } from '@/lib/constants/reservationForm';
 import styles from './ReservationForm.module.css';
@@ -48,14 +49,14 @@ export function TimeSlotPicker({
         <span>
           <span
             className={styles.legendDot}
-            style={{ background: '#7dd3fc', border: '1px solid #0ea5e9' }}
+            style={{ background: 'rgba(20, 174, 239, 0.35)', border: '1px solid rgba(20, 174, 239, 0.65)' }}
           />
           Libre
         </span>
         <span>
           <span
             className={styles.legendDot}
-            style={{ background: '#fbbf24', border: '1px solid #d97706' }}
+            style={{ background: 'rgba(255, 230, 0, 0.32)', border: '1px solid rgba(255, 230, 0, 0.65)' }}
           />
           Ocupado
         </span>
@@ -69,7 +70,7 @@ export function TimeSlotPicker({
         <span>
           <span
             className={styles.legendDot}
-            style={{ background: '#cbd5e1', border: '1px solid #94a3b8' }}
+            style={{ background: 'rgba(255, 255, 255, 0.08)', border: '1px solid var(--admin-border)' }}
           />
           Pasado
         </span>
@@ -112,8 +113,8 @@ export function TimeSlotPicker({
       {/* Rango seleccionado */}
       {horaDesde && horaHasta && (
         <div className={styles.selectedRange}>
-          <span className={styles.selectedRangeIcon}>✦</span>
-          {horaDesde} → {horaHasta}
+          <Clock3 size={14} strokeWidth={1.8} className={styles.selectedRangeIcon} />
+          {horaDesde} a {horaHasta}
         </div>
       )}
 

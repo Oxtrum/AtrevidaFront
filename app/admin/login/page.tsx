@@ -1,10 +1,11 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
-import Header from '@/components/Header/Header';
 import styles from './page.module.css';
 import Link from 'next/link';
+import { AlertTriangle, ArrowLeft, Eye, EyeOff, LockKeyhole, LogIn, User } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -18,7 +19,6 @@ export default function AdminLoginPage() {
   const orb1Ref = useRef<HTMLSpanElement>(null);
   const orb2Ref = useRef<HTMLSpanElement>(null);
   const orb3Ref = useRef<HTMLSpanElement>(null);
-  const badgeRef = useRef<HTMLSpanElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
   const formRef = useRef<HTMLDivElement>(null);
@@ -43,7 +43,6 @@ export default function AdminLoginPage() {
 
       // Inner elements stagger - only include existing targets
       const tl = gsap.timeline({ delay: 0.45, defaults: { ease: 'power3.out' } });
-      if (badgeRef.current) tl.fromTo(badgeRef.current, { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5 });
       if (titleRef.current) tl.fromTo(titleRef.current, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6 }, '-=0.3');
       if (subtitleRef.current) tl.fromTo(subtitleRef.current, { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4 }, '-=0.3');
       if (formRef.current) tl.fromTo(formRef.current, { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5 }, '-=0.2');
@@ -103,20 +102,21 @@ export default function AdminLoginPage() {
       {/* Background mesh */}
       <div className={styles.bgMesh} />
 
-      {/* Decorative particles */}
-      <span className={styles.particle} style={{ top: '12%', left: '8%' }}>✦</span>
-      <span className={styles.particle} style={{ top: '80%', right: '10%', opacity: 0.12 }}>◉</span>
-      <span className={styles.particle} style={{ bottom: '15%', left: '15%', fontSize: '1rem', opacity: 0.1 }}>◎</span>
-
-      <Header />
-
       <main className={styles.main}>
         <div ref={cardRef} className={styles.loginCard}>
-          {/* Gradient top line */}
           <div className={styles.cardLine} />
 
-          {/* Header */}
           <div className={styles.loginHeader}>
+            <span className={styles.logoBadge}>
+              <Image
+                src="/estrella.png"
+                alt=""
+                width={44}
+                height={44}
+                className={styles.logoImage}
+                priority
+              />
+            </span>
             <h1 ref={titleRef} className={styles.title}>
               Atrevida<em className={styles.titleAccent}>Fit</em>
             </h1>
@@ -128,10 +128,9 @@ export default function AdminLoginPage() {
           {/* Form */}
           <div ref={formRef}>
             <form onSubmit={handleSubmit} className={styles.form}>
-              {/* Username */}
               <div className={styles.formGroup}>
                 <label htmlFor="username" className={styles.label}>
-                  <span className={styles.labelIcon}>◈</span>
+                  <User size={15} strokeWidth={1.8} className={styles.labelIcon} />
                   Usuario
                 </label>
                 <div className={styles.inputWrapper}>
@@ -149,10 +148,9 @@ export default function AdminLoginPage() {
                 </div>
               </div>
 
-              {/* Password */}
               <div className={styles.formGroup}>
                 <label htmlFor="password" className={styles.label}>
-                  <span className={styles.labelIcon}>◈</span>
+                  <LockKeyhole size={15} strokeWidth={1.8} className={styles.labelIcon} />
                   Contraseña
                 </label>
                 <div className={styles.inputWrapper}>
@@ -172,7 +170,7 @@ export default function AdminLoginPage() {
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
                   >
-                    {showPassword ? '○' : '●'}
+                    {showPassword ? <EyeOff size={18} strokeWidth={1.8} /> : <Eye size={18} strokeWidth={1.8} />}
                   </button>
                   <span className={styles.inputGlow} />
                 </div>
@@ -181,12 +179,11 @@ export default function AdminLoginPage() {
               {/* Error */}
               {error && (
                 <div className={styles.errorBox}>
-                  <span className={styles.errorIcon}>⚠</span>
+                  <AlertTriangle size={17} strokeWidth={1.8} className={styles.errorIcon} />
                   {error}
                 </div>
               )}
 
-              {/* Submit */}
               <button
                 type="submit"
                 className={styles.submitButton}
@@ -198,21 +195,22 @@ export default function AdminLoginPage() {
                     Verificando...
                   </span>
                 ) : (
-                  <>✦ Iniciar Sesión</>
+                  <span className={styles.submitInner}>
+                    <LogIn size={18} strokeWidth={1.8} />
+                    Iniciar sesión
+                  </span>
                 )}
               </button>
             </form>
 
-            {/* Divider */}
             <div className={styles.divider}>
               <span className={styles.dividerLine} />
               <span className={styles.dividerText}>AtrevidaFit</span>
               <span className={styles.dividerLine} />
             </div>
 
-            {/* Back link */}
             <Link href="/" className={styles.backLink}>
-              <span className={styles.backIcon}>←</span>
+              <ArrowLeft size={16} strokeWidth={1.8} className={styles.backIcon} />
               Volver al sitio
             </Link>
           </div>

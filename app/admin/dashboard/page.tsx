@@ -7,10 +7,8 @@ import {
   CalendarCheck,
   DollarSign,
   Users,
-  DoorOpen,
   CheckCircle2,
   CalendarX,
-  UserPlus,
   Calendar,
   BarChart2,
   Clock,
@@ -44,14 +42,14 @@ const KPI_SECONDARY = [
   {
     label: 'Servicios completados',
     icon: <CheckCircle2 size={16} strokeWidth={1.5} />,
-    color: '#0F6E56',
-    colorRgb: '15, 110, 86',
+    color: '#14AEEF',
+    colorRgb: '20, 174, 239',
   },
   {
     label: 'Cancelaciones',
     icon: <CalendarX size={16} strokeWidth={1.5} />,
-    color: '#D85A30',
-    colorRgb: '216, 90, 48',
+    color: '#FFE600',
+    colorRgb: '255, 230, 0',
   }
 ];
 
@@ -69,9 +67,21 @@ export default function AdminDashboardPage() {
   const router = useRouter();
 
   const [adminName] = useState('Admin');
-  const [greeting, setGreeting] = useState('Hola');
-  const [dateString, setDateString] = useState('');
-  const [year, setYear] = useState('');
+  const [greeting] = useState(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Buenos días';
+    if (hour < 18) return 'Buenas tardes';
+    return 'Buenas noches';
+  });
+  const [dateString] = useState(() => {
+    const raw = new Date().toLocaleDateString('es-BO', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+    });
+    return raw.charAt(0).toUpperCase() + raw.slice(1);
+  });
+  const [year] = useState(() => String(new Date().getFullYear()));
 
   const containerRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
@@ -85,19 +95,6 @@ export default function AdminDashboardPage() {
       router.push('/admin/login');
       return;
     }
-
-    const hour = new Date().getHours();
-    if (hour < 12) setGreeting('Buenos días');
-    else if (hour < 18) setGreeting('Buenas tardes');
-    else setGreeting('Buenas noches');
-
-    const raw = new Date().toLocaleDateString('es-BO', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-    });
-    setDateString(raw.charAt(0).toUpperCase() + raw.slice(1));
-    setYear(String(new Date().getFullYear()));
 
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
@@ -157,17 +154,6 @@ export default function AdminDashboardPage() {
 
       {/* Background mesh */}
       <div className={styles.bgMesh} />
-
-      {/* Decorative particles */}
-      <span className={styles.particle} style={{ top: '8%', left: '6%' }}>
-        ✦
-      </span>
-      <span
-        className={styles.particle}
-        style={{ top: '70%', right: '4%', opacity: 0.1 }}
-      >
-        ◎
-      </span>
 
       <Header />
 

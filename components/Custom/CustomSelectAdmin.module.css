@@ -1,5 +1,3 @@
-/* ─── Custom Select Admin ───────────────────────────────────────────── */
-
 .customSelect {
   position: relative;
   width: 100%;
@@ -7,98 +5,112 @@
 }
 
 .customSelectTrigger {
+  min-height: 42px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.68rem;
-  padding: 0.75rem 1rem;
-  background: #ffffff !important;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: rgba(9, 9, 11, 0.42);
   cursor: pointer;
-  transition: all 0.2s ease;
-  min-height: 44px;
+  transition:
+    border-color var(--admin-t-normal) var(--admin-ease),
+    box-shadow var(--admin-t-normal) var(--admin-ease),
+    background var(--admin-t-normal) var(--admin-ease);
 }
 
 .customSelectTrigger:hover {
-  border-color: #2563eb;
-  background: #f8fafc;
+  border-color: var(--admin-border-hover);
+  background: rgba(236, 0, 140, 0.04);
 }
 
 .customSelectOpen .customSelectTrigger {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: var(--admin-border-focus);
+  box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.16);
 }
 
-.customSelectValue {
-  font-size: 0.875rem;
-  color: #111827 !important;
-  font-weight: 500;
+.customSelectValue,
+.customSelectPlaceholder {
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 0.875rem;
+}
+
+.customSelectValue {
+  color: var(--admin-foreground);
+  font-weight: 600;
 }
 
 .customSelectPlaceholder {
-  font-size: 0.875rem;
-  color: #6b7280 !important;
-  font-weight: 400;
-  flex: 1;
+  color: var(--admin-text-dim);
+  font-weight: 500;
 }
 
 .customSelectArrow {
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  transition: transform 0.2s ease;
-  color: #6b7280 !important;
+  color: var(--admin-text-muted);
+  transition: transform var(--admin-t-normal) var(--admin-ease);
 }
 
 .customSelectArrowOpen {
   transform: rotate(180deg);
 }
 
-/* ─── Dropdown ───────────────────────────────────────────── */
-
 .selectDropdown {
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + 6px);
   left: 0;
   right: 0;
-  background: #ffffff !important;
-  border: 1px solid #e5e7eb !important;
-  border-radius: 16px;
-  overflow: hidden;
   z-index: 10050;
   max-height: 280px;
-  overflow-y: auto;
-  box-shadow:
-    0 10px 15px -3px rgba(0, 0, 0, 0.08),
-    0 4px 6px -2px rgba(0, 0, 0, 0.04);
-  animation: dropdownIn 0.2s ease;
-  /* Aislar del tema global */
-  color-scheme: light;
+  overflow: hidden auto;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-xl);
+  background: rgba(15, 15, 22, 0.98);
+  box-shadow: var(--admin-shadow-lg);
+  backdrop-filter: blur(18px);
+  animation: dropdownIn 0.2s var(--admin-ease);
+  color-scheme: dark;
+}
+
+@keyframes dropdownIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .selectOption {
   padding: 0.75rem 1rem;
   font-size: 0.875rem;
-  color: #111827 !important;
+  color: var(--admin-text-light);
   cursor: pointer;
-  transition: all 0.15s ease;
-  background: #ffffff !important;
+  transition:
+    color var(--admin-t-fast) var(--admin-ease),
+    background var(--admin-t-fast) var(--admin-ease);
+  background: transparent;
 }
 
 .selectOption:hover {
-  background: #f0f7ff !important;
-  color: #2563eb !important;
+  background: rgba(236, 0, 140, 0.10);
+  color: var(--admin-foreground);
 }
 
 .selectOptionActive {
-  background: #eff6ff !important;
-  color: #2563eb !important;
-  font-weight: 600;
+  background: rgba(236, 0, 140, 0.16);
+  color: #ffffff;
+  font-weight: 700;
 }
 
 .selectOptionDisabled {
@@ -109,30 +121,28 @@
 
 .selectGroup {
   padding: 0.75rem 1rem 0.5rem;
+  border-bottom: 1px solid var(--admin-border-subtle);
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--admin-text-dim);
   font-size: 0.7rem;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 1px;
   text-transform: uppercase;
-  color: #6b7280 !important;
-  background: #f8fafc !important;
-  border-bottom: 1px solid #e5e7eb;
 }
-
-/* ─── Scrollbar ───────────────────────────────────────────── */
 
 .selectDropdown::-webkit-scrollbar {
   width: 6px;
 }
 
 .selectDropdown::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: transparent;
 }
 
 .selectDropdown::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: rgba(146, 39, 143, 0.58);
   border-radius: 999px;
 }
 
 .selectDropdown::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: rgba(236, 0, 140, 0.68);
 }

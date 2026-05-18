@@ -1,8 +1,6 @@
-/* admin/reservas/editar/[id]/page.module.css - LIGHT MODE */
-
 .pageContainer {
   min-height: 100vh;
-  background: var(--admin-bg);
+  background: var(--admin-grad-subtle), var(--admin-bg);
   color: var(--admin-foreground);
   font-family: var(--admin-font-family);
   position: relative;
@@ -38,7 +36,7 @@
 
 .backLink:hover {
   color: var(--admin-accent-primary);
-  background: var(--admin-bg-secondary);
+  background: rgba(236, 0, 140, 0.08);
 }
 
 .backIcon {
@@ -51,7 +49,7 @@
 }
 
 .reservaInfo {
-  background: var(--admin-surface-1);
+  background: linear-gradient(180deg, var(--admin-surface-1), rgba(12, 12, 18, 0.84));
   border-radius: var(--admin-radius-lg);
   padding: 2rem;
   margin-bottom: 2rem;
@@ -89,7 +87,7 @@
 }
 
 .editForm {
-  background: var(--admin-surface-1);
+  background: linear-gradient(180deg, var(--admin-surface-1), rgba(12, 12, 18, 0.84));
   border-radius: var(--admin-radius-lg);
   padding: 2.5rem;
   border: 1px solid var(--admin-border-subtle);
@@ -119,7 +117,7 @@
 
 .inputField {
   padding: 0.75rem 1rem;
-  background: var(--admin-bg);
+  background: rgba(9, 9, 11, 0.42);
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius-md);
   color: var(--admin-foreground);
@@ -132,7 +130,7 @@
 .inputField:focus {
   outline: none;
   border-color: var(--admin-accent-primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.16);
 }
 
 .message {
@@ -144,14 +142,14 @@
 }
 
 .success {
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.2);
+  background: rgba(20, 174, 239, 0.10);
+  border: 1px solid rgba(20, 174, 239, 0.22);
   color: var(--admin-accent-success);
 }
 
 .error {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: rgba(255, 77, 109, 0.10);
+  border: 1px solid rgba(255, 77, 109, 0.22);
   color: var(--admin-accent-danger);
 }
 
@@ -166,27 +164,31 @@
   padding: 0.75rem 1.75rem;
   border-radius: var(--admin-radius-md);
   border: 1px solid var(--admin-border);
-  background: white;
+  background: rgba(255, 255, 255, 0.04);
   color: var(--admin-foreground);
   font-weight: 600;
   cursor: pointer;
 }
 
 .submitButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   padding: 0.75rem 2rem;
   border-radius: var(--admin-radius-md);
   border: none;
   font-size: 0.95rem;
   font-weight: 600;
   color: white;
-  background: var(--admin-accent-primary);
+  background: var(--admin-grad-primary);
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: var(--admin-shadow-sm);
 }
 
 .submitButton:hover:not(:disabled) {
-  background: #1d4ed8;
+  filter: saturate(1.08);
   box-shadow: var(--admin-shadow-md);
   transform: translateY(-1px);
 }

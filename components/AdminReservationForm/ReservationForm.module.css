@@ -1,13 +1,9 @@
-/* ────────────────────────────────────────────────────────────────
-   ADMIN RESERVATION FORM — LIGHT & PROFESSIONAL
-   ──────────────────────────────────────────────────────────────── */
-
 .form {
   width: 100%;
   max-width: 750px;
   margin: 0 auto;
   position: relative;
-  background: var(--admin-surface-1);
+  background: linear-gradient(180deg, var(--admin-surface-1), rgba(12, 12, 18, 0.84));
   border: 1px solid var(--admin-border-subtle);
   border-radius: var(--admin-radius-xl);
   box-shadow: var(--admin-shadow-lg);
@@ -34,7 +30,7 @@
   gap: 0.5rem;
   padding: 0.35rem 0.85rem;
   border-radius: var(--admin-radius-full);
-  background: var(--admin-bg-secondary);
+  background: rgba(236, 0, 140, 0.08);
   color: var(--admin-accent-primary);
   font-size: 0.7rem;
   font-weight: 600;
@@ -70,8 +66,8 @@
 .errorAlert {
   padding: 1rem 1.25rem;
   margin-bottom: 1.5rem;
-  background: rgba(239, 64, 64, 0.1);
-  border: 1px solid rgba(239, 64, 64, 0.2);
+  background: rgba(255, 77, 109, 0.10);
+  border: 1px solid rgba(255, 77, 109, 0.24);
   border-radius: var(--admin-radius-md);
   color: var(--admin-accent-danger);
   font-size: 0.875rem;
@@ -112,7 +108,7 @@
 .formGroup input,
 .formGroup select {
   padding: 0.75rem 1rem;
-  background: var(--admin-bg);
+  background: rgba(9, 9, 11, 0.42);
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius-md);
   color: var(--admin-foreground);
@@ -124,7 +120,7 @@
 .formGroup select:focus {
   outline: none;
   border-color: var(--admin-accent-primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.16);
 }
 
 .inputError {
@@ -168,7 +164,7 @@
 }
 
 .dayChipActive {
-  background: var(--admin-accent-primary) !important;
+  background: var(--admin-grad-primary) !important;
   border-color: var(--admin-accent-primary) !important;
   color: white !important;
 }
@@ -200,7 +196,7 @@
    ──────────────────────────────────────────────────────────────── */
 
 .timeSlotPicker {
-  background: var(--admin-bg-secondary);
+  background: rgba(255, 255, 255, 0.035);
   border: 1px solid var(--admin-border-subtle);
   border-radius: var(--admin-radius-md);
   padding: 1rem;
@@ -247,56 +243,53 @@
 .timeChip {
   padding: 0.5rem;
   text-align: center;
-  background: #e0f2fe;
-  /* azul claro — libre */
-  border: 1px solid #7dd3fc;
+  background: rgba(20, 174, 239, 0.12);
+  border: 1px solid rgba(20, 174, 239, 0.32);
   border-radius: var(--admin-radius-sm);
   font-size: 0.8rem;
   font-weight: 600;
-  color: #0369a1;
+  color: #8fe4ff;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .timeChip:hover:not(:disabled) {
-  background: #bae6fd;
-  border-color: #0ea5e9;
-  color: #0284c7;
+  background: rgba(20, 174, 239, 0.18);
+  border-color: rgba(20, 174, 239, 0.55);
+  color: #ffffff;
 }
 
 /* Ocupado */
 .timeChipOccupied {
-  background: #fef9c3 !important;
-  /* amarillo suave */
-  border: 1px solid #fbbf24 !important;
-  color: #92400e !important;
+  background: rgba(255, 230, 0, 0.12) !important;
+  border: 1px solid rgba(255, 230, 0, 0.32) !important;
+  color: #fff179 !important;
   cursor: not-allowed;
   opacity: 0.85;
 }
 
 /* Pasado */
 .timeChipPast {
-  background: #f1f5f9 !important;
-  /* gris neutro */
-  border: 1px solid #cbd5e1 !important;
-  color: #94a3b8 !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid var(--admin-border-subtle) !important;
+  color: var(--admin-text-dim) !important;
   cursor: not-allowed;
   opacity: 0.6;
 }
 
 /* En rango seleccionado */
 .timeChipSelected {
-  background: var(--admin-accent-primary) !important;
+  background: var(--admin-grad-primary) !important;
   color: white !important;
   border-color: var(--admin-accent-primary) !important;
 }
 
 /* Primer chip del rango */
 .timeChipStart {
-  background: var(--admin-accent-primary) !important;
+  background: var(--admin-grad-primary) !important;
   color: white !important;
   border-color: var(--admin-accent-primary) !important;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.18);
 }
 
 /* Rango seleccionado — label inferior */
@@ -308,8 +301,8 @@
   font-weight: 700;
   color: var(--admin-accent-primary);
   padding: 0.5rem 0.75rem;
-  background: rgba(37, 99, 235, 0.07);
-  border: 1px solid rgba(37, 99, 235, 0.2);
+  background: rgba(236, 0, 140, 0.08);
+  border: 1px solid rgba(236, 0, 140, 0.22);
   border-radius: var(--admin-radius-sm);
 }
 
@@ -333,7 +326,7 @@
 
 .cancelButton {
   padding: 0.75rem 1.5rem;
-  background: white;
+  background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius-md);
   color: var(--admin-foreground);
@@ -343,7 +336,7 @@
 
 .submitButton {
   padding: 0.75rem 2rem;
-  background: var(--admin-accent-primary);
+  background: var(--admin-grad-primary);
   border: none;
   border-radius: var(--admin-radius-md);
   color: white;
@@ -352,8 +345,15 @@
   box-shadow: var(--admin-shadow-sm);
 }
 
+.submitButtonText {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
 .submitButton:hover {
-  background: #1d4ed8;
+  filter: saturate(1.08);
   box-shadow: var(--admin-shadow-md);
 }
 
@@ -367,9 +367,9 @@
   gap: 0.68rem;
   padding: 0.875rem 1.25rem;
   border-radius: var(--admin-radius-md);
-  background: rgba(202, 138, 4, 0.08);
-  border: 1px solid rgba(202, 138, 4, 0.3);
-  color: #ca8a04;
+  background: rgba(255, 230, 0, 0.10);
+  border: 1px solid rgba(255, 230, 0, 0.28);
+  color: #fff179;
   font-size: 0.85rem;
   font-weight: 500;
   line-height: 1.5;
@@ -379,7 +379,7 @@
 .servicioPlaceholder,
 .pickerPlaceholder {
   padding: 1rem;
-  background: var(--admin-bg-secondary);
+  background: rgba(255, 255, 255, 0.035);
   border: 1px dashed var(--admin-border);
   border-radius: var(--admin-radius-md);
   color: var(--admin-text-muted);

@@ -1,15 +1,11 @@
-/* admin/reservas/page.module.css - LIGHT MODE */
-
 .pageContainer {
   min-height: 100vh;
-  background: var(--admin-bg);
+  background: var(--admin-grad-subtle), var(--admin-bg);
   color: var(--admin-foreground);
   font-family: var(--admin-font-family);
   position: relative;
   overflow-x: hidden;
 }
-
-/* ─── Main content ─────────────────────────────────────────────────────────── */
 
 .main {
   position: relative;
@@ -19,42 +15,75 @@
   padding: 2rem;
 }
 
-/* ─── Page header ──────────────────────────────────────────────────────────── */
-
 .header {
   margin-bottom: 2rem;
-  padding-top: 1rem;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 1.5rem;
   flex-wrap: wrap;
-  border-bottom: 1px solid var(--admin-border-subtle);
   padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--admin-border-subtle);
 }
 
 .title {
   font-size: clamp(1.75rem, 4vw, 2.5rem);
   font-weight: 800;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.02em;
   line-height: 1.1;
   margin-bottom: 0.5rem;
   color: var(--admin-foreground);
 }
 
 .subtitle {
-  font-size: 1rem;
+  font-size: 0.96rem;
   color: var(--admin-text-muted);
   font-weight: 400;
-  line-height: 1.5;
-  max-width: 600px;
+  line-height: 1.55;
+  max-width: 620px;
 }
 
-/* ─── Vista toggle ─────────────────────────────────── */
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.createButton {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  padding: 0.72rem 1.12rem;
+  border-radius: var(--admin-radius-md);
+  border: 1px solid rgba(236, 0, 140, 0.28);
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: white;
+  background: var(--admin-grad-primary);
+  cursor: pointer;
+  transition:
+    transform var(--admin-t-normal) var(--admin-ease),
+    box-shadow var(--admin-t-normal) var(--admin-ease),
+    filter var(--admin-t-normal) var(--admin-ease);
+  box-shadow: 0 14px 34px rgba(236, 0, 140, 0.16);
+}
+
+.createButton:hover {
+  filter: saturate(1.08);
+  box-shadow: 0 20px 44px rgba(236, 0, 140, 0.24);
+  transform: translateY(-1px);
+}
+
+.createButton:active {
+  transform: translateY(1px) scale(0.99);
+}
 
 .vistaToggle {
   display: inline-flex;
-  background: var(--admin-surface-2);
+  background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--admin-border-subtle);
   border-radius: var(--admin-radius-lg);
   padding: 4px;
@@ -62,54 +91,48 @@
 }
 
 .vistaButton {
-  padding: 0.5rem 1.25rem;
+  min-height: 34px;
+  padding: 0.46rem 0.95rem;
   border-radius: var(--admin-radius-md);
   border: none;
   background: transparent;
   color: var(--admin-text-muted);
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 0.82rem;
+  font-weight: 800;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition:
+    color var(--admin-t-normal) var(--admin-ease),
+    background var(--admin-t-normal) var(--admin-ease),
+    transform var(--admin-t-normal) var(--admin-ease);
 }
 
 .vistaButton:hover {
   color: var(--admin-foreground);
-  background: var(--admin-surface-3);
+  background: rgba(236, 0, 140, 0.08);
 }
 
 .vistaActive {
-  background: white !important;
-  color: var(--admin-accent-primary) !important;
-  box-shadow: var(--admin-shadow-sm);
+  background: rgba(236, 0, 140, 0.16) !important;
+  color: #ffffff !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-/* ─── Calendar section ─────────────────────────────────────────────────────── */
-
-.calendarSection {
-  background: var(--admin-surface-1);
-  border-radius: var(--admin-radius-xl);
-  padding: 2rem;
-  border: 1px solid var(--admin-border-subtle);
-  box-shadow: var(--admin-shadow-sm);
-}
-
-/* ─── Filtros Section ──────────────────────────────────────────────────────── */
-
+.calendarSection,
 .filtrosSection {
-  background: var(--admin-surface-1);
+  background: linear-gradient(180deg, var(--admin-surface-1), rgba(12, 12, 18, 0.84));
   border-radius: var(--admin-radius-xl);
-  padding: 2rem;
+  padding: 1.35rem;
   border: 1px solid var(--admin-border-subtle);
   box-shadow: var(--admin-shadow-sm);
+  backdrop-filter: blur(18px);
 }
 
 .filtrosRow {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 1.25rem;
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.35rem;
   border-bottom: 1px solid var(--admin-border-subtle);
 }
 
@@ -120,217 +143,145 @@
 }
 
 .filtroGroup label {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.06em;
   color: var(--admin-text-muted);
-  font-weight: 600;
+  font-weight: 800;
 }
-
-/* ─── Header Actions ─────────────────────────────────────────── */
-
-.headerActions {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-}
-
-.createButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1.5rem;
-  border-radius: var(--admin-radius-lg);
-  border: none;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: white;
-  background: var(--admin-accent-primary);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: var(--admin-shadow-sm);
-}
-
-.createButton:hover {
-  background: #1d4ed8;
-  box-shadow: var(--admin-shadow-md);
-  transform: translateY(-1px);
-}
-
-/* ─── Override Input shared component para admin ───────────────────────── */
 
 .filtroGroup :global(.inputWrapper) input,
 .filtroGroup input {
-  background: #ffffff !important;
-  color: #111827 !important;
-  border: 1px solid #e5e7eb !important;
-  border-radius: 12px !important;
-  padding: 0.75rem 1rem !important;
+  min-height: 42px !important;
+  background: rgba(9, 9, 11, 0.42) !important;
+  color: var(--admin-foreground) !important;
+  border: 1px solid var(--admin-border-subtle) !important;
+  border-radius: var(--admin-radius-md) !important;
+  padding: 0.7rem 0.9rem !important;
   font-size: 0.875rem !important;
-  min-height: 44px !important;
-  transition: all 0.2s ease !important;
-  -webkit-appearance: none;
-  appearance: none;
-  /* Fuerza el ícono del date picker a color oscuro */
-  color-scheme: light;
+  transition:
+    border-color var(--admin-t-normal) var(--admin-ease),
+    box-shadow var(--admin-t-normal) var(--admin-ease),
+    background var(--admin-t-normal) var(--admin-ease) !important;
+  color-scheme: dark;
 }
 
 .filtroGroup :global(.inputWrapper) input:focus,
 .filtroGroup input:focus {
   outline: none !important;
-  border-color: #2563eb !important;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+  border-color: var(--admin-border-focus) !important;
+  box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.16) !important;
+  background: rgba(236, 0, 140, 0.04) !important;
 }
 
 .filtroGroup :global(.inputWrapper) input::placeholder {
-  color: #9ca3af !important;
+  color: var(--admin-text-dim) !important;
 }
 
-/* ─── Override ReservasTable para modo claro ────────────────────────────── */
-
-.filtrosSection :global(.tableContainer) {
-  background: #ffffff !important;
-  border: 1px solid #e5e7eb !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
-  backdrop-filter: none !important;
+.filtrosSection :global(.tableContainer),
+.filtrosSection :global(.tableWrapper) {
+  background: var(--admin-surface-1) !important;
+  border-color: var(--admin-border-subtle) !important;
+  box-shadow: var(--admin-shadow-sm) !important;
 }
 
-.filtrosSection :global(.tableContainer)::before {
-  display: none !important;
-}
-
-.filtrosSection :global(.tableContainer)::after {
-  display: none !important;
-}
-
-.filtrosSection :global(.tableHeader) {
-  background: #f9fafb !important;
-  border-bottom: 1px solid #e5e7eb !important;
-}
-
-.filtrosSection :global(.totalCount) {
-  color: #6b7280 !important;
-}
-
-.filtrosSection :global(.totalCount) strong {
-  color: #111827 !important;
-}
-
+.filtrosSection :global(.tableHeader),
 .filtrosSection :global(.tableHead) {
-  background: #f3f4f6 !important;
-  border-bottom: 1px solid #e5e7eb !important;
-  backdrop-filter: none !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: var(--admin-border-subtle) !important;
+  backdrop-filter: blur(14px) !important;
 }
 
-.filtrosSection :global(.tableHead)::after {
-  display: none !important;
-}
-
-.filtrosSection :global(.tableHead) :global(.cell) {
-  color: #6b7280 !important;
-}
-
-/* Colores por columna — reemplazar neon por neutros */
-.filtrosSection :global(.tableHead) :global(.cell):nth-child(1) {
-  color: #9ca3af !important;
-}
-
-.filtrosSection :global(.tableHead) :global(.cell):nth-child(2) {
-  color: #2563eb !important;
-}
-
-.filtrosSection :global(.tableHead) :global(.cell):nth-child(3) {
-  color: #374151 !important;
-}
-
-.filtrosSection :global(.tableHead) :global(.cell):nth-child(4) {
-  color: #db2777 !important;
-}
-
-.filtrosSection :global(.tableHead) :global(.cell):nth-child(5) {
-  color: #6b7280 !important;
-}
-
-.filtrosSection :global(.tableHead) :global(.cell):nth-child(6) {
-  color: #7c3aed !important;
-}
-
-.filtrosSection :global(.tableHead) :global(.cell):nth-child(7) {
-  color: #9ca3af !important;
-}
-
-.filtrosSection :global(.tableRow) {
-  border-bottom: 1px solid #f3f4f6 !important;
-  background: transparent !important;
-}
-
-.filtrosSection :global(.tableRow):nth-child(even) {
-  background: #fafafa !important;
-}
-
-.filtrosSection :global(.tableRow):hover {
-  background: #eff6ff !important;
-  box-shadow: none !important;
-}
-
-.filtrosSection :global(.tableRow)::before {
-  background: #2563eb !important;
-}
-
+.filtrosSection :global(.tableContainer)::before,
+.filtrosSection :global(.tableContainer)::after,
+.filtrosSection :global(.tableHead)::after,
 .filtrosSection :global(.tableRow)::after {
   display: none !important;
 }
 
-.filtrosSection :global(.cell) {
-  color: #374151 !important;
+.filtrosSection :global(.totalCount),
+.filtrosSection :global(.servicioText),
+.filtrosSection :global(.emptyMessage) {
+  color: var(--admin-text-muted) !important;
 }
 
-.filtrosSection :global(.cell):first-child {
-  color: #9ca3af !important;
+.filtrosSection :global(.totalCount) strong,
+.filtrosSection :global(.cell):nth-child(3) {
+  color: var(--admin-foreground) !important;
+}
+
+.filtrosSection :global(.tableHead) :global(.cell) {
+  color: var(--admin-text-muted) !important;
+}
+
+.filtrosSection :global(.tableHead) :global(.cell):nth-child(2),
+.filtrosSection :global(.cell):nth-child(2) {
+  color: var(--admin-accent-tertiary) !important;
+}
+
+.filtrosSection :global(.tableHead) :global(.cell):nth-child(4),
+.filtrosSection :global(.editButton):hover {
+  color: var(--admin-accent-primary) !important;
+}
+
+.filtrosSection :global(.tableHead) :global(.cell):nth-child(6),
+.filtrosSection :global(.localBadge:hover) {
+  color: var(--admin-accent-secondary) !important;
+}
+
+.filtrosSection :global(.tableRow) {
+  border-bottom: 1px solid var(--admin-border-subtle) !important;
+  background: transparent !important;
+}
+
+.filtrosSection :global(.tableRow):nth-child(even) {
+  background: rgba(255, 255, 255, 0.018) !important;
+}
+
+.filtrosSection :global(.tableRow):hover {
+  background: rgba(236, 0, 140, 0.06) !important;
+  box-shadow: none !important;
+}
+
+.filtrosSection :global(.tableRow)::before {
+  background: var(--admin-grad-primary) !important;
+}
+
+.filtrosSection :global(.cell) {
+  color: var(--admin-text-light) !important;
+}
+
+.filtrosSection :global(.cell):first-child,
+.filtrosSection :global(.emptyHint),
+.filtrosSection :global(.loadingContainer) p {
+  color: var(--admin-text-dim) !important;
 }
 
 .filtrosSection :global(.cell):nth-child(2) {
-  color: #2563eb !important;
-  background: rgba(37, 99, 235, 0.06) !important;
-  border-color: rgba(37, 99, 235, 0.15) !important;
-}
-
-.filtrosSection :global(.cell):nth-child(3) {
-  color: #111827 !important;
-}
-
-.filtrosSection :global(.tableRow):hover :global(.cell):nth-child(3) {
-  color: #111827 !important;
-}
-
-.filtrosSection :global(.servicioText) {
-  color: #6b7280 !important;
-}
-
-.filtrosSection :global(.tableRow):hover :global(.servicioText) {
-  color: #374151 !important;
+  background: rgba(20, 174, 239, 0.08) !important;
+  border-color: rgba(20, 174, 239, 0.18) !important;
 }
 
 .filtrosSection :global(.localBadge) {
-  color: #374151 !important;
-  background: #f3f4f6 !important;
-  border-color: #e5e7eb !important;
+  color: var(--admin-text-light) !important;
+  background: rgba(255, 255, 255, 0.045) !important;
+  border-color: var(--admin-border-subtle) !important;
 }
 
 .filtrosSection :global(.tableRow):hover :global(.localBadge) {
-  border-color: #7c3aed !important;
-  color: #7c3aed !important;
+  border-color: rgba(146, 39, 143, 0.44) !important;
+  color: #f6a8f4 !important;
 }
 
 .filtrosSection :global(.editButton) {
-  color: #6b7280 !important;
-  border-color: #e5e7eb !important;
+  color: var(--admin-text-muted) !important;
+  border-color: var(--admin-border-subtle) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
 }
 
 .filtrosSection :global(.editButton):hover {
-  color: #db2777 !important;
-  border-color: #db2777 !important;
-  box-shadow: 0 0 12px rgba(219, 39, 119, 0.15) !important;
+  border-color: rgba(236, 0, 140, 0.42) !important;
+  box-shadow: 0 12px 24px rgba(236, 0, 140, 0.12) !important;
   transform: translateY(-1px);
 }
 
@@ -341,27 +292,13 @@
 .filtrosSection :global(.loadingContainer),
 .filtrosSection :global(.errorContainer),
 .filtrosSection :global(.emptyContainer) {
-  background: #f9fafb !important;
-  border-color: #e5e7eb !important;
-}
-
-.filtrosSection :global(.loadingContainer) p {
-  color: #9ca3af !important;
-}
-
-.filtrosSection :global(.emptyMessage) {
-  color: #6b7280 !important;
-}
-
-.filtrosSection :global(.emptyHint) {
-  color: #9ca3af !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: var(--admin-border-subtle) !important;
 }
 
 .filtrosSection :global(.tableWrapper) {
-  scrollbar-color: #cbd5e1 transparent !important;
+  scrollbar-color: rgba(146, 39, 143, 0.55) transparent !important;
 }
-
-/* ─── Responsive ───────────────────────────────────────────────────────────── */
 
 @media (max-width: 1200px) {
   .filtrosRow {
@@ -370,6 +307,10 @@
 }
 
 @media (max-width: 768px) {
+  .main {
+    padding: 1rem;
+  }
+
   .header {
     flex-direction: column;
     align-items: stretch;

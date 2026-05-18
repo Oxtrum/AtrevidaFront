@@ -3,6 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useRef, useState, useEffect, useMemo } from 'react';
 import gsap from 'gsap';
+import { Save } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
 import { actualizarReservaDB, getReservaByID } from '@/lib/api/reservas';
 import { useReservas } from '@/lib/hooks/useReservas';
@@ -100,14 +101,14 @@ function EditarReservaContent() {
 
     // 2. Marcar ocupados
     if (reservasData?.data?.reservas && nuevaFecha && reserva && locales.length > 0) {
-      const currentLocal = locales.find(l => l.nombre === reserva.local) as any;
+      const currentLocal = locales.find((l) => l.nombre === reserva.local);
       const tipo = getTipoFromServicio(reserva.servicio);
       const capacidadMaxima = tipo.toLowerCase() === 'm' 
         ? (currentLocal?.capacidad_mesas || 3) 
         : (currentLocal?.capacidad_bicis || 2);
 
       // Filtrar reservas para el día y tipo, EXCLUYENDO la actual
-      const reservasDelDia = reservasData.data.reservas.filter((r: any) => {
+      const reservasDelDia = reservasData.data.reservas.filter((r: ReservaBD) => {
         if (r.id === reserva.id) return false; // IGNORARSE A SÍ MISMO
         const tipoReserva = r.tipo?.toLowerCase();
         const matchesTipo = tipo.toLowerCase() === 'm' 
@@ -165,7 +166,7 @@ function EditarReservaContent() {
         } else {
           setMessage({ type: 'error', text: 'Reserva no encontrada' });
         }
-      } catch (err) {
+      } catch {
         setMessage({ type: 'error', text: 'Error al cargar reserva' });
       } finally {
         setInitialLoading(false);
@@ -372,7 +373,12 @@ function EditarReservaContent() {
             Cancelar
           </button>
           <button type="submit" className={styles.submitButton} disabled={loading}>
-            {loading ? 'Guardando...' : '✦ Guardar cambios'}
+            {loading ? 'Guardando...' : (
+              <>
+                <Save size={17} strokeWidth={1.8} />
+                Guardar cambios
+              </>
+            )}
           </button>
         </div>
       </form>

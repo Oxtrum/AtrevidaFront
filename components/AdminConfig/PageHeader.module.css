@@ -34,7 +34,7 @@
 .backButton:hover {
   border-color: var(--admin-accent-primary);
   color: var(--admin-accent-primary);
-  background: rgba(37, 99, 235, 0.05);
+  background: rgba(236, 0, 140, 0.08);
 }
 
 .titleGroup {

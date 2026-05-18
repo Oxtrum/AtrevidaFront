@@ -24,12 +24,6 @@ export default function AdminReservasPage() {
   const calendarRef = useRef<HTMLDivElement>(null);
   const [sucursalActiva, setSucursalActiva] = useState('');
   const [semanaActiva, setSemanaActiva] = useState('');
-  const [refreshKey, setRefreshKey] = useState(0);
-  useEffect(() => {
-    if (pathname.startsWith('/admin/reservas')) {
-      setRefreshKey(k => k + 1);
-    }
-  }, [pathname]);
 
   // Estado para filtros de lista de reservas
   const [vistaActiva, setVistaActiva] = useState<'calendario' | 'lista'>('calendario');
@@ -237,7 +231,7 @@ export default function AdminReservasPage() {
         {vistaActiva === 'calendario' && (
           <div ref={calendarRef} className={styles.calendarSection}>
             <CalendarAdmin
-              key={refreshKey}
+              key={pathname}
               localInicial="SAN MARTIN"
               onSlotClick={handleSlotClick}
               onSucursalChange={handleSucursalChange}

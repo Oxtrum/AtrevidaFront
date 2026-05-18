@@ -1,6 +1,6 @@
 .pageContainer {
   min-height: 100vh;
-  background: var(--admin-bg);
+  background: var(--admin-grad-subtle), var(--admin-bg);
   color: var(--admin-foreground);
   font-family: var(--admin-font-family);
   position: relative;
@@ -16,7 +16,7 @@
 }
 
 .form {
-  background: var(--admin-surface-1);
+  background: linear-gradient(180deg, var(--admin-surface-1), rgba(12, 12, 18, 0.84));
   border-radius: var(--admin-radius-xl);
   border: 1px solid var(--admin-border-subtle);
   box-shadow: var(--admin-shadow-sm);
@@ -41,7 +41,7 @@
   padding: 0.75rem 1rem;
   border: 1px solid var(--admin-border-subtle);
   border-radius: var(--admin-radius-md);
-  background: var(--admin-surface-1);
+  background: rgba(9, 9, 11, 0.42);
   color: var(--admin-foreground);
   font-size: 0.875rem;
   font-family: inherit;
@@ -52,7 +52,7 @@
 .field select:focus {
   outline: none;
   border-color: var(--admin-accent-primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.16);
 }
 
 .espacioRow {

@@ -2,188 +2,188 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-import gsap from 'gsap';
-import styles from './Header.module.css';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { LogOut } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import gsap from 'gsap';
+import {
+  CalendarDays,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  PanelLeftClose,
+  Settings,
+  X,
+} from 'lucide-react';
+import styles from './Header.module.css';
 
 const NAV_LINKS = [
-  { label: 'Inicio', href: '/admin/dashboard' },
-  { label: 'Reservas', href: '/admin/reservas' },
-  { label: 'Configuración', href: '/admin/configuracion' },
+  {
+    label: 'Dashboard',
+    detail: 'Pulso operativo',
+    href: '/admin/dashboard',
+    icon: LayoutDashboard,
+  },
+  {
+    label: 'Reservas',
+    detail: 'Agenda y clientes',
+    href: '/admin/reservas',
+    icon: CalendarDays,
+  },
+  {
+    label: 'Configuración',
+    detail: 'Locales y servicios',
+    href: '/admin/configuracion',
+    icon: Settings,
+  },
 ];
 
 export default function Header() {
-
-
-  const headerRef = useRef<HTMLElement>(null);
-  const logoRef = useRef<HTMLDivElement>(null);
-  const navLinksRef = useRef<HTMLAnchorElement[]>([]);
-  const ctaRef = useRef<HTMLButtonElement>(null);
+  const router = useRouter();
+  const pathname = usePathname();
+  const shellRef = useRef<HTMLElement>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        shellRef.current,
+        { x: -18, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.46, ease: 'power3.out' }
+      );
 
-  const router = useRouter();
+      gsap.fromTo(
+        '.adminNavItem',
+        { x: -10, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.34, stagger: 0.06, delay: 0.12, ease: 'power3.out' }
+      );
+    }, shellRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileOpen]);
+
   const handleLogout = () => {
-    if (!headerRef.current) {
-      localStorage.removeItem('adminToken');
-      router.push('/admin/login');
-      return;
-    }
-
-    gsap.to(headerRef.current, {
-      opacity: 0, y: -10, duration: 0.3, ease: 'power2.in',
+    gsap.to(shellRef.current, {
+      opacity: 0,
+      x: -10,
+      duration: 0.22,
+      ease: 'power2.in',
       onComplete: () => {
         localStorage.removeItem('adminToken');
         router.push('/admin/login');
-      }
+      },
     });
   };
-  // Entrance animations
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-
-      if (logoRef.current) {
-        tl.fromTo(logoRef.current,
-          { x: -60, opacity: 0 },
-          { x: 0, opacity: 1, duration: 0.8 }
-        );
-      }
-
-      const navTargets = navLinksRef.current.filter(Boolean);
-      if (navTargets.length > 0) {
-        tl.fromTo(navTargets,
-          { y: -30, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.5, stagger: 0.1 },
-          '-=0.4'
-        );
-      }
-
-      if (ctaRef.current) {
-        tl.fromTo(ctaRef.current,
-          { scale: 0.8, opacity: 0 },
-          { scale: 1, opacity: 1, duration: 0.5 },
-          '-=0.2'
-        );
-      }
-
-      // Gradient line fades in
-      if (headerRef.current) {
-        gsap.fromTo(
-          headerRef.current,
-          { opacity: 0 },
-          { opacity: 1, duration: 0.6 }
-        );
-      }
-    }, headerRef);
-
-    return () => ctx.kill();
-  }, []);
-
-  // Lock body scroll when mobile menu is open
-  useEffect(() => {
-    document.body.style.overflow = mobileOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
-  }, [mobileOpen]);
-
-  // Animate mobile menu links in
-  useEffect(() => {
-    if (mobileOpen) {
-      const items = Array.from(document.querySelectorAll('.mobileNavItem'));
-      if (items.length > 0) {
-        gsap.fromTo(
-          items,
-          { y: 40, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.4, stagger: 0.08, ease: 'power3.out', delay: 0.1 }
-        );
-      }
-    }
-  }, [mobileOpen]);
-
-  const headerClasses = styles.header.trim();
 
   return (
     <>
-      <header ref={headerRef} className={headerClasses}>
-        {/* Logo */}
-        <Link href="/">
-          <div ref={logoRef} className={styles.logo}>
-            <Image
-              src="/estrella.png"
-              alt="AtrevidaFit Logo"
-              width={50}
-              height={50}
-              className={styles.logoImage}
-              priority
-            />
-            <span className={styles.logoText}>ATREVIDAFIT</span>
-          </div>
+      <div className={styles.mobileBar}>
+        <Link href="/admin/dashboard" className={styles.mobileBrand} aria-label="Ir al dashboard">
+          <Image
+            src="/estrella.png"
+            alt=""
+            width={30}
+            height={30}
+            className={styles.mobileLogo}
+            priority
+          />
+          <span>AtrevidaFit Admin</span>
         </Link>
-
-        {/* Desktop Nav */}
-        <nav className={styles.nav}>
-          {NAV_LINKS.map((link, i) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={styles.navLink}
-              ref={(el) => { if (el) navLinksRef.current[i] = el; }}
-            >
-              {link.label}
-            </Link>
-          ))}
-          {/* Logout Button */}
-          <button
-            ref={ctaRef}
-            className={`${styles.ctaButton} ${styles.logoutButton}`}
-            onClick={handleLogout}
-          >
-            <div className={styles.ctaButtonText} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <LogOut size={18} strokeWidth={2.5} />
-              <span>Cerrar Sesión</span>
-            </div>
-          </button>
-        </nav>
-
-        {/* Hamburger */}
         <button
-          className={`${styles.hamburger} ${mobileOpen ? styles.hamburgerOpen : ''}`}
-          onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label="Toggle menu"
+          type="button"
+          className={styles.mobileMenuButton}
+          onClick={() => setMobileOpen((open) => !open)}
+          aria-label={mobileOpen ? 'Cerrar navegación' : 'Abrir navegación'}
+          aria-expanded={mobileOpen}
         >
-          <span className={styles.hamburgerLine} />
-          <span className={styles.hamburgerLine} />
-          <span className={styles.hamburgerLine} />
-        </button>
-      </header>
-
-      {/* Mobile Menu */}
-      <div className={`${styles.mobileMenu} ${mobileOpen ? styles.mobileMenuOpen : ''}`}>
-        <div className={styles.mobileMenuOrb} />
-        <div className={styles.mobileMenuOrb2} />
-        {NAV_LINKS.map((link) => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className={`${styles.mobileNavLink} mobileNavItem`}
-            onClick={() => setMobileOpen(false)}
-          >
-            {link.label}
-          </Link>
-        ))}
-        {/* Mobile Logout */}
-        <button
-          className={`${styles.mobileLogout} mobileNavItem`}
-          onClick={handleLogout}
-        >
-          <div className={styles.ctaButtonText} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <LogOut size={24} strokeWidth={2} />
-            <span>Cerrar Sesión</span>
-          </div>
+          {mobileOpen ? <X size={19} strokeWidth={1.8} /> : <Menu size={19} strokeWidth={1.8} />}
         </button>
       </div>
+
+      {mobileOpen && (
+        <button
+          type="button"
+          className={styles.backdrop}
+          aria-label="Cerrar navegación"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      <aside
+        ref={shellRef}
+        className={`${styles.sidebar} admin-sidebar-shell ${mobileOpen ? styles.sidebarOpen : ''}`}
+      >
+        <div className={styles.brandBlock}>
+          <Link href="/admin/dashboard" className={styles.brand} aria-label="AtrevidaFit Admin">
+            <span className={styles.logoShell}>
+              <Image
+                src="/estrella.png"
+                alt=""
+                width={40}
+                height={40}
+                className={styles.logoImage}
+                priority
+              />
+            </span>
+            <span className={styles.brandText}>
+              <strong>AtrevidaFit</strong>
+              <span>Admin Studio</span>
+            </span>
+          </Link>
+          <span className={styles.liveBadge}>
+            <span className={styles.liveDot} />
+            Panel activo
+          </span>
+        </div>
+
+        <nav className={styles.nav} aria-label="Navegación administrativa">
+          {NAV_LINKS.map((link) => {
+            const Icon = link.icon;
+            const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
+
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`${styles.navLink} adminNavItem ${active ? styles.navLinkActive : ''}`}
+                aria-current={active ? 'page' : undefined}
+                onClick={() => setMobileOpen(false)}
+              >
+                <span className={styles.navIcon}>
+                  <Icon size={19} strokeWidth={1.7} />
+                </span>
+                <span className={styles.navCopy}>
+                  <span className={styles.navLabel}>{link.label}</span>
+                  <span className={styles.navDetail}>{link.detail}</span>
+                </span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className={styles.sidePanel}>
+          <span className={styles.sidePanelLabel}>Hoy</span>
+          <strong>Operación limpia</strong>
+          <p>Reservas, locales y servicios listos para trabajar sin ruido visual.</p>
+        </div>
+
+        <div className={styles.footer}>
+          <Link href="/" className={styles.publicLink}>
+            <PanelLeftClose size={17} strokeWidth={1.7} />
+            Sitio público
+          </Link>
+          <button type="button" className={styles.logoutButton} onClick={handleLogout}>
+            <LogOut size={17} strokeWidth={1.8} />
+            Cerrar sesión
+          </button>
+        </div>
+      </aside>
     </>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { DiaSemana } from '@/types/reserva';
+import { AlertTriangle, CalendarPlus } from 'lucide-react';
 import { CustomSelect } from '../Custom/CustomSelectAdmin';
 import { TimeSlotPicker } from './TimeSlotPicker';
 import { DaySelector } from './DaySelector';
@@ -117,7 +117,7 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
 
             {slotWarning && (
               <div className={styles.slotWarning}>
-                <span>⚠</span> {slotWarning}
+                <AlertTriangle size={16} strokeWidth={1.8} /> {slotWarning}
               </div>
             )}
 
@@ -169,7 +169,12 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
           </button>
           <button type="submit" className={styles.submitButton} disabled={loading}>
             <span className={styles.submitButtonText}>
-              {loading ? 'Creando...' : '✦ Reservar'}
+              {loading ? 'Creando...' : (
+                <>
+                  <CalendarPlus size={17} strokeWidth={1.8} />
+                  Reservar
+                </>
+              )}
             </span>
           </button>
         </div>
