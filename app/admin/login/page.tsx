@@ -6,6 +6,7 @@ import gsap from 'gsap';
 import styles from './page.module.css';
 import Link from 'next/link';
 import { AlertTriangle, ArrowLeft, Eye, EyeOff, LockKeyhole, LogIn, User } from 'lucide-react';
+import { AdminThemeToggle } from '@/components/AdminThemeToggle/AdminThemeToggle';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -101,6 +102,10 @@ export default function AdminLoginPage() {
 
       {/* Background mesh */}
       <div className={styles.bgMesh} />
+
+      <div className={styles.themeToggleWrap}>
+        <AdminThemeToggle className={styles.loginThemeToggle} />
+      </div>
 
       <main className={styles.main}>
         <div ref={cardRef} className={styles.loginCard}>

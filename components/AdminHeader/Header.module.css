@@ -15,6 +15,13 @@
   backdrop-filter: blur(22px);
 }
 
+:global([data-admin-theme="light"]) .sidebar {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(236, 0, 140, 0.14), transparent 12rem),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(248, 248, 251, 0.94));
+  box-shadow: 18px 0 60px rgba(36, 25, 50, 0.12);
+}
+
 .sidebar::before {
   content: '';
   position: absolute;
@@ -313,6 +320,10 @@
     background: rgba(10, 10, 14, 0.86);
     border-bottom: 1px solid var(--admin-border-subtle);
     backdrop-filter: blur(18px);
+  }
+
+  :global([data-admin-theme="light"]) .mobileBar {
+    background: rgba(255, 255, 255, 0.86);
   }
 
   .mobileBrand {

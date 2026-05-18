@@ -185,30 +185,28 @@ export function getTipoColor(tipo: string): { bg: string; border: string; accent
 export function getTipoColor2(tipo: string): { bg: string; border: string; accent: string } {
   switch (tipo) {
     case 'b':
-      // Azul — bicicleta
       return {
-        bg: 'rgba(37, 99, 235, 0.10)',
-        border: 'rgba(37, 99, 235, 0.35)',
-        accent: '#1d4ed8',
+        bg: 'rgba(20, 174, 239, 0.12)',
+        border: 'rgba(20, 174, 239, 0.38)',
+        accent: '#14AEEF',
       };
     case 'm':
-      // Rosa/fucsia — mesa
       return {
-        bg: 'rgba(219, 39, 119, 0.10)',
-        border: 'rgba(219, 39, 119, 0.35)',
-        accent: '#be185d',
+        bg: 'rgba(236, 0, 140, 0.12)',
+        border: 'rgba(236, 0, 140, 0.38)',
+        accent: '#EC008C',
       };
     case 'feriado':
       return {
-        bg: 'rgba(202, 138, 4, 0.10)',
-        border: 'rgba(202, 138, 4, 0.35)',
-        accent: '#b45309',
+        bg: 'rgba(255, 230, 0, 0.12)',
+        border: 'rgba(255, 230, 0, 0.35)',
+        accent: '#FFE600',
       };
     default:
       return {
-        bg: 'rgba(124, 58, 237, 0.10)',
-        border: 'rgba(124, 58, 237, 0.35)',
-        accent: '#6d28d9',
+        bg: 'rgba(146, 39, 143, 0.12)',
+        border: 'rgba(146, 39, 143, 0.35)',
+        accent: '#92278F',
       };
   }
 }

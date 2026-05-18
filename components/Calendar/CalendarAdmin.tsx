@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import gsap from 'gsap';
-import { DiaSemana, generarSemanas, getFechasDeSemana } from '@/types/reserva';
+import { DiaSemana, ReservaDetalle, generarSemanas, getFechasDeSemana } from '@/types/reserva';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { useReservasCalendario } from '@/lib/hooks/useReservasCalendario';
 import CalendarGrid from './CalendarGridAdmin';
@@ -12,7 +12,7 @@ import { CustomSelect } from '../Custom/CustomSelectAdmin';
 interface CalendarAdminProps {
   localInicial?: string;
   semanaInicial?: string;
-  onSlotClick?: (hora: string, dia: DiaSemana, slots: any) => void;
+  onSlotClick?: (hora: string, dia: DiaSemana, slots: ReservaDetalle[] | undefined) => void;
   onSucursalChange?: (sucursal: string) => void;
   onSemanaChange?: (semana: string) => void;
 }
@@ -108,7 +108,7 @@ export default function CalendarAdmin({
     [locales]
   );
 
-  const handleSlotClick = (hora: string, dia: DiaSemana, slots: any) => {
+  const handleSlotClick = (hora: string, dia: DiaSemana, slots: ReservaDetalle[] | undefined) => {
     if (onSlotClick) {
       onSlotClick(hora, dia, slots);
     }

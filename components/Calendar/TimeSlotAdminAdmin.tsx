@@ -21,9 +21,7 @@ interface TimeSlotAdminProps {
  * - Agrupado por tipo de servicio (mesa, bicicleta)
  */
 export default function TimeSlotAdmin({
-  dia,
   slots,
-  hora,
   fecha,
   onClick,
   esPasado = false,
@@ -96,7 +94,7 @@ export default function TimeSlotAdmin({
                       </span>
                     )}
                     {slot.servicio && (
-                      <span className={styles.reservationServicio} style={{ display: 'block', color: '#010101ff' }}>
+                      <span className={styles.reservationServicio}>
                         {extraerNombreServicio(slot.servicio)}
                       </span>
                     )}

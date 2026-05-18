@@ -15,6 +15,7 @@ import {
   X,
 } from 'lucide-react';
 import styles from './Header.module.css';
+import { AdminThemeToggle } from '@/components/AdminThemeToggle/AdminThemeToggle';
 
 const NAV_LINKS = [
   {
@@ -174,6 +175,7 @@ export default function Header() {
         </div>
 
         <div className={styles.footer}>
+          <AdminThemeToggle />
           <Link href="/" className={styles.publicLink}>
             <PanelLeftClose size={17} strokeWidth={1.7} />
             Sitio público

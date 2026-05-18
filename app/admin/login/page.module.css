@@ -18,6 +18,19 @@
   z-index: 1;
 }
 
+.themeToggleWrap {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 5;
+  width: auto;
+}
+
+.loginThemeToggle {
+  width: auto !important;
+  min-width: 150px;
+}
+
 .bgMesh {
   position: absolute;
   inset: 0;

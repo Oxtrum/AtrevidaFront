@@ -80,6 +80,49 @@
   --af-glass-sm: rgba(12, 12, 18, 0.58) !important;
 }
 
+[data-admin="true"][data-admin-theme="light"] {
+  --admin-bg: #f8f8fb;
+  --admin-bg-secondary: #ffffff;
+  --admin-bg-tertiary: #f0f0f6;
+  --admin-foreground: #16141b;
+  --admin-text-muted: rgba(22, 20, 27, 0.68);
+  --admin-text-dim: rgba(22, 20, 27, 0.42);
+  --admin-text-light: rgba(22, 20, 27, 0.82);
+
+  --admin-surface-1: rgba(255, 255, 255, 0.82);
+  --admin-surface-2: rgba(255, 255, 255, 0.70);
+  --admin-surface-3: rgba(244, 244, 250, 0.86);
+  --admin-surface-4: rgba(234, 234, 244, 0.92);
+
+  --admin-border-subtle: rgba(23, 20, 32, 0.09);
+  --admin-border: rgba(23, 20, 32, 0.14);
+  --admin-border-strong: rgba(23, 20, 32, 0.24);
+  --admin-border-focus: rgba(236, 0, 140, 0.44);
+  --admin-border-hover: rgba(236, 0, 140, 0.24);
+
+  --admin-shadow-xs: 0 1px 2px rgba(23, 20, 32, 0.08);
+  --admin-shadow-sm: inset 0 1px 0 rgba(255, 255, 255, 0.70), 0 8px 24px rgba(36, 25, 50, 0.08);
+  --admin-shadow-md: inset 0 1px 0 rgba(255, 255, 255, 0.78), 0 16px 36px rgba(36, 25, 50, 0.12);
+  --admin-shadow-lg: inset 0 1px 0 rgba(255, 255, 255, 0.82), 0 26px 54px rgba(36, 25, 50, 0.16);
+  --admin-shadow-xl: 0 32px 70px rgba(36, 25, 50, 0.18);
+  --admin-shadow-2xl: 0 40px 90px rgba(36, 25, 50, 0.24);
+
+  --admin-grad-subtle:
+    radial-gradient(circle at 12% 10%, rgba(236, 0, 140, 0.10), transparent 34%),
+    radial-gradient(circle at 88% 16%, rgba(20, 174, 239, 0.10), transparent 30%),
+    linear-gradient(135deg, rgba(146, 39, 143, 0.08), rgba(248, 248, 251, 0));
+
+  --color-background: var(--admin-bg) !important;
+  --color-foreground: var(--admin-foreground) !important;
+  --af-bg: var(--admin-bg) !important;
+  --af-text: var(--admin-foreground) !important;
+  --af-surface-1: var(--admin-surface-1) !important;
+  --af-surface-2: var(--admin-surface-2) !important;
+  --af-surface-3: var(--admin-surface-3) !important;
+  --af-glass: rgba(255, 255, 255, 0.78) !important;
+  --af-glass-sm: rgba(255, 255, 255, 0.58) !important;
+}
+
 [data-admin="true"] {
   min-height: 100dvh;
   background:

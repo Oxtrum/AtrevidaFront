@@ -1,0 +1,45 @@
+.themeToggle {
+  min-height: 42px;
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0.7rem 0.82rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--admin-text-muted);
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    transform var(--admin-t-normal) var(--admin-ease),
+    color var(--admin-t-normal) var(--admin-ease),
+    border-color var(--admin-t-normal) var(--admin-ease),
+    background var(--admin-t-normal) var(--admin-ease),
+    box-shadow var(--admin-t-normal) var(--admin-ease);
+}
+
+.themeToggle:hover {
+  color: var(--admin-foreground);
+  border-color: rgba(255, 230, 0, 0.30);
+  background: rgba(255, 230, 0, 0.08);
+}
+
+.themeToggle:active {
+  transform: scale(0.98);
+}
+
+.iconRail {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  color: var(--admin-accent-yellow);
+}
+
+.toggleText {
+  white-space: nowrap;
+}

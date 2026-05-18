@@ -22,7 +22,7 @@ interface CalendarGridProps {
   data: ApiResponse | null;
   fechas: Map<DiaSemana, FechaDia> | null;
   isAdmin?: boolean;
-  onSlotClick?: (hora: string, dia: DiaSemana, slots: any) => void;
+  onSlotClick?: (hora: string, dia: DiaSemana, slots: ReservaDetalle[] | undefined) => void;
   selectedDay?: DiaSemana | null;
   onDayChange?: (day: DiaSemana) => void;
   loading?: boolean;
