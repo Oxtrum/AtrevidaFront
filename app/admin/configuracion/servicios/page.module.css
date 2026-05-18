@@ -28,13 +28,13 @@
 }
 
 /* ── Filter card ─────────────────────────────────────────────────── */
-.filterCard {
-  background: linear-gradient(180deg, var(--admin-surface-1), rgba(12, 12, 18, 0.84));
-  border-radius: var(--admin-radius-xl);
-  border: 1px solid var(--admin-border-subtle);
-  box-shadow: var(--admin-shadow-sm);
-  padding: 1.25rem 1.5rem;
-}
+ .filterCard {
+   background: var(--admin-panel-bg);
+   border-radius: var(--admin-radius-xl);
+   border: 1px solid var(--admin-border-subtle);
+   box-shadow: var(--admin-shadow-sm);
+   padding: 1.25rem 1.5rem;
+ }
 
 .filterBar {
   display: flex;
@@ -59,22 +59,23 @@
 }
 
 .filterGroup input,
-.filterGroup select {
-  padding: 0.55rem 0.875rem;
-  border: 1px solid var(--admin-border-subtle);
-  border-radius: var(--admin-radius-md);
-  background: rgba(9, 9, 11, 0.42);
-  color: var(--admin-foreground);
-  font-size: 0.83rem;
-  font-family: inherit;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  /* Fix para dark mode en <select> */
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.75rem center;
-  padding-right: 2rem;
-}
+ .filterGroup select {
+   padding: 0.55rem 0.875rem;
+   border: 1px solid var(--admin-border-subtle);
+   border-radius: var(--admin-radius-md);
+   background: var(--admin-input-bg);
+   color: var(--admin-foreground);
+   font-size: 0.83rem;
+   font-family: inherit;
+   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+   /* Fix para dark mode en <select> */
+   appearance: none;
+   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+   background-repeat: no-repeat;
+   background-position: right 0.75rem center;
+   background-size: 1rem 1rem;
+   padding-right: 2rem;
+ }
 
 .filterGroup input:focus,
 .filterGroup select:focus {
@@ -84,15 +85,15 @@
 }
 
 /* ── Hint (sin filtro seleccionado) ─────────────────────────────── */
-.hint {
-  padding: 1.25rem 1.5rem;
-  border-radius: var(--admin-radius-xl);
-  border: 1px dashed var(--admin-border);
-  background: rgba(255, 255, 255, 0.03);
-  color: var(--admin-text-dim);
-  font-size: 0.85rem;
-  text-align: center;
-}
+ .hint {
+   padding: 1.25rem 1.5rem;
+   border-radius: var(--admin-radius-xl);
+   border: 1px dashed var(--admin-border);
+   background: var(--admin-surface-3);
+   color: var(--admin-text-dim);
+   font-size: 0.85rem;
+   text-align: center;
+ }
 
 .hint strong {
   color: var(--admin-text-muted);
@@ -130,21 +131,22 @@
 }
 
 .field input,
-.field select {
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--admin-border-subtle);
-  border-radius: var(--admin-radius-md);
-  background: rgba(9, 9, 11, 0.42);
-  color: var(--admin-foreground);
-  font-size: 0.875rem;
-  font-family: inherit;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.875rem center;
-  padding-right: 2.25rem;
-}
+ .field select {
+   padding: 0.75rem 1rem;
+   border: 1px solid var(--admin-border-subtle);
+   border-radius: var(--admin-radius-md);
+   background: var(--admin-input-bg);
+   color: var(--admin-foreground);
+   font-size: 0.875rem;
+   font-family: inherit;
+   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+   appearance: none;
+   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+   background-repeat: no-repeat;
+   background-position: right 0.875rem center;
+   background-size: 1rem 1rem;
+   padding-right: 2.25rem;
+ }
 
 /* Para inputs numéricos/texto que NO necesitan la flecha */
 .field input[type="text"],

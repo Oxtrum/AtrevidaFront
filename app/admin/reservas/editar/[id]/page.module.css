@@ -49,13 +49,13 @@
 }
 
 .reservaInfo {
-  background: linear-gradient(180deg, var(--admin-surface-1), rgba(12, 12, 18, 0.84));
-  border-radius: var(--admin-radius-lg);
-  padding: 2rem;
-  margin-bottom: 2rem;
-  border: 1px solid var(--admin-border-subtle);
-  box-shadow: var(--admin-shadow-sm);
-}
+   background: var(--admin-panel-bg);
+   border-radius: var(--admin-radius-lg);
+   padding: 2rem;
+   margin-bottom: 2rem;
+   border: 1px solid var(--admin-border-subtle);
+   box-shadow: var(--admin-shadow-sm);
+ }
 
 .reservaInfo h2 {
   font-size: 1.5rem;
@@ -87,12 +87,12 @@
 }
 
 .editForm {
-  background: linear-gradient(180deg, var(--admin-surface-1), rgba(12, 12, 18, 0.84));
-  border-radius: var(--admin-radius-lg);
-  padding: 2.5rem;
-  border: 1px solid var(--admin-border-subtle);
-  box-shadow: var(--admin-shadow-md);
-}
+   background: var(--admin-panel-bg);
+   border-radius: var(--admin-radius-lg);
+   padding: 2.5rem;
+   border: 1px solid var(--admin-border-subtle);
+   box-shadow: var(--admin-shadow-md);
+ }
 
 .formGrid {
   display: grid;
@@ -116,16 +116,16 @@
 }
 
 .inputField {
-  padding: 0.75rem 1rem;
-  background: rgba(9, 9, 11, 0.42);
-  border: 1px solid var(--admin-border);
-  border-radius: var(--admin-radius-md);
-  color: var(--admin-foreground);
-  font-size: 0.9rem;
-  width: 100%;
-  box-sizing: border-box;
-  transition: all 0.2s ease;
-}
+   padding: 0.75rem 1rem;
+   background: var(--admin-input-bg);
+   border: 1px solid var(--admin-border);
+   border-radius: var(--admin-radius-md);
+   color: var(--admin-foreground);
+   font-size: 0.9rem;
+   width: 100%;
+   box-sizing: border-box;
+   transition: all 0.2s ease;
+ }
 
 .inputField:focus {
   outline: none;
@@ -161,14 +161,14 @@
 }
 
 .cancelButton {
-  padding: 0.75rem 1.75rem;
-  border-radius: var(--admin-radius-md);
-  border: 1px solid var(--admin-border);
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--admin-foreground);
-  font-weight: 600;
-  cursor: pointer;
-}
+   padding: 0.75rem 1.75rem;
+   border-radius: var(--admin-radius-md);
+   border: 1px solid var(--admin-border);
+   background: var(--admin-surface-3);
+   color: var(--admin-foreground);
+   font-weight: 600;
+   cursor: pointer;
+ }
 
 .submitButton {
   display: inline-flex;

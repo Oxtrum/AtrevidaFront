@@ -79,18 +79,18 @@
 }
 
 .liveBadge {
-  width: fit-content;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.48rem;
-  padding: 0.42rem 0.72rem;
-  border: 1px solid rgba(20, 174, 239, 0.20);
-  border-radius: var(--admin-radius-full);
-  background: rgba(20, 174, 239, 0.08);
-  color: rgba(250, 250, 250, 0.74);
-  font-size: 0.72rem;
-  font-weight: 700;
-}
+   width: fit-content;
+   display: inline-flex;
+   align-items: center;
+   gap: 0.48rem;
+   padding: 0.42rem 0.72rem;
+   border: 1px solid rgba(20, 174, 239, 0.20);
+   border-radius: var(--admin-radius-full);
+   background: rgba(20, 174, 239, 0.08);
+   color: var(--admin-foreground);
+   font-size: 0.72rem;
+   font-weight: 700;
+ }
 
 .liveDot {
   width: 6px;
@@ -281,10 +281,10 @@
 }
 
 .logoutButton:hover {
-  color: #ff9caf;
-  border-color: rgba(255, 77, 109, 0.28);
-  background: rgba(255, 77, 109, 0.08);
-}
+   color: var(--admin-accent-danger);
+   border-color: rgba(255, 77, 109, 0.28);
+   background: rgba(255, 77, 109, 0.08);
+ }
 
 .publicLink:active,
 .logoutButton:active,
