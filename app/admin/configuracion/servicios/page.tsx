@@ -261,8 +261,10 @@ export default function ServiciosPage() {
           <div className={styles.filterCard}>
             <div className={styles.filterBar}>
               <div className={styles.filterGroup}>
-                <label>Local</label>
+                <label id="lbl-filtro-local" htmlFor="filtro-local">Local</label>
                 <CustomSelect
+                  id="filtro-local"
+                  ariaLabelledBy="lbl-filtro-local"
                   value={filtroLocal}
                   onChange={setFiltroLocal}
                   options={[
@@ -272,8 +274,10 @@ export default function ServiciosPage() {
                 />
               </div>
               <div className={styles.filterGroup}>
-                <label>Categoría</label>
+                <label id="lbl-filtro-categoria" htmlFor="filtro-categoria">Categoría</label>
                 <CustomSelect
+                  id="filtro-categoria"
+                  ariaLabelledBy="lbl-filtro-categoria"
                   value={filtroCategoria}
                   onChange={setFiltroCategoria}
                   options={[
@@ -347,8 +351,10 @@ export default function ServiciosPage() {
 
           {/* Categoría */}
           <div className={styles.field}>
-            <label htmlFor="srv-categoria">Categoría</label>
+            <label id="lbl-srv-categoria" htmlFor="srv-categoria">Categoría</label>
             <CustomSelect
+              id="srv-categoria"
+              ariaLabelledBy="lbl-srv-categoria"
               value={form.categoria}
               onChange={(v) => {
                 patchForm({ categoria: v });
@@ -365,8 +371,10 @@ export default function ServiciosPage() {
 
           {/* Local */}
           <div className={styles.field}>
-            <label htmlFor="srv-local">Local</label>
+            <label id="lbl-srv-local" htmlFor="srv-local">Local</label>
             <CustomSelect
+              id="srv-local"
+              ariaLabelledBy="lbl-srv-local"
               value={form.local}
               onChange={(v) => {
                 patchForm({ local: v });
@@ -441,8 +449,10 @@ export default function ServiciosPage() {
 
           {/* Tipo espacio */}
           <div className={styles.field}>
-            <label htmlFor="srv-espacio">Tipo espacio</label>
+            <label id="lbl-srv-espacio" htmlFor="srv-espacio">Tipo espacio</label>
             <CustomSelect
+              id="srv-espacio"
+              ariaLabelledBy="lbl-srv-espacio"
               value={form.tipo_espacio_requerido}
               onChange={(v) => patchForm({ tipo_espacio_requerido: v })}
               options={[

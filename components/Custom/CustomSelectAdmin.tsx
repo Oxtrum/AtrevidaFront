@@ -18,16 +18,30 @@ interface CustomSelectProps {
   groups?: { label: string; options: SelectOption[] }[];
   placeholder?: string;
   hasError?: boolean;
+  id?: string;
+  ariaLabelledBy?: string;
 }
 
-export function CustomSelect({ value, onChange, options = [], groups, placeholder, hasError }: CustomSelectProps) {
+export function CustomSelect({
+  value,
+  onChange,
+  options = [],
+  groups,
+  placeholder,
+  hasError,
+  id,
+  ariaLabelledBy,
+}: CustomSelectProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   // Manejo robusto de listeners globales y BFCache
   // Guardar referencias para poder remover/volver a añadir cuando el navegador
   // restaure la página desde el bfcache (pageshow/pagehide).
-  const handlersRef = useRef<{ m?: (e: any) => void; k?: (e: any) => void }>({});
+  const handlersRef = useRef<{
+    m?: (e: MouseEvent) => void;
+    k?: (e: KeyboardEvent) => void;
+  }>({});
 
   const attachHandlers = () => {
     // Evitar re-attach
@@ -58,7 +72,7 @@ export function CustomSelect({ value, onChange, options = [], groups, placeholde
       // Si la página fue restaurada desde BFCache (ev.persisted === true)
       // re-attach handlers y cerrar cualquier dropdown abierto para tener
       // un estado consistente.
-      if ((ev as any).persisted) {
+      if (ev.persisted) {
         removeHandlers();
         attachHandlers();
         setOpen(false);
@@ -68,7 +82,7 @@ export function CustomSelect({ value, onChange, options = [], groups, placeholde
     const onPageHide = (ev: PageTransitionEvent) => {
       // Si el navegador va a guardar la página en BFCache, remover handlers
       // para evitar que el estado del listener quede corrupto cuando se restaure.
-      if ((ev as any).persisted) {
+      if (ev.persisted) {
         removeHandlers();
       }
     };
@@ -83,6 +97,7 @@ export function CustomSelect({ value, onChange, options = [], groups, placeholde
     };
   }, []);
 
+  const listboxId = id ? `${id}-listbox` : undefined;
   const allOptions = groups ? groups.flatMap(g => g.options) : options;
   const selectedLabel = allOptions.find(o => o.value === value)?.label;
 
@@ -109,14 +124,19 @@ export function CustomSelect({ value, onChange, options = [], groups, placeholde
     <div
       ref={ref}
       className={`${styles.customSelect} ${hasError ? styles.inputError : ''} ${open ? styles.customSelectOpen : ''}`}
-      role="combobox"
-      aria-expanded={open}
     >
       <div
+        id={id}
         className={styles.customSelectTrigger}
         onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(prev => !prev); }}
         tabIndex={0}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(prev => !prev); } }}
+        role="combobox"
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        aria-controls={listboxId}
+        aria-labelledby={ariaLabelledBy}
+        aria-invalid={hasError || undefined}
       >
         <span className={selectedLabel ? styles.customSelectValue : styles.customSelectPlaceholder}>
           {selectedLabel || placeholder || 'Seleccionar'}
@@ -129,12 +149,13 @@ export function CustomSelect({ value, onChange, options = [], groups, placeholde
       </div>
 
       {open && (
-        <div className={styles.selectDropdown} role="listbox">
+        <div id={listboxId} className={styles.selectDropdown} role="listbox" aria-labelledby={ariaLabelledBy}>
           {placeholder && (
             <div
               className={`${styles.selectOption} ${!value ? styles.selectOptionActive : ''}`}
               onClick={() => handleSelect('')}
               role="option"
+              aria-selected={!value}
             >
               {placeholder}
             </div>

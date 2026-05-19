@@ -6,8 +6,6 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import styles from './Servicios.module.css';
 
-gsap.registerPlugin(ScrollTrigger);
-
 const SERVICIOS = [
   {
     id: 'maderoterapia',
@@ -90,6 +88,7 @@ export default function Servicios() {
   const gridRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
     // Animate only compositor‑friendly properties and give the browser
     // a hint that these will change frequently (will‑change) and force
     // a GPU layer (force3D). Stagger is limited to ~1 s of total time.
