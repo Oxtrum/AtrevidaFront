@@ -35,9 +35,9 @@
     "semantic_hash": "18ffa8eb17d23468ac39cea1bd7902b7"
   },
   "C:\\Projects\\Atrevida\\AtrevidaFront\\app\\admin\\configuracion\\servicios\\page.tsx": {
-    "mtime": 1779193681.8573985,
-    "ast_hash": "4c4afe0599d2312dfdbef9e4552b2973",
-    "semantic_hash": "4c4afe0599d2312dfdbef9e4552b2973"
+    "mtime": 1779233763.216171,
+    "ast_hash": "bdaa53117943db81582678f8a550fdf4",
+    "semantic_hash": ""
   },
   "C:\\Projects\\Atrevida\\AtrevidaFront\\app\\admin\\dashboard\\page.tsx": {
     "mtime": 1779193681.8573985,
@@ -275,9 +275,9 @@
     "semantic_hash": "fd908fb55252a1e4232df0e5cb94a12e"
   },
   "C:\\Projects\\Atrevida\\AtrevidaFront\\components\\Custom\\CustomSelectAdmin.tsx": {
-    "mtime": 1778452550.5969772,
-    "ast_hash": "42249b931ce91976cadec9ab0af6e4e3",
-    "semantic_hash": "42249b931ce91976cadec9ab0af6e4e3"
+    "mtime": 1779233959.5377336,
+    "ast_hash": "2812f7b0fc5bfb945a3eb5b302bee932",
+    "semantic_hash": ""
   },
   "C:\\Projects\\Atrevida\\AtrevidaFront\\components\\Footer\\Footer.tsx": {
     "mtime": 1778452550.5969772,
@@ -330,9 +330,9 @@
     "semantic_hash": "63b2586ff3bc318d9ab7b5b320429c24"
   },
   "C:\\Projects\\Atrevida\\AtrevidaFront\\components\\Servicios\\Servicios.tsx": {
-    "mtime": 1778452550.5969772,
-    "ast_hash": "2f184c0d5858973157d153bb99d90c23",
-    "semantic_hash": "2f184c0d5858973157d153bb99d90c23"
+    "mtime": 1779233784.9490008,
+    "ast_hash": "b722bd6360de89af0b1a4cc610cba56a",
+    "semantic_hash": ""
   },
   "C:\\Projects\\Atrevida\\AtrevidaFront\\components\\Shared\\Button.tsx": {
     "mtime": 1778082769.4606001,
@@ -360,9 +360,9 @@
     "semantic_hash": "e399d83f0aaf6059f986379cf3375c0e"
   },
   "C:\\Projects\\Atrevida\\AtrevidaFront\\lib\\api\\client.ts": {
-    "mtime": 1778088543.9189665,
-    "ast_hash": "2afced4aacff17b5672095ab043d84aa",
-    "semantic_hash": "2afced4aacff17b5672095ab043d84aa"
+    "mtime": 1779232581.6802177,
+    "ast_hash": "9bf73a79a0eda73b7c1cc26e3ba79222",
+    "semantic_hash": ""
   },
   "C:\\Projects\\Atrevida\\AtrevidaFront\\lib\\api\\index.ts": {
     "mtime": 1778014993.4577277,
@@ -375,9 +375,9 @@
     "semantic_hash": "199071e2ee5d7a20b461dcd6b6079020"
   },
   "C:\\Projects\\Atrevida\\AtrevidaFront\\lib\\api\\servicios.ts": {
-    "mtime": 1778439918.8041675,
-    "ast_hash": "5c2d38902ac193adb6a04f25668b4944",
-    "semantic_hash": "5c2d38902ac193adb6a04f25668b4944"
+    "mtime": 1779232602.7480607,
+    "ast_hash": "57ee8b1b6776600eb3cdfba04f4582e7",
+    "semantic_hash": ""
   },
   "C:\\Projects\\Atrevida\\AtrevidaFront\\lib\\constants\\reservationForm.ts": {
     "mtime": 1778452550.5969772,
@@ -428,5 +428,245 @@
     "mtime": 1778452550.5969772,
     "ast_hash": "e937ac9aef36b130761669b488f2a367",
     "semantic_hash": "e937ac9aef36b130761669b488f2a367"
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\eslint.config.mjs": {
+    "mtime": 1775435247.0642657,
+    "ast_hash": "6c4307ffa009658f5c97f5629094c0c2",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\next-env.d.ts": {
+    "mtime": 1778182497.9776692,
+    "ast_hash": "29f60a376e12bf72b67d4994fcc84214",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\next.config.ts": {
+    "mtime": 1778452550.5969772,
+    "ast_hash": "ea97dd80791c1ea975f3b495766e5951",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\package.json": {
+    "mtime": 1777757371.9894283,
+    "ast_hash": "e658777d5ca9a4de25428e65d1a1a639",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\postcss.config.mjs": {
+    "mtime": 1775435247.069282,
+    "ast_hash": "481fac0fdecd70e1821cc30b86030c1a",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\skills-lock.json": {
+    "mtime": 1778452550.5969772,
+    "ast_hash": "c6a0d432f28f9cc61d1977434e5c48b7",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\tsconfig.json": {
+    "mtime": 1775435247.0862818,
+    "ast_hash": "ab575e944f15d39a5486cf9fca385c5e",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\.claude\\settings.json": {
+    "mtime": 1779227668.4183333,
+    "ast_hash": "1af31de766e30f801bc020c927c250d9",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\.opencode\\opencode.json": {
+    "mtime": 1779226209.7998166,
+    "ast_hash": "f2ae21510d07365eb2bce8159272c7a0",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\.opencode\\plugins\\graphify.js": {
+    "mtime": 1779226240.909965,
+    "ast_hash": "32b67963417a30cb80544e0b2a56a98d",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\app\\api\\bd\\servicios\\local\\[id]\\route.ts": {
+    "mtime": 1779232625.3291225,
+    "ast_hash": "e34718e8c7f92a8f2f3de54e6eca6625",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\types\\reserva.ts": {
+    "mtime": 1779193681.873564,
+    "ast_hash": "4e39df1e2d9d4812944caa75b787334a",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\AGENTS.md": {
+    "mtime": 1779226240.909965,
+    "ast_hash": "6b94df9fc7d7142080a9716d6355b1df",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\ANALISIS_ESTRUCTURA.md": {
+    "mtime": 1778452550.5657356,
+    "ast_hash": "2c285ac0d63da14fe0690c51eadde4c0",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\archivos_clave.md": {
+    "mtime": 1778452550.5657356,
+    "ast_hash": "eda2dc704ec8c40d9e22a343db7f6e11",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\atrevida_structure_report.md": {
+    "mtime": 1778452550.5657356,
+    "ast_hash": "4f7b27d3666d027fc961006ffc84ee1f",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\CLAUDE.md": {
+    "mtime": 1779226228.4398067,
+    "ast_hash": "b0517ee048d45b5cd5463430230eb52f",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\design.md": {
+    "mtime": 1778088319.4650607,
+    "ast_hash": "6f21a233eeae56a34d70adbb0a5629f3",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\README.md": {
+    "mtime": 1778072459.8713813,
+    "ast_hash": "9162add00befbcdb432430f405c4ad8d",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\resumen_ejecutivo.md": {
+    "mtime": 1778452550.5969772,
+    "ast_hash": "db6d6fd83832dffac136c1da8edc31c2",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\STYLE_GUIDE.md": {
+    "mtime": 1779193681.8497927,
+    "ast_hash": "930e781d8c71044a9b8ee8ca41fb4dbf",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\visual_summary.txt": {
+    "mtime": 1778452550.5969772,
+    "ast_hash": "10533b58afa8b527fc32aaa32fe7c4a7",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\.agents\\skills\\design-taste-frontend\\SKILL.md": {
+    "mtime": 1778067863.5700111,
+    "ast_hash": "af34183dcdccaafb13ed30f31725aa11",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\.agents\\skills\\frontend-design\\LICENSE.txt": {
+    "mtime": 1778452550.5657356,
+    "ast_hash": "29256199be2a609aac596980ffc11996",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\.agents\\skills\\frontend-design\\SKILL.md": {
+    "mtime": 1778452550.5657356,
+    "ast_hash": "400c8b8231420f30b48aed0a6f37df9f",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\public\\crioliposis.jpg": {
+    "mtime": 1778067863.6833282,
+    "ast_hash": "52f186915e4c9b657346ad9a14aa01d6",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\public\\E - Pulse Bike 1.JPEG": {
+    "mtime": 1777757372.0354388,
+    "ast_hash": "7f82e8934de20f52a018808c31ee65bb",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\public\\E-Pulse Bike.JPEG": {
+    "mtime": 1777757372.0824404,
+    "ast_hash": "e518a1d971177e9dc53d73cd9263672b",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\public\\estrella.png": {
+    "mtime": 1775435247.081277,
+    "ast_hash": "48f9f1e2fb29d85ea4d084dd80c1fe1c",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\public\\file.svg": {
+    "mtime": 1775435247.0822845,
+    "ast_hash": "d09f95206c3fa0bb9bd9fefabfd0ea71",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\public\\globe.svg": {
+    "mtime": 1775435247.0832858,
+    "ast_hash": "2aaafa6a49b6563925fe440891e32717",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\public\\Lipolaser.JPEG": {
+    "mtime": 1777757372.1394327,
+    "ast_hash": "39a1c59050255f403b56a74d38f9b021",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\public\\Logo.PNG": {
+    "mtime": 1775435247.0722785,
+    "ast_hash": "9bbb0f06396b4e8b396653a6273b816b",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\public\\LogoBlanco.PNG": {
+    "mtime": 1775435247.07528,
+    "ast_hash": "d254f61e93ef210798ec13de74cf76ab",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\public\\LogoBlancoColor.PNG": {
+    "mtime": 1775435247.07628,
+    "ast_hash": "821e556e3d2f438cdca039927c8072fe",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\public\\LogoNegro.PNG": {
+    "mtime": 1775435247.0792825,
+    "ast_hash": "b46b88b6e1c143560924089e794956ab",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\public\\maderoterapiaNuevo.jpg": {
+    "mtime": 1778067863.735205,
+    "ast_hash": "4a441b1e822d9d19894b16f90d810250",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\public\\modelos2.jpg": {
+    "mtime": 1778015016.3756924,
+    "ast_hash": "ff5bbf048c793636a642d39f86eb9cfd",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\public\\modelos3.jpg": {
+    "mtime": 1778015016.4936528,
+    "ast_hash": "0d7c160e653302ae5da2b837a1dba69c",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\public\\next.svg": {
+    "mtime": 1775435247.0842834,
+    "ast_hash": "8e061864f388b47f33a1c3780831193e",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\public\\Ondas Rusas.JPEG": {
+    "mtime": 1777757372.249499,
+    "ast_hash": "c6b6a9f8f94f769b4eaac5c36367fc40",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\public\\Radiofrecuencia.JPEG": {
+    "mtime": 1777757372.2955112,
+    "ast_hash": "7aa42f806fb050d8473a14269be596b9",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\public\\radiofrecuenciaNuevo.jpg": {
+    "mtime": 1778067863.7861583,
+    "ast_hash": "477bcf8b7fa30db42d2eeb64d35b4b4c",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\public\\reina1.jpg": {
+    "mtime": 1778067863.9072754,
+    "ast_hash": "259f92349e9bfff5f6bf140bc865c767",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\public\\reina2.jpg": {
+    "mtime": 1778067863.9998767,
+    "ast_hash": "aaa20ce0e18a0e520c9e760ac6b0faa0",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\public\\Vacumterpia.JPEG": {
+    "mtime": 1777757372.345574,
+    "ast_hash": "27f9e486fd07e89e19a17d4a0d07b876",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\public\\vercel.svg": {
+    "mtime": 1775435247.0852816,
+    "ast_hash": "c0af2f507b369b085b35ef4bbe3bcf1e",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\public\\window.svg": {
+    "mtime": 1775435247.0862818,
+    "ast_hash": "a2760511c65806022ad20adf74370ff3",
+    "semantic_hash": ""
   }
 }
