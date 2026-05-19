@@ -7,7 +7,7 @@ import { apiClient } from './client';
 // ─── Parámetros ───────────────────────────────────────────────────
 
 export interface GetServiciosParams {
-  local: string;
+  local?: string;
   nombre?: string;
   categoria?: string;
   sesiones?: number;
@@ -47,7 +47,11 @@ export interface ActualizarServicioData {
   costo?: number;
   sesiones?: number;
   tipo_espacio_requerido?: string;
-  local?: string;
+  activo?: boolean;
+}
+
+export interface ActivarServicioEnLocalData {
+  local: string;
 }
 
 // ─── Categorías ───────────────────────────────────────────────────
@@ -89,6 +93,14 @@ export async function crearServicioDB(data: CrearServicioData) {
 /** Actualiza un servicio existente. */
 export async function actualizarServicio(id: number | string, data: ActualizarServicioData) {
   return apiClient.patch(`/bd/servicios/${id}`, data);
+}
+
+/** Asocia (activa) un servicio existente a un local. */
+export async function activarServicioEnLocal(
+  id: number | string,
+  data: ActivarServicioEnLocalData,
+) {
+  return apiClient.post(`/bd/servicios/local/${id}`, data);
 }
 
 // ─── Combos ────────────────────────────────────────────────────────

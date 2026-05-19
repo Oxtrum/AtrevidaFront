@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -88,7 +88,6 @@ export default function Servicios() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
-  const [isHovering, setIsHovering] = useState<string | null>(null);
 
   useEffect(() => {
     // Animate only compositor‑friendly properties and give the browser
@@ -131,9 +130,8 @@ export default function Servicios() {
             },
             onComplete: () => {
               // Clean up will‑change after animation finishes
-              gsap.utils.toArray(cards).forEach((el) => {
-                // @ts-ignore – el is an Element
-                el.style.willChange = '';
+              cards.forEach((el) => {
+                (el as HTMLElement).style.willChange = '';
               });
             },
           }
@@ -166,9 +164,7 @@ export default function Servicios() {
           {SERVICIOS.map((servicio) => (
             <article
               key={servicio.id}
-              className={`${styles.serviceCard} ${styles[servicio.tamaño]}`}
-              onMouseEnter={() => setIsHovering(servicio.id)}
-              onMouseLeave={() => setIsHovering(null)}
+              className={`${styles.serviceCard} ${styles[servicio.tamaño] ?? styles.normal ?? ''}`}
               style={{ '--accent-color': servicio.color } as React.CSSProperties}
             >
               {/* Image Background */}

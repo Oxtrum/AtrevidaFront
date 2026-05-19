@@ -48,6 +48,9 @@ interface FormErrors {
   nombre?: string;
   categoria?: string;
   local?: string;
+  costo?: string;
+  tiempo?: string;
+  sesiones?: string;
   submit?: string;
 }
 
@@ -101,7 +104,7 @@ export default function ServiciosPage() {
     setError(null);
     try {
       const res = await getServiciosDB({
-        local: filtroLocal,
+        local: filtroLocal || undefined,
         categoria: filtroCategoria || undefined,
         nombre: filtroNombre || undefined,
         sesiones: filtroSesiones ? Number(filtroSesiones) : undefined,
@@ -123,7 +126,10 @@ export default function ServiciosPage() {
       ]);
       setCategorias(catRes?.data?.categorias ?? []);
       setLocales(locRes?.data?.locales ?? []);
-    } catch { /* silencioso — opciones de filtro no críticas */ }
+    } catch (err) {
+      console.error('fetchOptions', err);
+      toast.error('No se cargaron categorías o locales');
+    }
   }, []);
 
   useEffect(() => {
@@ -162,6 +168,21 @@ export default function ServiciosPage() {
     if (!form.nombre.trim()) errors.nombre = 'El nombre es obligatorio';
     if (!form.categoria) errors.categoria = 'Selecciona una categoría';
     if (!form.local) errors.local = 'Selecciona un local';
+
+    const costoNum = Number(form.costo);
+    if (!form.costo || Number.isNaN(costoNum) || costoNum < 0) {
+      errors.costo = 'Costo inválido';
+    }
+
+    const tiempoNum = Number(form.tiempo);
+    if (!form.tiempo || Number.isNaN(tiempoNum) || tiempoNum <= 0) {
+      errors.tiempo = 'Tiempo inválido';
+    }
+
+    if (!Number.isInteger(form.sesiones) || form.sesiones < 1) {
+      errors.sesiones = 'Mínimo 1 sesión';
+    }
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -174,18 +195,19 @@ export default function ServiciosPage() {
       await crearServicioDB({
         nombre: form.nombre.trim(),
         categoria: form.categoria,
-        tiempo: form.tiempo,
+        tiempo: form.tiempo.trim(),
         costo: Number(form.costo),
-        sesiones: form.sesiones,
+        sesiones: Math.max(1, Math.floor(form.sesiones)),
         tipo_espacio_requerido: form.tipo_espacio_requerido,
         local: form.local,
       });
       setModalOpen(false);
-      setForm({ nombre: '', categoria: '', tiempo: '', costo: '', sesiones: 1, tipo_espacio_requerido: 'M', local: '' });
+      resetModal();
       await fetchServicios();
       toast.success('Servicio creado correctamente');
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Error al crear servicio');
+      if (err instanceof Error) console.error('crearServicioDB', err);
+      toast.error('No se pudo crear el servicio. Verifica los datos e inténtalo de nuevo.');
     } finally {
       setSaving(false);
     }
@@ -365,10 +387,17 @@ export default function ServiciosPage() {
             <input
               id="srv-tiempo"
               type="number"
+              min={1}
               value={form.tiempo}
-              onChange={(e) => patchForm({ tiempo: e.target.value })}
-              placeholder="Ej: 60 min"
+              onChange={(e) => {
+                patchForm({ tiempo: e.target.value });
+                if (formErrors.tiempo) setFormErrors((p) => ({ ...p, tiempo: undefined }));
+              }}
+              placeholder="Ej: 60"
+              aria-invalid={!!formErrors.tiempo}
+              className={formErrors.tiempo ? styles.inputError : ''}
             />
+            {formErrors.tiempo && <span className={styles.fieldError}>{formErrors.tiempo}</span>}
           </div>
 
           {/* Costo */}
@@ -380,9 +409,15 @@ export default function ServiciosPage() {
               step="0.01"
               min={0}
               value={form.costo}
-              onChange={(e) => patchForm({ costo: e.target.value })}
+              onChange={(e) => {
+                patchForm({ costo: e.target.value });
+                if (formErrors.costo) setFormErrors((p) => ({ ...p, costo: undefined }));
+              }}
               placeholder="0.00"
+              aria-invalid={!!formErrors.costo}
+              className={formErrors.costo ? styles.inputError : ''}
             />
+            {formErrors.costo && <span className={styles.fieldError}>{formErrors.costo}</span>}
           </div>
 
           {/* Sesiones */}
@@ -393,8 +428,15 @@ export default function ServiciosPage() {
               type="number"
               min={1}
               value={form.sesiones}
-              onChange={(e) => patchForm({ sesiones: Number(e.target.value) })}
+              onChange={(e) => {
+                const n = Number(e.target.value);
+                patchForm({ sesiones: Number.isFinite(n) ? n : 1 });
+                if (formErrors.sesiones) setFormErrors((p) => ({ ...p, sesiones: undefined }));
+              }}
+              aria-invalid={!!formErrors.sesiones}
+              className={formErrors.sesiones ? styles.inputError : ''}
             />
+            {formErrors.sesiones && <span className={styles.fieldError}>{formErrors.sesiones}</span>}
           </div>
 
           {/* Tipo espacio */}

@@ -37,7 +37,10 @@ async function request<T>(
   const url = new URL(`${BASE_URL}${endpoint}`);
   if (params) {
     Object.entries(params).forEach(([k, v]) => {
-      if (v !== undefined) url.searchParams.set(k, String(v));
+      if (v === undefined || v === null) return;
+      const s = String(v);
+      if (s === '') return;
+      url.searchParams.set(k, s);
     });
   }
 
