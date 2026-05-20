@@ -81,7 +81,7 @@ function EditarReservaContent() {
   const estadoOptions = useMemo(
     () => [
       { value: 'PENDIENTE', label: 'Pendiente' },
-      { value: 'APROBADO', label: 'Aprobado' },
+      { value: 'AGENDADO', label: 'Agendado' },
       { value: 'RECHAZADO', label: 'Rechazado' },
     ],
     [],

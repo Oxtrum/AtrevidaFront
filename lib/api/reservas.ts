@@ -75,6 +75,12 @@ export interface ActualizarReservaDBData {
   nuevo_estado?: EstadoReserva;
 }
 
+export interface ActualizarEstadoReservaDBData {
+  id: number;
+  estado: Extract<EstadoReserva, 'PENDIENTE' | 'AGENDADO' | 'RECHAZADO'>;
+  causa?: string;
+}
+
 export interface CrearReservaResult {
   id: string;
   mensaje: string;
@@ -140,6 +146,15 @@ export async function crearReservaDB(data: CrearReservaDBData): Promise<CrearRes
 /** Actualiza una reserva existente en la base de datos. */
 export async function actualizarReservaDB(data: ActualizarReservaDBData): Promise<CrearReservaResult> {
   return apiClient.patch<CrearReservaResult>('/bd/reservas', data);
+}
+
+/** Actualiza únicamente el estado administrativo de una reserva. */
+export async function actualizarEstadoReservaDB(data: ActualizarEstadoReservaDBData): Promise<CrearReservaResult> {
+  return apiClient.patch<CrearReservaResult>('/bd/reservas/estado', {
+    id: data.id,
+    estado: data.estado,
+    causa: data.causa ?? '',
+  });
 }
 
 // ─── Helpers (Sheets - DEPRECATED) ─────────────────────────────────────────

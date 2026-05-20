@@ -99,7 +99,7 @@ export default function Hero() {
           </div>
 
           <h1 ref={titleRef} className={styles.title}>
-            Tratamientos que venden <span>resultados</span>, no promesas.
+            Más que un spa,<span>una transformación.</span>
           </h1>
 
           <p ref={subtitleRef} className={styles.subtitle}>

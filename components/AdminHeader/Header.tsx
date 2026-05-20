@@ -12,6 +12,7 @@ import {
   Menu,
   PanelLeftClose,
   Settings,
+  ShieldCheck,
   X,
 } from 'lucide-react';
 import styles from './Header.module.css';
@@ -29,6 +30,12 @@ const NAV_LINKS = [
     detail: 'Agenda y clientes',
     href: '/admin/reservas',
     icon: CalendarDays,
+  },
+  {
+    label: 'Aprobaciones',
+    detail: 'Solicitudes pendientes',
+    href: '/admin/reservas/aprobacion',
+    icon: ShieldCheck,
   },
   {
     label: 'Configuración',
@@ -146,7 +153,9 @@ export default function Header() {
         <nav className={styles.nav} aria-label="Navegación administrativa">
           {NAV_LINKS.map((link) => {
             const Icon = link.icon;
-            const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
+            const active = link.href === '/admin/reservas'
+              ? pathname === link.href || pathname.startsWith('/admin/reservas/crear') || pathname.startsWith('/admin/reservas/editar')
+              : pathname === link.href || pathname.startsWith(`${link.href}/`);
 
             return (
               <Link
