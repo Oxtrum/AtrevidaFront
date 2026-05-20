@@ -9,12 +9,19 @@ import { PageHeader, DataTable, FormModal } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
-import { getCategoriasDB, getLocalesDB, getServiciosDB, crearServicioDB } from '@/lib/api/servicios';
+import {
+  getCategoriasDB,
+  getLocalesDB,
+  getServiciosDB,
+  crearServicioDB,
+  actualizarServicio,
+} from '@/lib/api/servicios';
 import styles from './page.module.css';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 interface ServicioRow extends Record<string, unknown> {
+  id: number;
   nombre: string;
   categoria: string;
   local: string;
@@ -22,6 +29,7 @@ interface ServicioRow extends Record<string, unknown> {
   costo: string;
   sesiones: number;
   tipoEspacio: string;
+  activo?: boolean;
 }
 
 interface CategoriaOption {
@@ -92,8 +100,10 @@ export default function ServiciosPage() {
   // Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<FormState>(FORM_INITIAL);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
+  const isEdit = editingId !== null;
 
   // ─── Data fetching ───────────────────────────────────────────────────────────
 
@@ -161,13 +171,37 @@ export default function ServiciosPage() {
   const resetModal = () => {
     setForm(FORM_INITIAL);
     setFormErrors({});
+    setEditingId(null);
+  };
+
+  const openCreate = () => {
+    resetModal();
+    setModalOpen(true);
+  };
+
+  const openEdit = (row: ServicioRow) => {
+    setEditingId(row.id);
+    setFormErrors({});
+    setForm({
+      nombre: row.nombre,
+      categoria: row.categoria,
+      tiempo: String(row.tiempo ?? ''),
+      costo: String(row.costo ?? ''),
+      sesiones: row.sesiones,
+      tipo_espacio_requerido:
+        row.tipoEspacio === 'Mesas' ? 'M'
+        : row.tipoEspacio === 'Bicicletas' ? 'B'
+        : (row.tipoEspacio || 'M'),
+      local: row.local,
+    });
+    setModalOpen(true);
   };
 
   const validate = (): boolean => {
     const errors: FormErrors = {};
     if (!form.nombre.trim()) errors.nombre = 'El nombre es obligatorio';
     if (!form.categoria) errors.categoria = 'Selecciona una categoría';
-    if (!form.local) errors.local = 'Selecciona un local';
+    if (!isEdit && !form.local) errors.local = 'Selecciona un local';
 
     const costoNum = Number(form.costo);
     if (!form.costo || Number.isNaN(costoNum) || costoNum < 0) {
@@ -187,29 +221,66 @@ export default function ServiciosPage() {
     return Object.keys(errors).length === 0;
   };
 
-  const handleCreate = async () => {
+  const handleSubmit = async () => {
     if (!validate()) return;
     setSaving(true);
     setFormErrors({});
+
+    const sesiones = Math.max(1, Math.floor(form.sesiones));
+    const costo = Number(form.costo);
+    const tiempo = form.tiempo.trim();
+
     try {
-      await crearServicioDB({
-        nombre: form.nombre.trim(),
-        categoria: form.categoria,
-        tiempo: form.tiempo.trim(),
-        costo: Number(form.costo),
-        sesiones: Math.max(1, Math.floor(form.sesiones)),
-        tipo_espacio_requerido: form.tipo_espacio_requerido,
-        local: form.local,
-      });
+      if (isEdit && editingId !== null) {
+        // PATCH spec: nombre, categoria, tiempo, costo, sesiones, tipo_espacio_requerido, activo
+        // (NO local — backend ignores it on PATCH)
+        await actualizarServicio(editingId, {
+          nombre: form.nombre.trim(),
+          categoria: form.categoria,
+          tiempo,
+          costo,
+          sesiones,
+          tipo_espacio_requerido: form.tipo_espacio_requerido,
+        });
+        toast.success('Servicio actualizado correctamente');
+      } else {
+        await crearServicioDB({
+          nombre: form.nombre.trim(),
+          categoria: form.categoria,
+          tiempo,
+          costo,
+          sesiones,
+          tipo_espacio_requerido: form.tipo_espacio_requerido,
+          local: form.local,
+        });
+        toast.success('Servicio creado correctamente');
+      }
       setModalOpen(false);
       resetModal();
       await fetchServicios();
-      toast.success('Servicio creado correctamente');
     } catch (err) {
-      if (err instanceof Error) console.error('crearServicioDB', err);
-      toast.error('No se pudo crear el servicio. Verifica los datos e inténtalo de nuevo.');
+      if (err instanceof Error) console.error(isEdit ? 'actualizarServicio' : 'crearServicioDB', err);
+      toast.error(
+        isEdit
+          ? 'No se pudo actualizar el servicio. Verifica los datos e inténtalo de nuevo.'
+          : 'No se pudo crear el servicio. Verifica los datos e inténtalo de nuevo.',
+      );
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleToggleActivo = async (row: ServicioRow) => {
+    const next = !(row.activo ?? true);
+    const verb = next ? 'activar' : 'desactivar';
+    if (!confirm(`¿Seguro que quieres ${verb} "${row.nombre}"?`)) return;
+    try {
+      await actualizarServicio(row.id, { activo: next });
+      toast.success(next ? 'Servicio activado' : 'Servicio desactivado');
+      await fetchServicios();
+    } catch (err) {
+      if (err instanceof Error) console.error('actualizarServicio.activo', err);
+      toast.error(`No se pudo ${verb} el servicio.`);
     }
   };
 
@@ -233,6 +304,25 @@ export default function ServiciosPage() {
             ? 'Bicicletas'
             : String(val),
     },
+    {
+      key: 'activo',
+      label: 'Estado',
+      searchable: false,
+      render: (_val, row) => {
+        const activo = row.activo ?? true;
+        return (
+          <button
+            type="button"
+            onClick={() => handleToggleActivo(row)}
+            className={activo ? styles.statusActive : styles.statusInactive}
+            aria-label={activo ? 'Desactivar servicio' : 'Activar servicio'}
+            title={activo ? 'Desactivar' : 'Activar'}
+          >
+            {activo ? 'Activo' : 'Inactivo'}
+          </button>
+        );
+      },
+    },
   ];
 
   // ─── Render ──────────────────────────────────────────────────────────────────
@@ -248,7 +338,7 @@ export default function ServiciosPage() {
           actions={
             <button
               className="admin-button admin-button-primary"
-              onClick={() => { resetModal(); setModalOpen(true); }}
+              onClick={openCreate}
             >
               <Plus size={18} strokeWidth={2} />
               Nuevo Servicio
@@ -311,7 +401,8 @@ export default function ServiciosPage() {
                 loading={loading}
                 error={error}
                 onRefresh={fetchServicios}
-                getRowKey={(s) => `${s.nombre}-${s.local}-${s.categoria}`}
+                onEdit={openEdit}
+                getRowKey={(s) => s.id ?? `${s.nombre}-${s.local}-${s.categoria}`}
                 searchPlaceholder="Filtrar resultados..."
                 emptyMessage="No se encontraron servicios con los filtros actuales"
               />
@@ -324,10 +415,10 @@ export default function ServiciosPage() {
       <FormModal
         isOpen={modalOpen}
         onClose={() => { setModalOpen(false); resetModal(); }}
-        title="Nuevo Servicio"
-        onSubmit={handleCreate}
+        title={isEdit ? 'Editar Servicio' : 'Nuevo Servicio'}
+        onSubmit={handleSubmit}
         loading={saving}
-        submitLabel="Crear"
+        submitLabel={isEdit ? 'Guardar cambios' : 'Crear'}
       >
         <div className={styles.formGrid}>
           {/* Nombre */}
@@ -372,20 +463,31 @@ export default function ServiciosPage() {
           {/* Local */}
           <div className={styles.field}>
             <label id="lbl-srv-local" htmlFor="srv-local">Local</label>
-            <CustomSelect
-              id="srv-local"
-              ariaLabelledBy="lbl-srv-local"
-              value={form.local}
-              onChange={(v) => {
-                patchForm({ local: v });
-                if (formErrors.local) setFormErrors((p) => ({ ...p, local: undefined }));
-              }}
-              options={[
-                { value: '', label: 'Seleccionar' },
-                ...locales.map((l) => ({ value: l.nombre, label: l.nombre })),
-              ]}
-              hasError={!!formErrors.local}
-            />
+            {isEdit ? (
+              <input
+                id="srv-local"
+                type="text"
+                value={form.local}
+                readOnly
+                disabled
+                title="El local no se puede modificar al editar"
+              />
+            ) : (
+              <CustomSelect
+                id="srv-local"
+                ariaLabelledBy="lbl-srv-local"
+                value={form.local}
+                onChange={(v) => {
+                  patchForm({ local: v });
+                  if (formErrors.local) setFormErrors((p) => ({ ...p, local: undefined }));
+                }}
+                options={[
+                  { value: '', label: 'Seleccionar' },
+                  ...locales.map((l) => ({ value: l.nombre, label: l.nombre })),
+                ]}
+                hasError={!!formErrors.local}
+              />
+            )}
             {formErrors.local && <span className={styles.fieldError}>{formErrors.local}</span>}
           </div>
 
