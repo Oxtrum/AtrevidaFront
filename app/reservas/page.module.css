@@ -8,7 +8,7 @@
 
 .hero {
   position: relative;
-  min-height: calc(100dvh - 76px);
+  min-height: calc(100dvh - 128px);
   isolation: isolate;
   display: grid;
   align-items: center;
@@ -45,8 +45,8 @@
 }
 
 .heroContent {
-  width: min(720px, 100%);
-  padding-bottom: clamp(2rem, 6vw, 5rem);
+  width: min(790px, 100%);
+  padding-bottom: clamp(1.5rem, 4vw, 3.8rem);
 }
 
 .eyebrow {
@@ -68,7 +68,7 @@
 }
 
 .title {
-  max-width: 11ch;
+  max-width: 12ch;
   margin: 0;
   color: #FFFFFF;
   font-size: clamp(3rem, 8vw, 7.2rem);
@@ -80,7 +80,7 @@
 }
 
 .subtitle {
-  max-width: 620px;
+  max-width: 680px;
   margin: 1.45rem 0 0;
   color: rgba(245, 245, 245, 0.78);
   font-size: clamp(1rem, 1.7vw, 1.22rem);
@@ -142,11 +142,254 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1px;
-  width: min(720px, 100%);
+  width: min(760px, 100%);
   margin-top: clamp(2rem, 6vw, 4rem);
   border: 1px solid rgba(255, 255, 255, 0.10);
   background: rgba(255, 255, 255, 0.10);
   backdrop-filter: blur(18px);
+}
+
+.trustBand {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  max-width: 1180px;
+  margin: -42px auto 0;
+  padding: 0 clamp(1rem, 4vw, 2rem);
+  position: relative;
+  z-index: 2;
+}
+
+.trustBand div {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 84px;
+  padding: 1rem 1.2rem;
+  color: rgba(245, 245, 245, 0.86);
+  background: rgba(8, 8, 10, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(18px);
+}
+
+.trustBand div:first-child {
+  border-radius: 18px 0 0 18px;
+}
+
+.trustBand div:last-child {
+  border-radius: 0 18px 18px 0;
+}
+
+.trustBand svg {
+  color: #FFE600;
+  flex-shrink: 0;
+}
+
+.trustBand span {
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.valueSection,
+.processSection {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: clamp(4rem, 8vw, 7rem) clamp(1rem, 4vw, 2rem);
+}
+
+.sectionIntro {
+  max-width: 720px;
+}
+
+.sectionIntro > span,
+.optionKicker,
+.finalCta span {
+  display: inline-block;
+  margin-bottom: 0.85rem;
+  color: #FFE600;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+}
+
+.sectionIntro h2,
+.optionPanel h2,
+.finalCta h2 {
+  margin: 0;
+  color: #FFFFFF;
+  font-size: clamp(2rem, 4.6vw, 4.7rem);
+  line-height: 0.98;
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+
+.sectionIntro p,
+.optionPanel p {
+  max-width: 650px;
+  margin: 1rem 0 0;
+  color: rgba(245, 245, 245, 0.66);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.benefitGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.benefitCard {
+  min-height: 260px;
+  padding: 1.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.035)),
+    rgba(8, 8, 10, 0.78);
+}
+
+.benefitCard:nth-child(1) {
+  border-top: 3px solid #FFE600;
+}
+
+.benefitCard:nth-child(2) {
+  border-top: 3px solid #EC008C;
+}
+
+.benefitCard:nth-child(3) {
+  border-top: 3px solid #14AEEF;
+}
+
+.benefitCard svg {
+  color: #FFE600;
+  margin-bottom: 1.35rem;
+}
+
+.benefitCard:nth-child(2) svg {
+  color: #EC008C;
+}
+
+.benefitCard:nth-child(3) svg {
+  color: #14AEEF;
+}
+
+.benefitCard h3,
+.optionList h3,
+.processRail h3 {
+  margin: 0;
+  color: #FFFFFF;
+  font-size: 1.1rem;
+  line-height: 1.2;
+}
+
+.benefitCard p,
+.optionList p,
+.processRail p {
+  margin: 0.75rem 0 0;
+  color: rgba(245, 245, 245, 0.62);
+  line-height: 1.65;
+}
+
+.optionsSection {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(320px, 0.7fr);
+  gap: clamp(1rem, 4vw, 3rem);
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: clamp(3rem, 7vw, 6rem) clamp(1rem, 4vw, 2rem);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.optionPanel {
+  align-self: center;
+}
+
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin-top: 1.6rem;
+  min-height: 48px;
+  padding: 0.8rem 1.1rem;
+  border: 1px solid rgba(255, 230, 0, 0.36);
+  border-radius: 999px;
+  color: #FFE600;
+  background: rgba(255, 230, 0, 0.06);
+  font-family: inherit;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform 0.22s ease, background 0.22s ease, border-color 0.22s ease;
+}
+
+.secondaryButton:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 230, 0, 0.7);
+  background: rgba(255, 230, 0, 0.11);
+}
+
+.optionList {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.optionList article {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.85rem;
+  padding: 1.05rem;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.optionList svg {
+  color: #EC008C;
+  margin-top: 0.1rem;
+}
+
+.processRail {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 2rem;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.processRail div {
+  min-height: 220px;
+  padding: 1.25rem;
+  background:
+    linear-gradient(180deg, rgba(8, 8, 10, 0.9), rgba(8, 8, 10, 0.78));
+}
+
+.processRail span {
+  display: block;
+  margin-bottom: 2.6rem;
+  color: #14AEEF;
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.finalCta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 2rem;
+  max-width: 1180px;
+  margin: 0 auto clamp(3rem, 7vw, 6rem);
+  padding: clamp(2rem, 5vw, 3rem) clamp(1rem, 4vw, 2rem);
+  background:
+    linear-gradient(100deg, rgba(255, 230, 0, 0.14), rgba(236, 0, 140, 0.11), rgba(20, 174, 239, 0.10)),
+    rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.finalCta h2 {
+  max-width: 780px;
+  font-size: clamp(1.7rem, 3.5vw, 3.4rem);
 }
 
 .proofStrip div {
@@ -248,7 +491,7 @@
 
 @media (max-width: 820px) {
   .hero {
-    min-height: calc(100dvh - 68px);
+    min-height: calc(100dvh - 104px);
     align-items: end;
     padding: 1.25rem;
     background-position: 62% center;
@@ -278,6 +521,49 @@
 
   .proofStrip {
     grid-template-columns: 1fr;
+  }
+
+  .trustBand {
+    grid-template-columns: 1fr;
+    margin-top: -24px;
+  }
+
+  .trustBand div,
+  .trustBand div:first-child,
+  .trustBand div:last-child {
+    min-height: 64px;
+    border-radius: 0;
+  }
+
+  .trustBand div:first-child {
+    border-radius: 16px 16px 0 0;
+  }
+
+  .trustBand div:last-child {
+    border-radius: 0 0 16px 16px;
+  }
+
+  .benefitGrid,
+  .optionsSection,
+  .processRail,
+  .finalCta {
+    grid-template-columns: 1fr;
+  }
+
+  .benefitCard {
+    min-height: auto;
+  }
+
+  .processRail div {
+    min-height: auto;
+  }
+
+  .processRail span {
+    margin-bottom: 1rem;
+  }
+
+  .finalCta .primaryButton {
+    width: 100%;
   }
 
   .modalOverlay {
