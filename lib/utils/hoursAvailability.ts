@@ -8,7 +8,7 @@
 import { HORAS } from '@/lib/constants/reservationForm';
 import type { DiaSemana } from '@/types/reserva';
 
-export type SlotStatus = 'free' | 'occupied' | 'past';
+export type SlotStatus = 'free' | 'occupied' | 'past' | 'closed';
 
 export type HoursAvailability = Map<string, SlotStatus>;
 

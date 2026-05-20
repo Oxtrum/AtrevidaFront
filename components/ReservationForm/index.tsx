@@ -28,11 +28,13 @@ export default function ReservationForm({ initialData, onSuccess, onCancel }: Re
     servicio,
     error, errors,
     slotWarning,
+    scheduleWarning,
     loading,
     hoursAvailability,
     sucursalOptions,
     servicioGroups,
     servicioSeleccionado,
+    isSundaySelected,
     handleServicioChange,
     handleFechaChange,
     handleSlotSelect,
@@ -134,19 +136,21 @@ export default function ReservationForm({ initialData, onSuccess, onCancel }: Re
               )}
             </label>
 
-            {slotWarning && (
+            {(slotWarning || scheduleWarning) && (
               <div className={styles.slotWarning}>
-                <span>Atención:</span> {slotWarning}
+                <span>Atención:</span> {slotWarning || scheduleWarning}
               </div>
             )}
 
-            {!sucursal || !servicio || !fecha ? (
+            {!sucursal || !servicio || !fecha || isSundaySelected ? (
               <div className={styles.pickerPlaceholder}>
                 {!sucursal
                   ? 'Selecciona una sucursal para ver la disponibilidad'
                   : !fecha
                     ? 'Selecciona una fecha para ver los horarios disponibles'
-                    : 'Selecciona un servicio para ver los horarios disponibles'}
+                    : isSundaySelected
+                      ? 'Los domingos no hay horarios disponibles'
+                      : 'Selecciona un servicio para ver los horarios disponibles'}
               </div>
             ) : (
               <TimeSlotPicker

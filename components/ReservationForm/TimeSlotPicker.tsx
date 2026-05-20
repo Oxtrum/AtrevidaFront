@@ -21,8 +21,8 @@ export function TimeSlotPicker({
   const handleClick = (hora: string) => {
     const status = hoursAvailability.get(hora);
 
-    // No permitir seleccionar horas pasadas u ocupadas
-    if (status === 'past' || status === 'occupied') return;
+    // No permitir seleccionar horas pasadas, ocupadas o fuera de atención
+    if (status === 'past' || status === 'occupied' || status === 'closed') return;
 
     // Selección inmediata de 1 hora
     const idx = HORAS.indexOf(hora);
@@ -64,6 +64,13 @@ export function TimeSlotPicker({
         <span>
           <span
             className={styles.legendDot}
+            style={{ background: 'rgba(245,245,245,0.16)', border: '1px solid rgba(245,245,245,0.12)' }}
+          />
+          No atiende
+        </span>
+        <span>
+          <span
+            className={styles.legendDot}
             style={{ background: '#EC008C', boxShadow: '0 0 6px rgba(236,0,140,0.6)' }}
           />
           Seleccionado
@@ -78,6 +85,7 @@ export function TimeSlotPicker({
           const isStart = hora === horaDesde;
           const isPast = status === 'past';
           const isOccupied = status === 'occupied';
+          const isClosed = status === 'closed';
 
           return (
             <button
@@ -87,14 +95,16 @@ export function TimeSlotPicker({
                 styles.timeChip,
                 isPast ? styles.timeChipPast : '',
                 isOccupied ? styles.timeChipOccupied : '',
+                isClosed ? styles.timeChipClosed : '',
                 inRange ? styles.timeChipSelected : '',
                 isStart ? styles.timeChipStart : '',
               ].filter(Boolean).join(' ')}
               onClick={() => handleClick(hora)}
-              disabled={isPast || isOccupied}
+              disabled={isPast || isOccupied || isClosed}
               title={
                 isPast ? `${hora} — Pasado`
                   : isOccupied ? `${hora} — Ocupado`
+                    : isClosed ? `${hora} — No atiende`
                     : hora
               }
             >

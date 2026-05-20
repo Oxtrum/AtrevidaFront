@@ -477,6 +477,14 @@
   opacity: 0.3;
 }
 
+.timeChipClosed {
+  border-color: var(--af-border-subtle) !important;
+  background: var(--af-surface-3) !important;
+  color: var(--af-dim) !important;
+  cursor: not-allowed !important;
+  opacity: 0.42;
+}
+
 .timeChipSelected {
   border-color: var(--af-accent-primary);
   background: var(--af-accent-primary);
@@ -1421,6 +1429,14 @@
   color: rgba(245, 245, 245, 0.20) !important;
   cursor: not-allowed !important;
   opacity: 0.45;
+}
+
+.timeChipClosed {
+  border-color: rgba(245, 245, 245, 0.10) !important;
+  background: rgba(245, 245, 245, 0.06) !important;
+  color: rgba(245, 245, 245, 0.26) !important;
+  cursor: not-allowed !important;
+  opacity: 0.62;
 }
 
 .timeChipSelected {

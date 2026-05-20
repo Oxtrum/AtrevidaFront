@@ -12,7 +12,10 @@ import { useCrearReserva } from '@/lib/hooks/useCrearReserva';
 import { useReservas } from '@/lib/hooks/useReservas';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { toast } from '../Shared/Toast';
-import { validateReservationForm, } from '@/lib/utils/reservationValidation';
+import {
+  getReservationDateRestriction,
+  validateReservationForm,
+} from '@/lib/utils/reservationValidation';
 import { type SlotStatus } from '@/lib/utils/hoursAvailability';
 import { HORAS, DIAS_SEMANA } from '@/lib/constants/reservationForm';
 import { CATEGORIAS_ORDEN } from './constants';
@@ -43,6 +46,16 @@ function getWeekIndexForDate(fechaISO: string, semanas: ReturnType<typeof genera
     return fecha >= inicio && fecha <= fin;
   });
   return idx >= 0 ? idx : 0;
+}
+
+function getDateDay(fechaISO: string) {
+  if (!fechaISO) return null;
+  return new Date(`${fechaISO}T00:00:00`).getDay();
+}
+
+function getMinutesFromHour(hora: string) {
+  const [hh, mm] = hora.split(':').map(Number);
+  return (hh || 0) * 60 + (mm || 0);
 }
 
 export function useReservationForm(
@@ -151,6 +164,11 @@ export function useReservationForm(
     () => SERVICIOS_DISPONIBLES.find(s => s.value === servicio),
     [servicio],
   );
+  const scheduleWarning = useMemo(
+    () => getReservationDateRestriction(fecha),
+    [fecha],
+  );
+  const isSundaySelected = getDateDay(fecha) === 0;
 
   // ── Fetch reservas cuando cambian sucursal o semana ─────────
   useEffect(() => {
@@ -172,7 +190,24 @@ export function useReservationForm(
       map.set(hora, 'free');
     }
 
-    // 2. Marcar horas pasadas
+    // 2. Aplicar reglas de atención: domingos cerrado, sábados solo mañana.
+    const selectedDay = getDateDay(fecha);
+    if (selectedDay === 0) {
+      for (const hora of HORAS) {
+        map.set(hora, 'closed');
+      }
+      return map;
+    }
+
+    if (selectedDay === 6) {
+      for (const hora of HORAS) {
+        if (getMinutesFromHour(hora) >= 12 * 60) {
+          map.set(hora, 'closed');
+        }
+      }
+    }
+
+    // 3. Marcar horas pasadas
     const fechaDia = fecha ? new Date(`${fecha}T00:00:00`) : null;
     if (fechaDia) {
       const hoy = new Date();
@@ -187,15 +222,15 @@ export function useReservationForm(
         const slotMin = hh * 60 + mm;
         const ahoraMin = hoy.getHours() * 60 + hoy.getMinutes();
 
-        if (fechaDiaStr < hoyStr || (fechaDiaStr === hoyStr && slotMin < ahoraMin)) {
+        if (map.get(hora) !== 'closed' && (fechaDiaStr < hoyStr || (fechaDiaStr === hoyStr && slotMin < ahoraMin))) {
           map.set(hora, 'past');
-        } else if (fechaDia.getTime() < hoyMid.getTime()) {
+        } else if (map.get(hora) !== 'closed' && fechaDia.getTime() < hoyMid.getTime()) {
           map.set(hora, 'past');
         }
       }
     }
 
-    // 3. Marcar horas ocupadas basado en reservasData y capacidad
+    // 4. Marcar horas ocupadas basado en reservasData y capacidad
     if (reservasData?.data?.reservas && fechaDia && sucursal && tipo) {
       const fechaDiaStr = fecha;
       const currentLocal = locales.find(l => l.nombre === sucursal);
@@ -231,7 +266,7 @@ export function useReservationForm(
 
       // Marcar como ocupado solo si se alcanza la capacidad máxima
       for (const [hora, conteo] of conteoPorHora.entries()) {
-        if (conteo >= capacidadMaxima && map.get(hora) !== 'past') {
+        if (conteo >= capacidadMaxima && map.get(hora) !== 'past' && map.get(hora) !== 'closed') {
           map.set(hora, 'occupied');
         }
       }
@@ -365,6 +400,8 @@ export function useReservationForm(
     // para permitir cambios de último minuto si hay slots disponibles
     if (horaDesde && hoursAvailability.get(horaDesde) === 'past') {
       e.horaDesde = 'No se pueden hacer reservas en horarios pasados';
+    } else if (horaDesde && hoursAvailability.get(horaDesde) === 'closed') {
+      e.horaDesde = 'Ese horario está fuera de atención';
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -429,6 +466,7 @@ export function useReservationForm(
     servicio,
     error, errors,
     slotWarning,
+    scheduleWarning,
     loading: loading || loadingLocales,
     // Derived
     hoursAvailability,
@@ -437,6 +475,7 @@ export function useReservationForm(
     semanaOptions,
     servicioGroups,
     servicioSeleccionado,
+    isSundaySelected,
     // Handlers
     handleSemanaChange,
     handleServicioChange,

@@ -2,26 +2,27 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-import gsap from 'gsap';
-import { CalendarCheck } from 'lucide-react';
-import styles from './Header.module.css';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import gsap from 'gsap';
+import styles from './Header.module.css';
 
 const NAV_LINKS = [
-  { label: 'Inicio', href: '/' },
-  { label: 'Servicios', href: '/#servicios' },
-  { label: 'Nosotros', href: '/#nosotros' },
-  { label: 'Contacto', href: '/#contacto' },
-  { label: 'Reservas', href: '/reservas' },
+  { label: 'Inicio', href: '/', section: 'inicio' },
+  { label: 'Servicios', href: '/#servicios', section: 'servicios' },
+  { label: 'Nosotros', href: '/#nosotros', section: 'nosotros' },
+  { label: 'Contacto', href: '/#contacto', section: 'contacto' },
+  { label: 'Reservas', href: '/reservas', section: 'reservas' },
 ];
 
 export default function Header() {
+  const pathname = usePathname();
   const headerRef = useRef<HTMLElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
   const navLinksRef = useRef<HTMLAnchorElement[]>([]);
-  const ctaRef = useRef<HTMLAnchorElement>(null);
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState('inicio');
 
   // Entrance animations
   useEffect(() => {
@@ -48,16 +49,6 @@ export default function Header() {
         );
       }
 
-      // ctaRef is optional; animate if present
-      if (ctaRef.current) {
-        tl.fromTo(
-          ctaRef.current,
-          { scale: 0.8, opacity: 0 },
-          { scale: 1, opacity: 1, duration: 0.5 },
-          '-=0.2'
-        );
-      }
-
       // Gradient line fades in
       if (headerRef.current) {
         gsap.fromTo(
@@ -77,6 +68,39 @@ export default function Header() {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  useEffect(() => {
+    if (pathname !== '/') {
+      setActiveSection(pathname.startsWith('/reservas') ? 'reservas' : 'inicio');
+      return;
+    }
+
+    const sectionIds = NAV_LINKS
+      .map((link) => link.section)
+      .filter((section) => section !== 'reservas');
+
+    const updateActiveSection = () => {
+      const headerOffset = 130;
+      const currentSection = sectionIds.reduce((current, section) => {
+        const element = document.getElementById(section);
+        if (!element) return current;
+
+        const sectionTop = element.getBoundingClientRect().top + window.scrollY;
+        return window.scrollY + headerOffset >= sectionTop ? section : current;
+      }, 'inicio');
+
+      setActiveSection(currentSection);
+    };
+
+    updateActiveSection();
+    window.addEventListener('scroll', updateActiveSection, { passive: true });
+    window.addEventListener('resize', updateActiveSection);
+
+    return () => {
+      window.removeEventListener('scroll', updateActiveSection);
+      window.removeEventListener('resize', updateActiveSection);
+    };
+  }, [pathname]);
 
   // Lock body scroll when mobile menu is open
   useEffect(() => {
@@ -104,6 +128,8 @@ export default function Header() {
     scrolled ? styles.headerScrolled : '',
   ].join(' ').trim();
 
+  const isLinkActive = (section: string) => activeSection === section;
+
   return (
     <>
       <header ref={headerRef} className={headerClasses}>
@@ -128,18 +154,14 @@ export default function Header() {
             <Link
               key={link.href}
               href={link.href}
-              className={styles.navLink}
+              className={`${styles.navLink} ${isLinkActive(link.section) ? styles.navLinkActive : ''}`}
+              aria-current={isLinkActive(link.section) ? 'page' : undefined}
               ref={(el) => { if (el) navLinksRef.current[i] = el; }}
             >
               {link.label}
             </Link>
           ))}
         </nav>
-
-        <Link href="/reservas" ref={ctaRef} className={styles.ctaButton}>
-          <CalendarCheck size={17} strokeWidth={1.8} />
-          Reservar
-        </Link>
 
         {/* Hamburger */}
         <button
@@ -161,7 +183,8 @@ export default function Header() {
           <Link
             key={link.href}
             href={link.href}
-            className={`${styles.mobileNavLink} mobileNavItem`}
+            className={`${styles.mobileNavLink} ${isLinkActive(link.section) ? styles.mobileNavLinkActive : ''} mobileNavItem`}
+            aria-current={isLinkActive(link.section) ? 'page' : undefined}
             onClick={() => setMobileOpen(false)}
           >
             {link.label}
