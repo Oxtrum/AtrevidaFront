@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ArrowRight, CalendarCheck, Camera, Clock, MapPin, MessageCircle } from 'lucide-react';
+import { ArrowRight, CalendarCheck, Camera, Clock, ExternalLink, MapPin, MessageCircle, X } from 'lucide-react';
 import styles from './Contacto.module.css';
 import Link from 'next/link';
 
@@ -16,7 +16,8 @@ const INFO_ITEMS = [
     valor: 'Cochabamba, Bolivia',
     sub: 'Consulta nuestras sucursales disponibles',
     color: '#EC008C',
-    rgb: '236, 0, 140'
+    rgb: '236, 0, 140',
+    action: 'locations',
   },
   {
     icono: <MessageCircle strokeWidth={1.5} />,
@@ -46,10 +47,24 @@ const INFO_ITEMS = [
   },
 ];
 
+const LOCATIONS = [
+  {
+    name: 'Paseo Aranjuez',
+    address: 'Torre 2 quinto piso of 510',
+    href: 'https://maps.app.goo.gl/pjDPbgt2dLWVXuGB7',
+  },
+  {
+    name: 'San Martín',
+    address: 'Entre Bolívar casi Heroínas #123, edificio RAQUEL quinto piso of 5A',
+    href: 'https://maps.app.goo.gl/UT8oWTiKcKgCojs46',
+  },
+];
+
 export default function Contacto() {
   const sectionRef = useRef<HTMLElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
+  const [locationsOpen, setLocationsOpen] = useState(false);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -126,6 +141,25 @@ export default function Contacto() {
     return () => ctx.revert();
   }, []);
 
+  useEffect(() => {
+    if (!locationsOpen) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setLocationsOpen(false);
+      }
+    };
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [locationsOpen]);
+
   return (
     <section ref={sectionRef} className={styles.contacto} id="contacto">
       {/* Animated mesh gradient background */}
@@ -170,6 +204,20 @@ export default function Contacto() {
                   '--icon-color-rgb': item.rgb
                 } as React.CSSProperties;
 
+                if (item.action === 'locations') {
+                  return (
+                    <button
+                      key={item.titulo}
+                      type="button"
+                      className={`${styles.infoItem} ${styles.infoButton}`}
+                      style={itemStyle}
+                      onClick={() => setLocationsOpen(true)}
+                    >
+                      {content}
+                    </button>
+                  );
+                }
+
                 if (item.link) {
                   return (
                     <a
@@ -212,6 +260,61 @@ export default function Contacto() {
           </Link>
         </div>
       </div>
+
+      {locationsOpen && (
+        <div
+          className={styles.modalOverlay}
+          role="presentation"
+          onClick={() => setLocationsOpen(false)}
+        >
+          <div
+            className={styles.locationModal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="locations-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              className={styles.modalClose}
+              aria-label="Cerrar ubicaciones"
+              onClick={() => setLocationsOpen(false)}
+            >
+              <X size={18} strokeWidth={1.8} />
+            </button>
+
+            <span className={styles.modalKicker}>
+              <MapPin size={15} strokeWidth={1.8} />
+              Sucursales disponibles
+            </span>
+            <h3 id="locations-title" className={styles.modalTitle}>Elige la ubicación que te quede mejor</h3>
+            <p className={styles.modalText}>
+              Atendemos en dos puntos de Cochabamba. Abre la ruta en Google Maps para llegar sin vueltas.
+            </p>
+
+            <div className={styles.locationList}>
+              {LOCATIONS.map((location) => (
+                <a
+                  key={location.name}
+                  href={location.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.locationCard}
+                >
+                  <span className={styles.locationPin}>
+                    <MapPin size={18} strokeWidth={1.8} />
+                  </span>
+                  <span className={styles.locationCopy}>
+                    <strong>{location.name}</strong>
+                    <span>{location.address}</span>
+                  </span>
+                  <ExternalLink size={17} strokeWidth={1.8} className={styles.locationArrow} />
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
