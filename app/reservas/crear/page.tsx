@@ -33,13 +33,12 @@ function CrearReservaContent() {
     local: searchParams.get('local') || undefined,
     semana: searchParams.get('semana') || undefined,
     dia: (searchParams.get('dia') as DiaSemana) || undefined,
+    fecha: searchParams.get('fecha') || undefined,
     hora_desde: searchParams.get('hora_desde') || undefined,
     hora_hasta: searchParams.get('hora_hasta') || undefined,
     servicio: searchParams.get('servicio') || undefined,
     isAdmin: isAdmin,
   };
-
-  const backLink = isAdmin ? '/admin/reservas' : '/reservas';
 
   return (
     <div ref={contentRef} className={styles.content}>

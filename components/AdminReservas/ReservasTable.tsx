@@ -87,6 +87,12 @@ export function ReservasTable({
     return '';
   };
 
+  const getEstadoClass = (estado?: string) => {
+    if (estado === 'APROBADO') return styles.estadoAprobado;
+    if (estado === 'RECHAZADO') return styles.estadoRechazado;
+    return styles.estadoPendiente;
+  };
+
   /* ── Table ───────────────────────────────────────────────────────────── */
   return (
     <div ref={tableRef} className={styles.tableContainer}>
@@ -106,6 +112,7 @@ export function ReservasTable({
             <div className={styles.cell}>Cliente</div>
             <div className={styles.cell}>Tipo</div>
             <div className={styles.cell}>Servicio</div>
+            <div className={styles.cell}>Estado</div>
             <div className={styles.cell}>Local</div>
             <div className={styles.cell}>Acciones</div>
           </div>
@@ -135,6 +142,12 @@ export function ReservasTable({
                 <div className={styles.cell} data-label="Servicio">
                   <span className={styles.servicioText}>
                     {reserva.servicio || '—'}
+                  </span>
+                </div>
+
+                <div className={styles.cell} data-label="Estado">
+                  <span className={`${styles.estadoBadge} ${getEstadoClass(reserva.estado)}`}>
+                    {reserva.estado || 'PENDIENTE'}
                   </span>
                 </div>
 

@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { crearReservaDB } from '@/lib/api/reservas';
+import type { DiaSemana, EstadoReserva, ReservaFormData } from '@/types/reserva';
 
 interface CrearReservaResult {
     id: string;
@@ -11,7 +12,23 @@ interface CrearReservaResult {
 interface UseCrearReservaReturn {
     loading: boolean;
     error: string | null;
-    crearReserva: (data: any) => Promise<CrearReservaResult>;
+    crearReserva: (data: CrearReservaData) => Promise<CrearReservaResult>;
+}
+
+interface CrearReservaData {
+    local: string;
+    semana?: string;
+    dia?: DiaSemana;
+    fecha?: string;
+    hora_desde: string;
+    hora_hasta: string;
+    tipo: string;
+    cliente: string;
+    numero_telefono?: string;
+    servicio: string;
+    precio?: number;
+    notas?: string;
+    estado?: EstadoReserva;
 }
 
 /**
@@ -21,7 +38,7 @@ export function useCrearReserva(): UseCrearReservaReturn {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const crearReservaFn = useCallback(async (data: any): Promise<CrearReservaResult> => {
+    const crearReservaFn = useCallback(async (data: CrearReservaData): Promise<CrearReservaResult> => {
         setLoading(true);
         setError(null);
 
@@ -35,14 +52,18 @@ export function useCrearReserva(): UseCrearReservaReturn {
                     hora_hasta: data.hora_hasta,
                     tipo: data.tipo,
                     cliente: data.cliente,
+                    numero_telefono: data.numero_telefono || '',
                     servicio: data.servicio,
+                    precio: data.precio,
+                    notas: data.notas,
+                    estado: 'PENDIENTE',
                 });
                 return result;
             }
             
             // Si no tiene fecha, usar Sheets (legacy)
             const { crearReserva } = await import('@/lib/api/reservas');
-            return await crearReserva(data);
+            return await crearReserva(data as ReservaFormData);
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : 'Error desconocido';
             setError(errorMsg);

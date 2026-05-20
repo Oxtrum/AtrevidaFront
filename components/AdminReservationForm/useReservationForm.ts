@@ -3,10 +3,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  DiaSemana, SERVICIOS_DISPONIBLES, SUCURSALES,
-  getServiciosPorSucursal, getServiciosPorCategoria, getTipoFromServicio,
+  DiaSemana, SERVICIOS_ADMIN_DISPONIBLES, SUCURSALES,
+  getServiciosAdminPorSucursal, getServiciosAdminPorCategoria, getTipoFromServicio,
   generarSemanas, getFechasDeSemana, esFechaPasada,
-  type ReservaBD, normalizeTipo
+  type ReservaBD,
 } from '@/types/reserva';
 import { useCrearReserva } from '@/lib/hooks/useCrearReserva';
 import { useReservas } from '@/lib/hooks/useReservas';
@@ -76,6 +76,7 @@ export function useReservationForm(
   const [horaDesde, setHoraDesde] = useState(normalizarHora(initialData?.hora_desde || ''));
   const [horaHasta, setHoraHasta] = useState(normalizarHora(initialData?.hora_hasta || ''));
   const [cliente, setCliente] = useState('');
+  const [numeroTelefono, setNumeroTelefono] = useState('');
   const [servicio, setServicio] = useState(initialData?.servicio || '');
   const [horaPreestablecida] = useState(!!initialData?.hora_desde); // Marca si hora vino del URL
 
@@ -83,7 +84,7 @@ export function useReservationForm(
   useEffect(() => {
     if (!horaPreestablecida || !horaDesde || !servicio) return;
 
-    const servicioInfo = SERVICIOS_DISPONIBLES.find(s => s.value === servicio);
+    const servicioInfo = SERVICIOS_ADMIN_DISPONIBLES.find(s => s.value === servicio);
     if (!servicioInfo) return;
 
     const match = servicioInfo.duracion.match(/(\d+)/);
@@ -192,13 +193,13 @@ export function useReservationForm(
     // 3. Marcar horas ocupadas basado en reservasData y capacidad
     if (reservasData?.data?.reservas && fechaDia && sucursal && tipo) {
       const fechaDiaStr = fechaDia.toISOString().split('T')[0];
-      const currentLocal = locales.find(l => l.nombre === sucursal) as any;
+      const currentLocal = locales.find(l => l.nombre === sucursal);
       const capacidadMaxima = tipo.toLowerCase() === 'm' || tipo.toLowerCase() === 'mesa' 
         ? (currentLocal?.capacidad_mesas || 3) 
         : (currentLocal?.capacidad_bicis || 2);
 
       // Filtrar reservas para el día y tipo seleccionado
-      const reservasDelDia = reservasData.data.reservas.filter((r: any) => {
+      const reservasDelDia = reservasData.data.reservas.filter((r: ReservaBD) => {
         const tipoReserva = r.tipo?.toLowerCase();
         const matchesTipo = tipo.toLowerCase() === 'm' 
           ? (tipoReserva === 'm' || tipoReserva === 'mesa')
@@ -238,7 +239,7 @@ export function useReservationForm(
   // ── Limpiar servicio si cambia sucursal y no aplica ───────────
   useEffect(() => {
     if (sucursal && servicio) {
-      const info = SERVICIOS_DISPONIBLES.find(s => s.value === servicio);
+      const info = SERVICIOS_ADMIN_DISPONIBLES.find(s => s.value === servicio);
       if (info) {
         const normalizedSucursal = sucursal === 'SAN MARTIN' ? 'CENTRO' : sucursal;
         if (info.sucursal !== 'ambos' && info.sucursal !== normalizedSucursal) {
@@ -269,8 +270,8 @@ export function useReservationForm(
   );
 
   // ── Servicios filtrados por sucursal ───────────────────────────
-  const serviciosFiltrados = getServiciosPorSucursal(sucursal);
-  const serviciosPorCategoria = getServiciosPorCategoria(serviciosFiltrados);
+  const serviciosFiltrados = getServiciosAdminPorSucursal(sucursal);
+  const serviciosPorCategoria = getServiciosAdminPorCategoria(serviciosFiltrados);
   const categoriasDisponibles = CATEGORIAS_ORDEN.filter(
     c => serviciosPorCategoria[c]?.length > 0,
   );
@@ -321,7 +322,7 @@ export function useReservationForm(
     setSlotWarning(null);
   };
 
-  const handleSlotSelect = (desde: string, _hasta: string) => {
+  const handleSlotSelect = (desde: string) => {
     setHoraDesde(desde);
 
     // Auto‑calcular hora fin como la siguiente hora disponible
@@ -339,7 +340,13 @@ export function useReservationForm(
   // ── Validación y submit ────────────────────────────────
   const validate = (): boolean => {
     const e = validateReservationForm(
-      sucursal, semanaActual, cliente, servicio, horaDesde, horaHasta,
+      sucursal,
+      fechasSemana?.get(dia)?.fecha.toISOString().split('T')[0] || '',
+      cliente,
+      numeroTelefono,
+      servicio,
+      horaDesde,
+      horaHasta,
     );
     // No validar aquí si está ocupado - dejar que el backend lo valide
     // para permitir cambios de último minuto si hay slots disponibles
@@ -366,27 +373,8 @@ export function useReservationForm(
     const horaDesdeNorm = normalizarHora(horaDesde);
     const horaHastaNorm = normalizarHora(horaHasta);
 
-    // Generar slots de 30 min entre horaDesde y horaHasta
-    const generarSlots = (desde: string, hasta: string) => {
-      const slots: { hora_desde: string; hora_hasta: string }[] = [];
-      const idxInicio = HORAS.indexOf(desde);
-      const idxFin = HORAS.indexOf(hasta);
-
-      if (idxInicio === -1 || idxFin === -1) {
-        // Fallback: enviar como un solo slot
-        return [{ hora_desde: desde, hora_hasta: hasta }];
-      }
-
-      for (let i = idxInicio; i < idxFin; i++) {
-        slots.push({
-          hora_desde: HORAS[i],
-          hora_hasta: HORAS[i + 1],
-        });
-      }
-      return slots;
-    };
-
       try {
+        const servicioInfo = SERVICIOS_ADMIN_DISPONIBLES.find(s => s.value === servicio);
         const payload = {
           local: sucursal,
           fecha: fechaISO,
@@ -394,10 +382,14 @@ export function useReservationForm(
           hora_hasta: horaHastaNorm,
           tipo,
           cliente,
-          servicio,
+          numero_telefono: numeroTelefono.replace(/\D/g, ''),
+          servicio: servicioInfo?.label || servicio,
+          precio: servicioInfo?.precio ?? 0,
+          notas: '',
+          estado: 'PENDIENTE' as const,
         };
 
-        const result = await crearReserva(payload);
+        await crearReserva(payload);
         toast.success('¡Reserva registrada con éxito!');
 
         if (onSuccess) {
@@ -406,8 +398,8 @@ export function useReservationForm(
           router.push(initialData?.isAdmin ? '/admin/reservas' : '/reservas');
         }
         router.refresh();
-      } catch (err: any) {
-        setError(err?.message || hookError || 'Error al crear la reserva');
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : hookError || 'Error al crear la reserva');
       }
   };
   return {
@@ -417,6 +409,7 @@ export function useReservationForm(
     dia,
     horaDesde, horaHasta,
     cliente, setCliente,
+    numeroTelefono, setNumeroTelefono,
     servicio,
     error, errors,
     slotWarning,

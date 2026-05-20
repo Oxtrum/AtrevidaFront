@@ -6,7 +6,8 @@ import type { ReservasBDApiResponse } from '@/types/reserva';
 
 interface UseReservasParams {
     local: string;
-    semana: number;
+    semana?: number;
+    fecha?: string;
     fecha_desde?: string;
     fecha_hasta?: string;
 }
@@ -40,6 +41,7 @@ export function useReservas(): UseReservasReturn {
         try {
             const result = await getReservasDB({
                 local: params.local,
+                fecha: params.fecha,
                 fecha_desde: params.fecha_desde,
                 fecha_hasta: params.fecha_hasta,
             });

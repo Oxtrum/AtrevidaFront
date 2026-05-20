@@ -1,10 +1,10 @@
 'use client';
 
+import { useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { DiaSemana } from '@/types/reserva';
+import { CalendarDays } from 'lucide-react';
 import { CustomSelect } from '../Custom/CustomSelect';
 import { TimeSlotPicker } from './TimeSlotPicker';
-import { DaySelector } from './DaySelector';
 import { ServiceSelect } from './ServiceSelect';
 import { useReservationForm, type ReservationFormInitialData } from './useReservationForm';
 import styles from './ReservationForm.module.css';
@@ -16,27 +16,40 @@ interface ReservationFormProps {
 
 export default function ReservationForm({ initialData, onSuccess }: ReservationFormProps) {
   const router = useRouter();
+  const dateInputRef = useRef<HTMLInputElement>(null);
   const {
     sucursal, setSucursal,
-    semanaIndex,
-    dia,
+    fecha,
     horaDesde, horaHasta,
     cliente, setCliente,
+    numeroTelefono, setNumeroTelefono,
+    notas, setNotas,
     servicio,
     error, errors,
     slotWarning,
     loading,
     hoursAvailability,
-    diasDisponibles,
     sucursalOptions,
-    semanaOptions,
     servicioGroups,
-    handleSemanaChange,
+    servicioSeleccionado,
     handleServicioChange,
-    handleDiaChange,
+    handleFechaChange,
     handleSlotSelect,
     handleSubmit,
   } = useReservationForm(initialData, onSuccess);
+  const fechaLegible = useMemo(() => {
+    if (!fecha) return 'Sin fecha';
+    return new Intl.DateTimeFormat('es-BO', {
+      weekday: 'long',
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    }).format(new Date(`${fecha}T00:00:00`));
+  }, [fecha]);
+  const resumenHora = horaDesde && horaHasta ? `${horaDesde} a ${horaHasta}` : 'Sin horario';
+  const notaServicio = servicioSeleccionado && 'nota' in servicioSeleccionado
+    ? servicioSeleccionado.nota
+    : '';
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
@@ -50,7 +63,7 @@ export default function ReservationForm({ initialData, onSuccess }: ReservationF
           </div>
           <h2 className={styles.formTitle}>Nueva Reserva</h2>
           <p className={styles.formSubtitle}>
-            Selecciona el horario disponible y completa los datos del cliente
+            Elige fecha y horario. La reserva quedará pendiente hasta aprobación.
           </p>
         </div>
 
@@ -71,16 +84,28 @@ export default function ReservationForm({ initialData, onSuccess }: ReservationF
             {errors.sucursal && <span className={styles.errorText}>{errors.sucursal}</span>}
           </div>
 
-          {/* Semana */}
+          {/* Fecha */}
           <div className={styles.formGroup}>
-            <label>Semana</label>
-            <CustomSelect
-              value={String(semanaIndex)}
-              onChange={handleSemanaChange}
-              options={semanaOptions}
-              hasError={!!errors.semana}
-            />
-            {errors.semana && <span className={styles.errorText}>{errors.semana}</span>}
+            <label>Fecha</label>
+            <div className={styles.dateInputWrap}>
+              <input
+                ref={dateInputRef}
+                type="date"
+                value={fecha}
+                min={new Date().toLocaleDateString('en-CA')}
+                onChange={e => handleFechaChange(e.target.value)}
+                className={errors.fecha ? styles.inputError : ''}
+              />
+              <button
+                type="button"
+                className={styles.datePickerButton}
+                aria-label="Abrir selector de fecha"
+                onClick={() => dateInputRef.current?.showPicker?.()}
+              >
+                <CalendarDays size={18} strokeWidth={1.8} />
+              </button>
+            </div>
+            {errors.fecha && <span className={styles.errorText}>{errors.fecha}</span>}
           </div>
 
           {/* Servicio */}
@@ -93,17 +118,10 @@ export default function ReservationForm({ initialData, onSuccess }: ReservationF
               hasError={!!errors.servicio}
               onChange={handleServicioChange}
             />
+            {notaServicio && (
+              <p className={styles.serviceNote}>{notaServicio}</p>
+            )}
             {errors.servicio && <span className={styles.errorText}>{errors.servicio}</span>}
-          </div>
-
-          {/* Día */}
-          <div className={`${styles.formGroup} ${styles.fullWidth}`}>
-            <label>Día</label>
-            <DaySelector
-              dias={diasDisponibles}
-              diaActivo={dia}
-              onChange={handleDiaChange}
-            />
           </div>
 
           {/* Horario */}
@@ -117,15 +135,17 @@ export default function ReservationForm({ initialData, onSuccess }: ReservationF
 
             {slotWarning && (
               <div className={styles.slotWarning}>
-                <span>⚠</span> {slotWarning}
+                <span>Atención:</span> {slotWarning}
               </div>
             )}
 
-            {!sucursal || !servicio ? (
+            {!sucursal || !servicio || !fecha ? (
               <div className={styles.pickerPlaceholder}>
                 {!sucursal
                   ? 'Selecciona una sucursal para ver la disponibilidad'
-                  : 'Selecciona un servicio para ver los horarios disponibles'}
+                  : !fecha
+                    ? 'Selecciona una fecha para ver los horarios disponibles'
+                    : 'Selecciona un servicio para ver los horarios disponibles'}
               </div>
             ) : (
               <TimeSlotPicker
@@ -135,6 +155,21 @@ export default function ReservationForm({ initialData, onSuccess }: ReservationF
                 onSelect={handleSlotSelect}
               />
             )}
+          </div>
+
+          <div className={`${styles.reservationSummary} ${styles.fullWidth}`}>
+            <div>
+              <span>Fecha</span>
+              <strong>{fechaLegible}</strong>
+            </div>
+            <div>
+              <span>Horario</span>
+              <strong>{resumenHora}</strong>
+            </div>
+            <div>
+              <span>Servicio</span>
+              <strong>{servicioSeleccionado?.label || 'Sin servicio'}</strong>
+            </div>
           </div>
 
           <div className={styles.formDivider} />
@@ -150,6 +185,34 @@ export default function ReservationForm({ initialData, onSuccess }: ReservationF
               className={errors.cliente ? styles.inputError : ''}
             />
             {errors.cliente && <span className={styles.errorText}>{errors.cliente}</span>}
+          </div>
+
+          {/* Teléfono */}
+          <div className={`${styles.formGroup} ${styles.fullWidth}`}>
+            <label>Teléfono</label>
+            <div className={styles.phoneInputWrap}>
+              <span className={styles.phonePrefix}>+591</span>
+              <input
+                type="tel"
+                inputMode="numeric"
+                value={numeroTelefono}
+                onChange={e => setNumeroTelefono(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                placeholder="77777777"
+                className={errors.numeroTelefono ? styles.inputError : ''}
+              />
+            </div>
+            {errors.numeroTelefono && <span className={styles.errorText}>{errors.numeroTelefono}</span>}
+          </div>
+
+          {/* Notas */}
+          <div className={`${styles.formGroup} ${styles.fullWidth}`}>
+            <label>Notas</label>
+            <input
+              type="text"
+              value={notas}
+              onChange={e => setNotas(e.target.value)}
+              placeholder="Comentarios adicionales"
+            />
           </div>
 
         </div>
@@ -169,7 +232,7 @@ export default function ReservationForm({ initialData, onSuccess }: ReservationF
           </button>
           <button type="submit" className={styles.submitButton} disabled={loading}>
             <span className={styles.submitButtonText}>
-              {loading ? 'Creando...' : '✦ Reservar'}
+              {loading ? 'Enviando...' : 'Solicitar reserva'}
             </span>
           </button>
         </div>

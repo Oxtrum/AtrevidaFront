@@ -1,6 +1,7 @@
 export type DiaSemana = 'LUNES' | 'MARTES' | 'MIÉRCOLES' | 'JUEVES' | 'VIERNES' | 'SÁBADO';
 
-export type TipoReserva = 'm' | 'b' | 'feriado';
+export type TipoReserva = 'm' | 'b' | 'M' | 'B' | 'feriado';
+export type EstadoReserva = 'PENDIENTE' | 'APROBADO' | 'RECHAZADO';
 
 export interface FechaDia {
   dia: number;
@@ -17,45 +18,68 @@ export interface ReservasBDApiResponse {
 }
 
 export const SERVICIOS_DISPONIBLES = [
-  { value: 'ultracavitacion', label: 'Ultracavitación', categoria: 'Apartología', duracion: '50 min', costo: '70 Bs', sucursal: 'ambos' },
-  { value: 'radiofrecuencia', label: 'Radiofrecuencia', categoria: 'Apartología', duracion: '50 min', costo: '70 Bs', sucursal: 'ambos' },
-  { value: 'ondas_rusas', label: 'Ondas Rusas', categoria: 'Apartología', duracion: '50 min', costo: '70 Bs', sucursal: 'ambos' },
-  { value: 'lipolaser', label: 'Lipolaser', categoria: 'Apartología', duracion: '50 min', costo: '70 Bs', sucursal: 'ambos' },
-  { value: 'vacumterapia', label: 'Vacumterapia', categoria: 'Apartología', duracion: '50 min', costo: '70 Bs', sucursal: 'ambos' },
-  { value: 'criolipolisis', label: 'Criolipolisis', categoria: 'Apartología', duracion: '50 min', costo: '500 Bs', sucursal: 'ambos' },
-  { value: 'vacumterapia_premium', label: 'Vacumterapia Premium', categoria: 'Apartología', duracion: '50 min', costo: '70 Bs', sucursal: 'ARANJUEZ' },
-  { value: 'e_pulse_bike', label: 'E-Pulse Bike', categoria: 'Bicicleta', duracion: '30 min', costo: '70 Bs', sucursal: 'CENTRO' },
-  { value: 'maderoterapia', label: 'Maderoterapia', categoria: 'Manuales', duracion: '50 min', costo: '70 Bs', sucursal: 'ambos' },
-  { value: 'masaje_relajante_medio', label: 'Masaje Relajante Medio Cuerpo', categoria: 'Manuales', duracion: '35 min', costo: '70 Bs', sucursal: 'ambos' },
-  { value: 'masaje_relajante_entero', label: 'Masaje Relajante Cuerpo Entero', categoria: 'Manuales', duracion: '50 min', costo: '100 Bs', sucursal: 'ambos' },
-  { value: 'masaje_descontracturante_medio', label: 'Masaje Descontracturante Medio Cuerpo', categoria: 'Manuales', duracion: '35 min', costo: '70 Bs', sucursal: 'ambos' },
-  { value: 'masaje_descontracturante_entero', label: 'Masaje Descontracturante Cuerpo Entero', categoria: 'Manuales', duracion: '50 min', costo: '100 Bs', sucursal: 'ambos' },
-  { value: 'masaje_reductor', label: 'Masaje Reductor', categoria: 'Manuales', duracion: '25 min', costo: '50 Bs', sucursal: 'CENTRO' },
-  { value: 'limpieza_facial', label: 'Limpieza Facial', categoria: 'Limpieza Facial', duracion: '50 min', costo: '100 Bs', sucursal: 'ambos' },
-  { value: 'limpieza_facial_premium', label: 'Limpieza Facial Premium', categoria: 'Limpieza Facial', duracion: '90 min', costo: '150 Bs', sucursal: 'ambos' },
-  { value: 'combo_ultra_radio', label: 'Ultracavitación + Radiofrecuencia', categoria: 'Combos', duracion: '50 min', costo: '100 Bs', sucursal: 'ambos' },
-  { value: 'combo_lipo_ultra', label: 'Lipolaser + Ultracavitación', categoria: 'Combos', duracion: '50 min', costo: '100 Bs', sucursal: 'ambos' },
-  { value: 'combo_lipo_radio', label: 'Lipolaser + Radiofrecuencia', categoria: 'Combos', duracion: '50 min', costo: '100 Bs', sucursal: 'ambos' },
-  { value: 'combo_lipo_vacum', label: 'Lipolaser + Vacumterapia', categoria: 'Combos', duracion: '50 min', costo: '100 Bs', sucursal: 'ambos' },
-  { value: 'combo_ultra_vacum', label: 'Ultracavitación + Vacumterapia', categoria: 'Combos', duracion: '50 min', costo: '100 Bs', sucursal: 'ambos' },
-  { value: 'combo_radio_ondas', label: 'Radiofrecuencia + Ondas Rusas', categoria: 'Combos', duracion: '50 min', costo: '100 Bs', sucursal: 'ambos' },
-  { value: 'combo_vacum_ondas', label: 'Vacumterapia Premium + Ondas Rusas', categoria: 'Combos', duracion: '50 min', costo: '100 Bs', sucursal: 'ambos' },
-  { value: 'meso', label: 'Mesoterapia', categoria: 'Apartología', duracion: '50 min', costo: '70 Bs', sucursal: 'ambos' },
-  { value: 'inyeccion_quemador_1', label: 'Quemador de Grasa + Ultradev + Masaje (1 sesión)', categoria: 'Inyecciones', duracion: '50 min', costo: '300 Bs', sucursal: 'ambos' },
-  { value: 'inyeccion_quemador_3', label: 'Quemador de Grasa + Ultradev + Masaje (3 sesiones)', categoria: 'Inyecciones', duracion: '50 min', costo: '750 Bs', sucursal: 'ambos' },
-  { value: 'inyeccion_quemador_5', label: 'Quemador de Grasa + Ultradev + Masaje (5 sesiones)', categoria: 'Inyecciones', duracion: '50 min', costo: '1250 Bs', sucursal: 'ambos' },
-  { value: 'inyeccion_quemador_10', label: 'Quemador de Grasa + Ultradev + Masaje (10 sesiones)', categoria: 'Inyecciones', duracion: '50 min', costo: '2350 Bs', sucursal: 'ambos' },
-  { value: 'inyeccion_dmae_1', label: 'DMAE + Radiofrecuencia + Masaje Tonif. (1 sesión)', categoria: 'Inyecciones', duracion: '50 min', costo: '350 Bs', sucursal: 'ambos' },
-  { value: 'inyeccion_dmae_3', label: 'DMAE + Radiofrecuencia + Masaje Tonif. (3 sesiones)', categoria: 'Inyecciones', duracion: '50 min', costo: '900 Bs', sucursal: 'ambos' },
-  { value: 'inyeccion_dmae_5', label: 'DMAE + Radiofrecuencia + Masaje Tonif. (5 sesiones)', categoria: 'Inyecciones', duracion: '50 min', costo: '1500 Bs', sucursal: 'ambos' },
-  { value: 'inyeccion_dmae_10', label: 'DMAE + Radiofrecuencia + Masaje Tonif. (10 sesiones)', categoria: 'Inyecciones', duracion: '50 min', costo: '2900 Bs', sucursal: 'ambos' },
-  { value: 'paquete_abdomen_premium', label: 'Paquete Abdomen Premium', categoria: 'Combos Inyecciones', duracion: 'Varias', costo: '700 Bs', sucursal: 'ambos' },
-  { value: 'promo_criolipolisis', label: 'Promo Criolipolisis (2 sesiones)', categoria: 'Combos Inyecciones', duracion: 'Varias', costo: '750 Bs', sucursal: 'ARANJUEZ' },
-  { value: 'peptonas_premium', label: 'Peptonas Premium', categoria: 'Combos Inyecciones', duracion: '50 min', costo: '250 Bs', sucursal: 'ARANJUEZ' },
-  { value: 'peptonas_ondas', label: 'Peptonas + Ondas Rusas', categoria: 'Combos Inyecciones', duracion: '50 min', costo: '200 Bs', sucursal: 'ambos' },
-  { value: 'e_pulse_bike_5', label: 'E-Pulse Bike (5 sesiones)', categoria: 'Bicicleta', duracion: '30 min', costo: '250 Bs', sucursal: 'CENTRO' },
-  { value: 'e_pulse_bike_10', label: 'E-Pulse Bike (10 sesiones)', categoria: 'Bicicleta', duracion: '30 min', costo: '350 Bs', sucursal: 'CENTRO' },
-  { value: 'e_pulse_bike_20', label: 'E-Pulse Bike (20 sesiones)', categoria: 'Bicicleta', duracion: '30 min', costo: '500 Bs', sucursal: 'CENTRO' },
+  {
+    value: 'evaluacion_gratuita',
+    label: 'Evaluación gratuita',
+    categoria: 'Reservas',
+    duracion: '60 min',
+    costo: '0 Bs',
+    precio: 0,
+    sucursal: 'ambos',
+  },
+  {
+    value: 'tratamiento_especializado',
+    label: 'Tratamiento especializado',
+    categoria: 'Reservas',
+    duracion: '60 min',
+    costo: '150.50 Bs',
+    precio: 150.50,
+    sucursal: 'ambos',
+    nota: 'Este tratamiento se reserva por el personal después de una evaluación gratuita.',
+  },
+] as const;
+
+export const SERVICIOS_ADMIN_DISPONIBLES = [
+  ...SERVICIOS_DISPONIBLES,
+  { value: 'ultracavitacion', label: 'Ultracavitación', categoria: 'Apartología', duracion: '50 min', costo: '70 Bs', precio: 70, sucursal: 'ambos' },
+  { value: 'radiofrecuencia', label: 'Radiofrecuencia', categoria: 'Apartología', duracion: '50 min', costo: '70 Bs', precio: 70, sucursal: 'ambos' },
+  { value: 'ondas_rusas', label: 'Ondas Rusas', categoria: 'Apartología', duracion: '50 min', costo: '70 Bs', precio: 70, sucursal: 'ambos' },
+  { value: 'lipolaser', label: 'Lipolaser', categoria: 'Apartología', duracion: '50 min', costo: '70 Bs', precio: 70, sucursal: 'ambos' },
+  { value: 'vacumterapia', label: 'Vacumterapia', categoria: 'Apartología', duracion: '50 min', costo: '70 Bs', precio: 70, sucursal: 'ambos' },
+  { value: 'criolipolisis', label: 'Criolipolisis', categoria: 'Apartología', duracion: '50 min', costo: '500 Bs', precio: 500, sucursal: 'ambos' },
+  { value: 'vacumterapia_premium', label: 'Vacumterapia Premium', categoria: 'Apartología', duracion: '50 min', costo: '70 Bs', precio: 70, sucursal: 'ARANJUEZ' },
+  { value: 'e_pulse_bike', label: 'E-Pulse Bike', categoria: 'Bicicleta', duracion: '30 min', costo: '70 Bs', precio: 70, sucursal: 'CENTRO' },
+  { value: 'maderoterapia', label: 'Maderoterapia', categoria: 'Manuales', duracion: '50 min', costo: '70 Bs', precio: 70, sucursal: 'ambos' },
+  { value: 'masaje_relajante_medio', label: 'Masaje Relajante Medio Cuerpo', categoria: 'Manuales', duracion: '35 min', costo: '70 Bs', precio: 70, sucursal: 'ambos' },
+  { value: 'masaje_relajante_entero', label: 'Masaje Relajante Cuerpo Entero', categoria: 'Manuales', duracion: '50 min', costo: '100 Bs', precio: 100, sucursal: 'ambos' },
+  { value: 'masaje_descontracturante_medio', label: 'Masaje Descontracturante Medio Cuerpo', categoria: 'Manuales', duracion: '35 min', costo: '70 Bs', precio: 70, sucursal: 'ambos' },
+  { value: 'masaje_descontracturante_entero', label: 'Masaje Descontracturante Cuerpo Entero', categoria: 'Manuales', duracion: '50 min', costo: '100 Bs', precio: 100, sucursal: 'ambos' },
+  { value: 'masaje_reductor', label: 'Masaje Reductor', categoria: 'Manuales', duracion: '25 min', costo: '50 Bs', precio: 50, sucursal: 'CENTRO' },
+  { value: 'limpieza_facial', label: 'Limpieza Facial', categoria: 'Limpieza Facial', duracion: '50 min', costo: '100 Bs', precio: 100, sucursal: 'ambos' },
+  { value: 'limpieza_facial_premium', label: 'Limpieza Facial Premium', categoria: 'Limpieza Facial', duracion: '90 min', costo: '150 Bs', precio: 150, sucursal: 'ambos' },
+  { value: 'combo_ultra_radio', label: 'Ultracavitación + Radiofrecuencia', categoria: 'Combos', duracion: '50 min', costo: '100 Bs', precio: 100, sucursal: 'ambos' },
+  { value: 'combo_lipo_ultra', label: 'Lipolaser + Ultracavitación', categoria: 'Combos', duracion: '50 min', costo: '100 Bs', precio: 100, sucursal: 'ambos' },
+  { value: 'combo_lipo_radio', label: 'Lipolaser + Radiofrecuencia', categoria: 'Combos', duracion: '50 min', costo: '100 Bs', precio: 100, sucursal: 'ambos' },
+  { value: 'combo_lipo_vacum', label: 'Lipolaser + Vacumterapia', categoria: 'Combos', duracion: '50 min', costo: '100 Bs', precio: 100, sucursal: 'ambos' },
+  { value: 'combo_ultra_vacum', label: 'Ultracavitación + Vacumterapia', categoria: 'Combos', duracion: '50 min', costo: '100 Bs', precio: 100, sucursal: 'ambos' },
+  { value: 'combo_radio_ondas', label: 'Radiofrecuencia + Ondas Rusas', categoria: 'Combos', duracion: '50 min', costo: '100 Bs', precio: 100, sucursal: 'ambos' },
+  { value: 'combo_vacum_ondas', label: 'Vacumterapia Premium + Ondas Rusas', categoria: 'Combos', duracion: '50 min', costo: '100 Bs', precio: 100, sucursal: 'ambos' },
+  { value: 'meso', label: 'Mesoterapia', categoria: 'Apartología', duracion: '50 min', costo: '70 Bs', precio: 70, sucursal: 'ambos' },
+  { value: 'inyeccion_quemador_1', label: 'Quemador de Grasa + Ultradev + Masaje (1 sesión)', categoria: 'Inyecciones', duracion: '50 min', costo: '300 Bs', precio: 300, sucursal: 'ambos' },
+  { value: 'inyeccion_quemador_3', label: 'Quemador de Grasa + Ultradev + Masaje (3 sesiones)', categoria: 'Inyecciones', duracion: '50 min', costo: '750 Bs', precio: 750, sucursal: 'ambos' },
+  { value: 'inyeccion_quemador_5', label: 'Quemador de Grasa + Ultradev + Masaje (5 sesiones)', categoria: 'Inyecciones', duracion: '50 min', costo: '1250 Bs', precio: 1250, sucursal: 'ambos' },
+  { value: 'inyeccion_quemador_10', label: 'Quemador de Grasa + Ultradev + Masaje (10 sesiones)', categoria: 'Inyecciones', duracion: '50 min', costo: '2350 Bs', precio: 2350, sucursal: 'ambos' },
+  { value: 'inyeccion_dmae_1', label: 'DMAE + Radiofrecuencia + Masaje Tonif. (1 sesión)', categoria: 'Inyecciones', duracion: '50 min', costo: '350 Bs', precio: 350, sucursal: 'ambos' },
+  { value: 'inyeccion_dmae_3', label: 'DMAE + Radiofrecuencia + Masaje Tonif. (3 sesiones)', categoria: 'Inyecciones', duracion: '50 min', costo: '900 Bs', precio: 900, sucursal: 'ambos' },
+  { value: 'inyeccion_dmae_5', label: 'DMAE + Radiofrecuencia + Masaje Tonif. (5 sesiones)', categoria: 'Inyecciones', duracion: '50 min', costo: '1500 Bs', precio: 1500, sucursal: 'ambos' },
+  { value: 'inyeccion_dmae_10', label: 'DMAE + Radiofrecuencia + Masaje Tonif. (10 sesiones)', categoria: 'Inyecciones', duracion: '50 min', costo: '2900 Bs', precio: 2900, sucursal: 'ambos' },
+  { value: 'paquete_abdomen_premium', label: 'Paquete Abdomen Premium', categoria: 'Combos Inyecciones', duracion: 'Varias', costo: '700 Bs', precio: 700, sucursal: 'ambos' },
+  { value: 'promo_criolipolisis', label: 'Promo Criolipolisis (2 sesiones)', categoria: 'Combos Inyecciones', duracion: 'Varias', costo: '750 Bs', precio: 750, sucursal: 'ARANJUEZ' },
+  { value: 'peptonas_premium', label: 'Peptonas Premium', categoria: 'Combos Inyecciones', duracion: '50 min', costo: '250 Bs', precio: 250, sucursal: 'ARANJUEZ' },
+  { value: 'peptonas_ondas', label: 'Peptonas + Ondas Rusas', categoria: 'Combos Inyecciones', duracion: '50 min', costo: '200 Bs', precio: 200, sucursal: 'ambos' },
+  { value: 'e_pulse_bike_5', label: 'E-Pulse Bike (5 sesiones)', categoria: 'Bicicleta', duracion: '30 min', costo: '250 Bs', precio: 250, sucursal: 'CENTRO' },
+  { value: 'e_pulse_bike_10', label: 'E-Pulse Bike (10 sesiones)', categoria: 'Bicicleta', duracion: '30 min', costo: '350 Bs', precio: 350, sucursal: 'CENTRO' },
+  { value: 'e_pulse_bike_20', label: 'E-Pulse Bike (20 sesiones)', categoria: 'Bicicleta', duracion: '30 min', costo: '500 Bs', precio: 500, sucursal: 'CENTRO' },
 ] as const;
 
 export type ServicioValue = typeof SERVICIOS_DISPONIBLES[number]['value'];
@@ -64,11 +88,16 @@ export interface ReservaFormData {
   local: string;
   semana: string;
   dia: DiaSemana;
+  fecha?: string;
   hora_desde: string;
   hora_hasta: string;
   tipo: 'm' | 'b';
   cliente: string;
+  numero_telefono?: string;
   servicio: string;
+  precio?: number;
+  notas?: string;
+  estado?: EstadoReserva;
 }
 
 export interface ReservaDetalle {
@@ -149,6 +178,7 @@ export function getServiciosPorSucursal(sucursal: string) {
 }
 
 export type ServicioInfo = typeof SERVICIOS_DISPONIBLES[number];
+export type ServicioAdminInfo = typeof SERVICIOS_ADMIN_DISPONIBLES[number];
 
 export function getServiciosPorCategoria(servicios: readonly ServicioInfo[]) {
   const categorias: Record<string, ServicioInfo[]> = {};
@@ -161,8 +191,26 @@ export function getServiciosPorCategoria(servicios: readonly ServicioInfo[]) {
   return categorias;
 }
 
-export function getTipoFromServicio(servicioValue: string): string {
-  const servicio = SERVICIOS_DISPONIBLES.find(s => s.value === servicioValue);
+export function getServiciosAdminPorSucursal(sucursal: string) {
+  const normalizedSucursal = sucursal === 'SAN MARTIN' ? 'CENTRO' : sucursal;
+  return SERVICIOS_ADMIN_DISPONIBLES.filter(
+    s => s.sucursal === 'ambos' || s.sucursal === normalizedSucursal
+  );
+}
+
+export function getServiciosAdminPorCategoria(servicios: readonly ServicioAdminInfo[]) {
+  const categorias: Record<string, ServicioAdminInfo[]> = {};
+  for (const s of servicios) {
+    if (!categorias[s.categoria]) {
+      categorias[s.categoria] = [];
+    }
+    categorias[s.categoria]!.push(s);
+  }
+  return categorias;
+}
+
+export function getTipoFromServicio(servicioValue?: string): string {
+  const servicio = SERVICIOS_ADMIN_DISPONIBLES.find(s => s.value === servicioValue);
   if (servicio?.categoria === 'Bicicleta') {
     return 'B';
   }
@@ -332,7 +380,11 @@ export interface ReservaBD {
   hora_desde: string; // "8:00"
   hora_hasta: string; // "9:30"
   cliente: string;
+  numero_telefono?: string;
   servicio: string;
+  precio?: number;
+  notas?: string;
+  estado?: EstadoReserva;
 }
 
 export interface ReservasBDResponse {

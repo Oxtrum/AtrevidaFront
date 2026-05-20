@@ -197,6 +197,101 @@
     0 0 12px rgba(220, 38, 38, 0.2);
 }
 
+.phoneInputWrap {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: stretch;
+}
+
+.phonePrefix {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 1rem;
+  color: var(--af-text);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--af-border);
+  border-right: 0;
+  border-radius: var(--af-input-radius) 0 0 var(--af-input-radius);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.phoneInputWrap input {
+  border-radius: 0 var(--af-input-radius) var(--af-input-radius) 0;
+}
+
+.dateInputWrap {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: stretch;
+}
+
+.dateInputWrap input {
+  border-radius: var(--af-input-radius) 0 0 var(--af-input-radius);
+}
+
+.datePickerButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  color: var(--af-text);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--af-border);
+  border-left: 0;
+  border-radius: 0 var(--af-input-radius) var(--af-input-radius) 0;
+  cursor: pointer;
+  transition: var(--af-t-mid);
+}
+
+.datePickerButton:hover {
+  color: var(--af-accent-primary);
+  background: var(--af-input-bg-hov);
+}
+
+.serviceNote {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  color: var(--af-text-muted);
+  background: rgba(255, 230, 0, 0.08);
+  border: 1px solid rgba(255, 230, 0, 0.24);
+  border-radius: var(--af-radius-sm);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.reservationSummary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  padding: 1rem;
+  background: var(--af-surface-1);
+  border: 1px solid var(--af-border-subtle);
+  border-radius: var(--af-radius-md);
+}
+
+.reservationSummary div {
+  min-width: 0;
+}
+
+.reservationSummary span {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--af-dim);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.reservationSummary strong {
+  display: block;
+  color: var(--af-text);
+  font-size: 0.86rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
 /* Error State */
 .inputError {
   border-color: var(--af-border-focus) !important;
@@ -765,6 +860,102 @@
   box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.15), 0 0 25px rgba(236, 0, 140, 0.18);
 }
 
+.phoneInputWrap {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: stretch;
+}
+
+.phonePrefix {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 1rem;
+  color: #F5F5F5;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(146, 39, 143, 0.35);
+  border-right: 0;
+  border-radius: 50px 0 0 50px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.phoneInputWrap input {
+  border-radius: 0 50px 50px 0;
+}
+
+.dateInputWrap {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: stretch;
+}
+
+.dateInputWrap input {
+  border-radius: 50px 0 0 50px;
+}
+
+.datePickerButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  color: #F5F5F5;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(146, 39, 143, 0.35);
+  border-left: 0;
+  border-radius: 0 50px 50px 0;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.datePickerButton:hover {
+  color: #EC008C;
+  background: rgba(236, 0, 140, 0.08);
+  box-shadow: 0 0 18px rgba(236, 0, 140, 0.12);
+}
+
+.serviceNote {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  color: rgba(245, 245, 245, 0.72);
+  background: rgba(255, 230, 0, 0.08);
+  border: 1px solid rgba(255, 230, 0, 0.24);
+  border-radius: 14px;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.reservationSummary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(245, 245, 245, 0.08);
+  border-radius: 16px;
+}
+
+.reservationSummary div {
+  min-width: 0;
+}
+
+.reservationSummary span {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: rgba(245, 245, 245, 0.42);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.reservationSummary strong {
+  display: block;
+  color: #F5F5F5;
+  font-size: 0.86rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
 .inputError {
   border-color: rgba(220, 38, 38, 0.60) !important;
   box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.10) !important;
@@ -1129,6 +1320,10 @@
   .timeChip {
     font-size: 0.65rem;
     padding: 0.3rem 0.5rem;
+  }
+
+  .reservationSummary {
+    grid-template-columns: 1fr;
   }
 
   .formActions {

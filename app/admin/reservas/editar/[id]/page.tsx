@@ -8,7 +8,7 @@ import Header from '@/components/AdminHeader/Header';
 import { actualizarReservaDB, getReservaByID } from '@/lib/api/reservas';
 import { useReservas } from '@/lib/hooks/useReservas';
 import { useLocales } from '@/lib/hooks/useLocales';
-import { DiaSemana, ReservaBD, generarSemanas, getFechasDeSemana, esFechaPasada, getTipoFromServicio } from '@/types/reserva';
+import { DiaSemana, EstadoReserva, ReservaBD, generarSemanas, getFechasDeSemana, esFechaPasada, getTipoFromServicio } from '@/types/reserva';
 import { HORAS, DIAS_SEMANA } from '@/lib/constants/reservationForm';
 import { DaySelector } from '@/components/AdminReservationForm/DaySelector';
 import { TimeSlotPicker } from '@/components/AdminReservationForm/TimeSlotPicker';
@@ -33,6 +33,7 @@ function EditarReservaContent() {
   const [nuevaFecha, setNuevaFecha] = useState('');
   const [nuevaHoraDesde, setNuevaHoraDesde] = useState('');
   const [nuevaHoraHasta, setNuevaHoraHasta] = useState('');
+  const [nuevoEstado, setNuevoEstado] = useState<EstadoReserva>('PENDIENTE');
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [clienteName, setClienteName] = useState('');
 
@@ -75,6 +76,15 @@ function EditarReservaContent() {
       label: s.titulo,
     })),
     [semanasDisponibles],
+  );
+
+  const estadoOptions = useMemo(
+    () => [
+      { value: 'PENDIENTE', label: 'Pendiente' },
+      { value: 'APROBADO', label: 'Aprobado' },
+      { value: 'RECHAZADO', label: 'Rechazado' },
+    ],
+    [],
   );
 
   const hoursAvailability = useMemo(() => {
@@ -151,6 +161,7 @@ function EditarReservaContent() {
           setNuevaFecha(found.fecha);
           setNuevaHoraDesde(found.hora_desde);
           setNuevaHoraHasta(found.hora_hasta);
+          setNuevoEstado(found.estado || 'PENDIENTE');
           setClienteName(found.cliente);
 
           // Buscar en qué semana está la reserva
@@ -246,6 +257,7 @@ function EditarReservaContent() {
         ...(nuevaHoraDesde && nuevaHoraDesde !== reserva.hora_desde && { nueva_hora_desde: nuevaHoraDesde }),
         ...(nuevaHoraHasta && nuevaHoraHasta !== reserva.hora_hasta && { nueva_hora_hasta: nuevaHoraHasta }),
         nuevo_tipo: tipoBackend,
+        ...(nuevoEstado !== (reserva.estado || 'PENDIENTE') && { nuevo_estado: nuevoEstado }),
       });
 
       if (result.mensaje?.toLowerCase().includes('error') || result.mensaje?.toLowerCase().includes('no encontrada')) {
@@ -315,6 +327,10 @@ function EditarReservaContent() {
             <span className={styles.infoLabel}>Local</span>
             <span className={styles.infoValue}>{reserva.local}</span>
           </div>
+          <div className={styles.infoRow}>
+            <span className={styles.infoLabel}>Estado</span>
+            <span className={styles.infoValue}>{reserva.estado || 'PENDIENTE'}</span>
+          </div>
         </div>
       </div>
 
@@ -358,6 +374,16 @@ function EditarReservaContent() {
               horaHasta={nuevaHoraHasta}
               hoursAvailability={hoursAvailability}
               onSelect={handleSlotSelect}
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label>Estado</label>
+            <CustomSelect
+              value={nuevoEstado}
+              onChange={(value) => setNuevoEstado(value as EstadoReserva)}
+              options={estadoOptions}
+              hasError={false}
             />
           </div>
         </div>

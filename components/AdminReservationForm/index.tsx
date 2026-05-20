@@ -22,6 +22,7 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
     dia,
     horaDesde, horaHasta,
     cliente, setCliente,
+    numeroTelefono, setNumeroTelefono,
     servicio,
     error, errors,
     slotWarning,
@@ -150,6 +151,19 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
               className={errors.cliente ? styles.inputError : ''}
             />
             {errors.cliente && <span className={styles.errorText}>{errors.cliente}</span>}
+          </div>
+
+          <div className={`${styles.formGroup} ${styles.fullWidth}`}>
+            <label>Teléfono</label>
+            <input
+              type="tel"
+              inputMode="numeric"
+              value={numeroTelefono}
+              onChange={e => setNumeroTelefono(e.target.value.replace(/\D/g, '').slice(0, 8))}
+              placeholder="+591 77777777"
+              className={errors.numeroTelefono ? styles.inputError : ''}
+            />
+            {errors.numeroTelefono && <span className={styles.errorText}>{errors.numeroTelefono}</span>}
           </div>
 
         </div>

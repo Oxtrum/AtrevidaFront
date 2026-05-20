@@ -4,7 +4,7 @@
  */
 
 import { apiClient } from './client';
-import type { ApiResponse, ReservaBD, ReservaFormData, ReservasBDApiResponse } from '@/types/reserva';
+import type { ApiResponse, EstadoReserva, ReservaBD, ReservaFormData, ReservasBDApiResponse } from '@/types/reserva';
 
 // ─── Parámetros (Sheets - DEPRECATED) ──────────────────────────────────────
 
@@ -21,7 +21,7 @@ export interface GetReservasSheetsParams {
 // ─── Parámetros (DB) ────────────────────────────────────────────────────────
 
 /** Tipo de reserva tal como lo espera el backend en el body / query. */
-export type ReservaTipoBackend = 'mesa' | 'bicicleta';
+export type ReservaTipoBackend = string;
 
 export interface GetReservasDBParams {
   local?: string;
@@ -49,10 +49,12 @@ export interface CrearReservaDBData {
   hora_hasta: string;
   tipo: ReservaTipoBackend;
   cliente: string;
-  servicio?: string;
+  numero_telefono: string;
+  servicio: string;
   notas?: string;
   plan_id?: number;
   precio?: number;
+  estado: EstadoReserva;
 }
 
 /**
@@ -70,6 +72,7 @@ export interface ActualizarReservaDBData {
   nuevo_precio?: number;
   nuevo_servicio?: string;
   nuevo_tipo?: ReservaTipoBackend;
+  nuevo_estado?: EstadoReserva;
 }
 
 export interface CrearReservaResult {

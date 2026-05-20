@@ -3,12 +3,29 @@
  * Mantiene el componente limpio y testeable.
  */
 
-import type { DiaSemana, ReservaFormData } from '@/types/reserva';
+import type { DiaSemana, EstadoReserva } from '@/types/reserva';
+
+interface ReservaPayload {
+  local: string;
+  semana?: string;
+  dia?: DiaSemana;
+  fecha?: string;
+  hora_desde: string;
+  hora_hasta: string;
+  tipo: string;
+  cliente: string;
+  numero_telefono?: string;
+  servicio: string;
+  precio?: number;
+  notas?: string;
+  estado: EstadoReserva;
+}
 
 export function validateReservationForm(
     sucursal: string,
-    semanaActual: any,
+    fecha: string,
     cliente: string,
+    numeroTelefono: string,
     servicio: string,
     horaDesde: string,
     horaHasta: string,
@@ -19,12 +36,24 @@ export function validateReservationForm(
         errors.sucursal = 'Selecciona una sucursal';
     }
 
-    if (!semanaActual) {
-        errors.semana = 'Selecciona una semana';
+    if (!fecha) {
+        errors.fecha = 'Selecciona una fecha';
+    } else {
+        const hoy = new Date().toLocaleDateString('en-CA');
+        if (fecha < hoy) {
+            errors.fecha = 'Selecciona una fecha vigente';
+        }
     }
 
     if (!cliente.trim()) {
         errors.cliente = 'Ingresa el nombre del cliente';
+    }
+
+    const phoneDigits = numeroTelefono.replace(/\D/g, '');
+    if (!phoneDigits) {
+        errors.numeroTelefono = 'Ingresa el teléfono del cliente';
+    } else if (!/^[67]\d{7}$/.test(phoneDigits)) {
+        errors.numeroTelefono = 'Ingresa 8 dígitos locales de Bolivia';
     }
 
     if (!servicio) {
@@ -56,8 +85,12 @@ export function buildReservaPayload(
   tipo: string, // 'mesa' o 'bicicleta'
   cliente: string,
   servicio: string,
+  numeroTelefono?: string,
+  precio?: number,
+  notas?: string,
+  estado: EstadoReserva = 'PENDIENTE',
   fecha?: string, // Fecha ISO para DB: "2025-04-04"
-): any {
+): ReservaPayload {
   // Para BD, usar fecha (si se proporciona)
   if (fecha && fecha.trim() !== '') {
     return {
@@ -67,7 +100,11 @@ export function buildReservaPayload(
       hora_hasta: horaHasta,
       tipo, // 'mesa' o 'bicicleta' (lowercase, full name)
       cliente,
+      numero_telefono: numeroTelefono,
       servicio,
+      precio,
+      notas,
+      estado,
     };
   }
   
@@ -80,6 +117,10 @@ export function buildReservaPayload(
     hora_hasta: horaHasta,
     tipo,
     cliente,
+    numero_telefono: numeroTelefono,
     servicio,
+    precio,
+    notas,
+    estado,
   };
 }

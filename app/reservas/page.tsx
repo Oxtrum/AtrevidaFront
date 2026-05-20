@@ -1,93 +1,67 @@
 'use client';
-import { useRouter, usePathname } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
-import { useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
+import { ArrowRight, CalendarCheck, Sparkles } from 'lucide-react';
 import Header from '@/components/Header/Header';
-import { CalendarPublico } from '@/components/Calendar';
-import { DiaSemana } from '@/types/reserva';
 import styles from './page.module.css';
 
 export default function ReservasPage() {
   const router = useRouter();
-  const pathname = usePathname();
   const containerRef = useRef<HTMLDivElement>(null);
-  const badgeRef = useRef<HTMLDivElement>(null);
-  const headerRef = useRef<HTMLDivElement>(null);
-  const actionsRef = useRef<HTMLDivElement>(null);
-  const calendarRef = useRef<HTMLDivElement>(null);
-
-  const [sucursalActiva, setSucursalActiva] = useState('');
-  const [semanaActiva, setSemanaActiva] = useState('');
-  const [refreshKey, setRefreshKey] = useState(0);
-  useEffect(() => {
-    if (pathname.startsWith('/reservas')) {
-      setRefreshKey(k => k + 1);
-    }
-  }, [pathname]);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const proofRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-      tl.fromTo(badgeRef.current, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6 })
-        .fromTo(headerRef.current, { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7 }, '-=0.3')
-        .fromTo(actionsRef.current, { x: 20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5 }, '-=0.3')
-        .fromTo(calendarRef.current, { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6 }, '-=0.2');
+      tl.fromTo(contentRef.current, { y: 28, opacity: 0 }, { y: 0, opacity: 1, duration: 0.75 })
+        .fromTo(proofRef.current?.children || [], { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.08 }, '-=0.25');
     }, containerRef);
     return () => ctx.kill();
   }, []);
 
-  const handleSlotClick = (hora: string, dia: DiaSemana, slots: any) => {
-    // Extraer hora_desde y hora_hasta del formato "8:00 a 8:30"
-    const [hora_desde, hora_hasta] = hora.split(' a ').map(h => h.trim());
-
-    const params = new URLSearchParams({
-      local: sucursalActiva,
-      semana: semanaActiva,
-      dia: dia,
-      hora_desde,
-      hora_hasta,
-    });
-    router.push(`/reservas/crear?${params.toString()}`);
-  };
-
   return (
     <div ref={containerRef} className={styles.pageContainer}>
       <Header />
-      <main className={styles.main}>
-        <div className={styles.header}>
-          <div ref={badgeRef} className={styles.badge}>
-            <span className={styles.badgeDot} />
-            Gestión de citas
+      <main className={styles.hero}>
+        <div ref={contentRef} className={styles.heroContent}>
+          <div className={styles.eyebrow}>
+            <Sparkles size={16} strokeWidth={1.8} />
+            Evaluación gratuita
           </div>
-          <div ref={headerRef}>
-            <h1 className={styles.title}>Reservas</h1>
+          <h1 className={styles.title}>Agenda tu evaluación estética sin costo</h1>
+          <p className={styles.subtitle}>
+            Descubre el tratamiento ideal para tu cuerpo con una valoración profesional.
+            Solicita tu reserva y nuestro equipo confirmará el horario disponible.
+          </p>
+
+          <div className={styles.actions}>
+            <button
+              className={styles.primaryButton}
+              onClick={() => router.push('/reservas/crear')}
+            >
+              <CalendarCheck size={19} strokeWidth={1.8} />
+              Reservar evaluación
+              <ArrowRight size={18} strokeWidth={1.8} />
+            </button>
+            <span className={styles.microcopy}>Cupo sujeto a aprobación manual</span>
           </div>
-        </div>
 
-        <div ref={actionsRef} className={styles.actions}>
-          <button
-            className={styles.createButton}
-            onClick={() => {
-              const params = new URLSearchParams({
-                local: sucursalActiva,
-                semana: semanaActiva,
-              });
-              router.push(`/reservas/crear?${params.toString()}`);
-            }}
-          >
-            <span className={styles.createButtonIcon}>+</span>
-            <span className={styles.createButtonText}>Nueva Reserva</span>
-          </button>
-        </div>
-
-        <div ref={calendarRef} className={styles.calendarSection}>
-          <CalendarPublico
-            key={refreshKey}
-            onSlotClick={handleSlotClick}
-            onSucursalChange={setSucursalActiva}
-            onSemanaChange={setSemanaActiva}
-          />
+          <div ref={proofRef} className={styles.proofStrip}>
+            <div>
+              <span>1</span>
+              <strong>Elige fecha y hora</strong>
+            </div>
+            <div>
+              <span>2</span>
+              <strong>Recibe confirmación</strong>
+            </div>
+            <div>
+              <span>3</span>
+              <strong>Diseñamos tu plan</strong>
+            </div>
+          </div>
         </div>
       </main>
     </div>

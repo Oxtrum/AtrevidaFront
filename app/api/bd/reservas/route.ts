@@ -19,11 +19,15 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const body = await request.json();
   const url = `${BACKEND_URL}/bd/reservas`;
+  const reservaPendiente = {
+    ...body,
+    estado: "PENDIENTE",
+  };
 
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    body: JSON.stringify(reservaPendiente),
   });
 
   const data = await res.json();

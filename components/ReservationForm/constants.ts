@@ -1,4 +1,5 @@
 export const CATEGORIAS_ORDEN = [
+  'Reservas',
   'Apartología',
   'Bicicleta',
   'Manuales',
