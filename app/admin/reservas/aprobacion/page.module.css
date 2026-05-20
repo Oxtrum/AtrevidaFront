@@ -81,6 +81,7 @@
 
 .refreshButton,
 .approveButton,
+.contactButton,
 .rejectButton {
   display: inline-flex;
   align-items: center;
@@ -110,12 +111,14 @@
 
 .refreshButton:hover,
 .approveButton:hover,
+.contactButton:hover,
 .rejectButton:hover {
   transform: translateY(-2px);
 }
 
 .refreshButton:disabled,
 .approveButton:disabled,
+.contactButton:disabled,
 .rejectButton:disabled {
   cursor: not-allowed;
   opacity: 0.62;
@@ -478,23 +481,31 @@
 
 .pendingActions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.65rem;
   margin-top: auto;
 }
 
 .approveButton,
+.contactButton,
 .rejectButton {
   min-height: 42px;
   padding: 0.72rem 0.85rem;
   border-radius: var(--admin-radius-md);
   font-size: 0.82rem;
+  text-decoration: none;
 }
 
 .approveButton {
   color: #ffffff;
   background: var(--admin-grad-success);
   box-shadow: 0 10px 24px rgba(20, 174, 239, 0.18);
+}
+
+.contactButton {
+  color: var(--admin-accent-success);
+  background: rgba(20, 174, 239, 0.1);
+  border: 1px solid rgba(20, 174, 239, 0.22);
 }
 
 .rejectButton {
@@ -580,7 +591,10 @@
 }
 
 @media (max-width: 680px) {
-  .summaryGrid,
+  .summaryGrid {
+    grid-template-columns: 1fr;
+  }
+
   .pendingActions {
     grid-template-columns: 1fr;
   }

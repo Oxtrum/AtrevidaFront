@@ -11,6 +11,7 @@ import {
   Clock,
   Filter,
   MapPin,
+  MessageCircle,
   Phone,
   RefreshCw,
   ShieldCheck,
@@ -47,6 +48,16 @@ const formatDate = (fecha: string) => {
     day: 'numeric',
     month: 'short',
   });
+};
+
+const getWhatsappHref = (telefono?: string) => {
+  const phoneDigits = telefono?.replace(/\D/g, '') ?? '';
+  if (!phoneDigits) return null;
+
+  const phone = phoneDigits.startsWith('591') ? phoneDigits : `591${phoneDigits}`;
+  const message = 'Hola 👋 Acabamos de recibir tu reserva ✨ ¿Qué tratamiento deseas realizar? 💆‍♀️';
+
+  return `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`;
 };
 
 export default function AdminReservasAprobacionPage() {
@@ -301,6 +312,7 @@ export default function AdminReservasAprobacionPage() {
               <div ref={cardsGridRef} className={styles.pendingGrid}>
                 {reservasVisibles.map((reserva) => {
                   const estadoNormalizado = normalizeEstado(reserva.estado);
+                  const whatsappHref = getWhatsappHref(reserva.numero_telefono);
 
                   return (
                   <article key={reserva.id} className={`approval-card ${styles.pendingCard}`}>
@@ -364,6 +376,26 @@ export default function AdminReservasAprobacionPage() {
                           <Check size={15} strokeWidth={1.8} />
                           Agendar
                         </button>
+                        {whatsappHref ? (
+                          <a
+                            href={whatsappHref}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={styles.contactButton}
+                          >
+                            <MessageCircle size={15} strokeWidth={1.8} />
+                            Contactar
+                          </a>
+                        ) : (
+                          <button
+                            type="button"
+                            className={styles.contactButton}
+                            disabled
+                          >
+                            <MessageCircle size={15} strokeWidth={1.8} />
+                            Contactar
+                          </button>
+                        )}
                         <button
                           type="button"
                           className={styles.rejectButton}
