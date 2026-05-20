@@ -634,6 +634,285 @@
   margin-top: 0.05rem;
 }
 
+/* ─── Modal-grade polish: final public form surface ───────────── */
+
+.form {
+  max-width: none;
+  overflow: visible;
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background:
+    linear-gradient(145deg, rgba(18, 18, 20, 0.96), rgba(5, 5, 8, 0.96)),
+    radial-gradient(circle at 12% 0%, rgba(255, 230, 0, 0.16), transparent 28%),
+    radial-gradient(circle at 92% 18%, rgba(236, 0, 140, 0.14), transparent 30%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.10),
+    0 28px 80px rgba(0, 0, 0, 0.62);
+}
+
+.form::before {
+  height: 3px;
+  border-radius: 30px 30px 0 0;
+  background: linear-gradient(90deg, #FFE600 0%, #EC008C 36%, #92278F 62%, #14AEEF 100%);
+  opacity: 1;
+}
+
+.formBody {
+  padding: clamp(1.35rem, 3vw, 2.35rem);
+}
+
+.formHeader {
+  position: relative;
+  margin-bottom: 1.45rem;
+  padding: 0 3.5rem 1.25rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.formEyebrow {
+  margin-bottom: 0.9rem;
+  padding: 0.42rem 0.78rem;
+  color: #FFE600;
+  background: rgba(255, 230, 0, 0.09);
+  border-color: rgba(255, 230, 0, 0.28);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+}
+
+.formTitle {
+  max-width: 620px;
+  margin-bottom: 0.45rem;
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  color: #FFFFFF;
+  font-size: clamp(1.6rem, 3vw, 2.25rem);
+  line-height: 1.02;
+}
+
+.formSubtitle {
+  max-width: 620px;
+  color: rgba(245, 245, 245, 0.62);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.formGrid {
+  gap: 1.05rem 1.1rem;
+  align-items: start;
+}
+
+.formGroup {
+  gap: 0.52rem;
+}
+
+.formGroup label {
+  padding-left: 0.15rem;
+  color: rgba(245, 245, 245, 0.58);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 1.35px;
+}
+
+.formGroup input {
+  min-height: 48px;
+  border-radius: 16px;
+  border-color: rgba(255, 255, 255, 0.11);
+  background: rgba(255, 255, 255, 0.055);
+  padding: 0.78rem 1rem;
+  font-size: 0.92rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
+}
+
+.formGroup input:hover {
+  border-color: rgba(255, 230, 0, 0.30);
+  background: rgba(255, 255, 255, 0.075);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.formGroup input:focus {
+  border-color: rgba(255, 230, 0, 0.62);
+  background: rgba(255, 255, 255, 0.085);
+  box-shadow:
+    0 0 0 3px rgba(255, 230, 0, 0.10),
+    0 16px 34px rgba(0, 0, 0, 0.20);
+}
+
+.dateInputWrap input,
+.phoneInputWrap input {
+  border-radius: 16px 0 0 16px;
+}
+
+.datePickerButton,
+.phonePrefix {
+  min-height: 48px;
+  border-color: rgba(255, 255, 255, 0.11);
+  background: rgba(255, 255, 255, 0.075);
+}
+
+.datePickerButton {
+  width: 52px;
+  border-radius: 0 16px 16px 0;
+}
+
+.phonePrefix {
+  border-radius: 16px 0 0 16px;
+  color: #FFE600;
+}
+
+.phoneInputWrap input {
+  border-radius: 0 16px 16px 0;
+}
+
+.datePickerButton:hover {
+  color: #FFE600;
+  background: rgba(255, 230, 0, 0.10);
+  box-shadow: none;
+}
+
+.serviceNote {
+  border-radius: 16px;
+  color: rgba(255, 246, 189, 0.92);
+  background: linear-gradient(135deg, rgba(255, 230, 0, 0.10), rgba(255, 230, 0, 0.045));
+  border-color: rgba(255, 230, 0, 0.22);
+}
+
+.reservationSummary {
+  gap: 0;
+  overflow: hidden;
+  padding: 0;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.reservationSummary div {
+  padding: 0.9rem 1rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.reservationSummary div:last-child {
+  border-right: 0;
+}
+
+.reservationSummary span {
+  color: rgba(255, 230, 0, 0.70);
+  font-size: 0.58rem;
+}
+
+.reservationSummary strong {
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.88rem;
+}
+
+.timeSlotPicker {
+  border-radius: 18px;
+  border-color: rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.timeSlotPickerLegend {
+  padding: 0.85rem 1rem 0.25rem;
+}
+
+.timeSlotGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(64px, 1fr));
+  gap: 0.45rem;
+  padding: 0.85rem 1rem 1rem;
+}
+
+.timeChip {
+  min-height: 38px;
+  border-radius: 12px;
+  border-color: rgba(20, 174, 239, 0.22);
+  background: rgba(20, 174, 239, 0.075);
+}
+
+.timeChipStart,
+.timeChipSelected {
+  border-color: rgba(255, 230, 0, 0.72) !important;
+  background: linear-gradient(135deg, rgba(255, 230, 0, 0.24), rgba(236, 0, 140, 0.20)) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 10px 24px rgba(255, 230, 0, 0.10) !important;
+}
+
+.selectedRange {
+  margin: 0 1rem 1rem;
+  border-radius: 14px;
+  color: #FFFFFF;
+  background: rgba(255, 230, 0, 0.09);
+  border-color: rgba(255, 230, 0, 0.24);
+}
+
+.formDivider {
+  margin: 0.15rem 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 230, 0, 0.28), rgba(236, 0, 140, 0.28), transparent);
+}
+
+.formActions {
+  position: relative;
+  margin-top: 1.35rem;
+  padding-top: 1.2rem;
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+.cancelButton,
+.submitButton {
+  min-height: 50px;
+  border-radius: 16px;
+}
+
+.submitButton {
+  color: #050505;
+  background: #FFE600;
+  box-shadow: 0 18px 38px rgba(255, 230, 0, 0.18);
+}
+
+.submitButton::before {
+  border-radius: 16px;
+  background: linear-gradient(135deg, #FFE600, #FF7AC8);
+}
+
+.submitButton:hover:not(:disabled) {
+  box-shadow: 0 22px 46px rgba(255, 230, 0, 0.28);
+}
+
+.cancelButton {
+  background: rgba(255, 255, 255, 0.045);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+@media (max-width: 640px) {
+  .form {
+    border-radius: 24px;
+  }
+
+  .formBody {
+    padding: 1.2rem;
+  }
+
+  .formHeader {
+    padding-right: 3rem;
+  }
+
+  .reservationSummary {
+    grid-template-columns: 1fr;
+  }
+
+  .reservationSummary div {
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .reservationSummary div:last-child {
+    border-bottom: 0;
+  }
+
+  .timeSlotGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 .servicioPlaceholder {
   padding: 0.875rem 1.25rem;
   background: var(--af-surface-1);

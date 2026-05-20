@@ -12,9 +12,10 @@ import styles from './ReservationForm.module.css';
 interface ReservationFormProps {
   initialData?: ReservationFormInitialData;
   onSuccess?: () => void;
+  onCancel?: () => void;
 }
 
-export default function ReservationForm({ initialData, onSuccess }: ReservationFormProps) {
+export default function ReservationForm({ initialData, onSuccess, onCancel }: ReservationFormProps) {
   const router = useRouter();
   const dateInputRef = useRef<HTMLInputElement>(null);
   const {
@@ -224,7 +225,13 @@ export default function ReservationForm({ initialData, onSuccess }: ReservationF
             // Usar push a una ruta conocida en lugar de router.back() para
             // forzar un desmontado consistente (evita problemas con BFCache
             // y restauraciones que no desmontan el componente).
-            onClick={() => router.push(initialData?.isAdmin ? '/admin/reservas' : '/reservas')}
+            onClick={() => {
+              if (onCancel) {
+                onCancel();
+                return;
+              }
+              router.push(initialData?.isAdmin ? '/admin/reservas' : '/reservas');
+            }}
             className={styles.cancelButton}
             disabled={loading}
           >

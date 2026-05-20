@@ -53,7 +53,6 @@ export function useReservationForm(
   const { loading, error: hookError, crearReserva } = useCrearReserva();
   const { data: reservasData, fetch: fetchReservas } = useReservas();
   const { locales, loading: loadingLocales } = useLocales();
-  console.log('>>> RENDER reservasData:', reservasData?.data?.reservas?.length ?? 'null');
   // ── State ──────────────────────────────────────
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -119,13 +118,6 @@ export function useReservationForm(
       return () => window.clearTimeout(timeoutId);
     }
   }, [horaPreestablecida, horaDesde, servicio]);
-  useEffect(() => {
-    console.log('>>> useReservationForm MONTADO');
-    return () => console.log('>>> useReservationForm DESMONTADO');
-  }, []);
-  useEffect(() => {
-    console.log('>>> reservasData cambió:', reservasData);
-  }, [reservasData]);
   // ── Locales dinámicos ─────────────────────────
   // Usar locales dinámicos, si no hay usar SUCURSALES estático
   const sucursalOptions = useMemo(

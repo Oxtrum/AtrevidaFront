@@ -45,11 +45,9 @@ export function useReservas(): UseReservasReturn {
                 fecha_desde: params.fecha_desde,
                 fecha_hasta: params.fecha_hasta,
             });
-            console.log('>>> getReservasDB result:', result);
             
             setData(result);
         } catch (err) {
-            console.log('>>> getReservasDB ERROR:', err);
             setError(err instanceof Error ? err.message : 'Error desconocido');
             setData(null);
         } finally {
