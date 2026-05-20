@@ -8,11 +8,11 @@
 
 .hero {
   position: relative;
-  min-height: calc(100dvh - 128px);
+  min-height: 100svh;
   isolation: isolate;
   display: grid;
   align-items: center;
-  padding: clamp(2rem, 5vw, 5.5rem);
+  padding: clamp(5.7rem, 9vh, 7.2rem) clamp(1rem, 4vw, 4.5rem) clamp(1rem, 4vh, 2.6rem);
   background-image:
     linear-gradient(90deg, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0.66) 36%, rgba(0, 0, 0, 0.22) 68%, rgba(0, 0, 0, 0.55) 100%),
     linear-gradient(180deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.78)),
@@ -45,16 +45,16 @@
 }
 
 .heroContent {
-  width: min(790px, 100%);
-  padding-bottom: clamp(1.5rem, 4vw, 3.8rem);
+  width: min(690px, 100%);
+  padding-bottom: 0;
 }
 
 .eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
-  margin-bottom: 1.35rem;
-  padding: 0.58rem 0.9rem;
+  margin-bottom: clamp(0.75rem, 2vh, 1.1rem);
+  padding: 0.5rem 0.82rem;
   border: 1px solid rgba(255, 230, 0, 0.38);
   border-radius: 999px;
   color: #FFE600;
@@ -68,24 +68,24 @@
 }
 
 .title {
-  max-width: 12ch;
+  max-width: 12.6ch;
   margin: 0;
   color: #FFFFFF;
-  font-size: clamp(3rem, 8vw, 7.2rem);
+  font-size: clamp(2.65rem, 5.8vw, 5.55rem);
   font-weight: 900;
-  line-height: 0.88;
+  line-height: 0.96;
   letter-spacing: 0;
   text-wrap: balance;
   text-shadow: 0 22px 70px rgba(0, 0, 0, 0.56);
 }
 
 .subtitle {
-  max-width: 680px;
-  margin: 1.45rem 0 0;
+  max-width: 600px;
+  margin: clamp(0.8rem, 2vh, 1.1rem) 0 0;
   color: rgba(245, 245, 245, 0.78);
-  font-size: clamp(1rem, 1.7vw, 1.22rem);
+  font-size: clamp(0.94rem, 1.35vw, 1.08rem);
   font-weight: 400;
-  line-height: 1.75;
+  line-height: 1.62;
 }
 
 .actions {
@@ -93,7 +93,7 @@
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
-  margin-top: 2rem;
+  margin-top: clamp(1rem, 2.8vh, 1.55rem);
 }
 
 .primaryButton {
@@ -102,8 +102,8 @@
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  min-height: 54px;
-  padding: 0.95rem 1.35rem 0.95rem 1.5rem;
+  min-height: 50px;
+  padding: 0.82rem 1.15rem 0.82rem 1.25rem;
   border: 0;
   border-radius: 999px;
   color: #050505;
@@ -142,8 +142,8 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1px;
-  width: min(760px, 100%);
-  margin-top: clamp(2rem, 6vw, 4rem);
+  width: min(690px, 100%);
+  margin-top: clamp(1rem, 3.2vh, 2.1rem);
   border: 1px solid rgba(255, 255, 255, 0.10);
   background: rgba(255, 255, 255, 0.10);
   backdrop-filter: blur(18px);
@@ -393,24 +393,24 @@
 }
 
 .proofStrip div {
-  min-height: 86px;
-  padding: 1rem;
+  min-height: 68px;
+  padding: 0.72rem 0.82rem;
   background: rgba(0, 0, 0, 0.45);
 }
 
 .proofStrip span {
   display: block;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.32rem;
   color: #EC008C;
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   font-weight: 900;
 }
 
 .proofStrip strong {
   display: block;
   color: rgba(245, 245, 245, 0.9);
-  font-size: 0.92rem;
-  line-height: 1.35;
+  font-size: 0.82rem;
+  line-height: 1.24;
 }
 
 .modalOverlay {
@@ -491,36 +491,58 @@
 
 @media (max-width: 820px) {
   .hero {
-    min-height: calc(100dvh - 104px);
-    align-items: end;
-    padding: 1.25rem;
+    min-height: 100svh;
+    align-items: center;
+    padding: 5.8rem 1rem 1rem;
     background-position: 62% center;
   }
 
   .heroContent {
-    padding: 22dvh 0 3.25rem;
+    padding: 0 0 0.5rem;
   }
 
   .title {
-    max-width: 10ch;
-    font-size: clamp(3.2rem, 15vw, 5.4rem);
+    max-width: 12.4ch;
+    font-size: clamp(2.25rem, 9.8vw, 4.05rem);
+    line-height: 0.98;
   }
 
   .subtitle {
     max-width: 34rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
   }
 
   .actions {
     align-items: stretch;
     flex-direction: column;
+    gap: 0.65rem;
+    margin-top: 0.95rem;
   }
 
   .primaryButton {
     width: 100%;
+    min-height: 46px;
   }
 
   .proofStrip {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 0.9rem;
+  }
+
+  .proofStrip div {
+    min-height: 58px;
+    padding: 0.55rem 0.5rem;
+  }
+
+  .proofStrip span {
+    margin-bottom: 0.25rem;
+    font-size: 0.64rem;
+  }
+
+  .proofStrip strong {
+    font-size: 0.68rem;
+    line-height: 1.18;
   }
 
   .trustBand {
@@ -574,5 +596,16 @@
   .modalPanel {
     border-radius: 22px;
     margin: 0;
+  }
+}
+
+@media (max-width: 520px) {
+  .hero {
+    min-height: auto;
+    padding: 5.6rem 0.85rem 1.25rem;
+  }
+
+  .proofStrip {
+    grid-template-columns: 1fr;
   }
 }
