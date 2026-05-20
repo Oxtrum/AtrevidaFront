@@ -69,7 +69,7 @@ export default function CtaBanner() {
             <a href="#contacto" className={styles.btnPrimary}>
               ✦ Reservar cita gratuita
             </a>
-            <a href="https://wa.me/000000000" className={styles.btnSecondary} target="_blank" rel="noreferrer">
+            <a href="https://wa.me/59177411855" className={styles.btnSecondary} target="_blank" rel="noopener noreferrer">
               WhatsApp →
             </a>
           </div>
