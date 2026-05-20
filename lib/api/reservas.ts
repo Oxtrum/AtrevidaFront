@@ -20,20 +20,24 @@ export interface GetReservasSheetsParams {
 
 // ─── Parámetros (DB) ────────────────────────────────────────────────────────
 
+/** Tipo de reserva tal como lo espera el backend en el body / query. */
+export type ReservaTipoBackend = 'mesa' | 'bicicleta';
+
 export interface GetReservasDBParams {
-  local: string;
+  local?: string;
+  fecha?: string;
   fecha_desde?: string;
   fecha_hasta?: string;
-  tipo?: string; // "mesa" | "bicicleta" (backend espera strings en GET)
+  tipo?: ReservaTipoBackend;
   cliente?: string;
-  reservados?: boolean;
 }
 
 export interface GetReservasCalendarioParams {
-  local: string;
-  fecha_desde: string;
-  fecha_hasta: string;
-  tipo?: 'M' | 'B';
+  local?: string;
+  fecha?: string;
+  fecha_desde?: string;
+  fecha_hasta?: string;
+  tipo?: ReservaTipoBackend;
   cliente?: string;
   reservados?: boolean;
 }
@@ -43,21 +47,29 @@ export interface CrearReservaDBData {
   fecha: string;
   hora_desde: string;
   hora_hasta: string;
-  tipo: 'M' | 'B';
+  tipo: ReservaTipoBackend;
   cliente: string;
   servicio?: string;
+  notas?: string;
+  plan_id?: number;
+  precio?: number;
 }
 
+/**
+ * PATCH /bd/reservas — body spec: id, local, nueva_fecha, nueva_hora_desde,
+ * nueva_hora_hasta, nuevas_notas, nuevo_precio, nuevo_servicio, nuevo_tipo.
+ * No envía `fecha`/`hora`/`cliente` actuales (backend localiza por id+local).
+ */
 export interface ActualizarReservaDBData {
   id: number;
   local: string;
-  fecha: string;
-  hora: string;
-  tipo: 'M' | 'B';
-  cliente: string;
   nueva_fecha?: string;
   nueva_hora_desde?: string;
-  nuevo_tipo?: 'M' | 'B';
+  nueva_hora_hasta?: string;
+  nuevas_notas?: string;
+  nuevo_precio?: number;
+  nuevo_servicio?: string;
+  nuevo_tipo?: ReservaTipoBackend;
 }
 
 export interface CrearReservaResult {
@@ -88,11 +100,11 @@ export async function getReservasDB(params: GetReservasDBParams): Promise<Reserv
   return apiClient.get<ReservasBDApiResponse>('/bd/reservas', {
     params: {
       local: params.local,
+      fecha: params.fecha,
       fecha_desde: params.fecha_desde,
       fecha_hasta: params.fecha_hasta,
       tipo: params.tipo,
       cliente: params.cliente,
-      reservados: params.reservados?.toString(),
     },
   });
 }
@@ -107,6 +119,7 @@ export async function getReservasCalendario(params: GetReservasCalendarioParams)
   return apiClient.get<ApiResponse>('/bd/reservas/calendario', {
     params: {
       local: params.local,
+      fecha: params.fecha,
       fecha_desde: params.fecha_desde,
       fecha_hasta: params.fecha_hasta,
       tipo: params.tipo,

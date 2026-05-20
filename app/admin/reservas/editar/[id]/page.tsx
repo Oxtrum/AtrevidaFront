@@ -234,18 +234,18 @@ function EditarReservaContent() {
     setMessage(null);
 
     try {
-      const tipoMapping = (reserva.tipo.toLowerCase().startsWith('b')) ? 'B' as const : 'M' as const;
+      const tipoBackend: 'mesa' | 'bicicleta' =
+        reserva.tipo.toLowerCase().startsWith('b') ? 'bicicleta' : 'mesa';
 
+      // Solo enviar campos que realmente cambian — el spec PATCH usa prefijo `nuevo_*`
+      // y localiza la reserva por id + local. No mandamos fecha/hora/cliente actuales.
       const result = await actualizarReservaDB({
         id: reserva.id,
         local: reserva.local,
-        fecha: reserva.fecha,
-        hora: reserva.hora_desde,
-        tipo: tipoMapping,
-        cliente: reserva.cliente,
-        nueva_fecha: nuevaFecha,
-        nueva_hora_desde: nuevaHoraDesde,
-        nuevo_tipo: tipoMapping,
+        ...(nuevaFecha && nuevaFecha !== reserva.fecha && { nueva_fecha: nuevaFecha }),
+        ...(nuevaHoraDesde && nuevaHoraDesde !== reserva.hora_desde && { nueva_hora_desde: nuevaHoraDesde }),
+        ...(nuevaHoraHasta && nuevaHoraHasta !== reserva.hora_hasta && { nueva_hora_hasta: nuevaHoraHasta }),
+        nuevo_tipo: tipoBackend,
       });
 
       if (result.mensaje?.toLowerCase().includes('error') || result.mensaje?.toLowerCase().includes('no encontrada')) {
