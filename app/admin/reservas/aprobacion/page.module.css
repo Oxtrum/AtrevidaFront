@@ -222,6 +222,86 @@
   border: 1px solid var(--admin-border-subtle);
 }
 
+.filterBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  width: fit-content;
+  margin: 0 0 1rem;
+  padding: 0.35rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-lg);
+  background: var(--admin-pill-bg);
+}
+
+.filterButton {
+  min-height: 34px;
+  padding: 0.48rem 0.78rem;
+  border: 0;
+  border-radius: var(--admin-radius-md);
+  color: var(--admin-text-muted);
+  background: transparent;
+  font-family: var(--admin-font-family);
+  font-size: 0.78rem;
+  font-weight: 850;
+  cursor: pointer;
+  transition:
+    transform var(--admin-t-normal) var(--admin-ease),
+    color var(--admin-t-normal) var(--admin-ease),
+    background var(--admin-t-normal) var(--admin-ease),
+    box-shadow var(--admin-t-normal) var(--admin-ease);
+}
+
+.filterButton:hover {
+  color: var(--admin-foreground);
+  background: rgba(236, 0, 140, 0.08);
+}
+
+.filterButton:disabled {
+  cursor: default;
+}
+
+.filterButtonActive {
+  color: #ffffff;
+  background: var(--admin-grad-primary);
+  box-shadow: 0 10px 24px rgba(236, 0, 140, 0.16);
+}
+
+.toastMessage {
+  position: fixed;
+  top: max(1rem, env(safe-area-inset-top));
+  right: max(1rem, env(safe-area-inset-right));
+  left: auto;
+  z-index: 120;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: fit-content;
+  max-width: min(420px, calc(100vw - var(--admin-sidebar-width) - 2rem));
+  padding: 0.82rem 0.95rem;
+  border-radius: var(--admin-radius-lg);
+  background: var(--admin-panel-elevated);
+  box-shadow: var(--admin-shadow-lg);
+  backdrop-filter: blur(18px);
+  font-size: 0.86rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+  animation: toastIn 0.26s var(--admin-ease);
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .statusMessage {
   display: flex;
   align-items: center;
@@ -243,6 +323,20 @@
   color: var(--admin-accent-danger);
   background: rgba(255, 77, 109, 0.1);
   border: 1px solid rgba(255, 77, 109, 0.22);
+}
+
+.updatingPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0 0 1rem;
+  padding: 0.48rem 0.72rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-full);
+  color: var(--admin-text-muted);
+  background: var(--admin-pill-bg);
+  font-size: 0.76rem;
+  font-weight: 850;
 }
 
 .pendingGrid {
@@ -287,6 +381,18 @@
   color: var(--admin-accent-yellow);
   background: rgba(255, 230, 0, 0.11);
   border: 1px solid rgba(255, 230, 0, 0.22);
+}
+
+.stateAGENDADO {
+  color: var(--admin-accent-tertiary);
+  background: rgba(255, 230, 0, 0.11);
+  border-color: rgba(20, 174, 239, 0.24);
+}
+
+.stateRECHAZADO {
+  color: var(--admin-accent-danger);
+  background: rgba(255, 230, 0, 0.11);
+  border-color: rgba(255, 77, 109, 0.24);
 }
 
 .pendingId {
@@ -465,6 +571,11 @@
 
   .refreshButton {
     width: fit-content;
+  }
+
+  .toastMessage {
+    right: 1rem;
+    max-width: calc(100vw - 2rem);
   }
 }
 

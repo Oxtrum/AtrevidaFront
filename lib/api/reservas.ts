@@ -30,6 +30,7 @@ export interface GetReservasDBParams {
   fecha_hasta?: string;
   tipo?: ReservaTipoBackend;
   cliente?: string;
+  estado?: EstadoReserva;
 }
 
 export interface GetReservasCalendarioParams {
@@ -114,6 +115,7 @@ export async function getReservasDB(params: GetReservasDBParams): Promise<Reserv
       fecha_hasta: params.fecha_hasta,
       tipo: params.tipo,
       cliente: params.cliente,
+      estado: params.estado,
     },
   });
 }

@@ -23,6 +23,14 @@ import type { EstadoReserva, ReservaBD } from '@/types/reserva';
 import styles from './page.module.css';
 
 type EstadoGestion = Extract<EstadoReserva, 'PENDIENTE' | 'AGENDADO' | 'RECHAZADO'>;
+type EstadoFiltro = EstadoGestion | 'TODOS';
+
+const ESTADO_OPTIONS: Array<{ value: EstadoFiltro; label: string }> = [
+  { value: 'PENDIENTE', label: 'Pendientes' },
+  { value: 'AGENDADO', label: 'Agendadas' },
+  { value: 'RECHAZADO', label: 'Rechazadas' },
+  { value: 'TODOS', label: 'Todas' },
+];
 
 const normalizeEstado = (estado?: EstadoReserva | string): EstadoGestion => {
   if (estado === 'AGENDADO' || estado === 'APROBADO') return 'AGENDADO';
@@ -46,29 +54,50 @@ export default function AdminReservasAprobacionPage() {
   const pageRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
+  const cardsGridRef = useRef<HTMLDivElement>(null);
+  const hasLoadedRef = useRef(false);
 
   const [reservas, setReservas] = useState<ReservaBD[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [isFetching, setIsFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [actionId, setActionId] = useState<number | null>(null);
   const [rejectingId, setRejectingId] = useState<number | null>(null);
   const [rejectCauses, setRejectCauses] = useState<Record<number, string>>({});
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [estadoFiltro, setEstadoFiltro] = useState<EstadoFiltro>('PENDIENTE');
 
-  const fetchReservas = useCallback(async () => {
-    setLoading(true);
+  const fetchReservas = useCallback(async (estado: EstadoFiltro) => {
+    const isInitialRequest = !hasLoadedRef.current;
+    if (isInitialRequest) {
+      setInitialLoading(true);
+    } else {
+      setIsFetching(true);
+    }
     setError(null);
 
     try {
-      const response = await getReservasDB({});
+      const response = await getReservasDB({
+        estado: estado === 'TODOS' ? undefined : estado,
+      });
       setReservas(response.data?.reservas ?? []);
+      setEstadoFiltro(estado);
+      hasLoadedRef.current = true;
     } catch (fetchError) {
       setError(fetchError instanceof Error ? fetchError.message : 'No se pudieron cargar las reservas');
-      setReservas([]);
+      if (isInitialRequest) setReservas([]);
     } finally {
-      setLoading(false);
+      setInitialLoading(false);
+      setIsFetching(false);
     }
   }, []);
+
+  const reservasVisibles = useMemo(
+    () => estadoFiltro === 'TODOS'
+      ? reservas
+      : reservas.filter((reserva) => normalizeEstado(reserva.estado) === estadoFiltro),
+    [estadoFiltro, reservas],
+  );
 
   const reservasPendientes = useMemo(
     () => reservas.filter((reserva) => normalizeEstado(reserva.estado) === 'PENDIENTE'),
@@ -113,6 +142,7 @@ export default function AdminReservasAprobacionPage() {
         type: 'success',
         text: estado === 'AGENDADO' ? 'Reserva agendada correctamente.' : 'Reserva rechazada correctamente.',
       });
+      window.setTimeout(() => setStatusMessage(null), 3600);
     } catch (updateError) {
       setStatusMessage({
         type: 'error',
@@ -130,7 +160,7 @@ export default function AdminReservasAprobacionPage() {
       return;
     }
 
-    void fetchReservas();
+    void fetchReservas('PENDIENTE');
   }, [fetchReservas, router]);
 
   useEffect(() => {
@@ -138,12 +168,28 @@ export default function AdminReservasAprobacionPage() {
       const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
       tl.fromTo(headerRef.current, { y: -24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.58 })
-        .fromTo(boardRef.current, { y: 26, opacity: 0, scale: 0.985 }, { y: 0, opacity: 1, scale: 1, duration: 0.56 }, '-=0.24')
-        .fromTo('.approval-card', { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.38, stagger: 0.05 }, '-=0.18');
+        .fromTo(boardRef.current, { y: 26, opacity: 0, scale: 0.985 }, { y: 0, opacity: 1, scale: 1, duration: 0.56 }, '-=0.24');
     }, pageRef);
 
     return () => ctx.revert();
-  }, [loading, reservasPendientes.length]);
+  }, []);
+
+  useEffect(() => {
+    if (initialLoading || !cardsGridRef.current) return;
+
+    const ctx = gsap.context(() => {
+      const cards = gsap.utils.toArray<HTMLElement>('.approval-card', cardsGridRef.current);
+      if (cards.length > 0) {
+        gsap.fromTo(
+          cards,
+          { y: 8, opacity: 0.72 },
+          { y: 0, opacity: 1, duration: 0.18, stagger: 0.025, ease: 'power2.out', clearProps: 'transform,opacity' },
+        );
+      }
+    }, cardsGridRef);
+
+    return () => ctx.revert();
+  }, [estadoFiltro, initialLoading, reservasVisibles.length]);
 
   return (
     <div ref={pageRef} className={styles.pageContainer}>
@@ -168,11 +214,11 @@ export default function AdminReservasAprobacionPage() {
             <button
               type="button"
               className={styles.refreshButton}
-              onClick={fetchReservas}
-              disabled={loading}
+              onClick={() => fetchReservas(estadoFiltro)}
+              disabled={initialLoading || isFetching}
             >
-              <RefreshCw size={16} strokeWidth={1.8} className={loading ? styles.spinIcon : ''} />
-              Actualizar
+              <RefreshCw size={16} strokeWidth={1.8} className={isFetching ? styles.spinIcon : ''} />
+              {isFetching ? 'Actualizando' : 'Actualizar'}
             </button>
           </div>
 
@@ -199,21 +245,35 @@ export default function AdminReservasAprobacionPage() {
               <div>
                 <span className={styles.boardLabel}>
                   <Filter size={14} strokeWidth={1.8} />
-                  Bandeja pendiente
+                  Filtro por estado
                 </span>
-                <h2>Solicitudes esperando aprobación</h2>
+                <h2>{estadoFiltro === 'TODOS' ? 'Todas las solicitudes' : `Reservas ${ESTADO_OPTIONS.find((option) => option.value === estadoFiltro)?.label.toLowerCase()}`}</h2>
               </div>
-              <span className={styles.countPill}>{reservasPendientes.length} en cola</span>
+              <span className={styles.countPill}>{reservasVisibles.length} resultado{reservasVisibles.length === 1 ? '' : 's'}</span>
             </div>
 
-            {statusMessage && (
-              <div className={`${styles.statusMessage} ${statusMessage.type === 'success' ? styles.statusSuccess : styles.statusError}`}>
-                {statusMessage.type === 'success' ? <Check size={16} strokeWidth={1.8} /> : <AlertCircle size={16} strokeWidth={1.8} />}
-                {statusMessage.text}
+            <div className={styles.filterBar} aria-label="Filtrar reservas por estado">
+              {ESTADO_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`${styles.filterButton} ${estadoFiltro === option.value ? styles.filterButtonActive : ''}`}
+                  onClick={() => fetchReservas(option.value)}
+                  disabled={initialLoading || isFetching || estadoFiltro === option.value}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+
+            {isFetching && !initialLoading && (
+              <div className={styles.updatingPill}>
+                <RefreshCw size={13} strokeWidth={1.8} className={styles.spinIcon} />
+                Actualizando solicitudes...
               </div>
             )}
 
-            {loading && (
+            {initialLoading && (
               <div className={styles.loadingGrid}>
                 <span />
                 <span />
@@ -221,7 +281,7 @@ export default function AdminReservasAprobacionPage() {
               </div>
             )}
 
-            {!loading && error && (
+            {!initialLoading && error && reservasVisibles.length === 0 && (
               <div className={styles.emptyState}>
                 <AlertCircle size={30} strokeWidth={1.5} />
                 <strong>No se pudieron cargar las reservas</strong>
@@ -229,20 +289,25 @@ export default function AdminReservasAprobacionPage() {
               </div>
             )}
 
-            {!loading && !error && reservasPendientes.length === 0 && (
+            {!initialLoading && !error && reservasVisibles.length === 0 && (
               <div className={styles.emptyState}>
                 <CalendarCheck size={32} strokeWidth={1.5} />
-                <strong>No hay reservas pendientes</strong>
-                <span>Cuando un cliente solicite una nueva cita, aparecerá aquí para aprobación.</span>
+                <strong>No hay reservas para este estado</strong>
+                <span>Cambia el filtro o actualiza la bandeja para revisar nuevas solicitudes.</span>
               </div>
             )}
 
-            {!loading && !error && reservasPendientes.length > 0 && (
-              <div className={styles.pendingGrid}>
-                {reservasPendientes.map((reserva) => (
+            {!initialLoading && reservasVisibles.length > 0 && (
+              <div ref={cardsGridRef} className={styles.pendingGrid}>
+                {reservasVisibles.map((reserva) => {
+                  const estadoNormalizado = normalizeEstado(reserva.estado);
+
+                  return (
                   <article key={reserva.id} className={`approval-card ${styles.pendingCard}`}>
                     <div className={styles.pendingTop}>
-                      <span className={styles.pendingState}>Pendiente</span>
+                      <span className={`${styles.pendingState} ${styles[`state${estadoNormalizado}`]}`}>
+                        {estadoNormalizado}
+                      </span>
                       <span className={styles.pendingId}>#{reserva.id}</span>
                     </div>
 
@@ -274,7 +339,7 @@ export default function AdminReservasAprobacionPage() {
                       <p className={styles.pendingNotes}>{reserva.notas}</p>
                     )}
 
-                    {rejectingId === reserva.id && (
+                    {estadoNormalizado === 'PENDIENTE' && rejectingId === reserva.id && (
                       <label className={styles.rejectField}>
                         Causa del rechazo
                         <textarea
@@ -288,33 +353,47 @@ export default function AdminReservasAprobacionPage() {
                       </label>
                     )}
 
-                    <div className={styles.pendingActions}>
-                      <button
-                        type="button"
-                        className={styles.approveButton}
-                        onClick={() => updateReservaEstado(reserva, 'AGENDADO')}
-                        disabled={actionId === reserva.id}
-                      >
-                        <Check size={15} strokeWidth={1.8} />
-                        Agendar
-                      </button>
-                      <button
-                        type="button"
-                        className={styles.rejectButton}
-                        onClick={() => rejectingId === reserva.id ? updateReservaEstado(reserva, 'RECHAZADO') : setRejectingId(reserva.id)}
-                        disabled={actionId === reserva.id}
-                      >
-                        <XCircle size={15} strokeWidth={1.8} />
-                        {rejectingId === reserva.id ? 'Confirmar rechazo' : 'Rechazar'}
-                      </button>
-                    </div>
+                    {estadoNormalizado === 'PENDIENTE' && (
+                      <div className={styles.pendingActions}>
+                        <button
+                          type="button"
+                          className={styles.approveButton}
+                          onClick={() => updateReservaEstado(reserva, 'AGENDADO')}
+                          disabled={actionId === reserva.id}
+                        >
+                          <Check size={15} strokeWidth={1.8} />
+                          Agendar
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.rejectButton}
+                          onClick={() => rejectingId === reserva.id ? updateReservaEstado(reserva, 'RECHAZADO') : setRejectingId(reserva.id)}
+                          disabled={actionId === reserva.id}
+                        >
+                          <XCircle size={15} strokeWidth={1.8} />
+                          {rejectingId === reserva.id ? 'Confirmar rechazo' : 'Rechazar'}
+                        </button>
+                      </div>
+                    )}
                   </article>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
         </div>
       </main>
+
+      {statusMessage && (
+        <div
+          className={`${styles.toastMessage} ${statusMessage.type === 'success' ? styles.statusSuccess : styles.statusError}`}
+          role="status"
+          aria-live="polite"
+        >
+          {statusMessage.type === 'success' ? <Check size={16} strokeWidth={1.8} /> : <AlertCircle size={16} strokeWidth={1.8} />}
+          {statusMessage.text}
+        </div>
+      )}
     </div>
   );
 }
