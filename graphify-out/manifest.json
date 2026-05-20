@@ -1,8 +1,8 @@
 {
   "C:\\Projects\\Atrevida\\AtrevidaFront\\app\\layout.tsx": {
-    "mtime": 1778452550.5657356,
-    "ast_hash": "cbdf8c1f16166b9e48a7de95977be588",
-    "semantic_hash": "cbdf8c1f16166b9e48a7de95977be588"
+    "mtime": 1779236343.4328475,
+    "ast_hash": "c4b0cd460d7493dedc9bda0d35ecbdfb",
+    "semantic_hash": ""
   },
   "C:\\Projects\\Atrevida\\AtrevidaFront\\app\\page.tsx": {
     "mtime": 1777757371.9694314,
@@ -60,9 +60,9 @@
     "semantic_hash": "1d9c34202256cb99bbfcf69b81db9ec0"
   },
   "C:\\Projects\\Atrevida\\AtrevidaFront\\app\\admin\\reservas\\editar\\[id]\\page.tsx": {
-    "mtime": 1779193681.8573985,
-    "ast_hash": "015766094d74bc6f8eac18eece6dd66d",
-    "semantic_hash": "015766094d74bc6f8eac18eece6dd66d"
+    "mtime": 1779236417.206262,
+    "ast_hash": "757379f8ee43646415ab5ac22f0342ab",
+    "semantic_hash": ""
   },
   "C:\\Projects\\Atrevida\\AtrevidaFront\\app\\api\\admin\\importar\\route.ts": {
     "mtime": 1778014993.4410343,
@@ -265,9 +265,9 @@
     "semantic_hash": "b9869729ed6553403c99eac61eb7effa"
   },
   "C:\\Projects\\Atrevida\\AtrevidaFront\\components\\CtaBanner\\CtaBanner.tsx": {
-    "mtime": 1777757371.9754303,
-    "ast_hash": "e5d60efbad73c985dfdd16b6fa0c79f3",
-    "semantic_hash": "e5d60efbad73c985dfdd16b6fa0c79f3"
+    "mtime": 1779236472.144204,
+    "ast_hash": "d66e61e220da2e7211832eafe7e9a7fa",
+    "semantic_hash": ""
   },
   "C:\\Projects\\Atrevida\\AtrevidaFront\\components\\Custom\\CustomSelect.tsx": {
     "mtime": 1778452550.5813477,
@@ -280,9 +280,9 @@
     "semantic_hash": ""
   },
   "C:\\Projects\\Atrevida\\AtrevidaFront\\components\\Footer\\Footer.tsx": {
-    "mtime": 1778452550.5969772,
-    "ast_hash": "1c46f68f7c45cfdf011e82450cc2790b",
-    "semantic_hash": "1c46f68f7c45cfdf011e82450cc2790b"
+    "mtime": 1779236483.8748298,
+    "ast_hash": "82147bd688db2f0ad9cb4571d6421d09",
+    "semantic_hash": ""
   },
   "C:\\Projects\\Atrevida\\AtrevidaFront\\components\\Header\\Header.tsx": {
     "mtime": 1778452550.5969772,
@@ -370,9 +370,9 @@
     "semantic_hash": "3aa1648ea21c884404c99c2d3ecff54d"
   },
   "C:\\Projects\\Atrevida\\AtrevidaFront\\lib\\api\\reservas.ts": {
-    "mtime": 1779193681.873564,
-    "ast_hash": "199071e2ee5d7a20b461dcd6b6079020",
-    "semantic_hash": "199071e2ee5d7a20b461dcd6b6079020"
+    "mtime": 1779236377.3654723,
+    "ast_hash": "440852e07a284d3b01dfe535231b6ab6",
+    "semantic_hash": ""
   },
   "C:\\Projects\\Atrevida\\AtrevidaFront\\lib\\api\\servicios.ts": {
     "mtime": 1779232602.7480607,
@@ -667,6 +667,11 @@
   "C:\\Projects\\Atrevida\\AtrevidaFront\\public\\window.svg": {
     "mtime": 1775435247.0862818,
     "ast_hash": "a2760511c65806022ad20adf74370ff3",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\components\\WhatsappFab\\WhatsappFab.tsx": {
+    "mtime": 1779236318.3323932,
+    "ast_hash": "1a3b692d627409a6318fc67146b7ffeb",
     "semantic_hash": ""
   }
 }
