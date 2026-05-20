@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ChevronLeft, ChevronRight, Quote, Star } from 'lucide-react';
 import styles from './Testimonios.module.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -107,11 +108,11 @@ export default function Testimonios() {
       <div className={styles.container}>
         {/* Header */}
         <div ref={titleRef} className={styles.sectionHeader}>
-          <span className={styles.sectionBadge}>Testimonios</span>
+          <span className={styles.sectionBadge}>Resultados reales</span>
           <h2 className={styles.sectionTitle}>
-            Lo que dicen
+            Historias que venden
             <br />
-            <span className={styles.titleAccent}>nuestras clientas</span>
+            <span className={styles.titleAccent}>por sí solas</span>
           </h2>
         </div>
 
@@ -129,12 +130,14 @@ export default function Testimonios() {
                     style={{ '--t-color': t.color } as React.CSSProperties}
                   >
                     {/* Quote */}
-                    <span className={styles.quoteIcon}>"</span>
+                    <span className={styles.quoteIcon}>
+                      <Quote size={56} strokeWidth={1.3} />
+                    </span>
 
                     {/* Stars */}
                     <div className={styles.stars}>
                       {Array.from({ length: t.rating }).map((_, j) => (
-                        <span key={j} className={styles.star}>★</span>
+                        <Star key={j} className={styles.star} size={17} strokeWidth={1.8} fill="currentColor" />
                       ))}
                     </div>
 
@@ -165,14 +168,14 @@ export default function Testimonios() {
             onClick={() => setActive((prev) => (prev - 1 + TESTIMONIOS.length) % TESTIMONIOS.length)}
             aria-label="Anterior"
           >
-            ←
+            <ChevronLeft size={22} strokeWidth={1.8} />
           </button>
           <button
             className={`${styles.navBtn} ${styles.navBtnNext}`}
             onClick={() => setActive((prev) => (prev + 1) % TESTIMONIOS.length)}
             aria-label="Siguiente"
           >
-            →
+            <ChevronRight size={22} strokeWidth={1.8} />
           </button>
         </div>
 

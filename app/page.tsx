@@ -5,12 +5,13 @@ import Nosotros from "@/components/Nosotros/Nosotros";
 import Testimonios from "@/components/Testimonios/Testimonios";
 import Contacto from "@/components/Contacto/Contacto";
 import Footer from "@/components/Footer/Footer";
+import styles from "./page.module.css";
 
 export default function Home() {
   return (
     <>
       <Header />
-      <main>
+      <main className={styles.landingMain}>
         <Hero />
         <Servicios />
         <Nosotros />

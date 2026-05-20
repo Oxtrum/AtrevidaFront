@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { MapPin, MessageCircle, Camera, Clock } from 'lucide-react';
+import { ArrowRight, CalendarCheck, Camera, Clock, MapPin, MessageCircle } from 'lucide-react';
 import styles from './Contacto.module.css';
 import Link from 'next/link';
 
@@ -53,40 +53,66 @@ export default function Contacto() {
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // Info column entrance
-      gsap.fromTo(
-        contentRef.current,
-        { y: 30, opacity: 0 },
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduceMotion) return;
+
+      const textItems = contentRef.current?.querySelectorAll(`.${styles.sectionBadge}, .${styles.sectionTitle}, .${styles.infoText}`);
+      const infoItems = contentRef.current?.querySelectorAll(`.${styles.infoItem}`);
+
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: contentRef.current,
+          start: 'top 78%',
+          once: true,
+        },
+        defaults: { ease: 'power3.out', force3D: true },
+      });
+
+      tl.fromTo(
+        textItems || [],
+        { x: -44, y: 18, opacity: 0, clipPath: 'inset(0 100% 0 0)' },
         {
+          x: 0,
           y: 0,
           opacity: 1,
-          duration: 0.9,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: contentRef.current,
-            start: 'top 82%'
-          },
-        }
+          clipPath: 'inset(0 0% 0 0)',
+          duration: 0.72,
+          stagger: 0.12,
+          clearProps: 'clipPath,transform',
+        },
+      ).fromTo(
+        infoItems || [],
+        { x: 54, y: 26, opacity: 0, scale: 0.975 },
+        {
+          x: 0,
+          y: 0,
+          opacity: 1,
+          scale: 1,
+          duration: 0.62,
+          stagger: 0.08,
+          clearProps: 'transform',
+        },
+        '-=0.42',
       );
 
-      // CTA entrance
       gsap.fromTo(
         ctaRef.current,
-        { y: 40, opacity: 0, scale: 0.97 },
+        { y: 46, opacity: 0, scale: 0.965 },
         {
           y: 0,
           opacity: 1,
           scale: 1,
-          duration: 0.9,
+          duration: 0.74,
           ease: 'power3.out',
+          force3D: true,
           scrollTrigger: {
             trigger: ctaRef.current,
-            start: 'top 88%',
+            start: 'top 86%',
+            once: true,
           },
         }
       );
 
-      // Floating particles
       gsap.to('.contactParticle', {
         y: '-=15',
         duration: 2.5,
@@ -106,24 +132,24 @@ export default function Contacto() {
       <div className={styles.bgMesh} />
 
       {/* Floating decorative particles */}
-      <span className={`${styles.particle} contactParticle`} style={{ top: '10%', left: '5%' }}>✦</span>
-      <span className={`${styles.particle} contactParticle`} style={{ top: '65%', left: '8%' }}>◎</span>
-      <span className={`${styles.particle} contactParticle`} style={{ top: '15%', right: '7%' }}>◉</span>
-      <span className={`${styles.particle} contactParticle`} style={{ bottom: '25%', right: '5%' }}>✦</span>
+      <span className={`${styles.particle} contactParticle`} style={{ top: '10%', left: '5%' }} />
+      <span className={`${styles.particle} contactParticle`} style={{ top: '65%', left: '8%' }} />
+      <span className={`${styles.particle} contactParticle`} style={{ top: '15%', right: '7%' }} />
+      <span className={`${styles.particle} contactParticle`} style={{ bottom: '25%', right: '5%' }} />
 
       <div className={styles.container}>
         {/* Info section */}
         <div className={styles.contentWrapper}>
           <div ref={contentRef} className={styles.infoCol}>
-            <span className={styles.sectionBadge}>Contacto</span>
+            <span className={styles.sectionBadge}>Agenda y contacto</span>
             <h2 className={styles.sectionTitle}>
-              Estamos para
+              Tu cita puede
               <br />
-              <span className={styles.titleAccent}>atenderte</span>
+              <span className={styles.titleAccent}>empezar hoy</span>
             </h2>
             <p className={styles.infoText}>
-              ¿Tienes alguna duda o quieres saber más sobre nuestros servicios?
-              Contáctanos por cualquiera de nuestros canales oficiales y te responderemos a la brevedad.
+              Escríbenos, reserva una evaluación gratuita o solicita un tratamiento. Nuestro equipo revisa tu solicitud
+              y confirma el horario más conveniente para ti.
             </p>
 
             <div className={styles.infoList}>
@@ -175,9 +201,14 @@ export default function Contacto() {
 
         {/* CTA button section */}
         <div ref={ctaRef} className={styles.ctaSection}>
-          <p className={styles.ctaEyebrow}>¿Estás lista?</p>
+          <div>
+            <p className={styles.ctaEyebrow}>¿Estás lista?</p>
+            <h3 className={styles.ctaTitle}>Reserva una evaluación gratuita y recibe una recomendación profesional.</h3>
+          </div>
           <Link href="/reservas" className={styles.ctaBtn}>
-            ✦ Reservar cita
+            <CalendarCheck size={20} strokeWidth={1.8} />
+            Reservar cita
+            <ArrowRight size={18} strokeWidth={1.8} />
           </Link>
         </div>
       </div>

@@ -3,8 +3,8 @@
 ────────────────────────────────────────────── */
 .contacto {
   position: relative;
-  padding: 8rem 1.5rem 6rem;
-  background: #030303;
+  padding: clamp(5.5rem, 9vw, 8rem) 1.5rem clamp(5rem, 8vw, 6.5rem);
+  background: transparent;
   overflow: hidden;
 }
 
@@ -13,9 +13,10 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 80% 100% at 30% 50%, rgba(146, 39, 143, 0.22) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 80% at 75% 50%, rgba(236, 0, 140, 0.18) 0%, transparent 60%),
-    radial-gradient(ellipse 40% 60% at 60% 0%, rgba(20, 174, 239, 0.1) 0%, transparent 55%);
+    radial-gradient(ellipse 74% 90% at 26% 48%, rgba(20, 174, 239, 0.1) 0%, transparent 64%),
+    radial-gradient(ellipse 60% 80% at 75% 50%, rgba(236, 0, 140, 0.13) 0%, transparent 64%),
+    radial-gradient(ellipse 40% 60% at 60% 0%, rgba(255, 230, 0, 0.06) 0%, transparent 58%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 13%, #000 87%, transparent 100%);
   animation: meshShift 8s ease-in-out infinite alternate;
   pointer-events: none;
 }
@@ -33,8 +34,11 @@
 /* Floating particles */
 .particle {
   position: absolute;
-  font-size: 1.4rem;
-  color: rgba(236, 0, 140, 0.25);
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #FFE600;
+  box-shadow: 0 0 28px rgba(255, 230, 0, 0.42);
   pointer-events: none;
   user-select: none;
 }
@@ -47,19 +51,17 @@
 }
 
 .contentWrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
   width: 100%;
 }
 
 /* Info column */
 .infoCol {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  max-width: 800px;
+  display: grid;
+  grid-template-columns: minmax(0, 0.88fr) minmax(420px, 1fr);
+  column-gap: clamp(2rem, 6vw, 5rem);
+  row-gap: 1rem;
+  align-items: start;
+  text-align: left;
 }
 
 .sectionBadge {
@@ -71,22 +73,24 @@
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #EC008C;
-  background: rgba(236, 0, 140, 0.08);
+  color: #FFE600;
+  background: rgba(255, 230, 0, 0.08);
   margin-bottom: 1.4rem;
   width: fit-content;
+  grid-column: 1;
 }
 
 .sectionTitle {
-  font-size: clamp(2.5rem, 5vw, 3.8rem);
-  font-weight: 800;
-  line-height: 1.1;
+  font-size: clamp(2.6rem, 6vw, 5.4rem);
+  font-weight: 950;
+  line-height: 0.94;
   color: #F5F5F5;
   margin-bottom: 1.2rem;
+  grid-column: 1;
 }
 
 .titleAccent {
-  background: linear-gradient(120deg, #EC008C, #92278F);
+  background: linear-gradient(120deg, #FFE600, #EC008C, #14AEEF);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -95,36 +99,35 @@
 .infoText {
   font-size: 1.05rem;
   line-height: 1.75;
-  color: rgba(245, 245, 245, 0.5);
-  margin-bottom: 3.5rem;
+  color: rgba(245, 245, 245, 0.64);
+  margin: 0;
   max-width: 600px;
+  grid-column: 1;
 }
 
 /* Info items list */
 .infoList {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 2.5rem;
+  gap: 0.85rem;
   width: 100%;
-}
-
-@media (max-width: 650px) {
-  .infoList {
-    grid-template-columns: 1fr;
-    gap: 1.8rem;
-  }
+  grid-column: 2;
+  grid-row: 1 / span 4;
 }
 
 .infoItem {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1rem;
   text-align: left;
-  background: rgba(255, 255, 255, 0.02);
-  padding: 1.8rem;
-  border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(10px);
+  min-height: 168px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.025)),
+    rgba(8, 8, 10, 0.5);
+  padding: 1.15rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(16px);
   transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
   position: relative;
   overflow: hidden;
@@ -142,7 +145,7 @@
 }
 
 .infoItem:hover {
-  transform: translateY(-8px);
+  transform: translateY(-6px);
   border-color: rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.04);
   box-shadow:
@@ -155,8 +158,8 @@
 }
 
 .infoIcon {
-  width: 60px;
-  height: 60px;
+  width: 52px;
+  height: 52px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -216,7 +219,7 @@
 }
 
 .infoValor {
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   font-weight: 800;
   color: #F5F5F5;
   margin-bottom: 0.25rem;
@@ -231,12 +234,19 @@
 
 /* ── CTA Section ── */
 .ctaSection {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  text-align: center;
-  margin-top: 6rem;
-  gap: 1.2rem;
+  text-align: left;
+  margin-top: clamp(3rem, 7vw, 5rem);
+  gap: 1.5rem;
+  padding: clamp(1.35rem, 4vw, 2rem);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  background:
+    linear-gradient(100deg, rgba(255, 230, 0, 0.13), rgba(236, 0, 140, 0.1), rgba(20, 174, 239, 0.08)),
+    rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(18px);
 }
 
 .ctaEyebrow {
@@ -250,7 +260,17 @@
   text-transform: uppercase;
   color: #EC008C;
   background: rgba(236, 0, 140, 0.08);
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.ctaTitle {
+  max-width: 760px;
+  margin: 0;
+  color: #FFFFFF;
+  font-size: clamp(1.45rem, 3.4vw, 3rem);
+  font-weight: 950;
+  line-height: 1;
+  letter-spacing: 0;
 }
 
 .ctaBtn {
@@ -259,8 +279,8 @@
   gap: 0.5rem;
   padding: 1.1rem 2.8rem;
   border-radius: 100px;
-  background: linear-gradient(135deg, #EC008C, #92278F);
-  color: #fff;
+  background: linear-gradient(135deg, #FFE600, #EC008C);
+  color: #08080A;
   font-size: 1.05rem;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -280,4 +300,37 @@
   color: rgba(245, 245, 245, 0.38);
   letter-spacing: 0.04em;
   margin-top: 0.2rem;
+}
+
+@media (max-width: 980px) {
+  .infoCol,
+  .ctaSection {
+    grid-template-columns: 1fr;
+  }
+
+  .infoList {
+    grid-column: 1;
+    grid-row: auto;
+    margin-top: 1.5rem;
+  }
+
+  .ctaSection {
+    text-align: left;
+  }
+}
+
+@media (max-width: 650px) {
+  .infoList {
+    grid-template-columns: 1fr;
+  }
+
+  .infoItem {
+    min-height: auto;
+  }
+
+  .ctaBtn {
+    width: 100%;
+    justify-content: center;
+    padding-inline: 1rem;
+  }
 }

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import gsap from 'gsap';
+import { CalendarCheck } from 'lucide-react';
 import styles from './Header.module.css';
 import Link from 'next/link';
 
@@ -134,6 +135,11 @@ export default function Header() {
             </Link>
           ))}
         </nav>
+
+        <Link href="/reservas" ref={ctaRef} className={styles.ctaButton}>
+          <CalendarCheck size={17} strokeWidth={1.8} />
+          Reservar
+        </Link>
 
         {/* Hamburger */}
         <button

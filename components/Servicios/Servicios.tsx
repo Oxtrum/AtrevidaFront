@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ArrowRight, Bike, CircleDot, Leaf, Radio, Snowflake, Waves, Zap } from 'lucide-react';
 import styles from './Servicios.module.css';
 
 const SERVICIOS = [
@@ -13,8 +14,8 @@ const SERVICIOS = [
     descripcion:
       'Masaje con herramientas de madera que moldea y tonifica el cuerpo, reduce celulitis.',
     imagen: '/maderoterapiaNuevo.jpg',
-    color: '#7c3aed',
-    icono: '🌿',
+    color: '#EC008C',
+    Icon: Leaf,
     tamaño: 'grande',
     position: 'center 70%',
   },
@@ -24,8 +25,8 @@ const SERVICIOS = [
     descripcion:
       'Tratamiento no invasivo con láser frío. Destruye células de grasa localizada sin cirugía.',
     imagen: '/Lipolaser.JPEG',
-    color: '#0ea5e9',
-    icono: '✦',
+    color: '#14AEEF',
+    Icon: Zap,
     tamaño: 'normal',
   },
   {
@@ -34,8 +35,8 @@ const SERVICIOS = [
     descripcion:
       'Bicicleta de estimulación eléctrica de alta intensidad. Activa músculo profundo sin impacto articular.',
     imagen: '/E-Pulse Bike.JPEG',
-    color: '#dc2626',
-    icono: '⚡',
+    color: '#FFE600',
+    Icon: Bike,
     tamaño: 'normal',
   },
   {
@@ -44,8 +45,8 @@ const SERVICIOS = [
     descripcion:
       'Electroestimulación que contrae los músculos profundos. Efecto lifting y definición muscular.',
     imagen: '/Ondas Rusas.JPEG',
-    color: '#ca8a04',
-    icono: '〜',
+    color: '#EC008C',
+    Icon: Waves,
     tamaño: 'normal',
   },
   {
@@ -54,8 +55,8 @@ const SERVICIOS = [
     descripcion:
       'Succión al vacío que activa el sistema linfático. Elimina toxinas y reduce retención de líquidos.',
     imagen: '/Vacumterpia.JPEG',
-    color: '#0ea5e9',
-    icono: '◎',
+    color: '#14AEEF',
+    Icon: CircleDot,
     tamaño: 'normal',
     position: 'center 85%',
   },
@@ -65,8 +66,8 @@ const SERVICIOS = [
     descripcion:
       'Ondas electromagnéticas que estimulan colágeno y elastina. Rejuvenece la piel progresivamente.',
     imagen: '/radiofrecuenciaNuevo.jpg',
-    color: '#dc2626',
-    icono: '◉',
+    color: '#EC008C',
+    Icon: Radio,
     tamaño: 'normal',
     position: 'center 65%',
   },
@@ -76,8 +77,8 @@ const SERVICIOS = [
     descripcion:
       'Eliminación de grasa localizada mediante la aplicación controlada de frío. Resultados definitivos sin cirugía.',
     imagen: '/crioliposis.jpg',
-    color: '#0ea5e9',
-    icono: '❄️',
+    color: '#14AEEF',
+    Icon: Snowflake,
     tamaño: 'normal',
   },
 ];
@@ -160,7 +161,9 @@ export default function Servicios() {
 
         {/* Bento Grid */}
         <div ref={gridRef} className={styles.bentoGrid}>
-          {SERVICIOS.map((servicio) => (
+          {SERVICIOS.map((servicio) => {
+            const Icon = servicio.Icon;
+            return (
             <article
               key={servicio.id}
               className={`${styles.serviceCard} ${styles[servicio.tamaño] ?? styles.normal ?? ''}`}
@@ -180,7 +183,9 @@ export default function Servicios() {
                   style={{ objectPosition: servicio.position || 'center' }}
                 />
                 <div className={styles.cardOverlay} />
-                <span className={styles.cardIcon}>{servicio.icono}</span>
+                <span className={styles.cardIcon}>
+                  <Icon size={22} strokeWidth={1.8} />
+                </span>
               </div>
 
               {/* Content Overlay */}
@@ -188,8 +193,9 @@ export default function Servicios() {
                 <div className={styles.contentInner}>
                   <h3 className={styles.cardTitle}>{servicio.nombre}</h3>
                   <p className={styles.cardDesc}>{servicio.descripcion}</p>
-                  <a href="#contacto" className={styles.cardCta}>
-                    Reservar →
+                  <a href="/reservas" className={styles.cardCta}>
+                    Reservar
+                    <ArrowRight size={16} strokeWidth={1.8} />
                   </a>
                 </div>
               </div>
@@ -197,7 +203,8 @@ export default function Servicios() {
               {/* Accent Border Line */}
               <div className={styles.accentLine} />
             </article>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

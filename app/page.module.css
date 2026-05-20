@@ -1,0 +1,29 @@
+.landingMain {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 70% 36% at 86% 8%, rgba(236, 0, 140, 0.16), transparent 66%),
+    radial-gradient(ellipse 62% 32% at 12% 30%, rgba(20, 174, 239, 0.12), transparent 68%),
+    radial-gradient(ellipse 60% 34% at 82% 56%, rgba(255, 230, 0, 0.08), transparent 70%),
+    radial-gradient(ellipse 74% 38% at 18% 82%, rgba(236, 0, 140, 0.1), transparent 70%),
+    linear-gradient(180deg, #030303 0%, #08080a 42%, #030303 100%);
+}
+
+.landingMain::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 88px 88px;
+  mask-image: linear-gradient(180deg, transparent 0%, #000 12%, #000 88%, transparent 100%);
+  opacity: 0.22;
+  z-index: 0;
+}
+
+.landingMain > * {
+  position: relative;
+  z-index: 1;
+}

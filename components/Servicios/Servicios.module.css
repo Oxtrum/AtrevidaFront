@@ -4,8 +4,10 @@
 
 .servicios {
   position: relative;
-  padding: 6rem 1.5rem 8rem;
-  background: var(--af-bg);
+  padding: clamp(5rem, 9vw, 8rem) 1.5rem clamp(5.5rem, 9vw, 8.5rem);
+  background:
+    radial-gradient(ellipse 70% 50% at 82% 10%, rgba(236, 0, 140, 0.12), transparent 62%),
+    radial-gradient(ellipse 52% 46% at 10% 84%, rgba(20, 174, 239, 0.1), transparent 62%);
   overflow: hidden;
 }
 
@@ -20,9 +22,10 @@
    ──────────────────────────────────────────────────────────────── */
 
 .sectionHeader {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(320px, 0.75fr);
+  gap: clamp(1.5rem, 5vw, 4rem);
+  align-items: end;
   margin-bottom: 5rem;
   text-align: left;
 }
@@ -33,14 +36,14 @@
   width: fit-content;
   gap: 0.5rem;
   padding: 0.4rem 1rem;
-  border: 1px solid var(--af-border-hover);
+  border: 1px solid rgba(255, 230, 0, 0.3);
   border-radius: var(--af-radius-pill);
   font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 1px;
   text-transform: uppercase;
-  color: var(--af-accent-primary);
-  background: rgba(220, 38, 38, 0.08);
+  color: #FFE600;
+  background: rgba(255, 230, 0, 0.08);
   transition: var(--af-t-fast);
 }
 
@@ -50,12 +53,12 @@
 }
 
 .sectionTitle {
-  font-size: clamp(2rem, 5vw, 3rem);
-  font-weight: 800;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
+  font-size: clamp(2.55rem, 6vw, 5.4rem);
+  font-weight: 950;
+  line-height: 0.92;
+  letter-spacing: 0;
   color: var(--af-text);
-  margin: 0;
+  margin: 1rem 0 0;
 }
 
 .titleAccent {
@@ -81,10 +84,10 @@
 }
 
 .sectionSubtitle {
-  max-width: 580px;
-  font-size: 1rem;
-  line-height: 1.7;
-  color: var(--af-muted);
+  max-width: 520px;
+  font-size: 1.02rem;
+  line-height: 1.75;
+  color: rgba(245, 245, 245, 0.62);
   margin: 0;
 }
 
@@ -95,7 +98,7 @@
 .bentoGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.5rem;
+  gap: 1rem;
   animation: stagger-fade 0.6s ease-out;
 }
 
@@ -178,17 +181,17 @@
   display: flex;
   flex-direction: column;
   min-height: 300px;
-  border-radius: var(--af-radius-lg);
+  border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
   group: card;
-  background: var(--af-glass-sm);
+  background: rgba(8, 8, 10, 0.72);
   border: 1px solid var(--af-border);
   backdrop-filter: var(--af-blur);
   -webkit-backdrop-filter: var(--af-blur);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    0 4px 12px rgba(0, 0, 0, 0.2);
+    0 18px 56px rgba(0, 0, 0, 0.28);
   transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -212,8 +215,8 @@
 .serviceCard:hover {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 8px 30px rgba(0, 0, 0, 0.4);
-  transform: translateY(-2px);
+    0 28px 72px rgba(0, 0, 0, 0.46);
+  transform: translateY(-6px);
   /* Subtly change the real border to be slightly brighter, avoiding the solid color jump */
   border-color: rgba(255, 255, 255, 0.15);
 }
@@ -258,8 +261,8 @@
   position: absolute;
   inset: 0;
   background: linear-gradient(to top,
-      rgba(9, 9, 11, 0.95) 0%,
-      rgba(9, 9, 11, 0.70) 40%,
+      rgba(3, 3, 3, 0.96) 0%,
+      rgba(3, 3, 3, 0.72) 42%,
       rgba(9, 9, 11, 0.0) 100%);
   z-index: 1;
   /* Smooth fade for the overlay */
@@ -275,15 +278,21 @@
   position: absolute;
   top: 1.5rem;
   right: 1.5rem;
-  font-size: 1.5rem;
-  opacity: 0.7;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  color: #08080A;
+  background: var(--accent-color, #EC008C);
+  border-radius: 999px;
+  opacity: 0.92;
   z-index: 2;
   transition: var(--af-t-mid);
 }
 
 .serviceCard:hover .cardIcon {
   opacity: 1;
-  transform: scale(1.2);
+  transform: scale(1.08) rotate(-6deg);
 }
 
 /* ────────────────────────────────────────────────────────────────
@@ -308,9 +317,9 @@
 }
 
 .cardTitle {
-  font-size: 1.25rem;
-  font-weight: 700;
-  line-height: 1.3;
+  font-size: clamp(1.18rem, 2vw, 1.55rem);
+  font-weight: 900;
+  line-height: 1.08;
   color: var(--af-text);
   letter-spacing: -0.01em;
   margin: 0;
@@ -318,8 +327,8 @@
 
 .cardDesc {
   font-size: 0.9rem;
-  line-height: 1.5;
-  color: var(--af-muted);
+  line-height: 1.56;
+  color: rgba(245, 245, 245, 0.66);
   margin: 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -333,9 +342,9 @@
   gap: 0.5rem;
   margin-top: 1rem;
   padding: 0.625rem 1.25rem;
-  border-radius: var(--af-radius-md);
+  border-radius: 999px;
   background: var(--accent-color, var(--af-accent-primary));
-  color: #fff;
+  color: #08080A;
   font-size: 0.875rem;
   font-weight: 600;
   text-decoration: none;
@@ -348,7 +357,7 @@
 .cardCta:hover {
   background: var(--accent-color, var(--af-accent-primary));
   filter: brightness(1.2);
-  transform: translateX(4px);
+  transform: translateX(5px);
 }
 
 .cardCta:active {
@@ -401,12 +410,13 @@
   }
 
   .sectionHeader {
+    grid-template-columns: 1fr;
     margin-bottom: 3rem;
     gap: 1rem;
   }
 
   .sectionTitle {
-    font-size: clamp(1.5rem, 4vw, 2rem);
+    font-size: clamp(2.4rem, 13vw, 3.6rem);
   }
 
   .serviceCard {

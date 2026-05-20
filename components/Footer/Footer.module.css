@@ -166,8 +166,8 @@
   gap: 0.4rem;
   padding: 0.85rem 1.6rem;
   border-radius: 100px;
-  background: linear-gradient(135deg, #EC008C, #92278F);
-  color: #fff;
+  background: linear-gradient(135deg, #FFE600, #EC008C);
+  color: #08080A;
   font-size: 0.88rem;
   font-weight: 700;
   text-decoration: none;
@@ -198,6 +198,9 @@
 }
 
 .credits {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   font-size: 0.8rem;
   color: rgba(236, 0, 140, 0.5);
 }

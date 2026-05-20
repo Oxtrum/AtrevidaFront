@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { ArrowRight, Heart } from 'lucide-react';
 import styles from './Footer.module.css';
 
 const LINKS_SERVICIOS = [
@@ -94,8 +95,9 @@ export default function Footer() {
             <p className={styles.ctaText}>
               Reserva tu primera consulta gratuita y descubre el tratamiento ideal para ti.
             </p>
-            <a href="#contacto" className={styles.ctaBtn}>
-              ✦ Reservar cita
+            <a href="/reservas" className={styles.ctaBtn}>
+              Reservar cita
+              <ArrowRight size={16} strokeWidth={1.8} />
             </a>
           </div>
         </div>
@@ -106,7 +108,7 @@ export default function Footer() {
             © {new Date().getFullYear()} AtrevidaFit. Todos los derechos reservados.
           </p>
           <p className={styles.credits}>
-            Hecho con ♡ para mujeres que se atreven
+            Hecho con <Heart size={13} strokeWidth={1.8} fill="currentColor" /> para mujeres que se atreven
           </p>
         </div>
       </div>

@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import Image from 'next/image';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ArrowRight, BadgeCheck, HeartPulse, ShieldCheck } from 'lucide-react';
 import styles from './Nosotros.module.css';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -17,17 +18,17 @@ const STATS = [
 
 const VALORES = [
   {
-    icono: '✦',
+    Icon: BadgeCheck,
     titulo: 'Profesionalismo',
     descripcion: 'Equipo certificado y en constante formación para ofrecerte lo mejor.',
   },
   {
-    icono: '◉',
+    Icon: HeartPulse,
     titulo: 'Tecnología',
     descripcion: 'Equipos de última generación importados con certificación médica.',
   },
   {
-    icono: '♡',
+    Icon: ShieldCheck,
     titulo: 'Confianza',
     descripcion: 'Un ambiente seguro y confidencial donde tu bienestar es prioridad.',
   },
@@ -157,40 +158,46 @@ export default function Nosotros() {
 
           {/* Right – text content */}
           <div ref={rightRef} className={styles.textContent}>
-            <span className={styles.sectionBadge}>¿Quiénes Somos?</span>
+            <span className={styles.sectionBadge}>Método Atrevida</span>
             <h2 className={styles.sectionTitle}>
-              Más que un spa,
+              Belleza con estrategia,
               <br />
-              <span className={styles.titleAccent}>una transformación</span>
+              <span className={styles.titleAccent}>seguimiento y criterio</span>
             </h2>
             <p className={styles.bodyText}>
-              En <strong>AtrevidaFit</strong> creemos que cada mujer merece sentirse segura y radiante en su propio cuerpo.
-              Somos un centro de bienestar y estética corporal especializado en tratamientos no invasivos con tecnología de última generación.
+              En <strong>AtrevidaFit</strong> no vendemos sesiones sueltas sin rumbo. Evaluamos tu objetivo,
+              elegimos el tratamiento adecuado y armamos una ruta estética que puedas sostener.
             </p>
             <p className={styles.bodyText}>
-              Nuestro equipo de profesionales certificados combina ciencia, experiencia y pasión para ofrecerte resultados reales,
-              en un ambiente cálido, seguro y completamente personalizado para ti.
+              Nuestro equipo combina aparatología, técnica manual y acompañamiento profesional para que cada
+              reserva tenga intención, seguimiento y resultados visibles.
             </p>
 
             {/* Valores */}
             <div className={styles.valoresList}>
-              {VALORES.map((v, i) => (
+              {VALORES.map((v, i) => {
+                const Icon = v.Icon;
+                return (
                 <div
                   key={v.titulo}
                   ref={(el) => { if (el) valoresRef.current[i] = el; }}
                   className={styles.valorItem}
                 >
-                  <span className={styles.valorIcon}>{v.icono}</span>
+                  <span className={styles.valorIcon}>
+                    <Icon size={20} strokeWidth={1.8} />
+                  </span>
                   <div>
                     <h4 className={styles.valorTitulo}>{v.titulo}</h4>
                     <p className={styles.valorDesc}>{v.descripcion}</p>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
 
-            <a href="#servicios" className={styles.ctaButton}>
-              Ver nuestros servicios →
+            <a href="/reservas" className={styles.ctaButton}>
+              Reservar evaluación
+              <ArrowRight size={17} strokeWidth={1.8} />
             </a>
           </div>
         </div>

@@ -3,8 +3,8 @@
 ────────────────────────────────────────────── */
 .testimonios {
   position: relative;
-  padding: 8rem 1.5rem 7rem;
-  background: #030303;
+  padding: clamp(5rem, 9vw, 8rem) 1.5rem clamp(5rem, 8vw, 7rem);
+  background: transparent;
   overflow: hidden;
 }
 
@@ -12,14 +12,15 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 65% 70% at 10% 40%, rgba(146, 39, 143, 0.13) 0%, transparent 60%),
-    radial-gradient(ellipse 55% 65% at 85% 65%, rgba(20, 174, 239, 0.10) 0%, transparent 60%),
-    radial-gradient(ellipse 45% 55% at 50% 90%, rgba(236, 0, 140, 0.08) 0%, transparent 55%);
+    radial-gradient(ellipse 65% 70% at 10% 40%, rgba(236, 0, 140, 0.1) 0%, transparent 64%),
+    radial-gradient(ellipse 55% 65% at 85% 65%, rgba(20, 174, 239, 0.08) 0%, transparent 64%),
+    radial-gradient(ellipse 45% 55% at 50% 90%, rgba(255, 230, 0, 0.05) 0%, transparent 58%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 14%, #000 86%, transparent 100%);
   pointer-events: none;
 }
 
 .container {
-  max-width: 900px;
+  max-width: 980px;
   margin: 0 auto;
 }
 
@@ -38,20 +39,20 @@
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #EC008C;
-  background: rgba(236, 0, 140, 0.08);
+  color: #FFE600;
+  background: rgba(255, 230, 0, 0.08);
   margin-bottom: 1.2rem;
 }
 
 .sectionTitle {
-  font-size: clamp(2rem, 4.5vw, 3rem);
-  font-weight: 800;
-  line-height: 1.1;
+  font-size: clamp(2.55rem, 6vw, 5.2rem);
+  font-weight: 950;
+  line-height: 0.94;
   color: #F5F5F5;
 }
 
 .titleAccent {
-  background: linear-gradient(120deg, #EC008C, #92278F);
+  background: linear-gradient(120deg, #FFE600, #EC008C, #14AEEF);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -79,9 +80,11 @@
 
 /* Card */
 .card {
-  background: #0c0c0c;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 20px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.02)),
+    #0c0c0c;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
   padding: 3rem 3.5rem;
   position: relative;
   overflow: hidden;
@@ -109,11 +112,8 @@
   position: absolute;
   top: 1.5rem;
   right: 2.5rem;
-  font-size: 5rem;
-  line-height: 1;
   color: var(--t-color, #EC008C);
-  opacity: 0.12;
-  font-family: Georgia, serif;
+  opacity: 0.16;
   pointer-events: none;
 }
 
@@ -126,11 +126,10 @@
 
 .star {
   color: #FFE600;
-  font-size: 1rem;
 }
 
 .testimonioText {
-  font-size: 1.05rem;
+  font-size: clamp(1.08rem, 2vw, 1.35rem);
   line-height: 1.8;
   color: rgba(245, 245, 245, 0.75);
   margin-bottom: 2rem;
@@ -178,9 +177,8 @@
   height: 44px;
   border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(12, 12, 12, 0.9);
+  background: rgba(12, 12, 12, 0.92);
   color: #F5F5F5;
-  font-size: 1.2rem;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -190,8 +188,9 @@
 }
 
 .navBtn:hover {
-  background: #EC008C;
-  border-color: #EC008C;
+  background: #FFE600;
+  border-color: #FFE600;
+  color: #08080A;
 }
 
 .navBtnPrev {
@@ -227,7 +226,7 @@
 }
 
 .dotActive {
-  background: #EC008C;
+  background: #FFE600;
   width: 24px;
   border-radius: 4px;
 }
