@@ -4,7 +4,9 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   DiaSemana, SERVICIOS_DISPONIBLES, SUCURSALES,
+  SERVICIOS_ESPECIALIZADOS_DISPONIBLES,
   getServiciosPorSucursal, getServiciosPorCategoria, getTipoFromServicio,
+  getServiciosAdminPorCategoria,
   generarSemanas, getFechasDeSemana, esFechaPasada,
   type ReservaBD,
 } from '@/types/reserva';
@@ -109,6 +111,7 @@ export function useReservationForm(
   const [numeroTelefono, setNumeroTelefono] = useState('');
   const [notas, setNotas] = useState('');
   const [servicio, setServicio] = useState(initialData?.servicio || '');
+  const [servicioSolicitado, setServicioSolicitado] = useState('');
   const [horaPreestablecida] = useState(!!initialData?.hora_desde); // Marca si hora vino del URL
 
   // Calcular horaHasta cuando hora viene del URL y se selecciona servicio
@@ -164,6 +167,7 @@ export function useReservationForm(
     () => SERVICIOS_DISPONIBLES.find(s => s.value === servicio),
     [servicio],
   );
+  const esTratamientoEspecializado = servicio === 'tratamiento_especializado';
   const scheduleWarning = useMemo(
     () => getReservationDateRestriction(fecha),
     [fecha],
@@ -315,6 +319,14 @@ export function useReservationForm(
   const categoriasDisponibles = CATEGORIAS_ORDEN.filter(
     c => serviciosPorCategoria[c]?.length > 0,
   );
+  const serviciosEspecializadosFiltrados = SERVICIOS_ESPECIALIZADOS_DISPONIBLES.filter((s) => {
+    const normalizedSucursal = sucursal === 'SAN MARTIN' ? 'CENTRO' : sucursal;
+    return s.sucursal === 'ambos' || s.sucursal === normalizedSucursal;
+  });
+  const serviciosEspecializadosPorCategoria = getServiciosAdminPorCategoria(serviciosEspecializadosFiltrados);
+  const categoriasEspecializadasDisponibles = CATEGORIAS_ORDEN.filter(
+    c => serviciosEspecializadosPorCategoria[c]?.length > 0,
+  );
 
   // ── Select options ─────────────────────────────────────
   const semanaOptions = semanasDisponibles.map((s, idx) => ({
@@ -326,6 +338,13 @@ export function useReservationForm(
     options: serviciosPorCategoria[cat].map(s => ({
       value: s.value,
       label: s.label,
+    })),
+  }));
+  const servicioSolicitadoGroups = categoriasEspecializadasDisponibles.map(cat => ({
+    label: cat,
+    options: serviciosEspecializadosPorCategoria[cat].map(s => ({
+      value: s.value,
+      label: `${s.label} — ${s.costo}`,
     })),
   }));
 
@@ -347,6 +366,7 @@ export function useReservationForm(
 
   const handleServicioChange = (value: string) => {
     setServicio(value);
+    setServicioSolicitado('');
     // Solo resetear hora si NO fue preestablecida desde el URL
     if (!horaPreestablecida) {
       setHoraDesde('');
@@ -395,6 +415,7 @@ export function useReservationForm(
   const validate = (): boolean => {
     const e = validateReservationForm(
       sucursal, fecha, cliente, numeroTelefono, servicio, horaDesde, horaHasta,
+      servicioSolicitado,
     );
     // No validar aquí si está ocupado - dejar que el backend lo valide
     // para permitir cambios de último minuto si hay slots disponibles
@@ -423,6 +444,9 @@ export function useReservationForm(
     const horaHastaNorm = normalizarHora(horaHasta);
 
     const servicioInfo = SERVICIOS_DISPONIBLES.find(s => s.value === servicio);
+    const servicioSolicitadoInfo = esTratamientoEspecializado
+      ? SERVICIOS_ESPECIALIZADOS_DISPONIBLES.find(s => s.value === servicioSolicitado)
+      : servicioInfo;
     const phoneDigits = numeroTelefono.replace(/\D/g, '');
 
       try {
@@ -435,7 +459,9 @@ export function useReservationForm(
           cliente,
           numero_telefono: phoneDigits,
           servicio: servicioInfo?.label || servicio,
-          precio: servicioInfo?.precio ?? 0,
+          servicio_solicitado: servicioSolicitadoInfo?.label || servicioInfo?.label || servicio,
+          servicio_confirmado: null,
+          precio: esTratamientoEspecializado ? 0 : servicioInfo?.precio ?? 0,
           notas,
           estado: 'PENDIENTE' as const,
         };
@@ -464,6 +490,7 @@ export function useReservationForm(
     numeroTelefono, setNumeroTelefono,
     notas, setNotas,
     servicio,
+    servicioSolicitado, setServicioSolicitado,
     error, errors,
     slotWarning,
     scheduleWarning,
@@ -474,7 +501,9 @@ export function useReservationForm(
     sucursalOptions,
     semanaOptions,
     servicioGroups,
+    servicioSolicitadoGroups,
     servicioSeleccionado,
+    esTratamientoEspecializado,
     isSundaySelected,
     // Handlers
     handleSemanaChange,

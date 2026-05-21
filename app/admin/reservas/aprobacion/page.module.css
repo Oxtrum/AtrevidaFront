@@ -270,6 +270,122 @@
   box-shadow: 0 10px 24px rgba(236, 0, 140, 0.16);
 }
 
+.controlsPanel {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.35fr) minmax(160px, 0.65fr) minmax(140px, 0.52fr) minmax(150px, 0.56fr) auto;
+  align-items: end;
+  gap: 0.75rem;
+  margin: 0 0 0.8rem;
+  padding: 0.85rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-lg);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent),
+    var(--admin-surface-1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.controlField {
+  display: grid;
+  gap: 0.42rem;
+  min-width: 0;
+  color: var(--admin-text-muted);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.controlField input,
+.controlField select,
+.searchInputWrap {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  color: var(--admin-foreground);
+  background: var(--admin-input-bg);
+  color-scheme: var(--admin-color-scheme);
+}
+
+.controlField input,
+.controlField select {
+  padding: 0 0.74rem;
+  font-family: var(--admin-font-family);
+  font-size: 0.83rem;
+  font-weight: 760;
+  letter-spacing: 0;
+  text-transform: none;
+  outline: none;
+}
+
+.controlField select {
+  cursor: pointer;
+}
+
+.searchInputWrap {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0 0.74rem;
+  transition:
+    border-color var(--admin-t-normal) var(--admin-ease),
+    box-shadow var(--admin-t-normal) var(--admin-ease);
+}
+
+.searchInputWrap svg {
+  color: var(--admin-accent-tertiary);
+}
+
+.searchInputWrap input {
+  min-height: 40px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.searchInputWrap:focus-within,
+.controlField input:focus,
+.controlField select:focus {
+  border-color: var(--admin-border-focus);
+  box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.12);
+}
+
+.clearFiltersButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 42px;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  color: var(--admin-foreground);
+  background: var(--admin-pill-bg);
+  font-family: var(--admin-font-family);
+  font-size: 0.78rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition:
+    transform var(--admin-t-normal) var(--admin-ease),
+    opacity var(--admin-t-normal) var(--admin-ease),
+    border-color var(--admin-t-normal) var(--admin-ease),
+    background var(--admin-t-normal) var(--admin-ease);
+}
+
+.clearFiltersButton:hover {
+  transform: translateY(-2px);
+  border-color: var(--admin-border-hover);
+  background: rgba(236, 0, 140, 0.08);
+}
+
+.clearFiltersButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+  transform: none;
+}
+
 .toastMessage {
   position: fixed;
   top: max(1rem, env(safe-area-inset-top));
@@ -344,25 +460,32 @@
 
 .pendingGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
-  gap: 1rem;
+  grid-template-columns: 1fr;
+  gap: 0.8rem;
 }
 
 .pendingCard {
-  display: flex;
-  flex-direction: column;
-  min-height: 100%;
-  padding: 1rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(156px, auto);
+  align-items: stretch;
+  gap: 1rem;
+  min-height: auto;
+  padding: clamp(0.95rem, 2vw, 1.15rem);
   border: 1px solid var(--admin-border-subtle);
   border-radius: var(--admin-radius-lg);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent),
     var(--admin-surface-1);
   box-shadow: var(--admin-shadow-sm);
+  overflow: hidden;
   transition:
     transform var(--admin-t-normal) var(--admin-ease),
     box-shadow var(--admin-t-normal) var(--admin-ease),
     border-color var(--admin-t-normal) var(--admin-ease);
+}
+
+.pendingContent {
+  min-width: 0;
 }
 
 .pendingCard:hover {
@@ -417,9 +540,28 @@
   font-weight: 850;
 }
 
+.serviceTrace {
+  display: grid;
+  gap: 0.32rem;
+  margin: -0.25rem 0 0.9rem;
+  padding: 0.68rem 0.75rem;
+  border: 1px solid rgba(255, 230, 0, 0.16);
+  border-radius: var(--admin-radius-md);
+  color: var(--admin-text-dim);
+  background: rgba(255, 230, 0, 0.06);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.serviceTrace strong {
+  color: var(--admin-foreground);
+  font-weight: 850;
+}
+
 .pendingMeta {
   display: grid;
-  gap: 0.52rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.52rem 0.8rem;
   margin-bottom: 0.85rem;
 }
 
@@ -481,25 +623,29 @@
 
 .pendingActions {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.65rem;
-  margin-top: auto;
+  align-content: center;
+  justify-self: end;
+  width: min(190px, 100%);
+  gap: 0.55rem;
+  padding-left: 1rem;
+  border-left: 1px solid var(--admin-border-subtle);
 }
 
 .approveButton,
 .contactButton,
 .rejectButton {
-  min-height: 42px;
-  padding: 0.72rem 0.85rem;
+  min-height: 40px;
+  padding: 0.68rem 0.82rem;
   border-radius: var(--admin-radius-md);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   text-decoration: none;
+  width: 100%;
+  box-shadow: none;
 }
 
 .approveButton {
   color: #ffffff;
   background: var(--admin-grad-success);
-  box-shadow: 0 10px 24px rgba(20, 174, 239, 0.18);
 }
 
 .contactButton {
@@ -512,6 +658,262 @@
   color: var(--admin-accent-danger);
   background: rgba(255, 77, 109, 0.1);
   border: 1px solid rgba(255, 77, 109, 0.22);
+}
+
+.approveButton:active,
+.contactButton:active,
+.rejectButton:active,
+.clearFiltersButton:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.approvalModalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 130;
+  display: grid;
+  place-items: center;
+  padding: clamp(1rem, 3vw, 2rem);
+  background: rgba(4, 5, 11, 0.72);
+  backdrop-filter: blur(14px);
+  animation: modalFade 0.18s var(--admin-ease);
+}
+
+.approvalModal {
+  width: min(920px, 100%);
+  max-height: min(88vh, 860px);
+  overflow: auto;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-xl);
+  background:
+    radial-gradient(ellipse 78% 56% at 18% 0%, rgba(236, 0, 140, 0.12), transparent 60%),
+    var(--admin-panel-elevated);
+  box-shadow: var(--admin-shadow-lg);
+  color: var(--admin-foreground);
+  animation: modalIn 0.22s var(--admin-ease);
+}
+
+.modalTop {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  padding: clamp(1rem, 3vw, 1.35rem);
+  border-bottom: 1px solid var(--admin-border-subtle);
+}
+
+.modalEyebrow {
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: 0.45rem;
+  color: var(--admin-accent-yellow);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.9px;
+  text-transform: uppercase;
+}
+
+.modalTop h2 {
+  margin: 0;
+  font-size: clamp(1.35rem, 2.6vw, 2rem);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.modalTop p {
+  max-width: 620px;
+  margin: 0.55rem 0 0;
+  color: var(--admin-text-muted);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.modalClose {
+  display: inline-grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  color: var(--admin-text-muted);
+  background: var(--admin-pill-bg);
+  cursor: pointer;
+  transition:
+    transform var(--admin-t-normal) var(--admin-ease),
+    color var(--admin-t-normal) var(--admin-ease),
+    border-color var(--admin-t-normal) var(--admin-ease);
+}
+
+.modalClose:hover {
+  transform: translateY(-2px);
+  color: var(--admin-foreground);
+  border-color: var(--admin-border-hover);
+}
+
+.modalClose:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+}
+
+.modalSummary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  padding: 1rem clamp(1rem, 3vw, 1.35rem) 0;
+}
+
+.modalSummary span {
+  display: inline-flex;
+  gap: 0.35rem;
+  padding: 0.55rem 0.72rem;
+  border: 1px solid rgba(255, 230, 0, 0.16);
+  border-radius: var(--admin-radius-full);
+  color: var(--admin-text-muted);
+  background: rgba(255, 230, 0, 0.07);
+  font-size: 0.78rem;
+  line-height: 1.3;
+}
+
+.modalSummary strong {
+  color: var(--admin-foreground);
+}
+
+.modalGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+  padding: 1rem clamp(1rem, 3vw, 1.35rem) clamp(1rem, 3vw, 1.35rem);
+}
+
+.modalField {
+  display: grid;
+  gap: 0.42rem;
+  color: var(--admin-text-muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.modalFieldWide {
+  grid-column: 1 / -1;
+}
+
+.modalField input,
+.modalField select,
+.modalField textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.75rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  color: var(--admin-foreground);
+  background: var(--admin-input-bg);
+  font-family: var(--admin-font-family);
+  font-size: 0.86rem;
+  font-weight: 750;
+  line-height: 1.4;
+  letter-spacing: 0;
+  text-transform: none;
+  outline: none;
+  color-scheme: var(--admin-color-scheme);
+}
+
+.modalField select {
+  cursor: pointer;
+}
+
+.modalField textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.modalField input:disabled {
+  color: var(--admin-text-dim);
+  background: var(--admin-pill-bg);
+  cursor: not-allowed;
+}
+
+.modalField input:focus,
+.modalField select:focus,
+.modalField textarea:focus {
+  border-color: var(--admin-border-focus);
+  box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.12);
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.7rem;
+  padding: 1rem clamp(1rem, 3vw, 1.35rem);
+  border-top: 1px solid var(--admin-border-subtle);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.modalGhost,
+.modalPrimary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.48rem;
+  min-height: 44px;
+  padding: 0.72rem 1rem;
+  border-radius: var(--admin-radius-md);
+  border: 1px solid var(--admin-border-subtle);
+  font-family: var(--admin-font-family);
+  font-size: 0.84rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition:
+    transform var(--admin-t-normal) var(--admin-ease),
+    opacity var(--admin-t-normal) var(--admin-ease),
+    box-shadow var(--admin-t-normal) var(--admin-ease);
+}
+
+.modalGhost {
+  color: var(--admin-text-muted);
+  background: var(--admin-pill-bg);
+}
+
+.modalPrimary {
+  color: #ffffff;
+  border-color: transparent;
+  background: var(--admin-grad-success);
+  box-shadow: 0 12px 28px rgba(20, 174, 239, 0.2);
+}
+
+.modalGhost:hover,
+.modalPrimary:hover {
+  transform: translateY(-2px);
+}
+
+.modalGhost:disabled,
+.modalPrimary:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+  transform: none;
+}
+
+@keyframes modalFade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .loadingGrid {
@@ -588,6 +990,35 @@
     right: 1rem;
     max-width: calc(100vw - 2rem);
   }
+
+  .controlsPanel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .searchField {
+    grid-column: 1 / -1;
+  }
+
+  .clearFiltersButton {
+    width: 100%;
+  }
+
+  .pendingCard {
+    grid-template-columns: 1fr;
+  }
+
+  .pendingActions {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    justify-self: stretch;
+    width: 100%;
+    padding: 0.85rem 0 0;
+    border-left: 0;
+    border-top: 1px solid var(--admin-border-subtle);
+  }
+
+  .modalGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 680px) {
@@ -599,7 +1030,33 @@
     grid-template-columns: 1fr;
   }
 
+  .controlsPanel {
+    grid-template-columns: 1fr;
+  }
+
   .pendingGrid {
     grid-template-columns: 1fr;
+  }
+
+  .approvalModalOverlay {
+    align-items: end;
+    padding: 0.7rem;
+  }
+
+  .approvalModal {
+    max-height: 92vh;
+  }
+
+  .modalGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .modalActions {
+    flex-direction: column-reverse;
+  }
+
+  .modalGhost,
+  .modalPrimary {
+    width: 100%;
   }
 }

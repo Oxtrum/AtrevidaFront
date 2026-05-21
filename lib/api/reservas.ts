@@ -52,6 +52,8 @@ export interface CrearReservaDBData {
   cliente: string;
   numero_telefono: string;
   servicio: string;
+  servicio_solicitado?: string | null;
+  servicio_confirmado?: string | null;
   notas?: string;
   plan_id?: number;
   precio?: number;
@@ -70,8 +72,11 @@ export interface ActualizarReservaDBData {
   nueva_hora_desde?: string;
   nueva_hora_hasta?: string;
   nuevas_notas?: string;
+  nuevo_numero_telefono?: string;
   nuevo_precio?: number;
   nuevo_servicio?: string;
+  nuevo_servicio_solicitado?: string | null;
+  nuevo_servicio_confirmado?: string | null;
   nuevo_tipo?: ReservaTipoBackend;
   nuevo_estado?: EstadoReserva;
 }
@@ -80,6 +85,9 @@ export interface ActualizarEstadoReservaDBData {
   id: number;
   estado: Extract<EstadoReserva, 'PENDIENTE' | 'AGENDADO' | 'RECHAZADO'>;
   causa?: string;
+  servicio_confirmado?: string | null;
+  precio?: number;
+  tipo?: ReservaTipoBackend;
 }
 
 export interface CrearReservaResult {
@@ -156,6 +164,9 @@ export async function actualizarEstadoReservaDB(data: ActualizarEstadoReservaDBD
     id: data.id,
     estado: data.estado,
     causa: data.causa ?? '',
+    ...(data.servicio_confirmado !== undefined && { servicio_confirmado: data.servicio_confirmado }),
+    ...(data.precio !== undefined && { precio: data.precio }),
+    ...(data.tipo !== undefined && { tipo: data.tipo }),
   });
 }
 

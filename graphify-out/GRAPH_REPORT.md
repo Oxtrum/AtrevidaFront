@@ -1,16 +1,16 @@
-# Graph Report - AtrevidaFront  (2026-05-19)
+# Graph Report - AtrevidaFront  (2026-05-20)
 
 ## Corpus Check
-- 110 files · ~2,658,754 words
+- 112 files · ~2,963,535 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 675 nodes · 944 edges · 56 communities (42 shown, 14 thin omitted)
+- 711 nodes · 1013 edges · 57 communities (43 shown, 14 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `400003d4`
+- Built from commit: `3f1f1f61`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -32,6 +32,7 @@
 - [[_COMMUNITY_Community 14|Community 14]]
 - [[_COMMUNITY_Community 17|Community 17]]
 - [[_COMMUNITY_Community 18|Community 18]]
+- [[_COMMUNITY_Community 19|Community 19]]
 - [[_COMMUNITY_Community 20|Community 20]]
 - [[_COMMUNITY_Community 22|Community 22]]
 - [[_COMMUNITY_Community 23|Community 23]]
@@ -60,54 +61,58 @@
 - [[_COMMUNITY_Community 55|Community 55]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `DiaSemana` - 23 edges
+1. `DiaSemana` - 24 edges
 2. `compilerOptions` - 16 edges
 3. `useLocales()` - 15 edges
 4. `ANÁLISIS COMPLETO DE LA ESTRUCTURA DEL PROYECTO ATREVIDAFIT` - 12 edges
 5. `Variables CSS del Sistema de Diseño:` - 12 edges
 6. `Banexcoin Frontend Style Guide` - 12 edges
-7. `High-Agency Frontend Skill` - 11 edges
-8. `ReservaDetalle` - 10 edges
-9. `ARCHIVOS CLAVE - RUTAS ABSOLUTAS Y CONTENIDOS` - 10 edges
-10. `HORAS` - 9 edges
+7. `useReservationForm()` - 11 edges
+8. `High-Agency Frontend Skill` - 11 edges
+9. `ReservaDetalle` - 10 edges
+10. `ARCHIVOS CLAVE - RUTAS ABSOLUTAS Y CONTENIDOS` - 10 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `AdminReservasPage()` --calls--> `useLocales()`  [EXTRACTED]
-  app/admin/reservas/page.tsx → lib/hooks/useLocales.ts
+- `EditarReservaContent()` --calls--> `useReservas()`  [EXTRACTED]
+  app/admin/reservas/editar/[id]/page.tsx → lib/hooks/useReservas.ts
 - `EditarReservaContent()` --calls--> `useLocales()`  [EXTRACTED]
   app/admin/reservas/editar/[id]/page.tsx → lib/hooks/useLocales.ts
-- `useReservationForm()` --calls--> `useLocales()`  [EXTRACTED]
-  components/AdminReservationForm/useReservationForm.ts → lib/hooks/useLocales.ts
 - `TimeSlotAdmin()` --calls--> `esHoraDisponible()`  [EXTRACTED]
   components/Calendar/TimeSlotAdmin.tsx → lib/utils/calendarHelpers.ts
 - `TimeSlotAdmin()` --calls--> `esHoraDisponible()`  [EXTRACTED]
   components/Calendar/TimeSlotAdminAdmin.tsx → lib/utils/calendarHelpers.ts
+- `useReservationForm()` --calls--> `useLocales()`  [EXTRACTED]
+  components/ReservationForm/useReservationForm.ts → lib/hooks/useLocales.ts
 
-## Communities (56 total, 14 thin omitted)
+## Communities (57 total, 14 thin omitted)
 
 ### Community 0 - "Community 0"
-Cohesion: 0.33
-Nodes (4): crearCategoriaDB(), getCategoriasDB(), Categoria, FormErrors
+Cohesion: 0.18
+Nodes (7): crearCategoriaDB(), getCategoriasDB(), Categoria, FormErrors, toast, ToastState, ToastType
 
 ### Community 1 - "Community 1"
-Cohesion: 0.06
-Nodes (46): CalendarGridProps, DIA_CORTO, DIAS, CalendarGridProps, DIA_CORTO, DIAS, ReservationCardProps, SlotBadges() (+38 more)
+Cohesion: 0.05
+Nodes (50): CalendarGridProps, DIA_CORTO, DIAS, CalendarGridProps, DIA_CORTO, DIAS, ReservationCardProps, SlotBadges() (+42 more)
 
 ### Community 2 - "Community 2"
-Cohesion: 0.14
-Nodes (12): DayInfo, DaySelector(), DaySelectorProps, ReservationFormProps, ServiceGroup, ServiceSelect(), ServiceSelectProps, CustomSelect() (+4 more)
+Cohesion: 0.09
+Nodes (25): DayInfo, DaySelector(), DaySelectorProps, ReservationFormProps, ServiceGroup, ServiceSelect(), ServiceSelectProps, TimeSlotPicker() (+17 more)
 
 ### Community 3 - "Community 3"
-Cohesion: 0.08
-Nodes (8): INFO_ITEMS, LINKS_NAV, LINKS_SERVICIOS, NAV_LINKS, STATS, VALORES, SERVICIOS, TESTIMONIOS
+Cohesion: 0.07
+Nodes (10): INFO_ITEMS, LOCATIONS, LINKS_NAV, LINKS_SERVICIOS, NAV_LINKS, STATS, VALORES, ReservasLandingProps (+2 more)
 
 ### Community 4 - "Community 4"
-Cohesion: 0.08
-Nodes (21): apiClient, ApiError, RequestOptions, actualizarReservaDB(), ActualizarReservaDBData, crearReservaDB(), CrearReservaDBData, CrearReservaResult (+13 more)
+Cohesion: 0.07
+Nodes (23): ReservasTableProps, actualizarEstadoReservaDB(), ActualizarEstadoReservaDBData, actualizarReservaDB(), ActualizarReservaDBData, CrearReservaDBData, CrearReservaResult, GetReservasCalendarioParams (+15 more)
 
 ### Community 5 - "Community 5"
 Cohesion: 0.10
-Nodes (23): getReservasCalendario(), getLocalesDB(), Calendar(), CalendarProps, CalendarAdmin(), CalendarAdminProps, CalendarPublico(), CalendarPublicoProps (+15 more)
+Nodes (25): getReservasCalendario(), Calendar(), CalendarProps, CalendarAdmin(), CalendarAdminProps, CalendarPublico(), CalendarPublicoProps, CustomSelect() (+17 more)
+
+### Community 6 - "Community 6"
+Cohesion: 0.33
+Nodes (3): apiClient, ApiError, RequestOptions
 
 ### Community 7 - "Community 7"
 Cohesion: 0.25
@@ -115,7 +120,7 @@ Nodes (3): AdminTheme, AdminThemeToggle(), AdminThemeToggleProps
 
 ### Community 8 - "Community 8"
 Cohesion: 0.09
-Nodes (35): ReservasTableProps, CATEGORIAS_ORDEN, TimeSlotPicker(), TimeSlotPickerProps, ReservationFormInitialData, useReservationForm(), DIAS_COMPLETO, DIAS_SEMANA (+27 more)
+Nodes (31): CATEGORIAS_ORDEN, ReservationFormInitialData, useReservationForm(), crearReservaDB(), CrearReservaContent(), CrearReservaPage(), CrearReservaData, CrearReservaResult (+23 more)
 
 ### Community 9 - "Community 9"
 Cohesion: 0.22
@@ -182,8 +187,8 @@ Cohesion: 0.25
 Nodes (7): graphify, Key Notes, Project Commands, Structure, Tech Stack, This is NOT the Next.js you know, UI/UX Guidance
 
 ### Community 44 - "Community 44"
-Cohesion: 0.33
-Nodes (4): crearLocalDB(), Espacio, FormErrors, LocalRow
+Cohesion: 0.29
+Nodes (5): crearLocalDB(), getLocalesDB(), Espacio, FormErrors, LocalRow
 
 ### Community 45 - "Community 45"
 Cohesion: 0.33
@@ -202,24 +207,24 @@ Cohesion: 0.40
 Nodes (4): code:bash (npm run dev), Deploy on Vercel, Getting Started, Learn More
 
 ## Knowledge Gaps
-- **330 isolated node(s):** `eslintConfig`, `nextConfig`, `name`, `version`, `private` (+325 more)
+- **343 isolated node(s):** `eslintConfig`, `nextConfig`, `name`, `version`, `private` (+338 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **14 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `DiaSemana` connect `Community 8` to `Community 1`, `Community 2`, `Community 3`, `Community 5`?**
-  _High betweenness centrality (0.018) - this node is a cross-community bridge._
+- **Why does `DiaSemana` connect `Community 1` to `Community 8`, `Community 2`, `Community 3`, `Community 5`?**
+  _High betweenness centrality (0.019) - this node is a cross-community bridge._
 - **Why does `ANÁLISIS COMPLETO DE LA ESTRUCTURA DEL PROYECTO ATREVIDAFIT` connect `Community 12` to `Community 37`?**
   _High betweenness centrality (0.007) - this node is a cross-community bridge._
-- **Why does `toast` connect `Community 8` to `Community 0`, `Community 6`, `Community 42`, `Community 44`, `Community 45`?**
-  _High betweenness centrality (0.006) - this node is a cross-community bridge._
+- **Why does `toast` connect `Community 0` to `Community 8`, `Community 42`, `Community 44`, `Community 45`?**
+  _High betweenness centrality (0.007) - this node is a cross-community bridge._
 - **What connects `eslintConfig`, `nextConfig`, `name` to the rest of the system?**
-  _330 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _343 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 1` be split into smaller, more focused modules?**
-  _Cohesion score 0.055944055944055944 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.054244306418219465 - nodes in this community are weakly interconnected._
 - **Should `Community 2` be split into smaller, more focused modules?**
-  _Cohesion score 0.1368421052631579 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.09365079365079365 - nodes in this community are weakly interconnected._
 - **Should `Community 3` be split into smaller, more focused modules?**
-  _Cohesion score 0.08 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.07142857142857142 - nodes in this community are weakly interconnected._

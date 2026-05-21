@@ -26,6 +26,8 @@ interface CrearReservaData {
     cliente: string;
     numero_telefono?: string;
     servicio: string;
+    servicio_solicitado?: string | null;
+    servicio_confirmado?: string | null;
     precio?: number;
     notas?: string;
     estado?: EstadoReserva;
@@ -54,6 +56,8 @@ export function useCrearReserva(): UseCrearReservaReturn {
                     cliente: data.cliente,
                     numero_telefono: data.numero_telefono || '',
                     servicio: data.servicio,
+                    servicio_solicitado: data.servicio_solicitado,
+                    servicio_confirmado: data.servicio_confirmado,
                     precio: data.precio,
                     notas: data.notas,
                     estado: 'PENDIENTE',

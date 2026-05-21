@@ -14,17 +14,36 @@ import {
   MessageCircle,
   Phone,
   RefreshCw,
+  Search,
   ShieldCheck,
+  SlidersHorizontal,
   XCircle,
 } from 'lucide-react';
 
 import Header from '@/components/AdminHeader/Header';
-import { actualizarEstadoReservaDB, getReservasDB } from '@/lib/api/reservas';
-import type { EstadoReserva, ReservaBD } from '@/types/reserva';
+import { CATEGORIAS_ORDEN } from '@/components/AdminReservationForm/constants';
+import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
+import { actualizarEstadoReservaDB, actualizarReservaDB, getReservasDB } from '@/lib/api/reservas';
+import {
+  SERVICIOS_ADMIN_DISPONIBLES,
+  getServiciosAdminPorCategoria,
+  getServiciosAdminPorSucursal,
+  getTipoFromServicio,
+  type EstadoReserva,
+  type ReservaBD,
+} from '@/types/reserva';
 import styles from './page.module.css';
 
 type EstadoGestion = Extract<EstadoReserva, 'PENDIENTE' | 'AGENDADO' | 'RECHAZADO'>;
 type EstadoFiltro = EstadoGestion | 'TODOS';
+type ApprovalDraft = {
+  fecha: string;
+  horaDesde: string;
+  horaHasta: string;
+  telefono: string;
+  notas: string;
+  servicioConfirmado: string;
+};
 
 const ESTADO_OPTIONS: Array<{ value: EstadoFiltro; label: string }> = [
   { value: 'PENDIENTE', label: 'Pendientes' },
@@ -32,6 +51,11 @@ const ESTADO_OPTIONS: Array<{ value: EstadoFiltro; label: string }> = [
   { value: 'RECHAZADO', label: 'Rechazadas' },
   { value: 'TODOS', label: 'Todas' },
 ];
+
+const TIPO_LABELS: Record<string, string> = {
+  M: 'Tratamiento',
+  B: 'Bicicleta',
+};
 
 const normalizeEstado = (estado?: EstadoReserva | string): EstadoGestion => {
   if (estado === 'AGENDADO' || estado === 'APROBADO') return 'AGENDADO';
@@ -60,6 +84,15 @@ const getWhatsappHref = (telefono?: string) => {
   return `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`;
 };
 
+const getDefaultConfirmedService = (reserva: ReservaBD) => {
+  const requested = reserva.servicio_solicitado || reserva.servicio_confirmado || reserva.servicio;
+  const match = SERVICIOS_ADMIN_DISPONIBLES.find((servicio) => servicio.label === requested);
+  return match?.value || '';
+};
+
+const normalizeSearchText = (value?: string | number | null) =>
+  String(value ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
 export default function AdminReservasAprobacionPage() {
   const router = useRouter();
   const pageRef = useRef<HTMLDivElement>(null);
@@ -75,8 +108,14 @@ export default function AdminReservasAprobacionPage() {
   const [actionId, setActionId] = useState<number | null>(null);
   const [rejectingId, setRejectingId] = useState<number | null>(null);
   const [rejectCauses, setRejectCauses] = useState<Record<number, string>>({});
+  const [approvalReserva, setApprovalReserva] = useState<ReservaBD | null>(null);
+  const [approvalDraft, setApprovalDraft] = useState<ApprovalDraft | null>(null);
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [estadoFiltro, setEstadoFiltro] = useState<EstadoFiltro>('PENDIENTE');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [localFiltro, setLocalFiltro] = useState('TODOS');
+  const [tipoFiltro, setTipoFiltro] = useState('TODOS');
+  const [fechaFiltro, setFechaFiltro] = useState('');
 
   const fetchReservas = useCallback(async (estado: EstadoFiltro) => {
     const isInitialRequest = !hasLoadedRef.current;
@@ -103,12 +142,47 @@ export default function AdminReservasAprobacionPage() {
     }
   }, []);
 
-  const reservasVisibles = useMemo(
-    () => estadoFiltro === 'TODOS'
-      ? reservas
-      : reservas.filter((reserva) => normalizeEstado(reserva.estado) === estadoFiltro),
-    [estadoFiltro, reservas],
+  const localOptions = useMemo(
+    () => Array.from(new Set(reservas.map((reserva) => reserva.local).filter(Boolean))).sort(),
+    [reservas],
   );
+
+  const tipoOptions = useMemo(
+    () => Array.from(new Set(reservas.map((reserva) => reserva.tipo).filter(Boolean))).sort(),
+    [reservas],
+  );
+
+  const reservasVisibles = useMemo(() => {
+    const term = normalizeSearchText(searchQuery.trim());
+
+    return reservas.filter((reserva) => {
+      const matchesEstado = estadoFiltro === 'TODOS' || normalizeEstado(reserva.estado) === estadoFiltro;
+      const matchesLocal = localFiltro === 'TODOS' || reserva.local === localFiltro;
+      const matchesTipo = tipoFiltro === 'TODOS' || reserva.tipo === tipoFiltro;
+      const matchesFecha = !fechaFiltro || reserva.fecha === fechaFiltro;
+      const searchable = normalizeSearchText([
+        reserva.id,
+        reserva.cliente,
+        reserva.numero_telefono,
+        reserva.servicio,
+        reserva.servicio_solicitado,
+        reserva.servicio_confirmado,
+        reserva.local,
+        reserva.fecha,
+      ].join(' '));
+
+      return matchesEstado && matchesLocal && matchesTipo && matchesFecha && (!term || searchable.includes(term));
+    });
+  }, [estadoFiltro, fechaFiltro, localFiltro, reservas, searchQuery, tipoFiltro]);
+
+  const hasAdvancedFilters = Boolean(searchQuery.trim() || localFiltro !== 'TODOS' || tipoFiltro !== 'TODOS' || fechaFiltro);
+
+  const resetFilters = () => {
+    setSearchQuery('');
+    setLocalFiltro('TODOS');
+    setTipoFiltro('TODOS');
+    setFechaFiltro('');
+  };
 
   const reservasPendientes = useMemo(
     () => reservas.filter((reserva) => normalizeEstado(reserva.estado) === 'PENDIENTE'),
@@ -125,12 +199,53 @@ export default function AdminReservasAprobacionPage() {
     [reservas],
   );
 
+  const approvalServiceGroups = useMemo(() => {
+    if (!approvalReserva) return [];
+
+    const servicios = getServiciosAdminPorSucursal(approvalReserva.local);
+    const serviciosPorCategoria = getServiciosAdminPorCategoria(servicios);
+
+    return CATEGORIAS_ORDEN
+      .filter((categoria) => serviciosPorCategoria[categoria]?.length > 0)
+      .map((categoria) => ({
+        label: categoria,
+        options: serviciosPorCategoria[categoria].map((servicio) => ({
+          value: servicio.value,
+          label: `${servicio.label} — ${servicio.duracion} — ${servicio.costo}`,
+        })),
+      }));
+  }, [approvalReserva]);
+
+  const openApprovalModal = (reserva: ReservaBD) => {
+    setApprovalReserva(reserva);
+    setApprovalDraft({
+      fecha: reserva.fecha,
+      horaDesde: reserva.hora_desde,
+      horaHasta: reserva.hora_hasta,
+      telefono: reserva.numero_telefono ?? '',
+      notas: reserva.notas ?? '',
+      servicioConfirmado: getDefaultConfirmedService(reserva),
+    });
+    setStatusMessage(null);
+  };
+
+  const closeApprovalModal = useCallback(() => {
+    if (actionId) return;
+    setApprovalReserva(null);
+    setApprovalDraft(null);
+  }, [actionId]);
+
   const updateReservaEstado = async (reserva: ReservaBD, estado: EstadoGestion) => {
     const causa = rejectCauses[reserva.id]?.trim() ?? '';
 
     if (estado === 'RECHAZADO' && !causa) {
       setRejectingId(reserva.id);
       setStatusMessage({ type: 'error', text: 'Agrega una causa para rechazar la reserva.' });
+      return;
+    }
+
+    if (estado === 'AGENDADO') {
+      openApprovalModal(reserva);
       return;
     }
 
@@ -145,19 +260,93 @@ export default function AdminReservasAprobacionPage() {
       });
 
       setReservas((current) =>
-        current.map((item) => item.id === reserva.id ? { ...item, estado } : item),
+        current.map((item) => item.id === reserva.id ? {
+          ...item,
+          estado,
+        } : item),
       );
       setRejectingId(null);
       setRejectCauses((current) => ({ ...current, [reserva.id]: '' }));
       setStatusMessage({
         type: 'success',
-        text: estado === 'AGENDADO' ? 'Reserva agendada correctamente.' : 'Reserva rechazada correctamente.',
+        text: 'Reserva rechazada correctamente.',
       });
       window.setTimeout(() => setStatusMessage(null), 3600);
     } catch (updateError) {
       setStatusMessage({
         type: 'error',
         text: updateError instanceof Error ? updateError.message : 'No se pudo actualizar el estado.',
+      });
+    } finally {
+      setActionId(null);
+    }
+  };
+
+  const approveReservaFromModal = async () => {
+    if (!approvalReserva || !approvalDraft) return;
+
+    const confirmedService = SERVICIOS_ADMIN_DISPONIBLES.find(
+      (servicio) => servicio.value === approvalDraft.servicioConfirmado,
+    );
+
+    if (!confirmedService) {
+      setStatusMessage({ type: 'error', text: 'Selecciona el servicio confirmado para agendar la reserva.' });
+      return;
+    }
+
+    const cleanPhone = approvalDraft.telefono.replace(/\D/g, '');
+    const updateData = {
+      id: approvalReserva.id,
+      local: approvalReserva.local,
+      ...(approvalDraft.fecha !== approvalReserva.fecha && { nueva_fecha: approvalDraft.fecha }),
+      ...(approvalDraft.horaDesde !== approvalReserva.hora_desde && { nueva_hora_desde: approvalDraft.horaDesde }),
+      ...(approvalDraft.horaHasta !== approvalReserva.hora_hasta && { nueva_hora_hasta: approvalDraft.horaHasta }),
+      ...(cleanPhone !== (approvalReserva.numero_telefono ?? '') && { nuevo_numero_telefono: cleanPhone }),
+      ...(approvalDraft.notas !== (approvalReserva.notas ?? '') && { nuevas_notas: approvalDraft.notas }),
+    };
+
+    setActionId(approvalReserva.id);
+    setStatusMessage(null);
+
+    try {
+      if (Object.keys(updateData).length > 2) {
+        await actualizarReservaDB(updateData);
+      }
+
+      const tipo = getTipoFromServicio(confirmedService.value);
+
+      await actualizarEstadoReservaDB({
+        id: approvalReserva.id,
+        estado: 'AGENDADO',
+        causa: '',
+        servicio_confirmado: confirmedService.label,
+        precio: confirmedService.precio,
+        tipo,
+      });
+
+      setReservas((current) =>
+        current.map((item) => item.id === approvalReserva.id ? {
+          ...item,
+          estado: 'AGENDADO',
+          fecha: approvalDraft.fecha,
+          hora_desde: approvalDraft.horaDesde,
+          hora_hasta: approvalDraft.horaHasta,
+          numero_telefono: cleanPhone,
+          notas: approvalDraft.notas,
+          servicio_confirmado: confirmedService.label,
+          precio: confirmedService.precio,
+          tipo,
+        } : item),
+      );
+
+      setApprovalReserva(null);
+      setApprovalDraft(null);
+      setStatusMessage({ type: 'success', text: `Reserva #${approvalReserva.id} agendada correctamente.` });
+      window.setTimeout(() => setStatusMessage(null), 3600);
+    } catch (updateError) {
+      setStatusMessage({
+        type: 'error',
+        text: updateError instanceof Error ? updateError.message : 'No se pudo agendar la reserva.',
       });
     } finally {
       setActionId(null);
@@ -201,6 +390,22 @@ export default function AdminReservasAprobacionPage() {
 
     return () => ctx.revert();
   }, [estadoFiltro, initialLoading, reservasVisibles.length]);
+
+  useEffect(() => {
+    if (!approvalReserva) return undefined;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeApprovalModal();
+    };
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [approvalReserva, closeApprovalModal]);
 
   return (
     <div ref={pageRef} className={styles.pageContainer}>
@@ -256,11 +461,64 @@ export default function AdminReservasAprobacionPage() {
               <div>
                 <span className={styles.boardLabel}>
                   <Filter size={14} strokeWidth={1.8} />
-                  Filtro por estado
+                  Búsqueda y filtros
                 </span>
                 <h2>{estadoFiltro === 'TODOS' ? 'Todas las solicitudes' : `Reservas ${ESTADO_OPTIONS.find((option) => option.value === estadoFiltro)?.label.toLowerCase()}`}</h2>
               </div>
               <span className={styles.countPill}>{reservasVisibles.length} resultado{reservasVisibles.length === 1 ? '' : 's'}</span>
+            </div>
+
+            <div className={styles.controlsPanel}>
+              <label className={`${styles.controlField} ${styles.searchField}`}>
+                <span>Buscar reserva</span>
+                <div className={styles.searchInputWrap}>
+                  <Search size={16} strokeWidth={1.8} />
+                  <input
+                    value={searchQuery}
+                    onChange={(event) => setSearchQuery(event.target.value)}
+                    placeholder="Cliente, teléfono, servicio o #ID"
+                  />
+                </div>
+              </label>
+
+              <label className={styles.controlField}>
+                <span>Sucursal</span>
+                <select value={localFiltro} onChange={(event) => setLocalFiltro(event.target.value)}>
+                  <option value="TODOS">Todas</option>
+                  {localOptions.map((local) => (
+                    <option key={local} value={local}>{local}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label className={styles.controlField}>
+                <span>Tipo</span>
+                <select value={tipoFiltro} onChange={(event) => setTipoFiltro(event.target.value)}>
+                  <option value="TODOS">Todos</option>
+                  {tipoOptions.map((tipo) => (
+                    <option key={tipo} value={tipo}>{TIPO_LABELS[tipo] ?? tipo}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label className={styles.controlField}>
+                <span>Fecha</span>
+                <input
+                  type="date"
+                  value={fechaFiltro}
+                  onChange={(event) => setFechaFiltro(event.target.value)}
+                />
+              </label>
+
+              <button
+                type="button"
+                className={styles.clearFiltersButton}
+                onClick={resetFilters}
+                disabled={!hasAdvancedFilters}
+              >
+                <SlidersHorizontal size={15} strokeWidth={1.8} />
+                Limpiar
+              </button>
             </div>
 
             <div className={styles.filterBar} aria-label="Filtrar reservas por estado">
@@ -303,8 +561,8 @@ export default function AdminReservasAprobacionPage() {
             {!initialLoading && !error && reservasVisibles.length === 0 && (
               <div className={styles.emptyState}>
                 <CalendarCheck size={32} strokeWidth={1.5} />
-                <strong>No hay reservas para este estado</strong>
-                <span>Cambia el filtro o actualiza la bandeja para revisar nuevas solicitudes.</span>
+                <strong>No hay reservas con estos filtros</strong>
+                <span>Ajusta la búsqueda, limpia filtros o actualiza la bandeja para revisar nuevas solicitudes.</span>
               </div>
             )}
 
@@ -316,54 +574,66 @@ export default function AdminReservasAprobacionPage() {
 
                   return (
                   <article key={reserva.id} className={`approval-card ${styles.pendingCard}`}>
-                    <div className={styles.pendingTop}>
-                      <span className={`${styles.pendingState} ${styles[`state${estadoNormalizado}`]}`}>
-                        {estadoNormalizado}
-                      </span>
-                      <span className={styles.pendingId}>#{reserva.id}</span>
-                    </div>
-
-                    <h3>{reserva.cliente || 'Cliente sin nombre'}</h3>
-                    <p className={styles.pendingService}>{reserva.servicio || 'Servicio por definir'}</p>
-
-                    <div className={styles.pendingMeta}>
-                      <span>
-                        <Calendar size={14} strokeWidth={1.6} />
-                        {formatDate(reserva.fecha)}
-                      </span>
-                      <span>
-                        <Clock size={14} strokeWidth={1.6} />
-                        {reserva.hora_desde} - {reserva.hora_hasta}
-                      </span>
-                      <span>
-                        <MapPin size={14} strokeWidth={1.6} />
-                        {reserva.local}
-                      </span>
-                      {reserva.numero_telefono && (
-                        <span>
-                          <Phone size={14} strokeWidth={1.6} />
-                          +591 {reserva.numero_telefono}
+                    <div className={styles.pendingContent}>
+                      <div className={styles.pendingTop}>
+                        <span className={`${styles.pendingState} ${styles[`state${estadoNormalizado}`]}`}>
+                          {estadoNormalizado}
                         </span>
+                        <span className={styles.pendingId}>#{reserva.id}</span>
+                      </div>
+
+                      <h3>{reserva.cliente || 'Cliente sin nombre'}</h3>
+                      <p className={styles.pendingService}>{reserva.servicio || 'Servicio por definir'}</p>
+                      {(reserva.servicio_solicitado || reserva.servicio_confirmado) && (
+                        <div className={styles.serviceTrace}>
+                          {reserva.servicio_solicitado && (
+                            <span>Solicitado: <strong>{reserva.servicio_solicitado}</strong></span>
+                          )}
+                          {reserva.servicio_confirmado && (
+                            <span>Confirmado: <strong>{reserva.servicio_confirmado}</strong></span>
+                          )}
+                        </div>
+                      )}
+
+                      <div className={styles.pendingMeta}>
+                        <span>
+                          <Calendar size={14} strokeWidth={1.6} />
+                          {formatDate(reserva.fecha)}
+                        </span>
+                        <span>
+                          <Clock size={14} strokeWidth={1.6} />
+                          {reserva.hora_desde} - {reserva.hora_hasta}
+                        </span>
+                        <span>
+                          <MapPin size={14} strokeWidth={1.6} />
+                          {reserva.local}
+                        </span>
+                        {reserva.numero_telefono && (
+                          <span>
+                            <Phone size={14} strokeWidth={1.6} />
+                            +591 {reserva.numero_telefono}
+                          </span>
+                        )}
+                      </div>
+
+                      {reserva.notas && (
+                        <p className={styles.pendingNotes}>{reserva.notas}</p>
+                      )}
+
+                      {estadoNormalizado === 'PENDIENTE' && rejectingId === reserva.id && (
+                        <label className={styles.rejectField}>
+                          Causa del rechazo
+                          <textarea
+                            value={rejectCauses[reserva.id] ?? ''}
+                            onChange={(event) => setRejectCauses((current) => ({
+                              ...current,
+                              [reserva.id]: event.target.value,
+                            }))}
+                            placeholder="Ej: horario no disponible, datos incompletos..."
+                          />
+                        </label>
                       )}
                     </div>
-
-                    {reserva.notas && (
-                      <p className={styles.pendingNotes}>{reserva.notas}</p>
-                    )}
-
-                    {estadoNormalizado === 'PENDIENTE' && rejectingId === reserva.id && (
-                      <label className={styles.rejectField}>
-                        Causa del rechazo
-                        <textarea
-                          value={rejectCauses[reserva.id] ?? ''}
-                          onChange={(event) => setRejectCauses((current) => ({
-                            ...current,
-                            [reserva.id]: event.target.value,
-                          }))}
-                          placeholder="Ej: horario no disponible, datos incompletos..."
-                        />
-                      </label>
-                    )}
 
                     {estadoNormalizado === 'PENDIENTE' && (
                       <div className={styles.pendingActions}>
@@ -374,7 +644,7 @@ export default function AdminReservasAprobacionPage() {
                           disabled={actionId === reserva.id}
                         >
                           <Check size={15} strokeWidth={1.8} />
-                          Agendar
+                          Aprobar
                         </button>
                         {whatsappHref ? (
                           <a
@@ -415,6 +685,153 @@ export default function AdminReservasAprobacionPage() {
           </div>
         </div>
       </main>
+
+      {approvalReserva && approvalDraft && (
+        <div
+          className={styles.approvalModalOverlay}
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeApprovalModal();
+          }}
+        >
+          <section
+            className={styles.approvalModal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="approval-modal-title"
+          >
+            <div className={styles.modalTop}>
+              <div>
+                <span className={styles.modalEyebrow}>Revisión final</span>
+                <h2 id="approval-modal-title">Aprobar reserva #{approvalReserva.id}</h2>
+                <p>
+                  Confirma los datos de la solicitud y el servicio definitivo antes de pasarla a agenda.
+                </p>
+              </div>
+              <button
+                type="button"
+                className={styles.modalClose}
+                onClick={closeApprovalModal}
+                disabled={actionId === approvalReserva.id}
+                aria-label="Cerrar modal de aprobación"
+              >
+                <XCircle size={20} strokeWidth={1.8} />
+              </button>
+            </div>
+
+            <div className={styles.modalSummary}>
+              <span>
+                Solicitado: <strong>{approvalReserva.servicio_solicitado || approvalReserva.servicio || 'Por definir'}</strong>
+              </span>
+              {approvalReserva.servicio_confirmado && (
+                <span>
+                  Confirmado previo: <strong>{approvalReserva.servicio_confirmado}</strong>
+                </span>
+              )}
+            </div>
+
+            <div className={styles.modalGrid}>
+              <label className={styles.modalField}>
+                Cliente
+                <input value={approvalReserva.cliente || 'Cliente sin nombre'} disabled />
+              </label>
+              <label className={styles.modalField}>
+                Local
+                <input value={approvalReserva.local} disabled />
+              </label>
+              <label className={styles.modalField}>
+                Teléfono
+                <input
+                  value={approvalDraft.telefono}
+                  onChange={(event) => setApprovalDraft((current) => current ? {
+                    ...current,
+                    telefono: event.target.value,
+                  } : current)}
+                  inputMode="numeric"
+                  placeholder="77777777"
+                />
+              </label>
+              <label className={styles.modalField}>
+                Fecha
+                <input
+                  type="date"
+                  value={approvalDraft.fecha}
+                  onChange={(event) => setApprovalDraft((current) => current ? {
+                    ...current,
+                    fecha: event.target.value,
+                  } : current)}
+                />
+              </label>
+              <label className={styles.modalField}>
+                Hora inicio
+                <input
+                  type="time"
+                  value={approvalDraft.horaDesde}
+                  onChange={(event) => setApprovalDraft((current) => current ? {
+                    ...current,
+                    horaDesde: event.target.value,
+                  } : current)}
+                />
+              </label>
+              <label className={styles.modalField}>
+                Hora fin
+                <input
+                  type="time"
+                  value={approvalDraft.horaHasta}
+                  onChange={(event) => setApprovalDraft((current) => current ? {
+                    ...current,
+                    horaHasta: event.target.value,
+                  } : current)}
+                />
+              </label>
+              <label className={`${styles.modalField} ${styles.modalFieldWide}`}>
+                Servicio definitivo
+                <CustomSelect
+                  value={approvalDraft.servicioConfirmado}
+                  onChange={(value) => setApprovalDraft((current) => current ? {
+                    ...current,
+                    servicioConfirmado: value,
+                  } : current)}
+                  groups={approvalServiceGroups}
+                  placeholder="Seleccionar servicio"
+                  hasError={false}
+                />
+              </label>
+              <label className={`${styles.modalField} ${styles.modalFieldWide}`}>
+                Notas
+                <textarea
+                  value={approvalDraft.notas}
+                  onChange={(event) => setApprovalDraft((current) => current ? {
+                    ...current,
+                    notas: event.target.value,
+                  } : current)}
+                  placeholder="Añade una observación para el equipo si hace falta."
+                />
+              </label>
+            </div>
+
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                className={styles.modalGhost}
+                onClick={closeApprovalModal}
+                disabled={actionId === approvalReserva.id}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className={styles.modalPrimary}
+                onClick={approveReservaFromModal}
+                disabled={actionId === approvalReserva.id}
+              >
+                <Check size={16} strokeWidth={1.8} />
+                {actionId === approvalReserva.id ? 'Agendando...' : 'Aprobar y agendar'}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
 
       {statusMessage && (
         <div

@@ -4,7 +4,5 @@ export const CATEGORIAS_ORDEN = [
   'Bicicleta',
   'Manuales',
   'Limpieza Facial',
-  'Combos',
   'Inyecciones',
-  'Combos Inyecciones',
 ] as const;

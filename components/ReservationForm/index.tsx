@@ -26,6 +26,7 @@ export default function ReservationForm({ initialData, onSuccess, onCancel }: Re
     numeroTelefono, setNumeroTelefono,
     notas, setNotas,
     servicio,
+    servicioSolicitado, setServicioSolicitado,
     error, errors,
     slotWarning,
     scheduleWarning,
@@ -33,7 +34,9 @@ export default function ReservationForm({ initialData, onSuccess, onCancel }: Re
     hoursAvailability,
     sucursalOptions,
     servicioGroups,
+    servicioSolicitadoGroups,
     servicioSeleccionado,
+    esTratamientoEspecializado,
     isSundaySelected,
     handleServicioChange,
     handleFechaChange,
@@ -126,6 +129,23 @@ export default function ReservationForm({ initialData, onSuccess, onCancel }: Re
             )}
             {errors.servicio && <span className={styles.errorText}>{errors.servicio}</span>}
           </div>
+
+          {esTratamientoEspecializado && (
+            <div className={`${styles.formGroup} ${styles.fullWidth}`}>
+              <label>Tratamiento que te interesa</label>
+              <CustomSelect
+                value={servicioSolicitado}
+                onChange={setServicioSolicitado}
+                groups={servicioSolicitadoGroups}
+                placeholder="Seleccionar tratamiento"
+                hasError={!!errors.servicioSolicitado}
+              />
+              <p className={styles.serviceNote}>
+                Esto no agenda el tratamiento automáticamente. El equipo lo validará contigo antes de confirmar la reserva.
+              </p>
+              {errors.servicioSolicitado && <span className={styles.errorText}>{errors.servicioSolicitado}</span>}
+            </div>
+          )}
 
           {/* Horario */}
           <div className={`${styles.formGroup} ${styles.fullWidth}`}>

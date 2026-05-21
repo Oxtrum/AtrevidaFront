@@ -16,6 +16,8 @@ interface ReservaPayload {
   cliente: string;
   numero_telefono?: string;
   servicio: string;
+  servicio_solicitado?: string | null;
+  servicio_confirmado?: string | null;
   precio?: number;
   notas?: string;
   estado: EstadoReserva;
@@ -79,6 +81,7 @@ export function validateReservationForm(
     servicio: string,
     horaDesde: string,
     horaHasta: string,
+    servicioSolicitado?: string,
 ): Record<string, string> {
     const errors: Record<string, string> = {};
 
@@ -112,6 +115,10 @@ export function validateReservationForm(
         errors.servicio = 'Selecciona un servicio';
     }
 
+    if (servicio === 'tratamiento_especializado' && !servicioSolicitado) {
+        errors.servicioSolicitado = 'Selecciona el tratamiento que te interesa';
+    }
+
     if (!horaDesde) {
         errors.horaDesde = 'Selecciona hora de inicio';
     } else if (!horaHasta) {
@@ -138,6 +145,8 @@ export function buildReservaPayload(
   cliente: string,
   servicio: string,
   numeroTelefono?: string,
+  servicioSolicitado?: string | null,
+  servicioConfirmado?: string | null,
   precio?: number,
   notas?: string,
   estado: EstadoReserva = 'PENDIENTE',
@@ -154,6 +163,8 @@ export function buildReservaPayload(
       cliente,
       numero_telefono: numeroTelefono,
       servicio,
+      servicio_solicitado: servicioSolicitado,
+      servicio_confirmado: servicioConfirmado,
       precio,
       notas,
       estado,
@@ -171,6 +182,8 @@ export function buildReservaPayload(
     cliente,
     numero_telefono: numeroTelefono,
     servicio,
+    servicio_solicitado: servicioSolicitado,
+    servicio_confirmado: servicioConfirmado,
     precio,
     notas,
     estado,
