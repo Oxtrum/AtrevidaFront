@@ -4,64 +4,116 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
 import {
+  AlertCircle,
   CalendarCheck,
-  DollarSign,
-  Users,
   CheckCircle2,
   CalendarX,
   Calendar,
   BarChart2,
   Clock,
+  DollarSign,
+  Users,
 } from 'lucide-react';
 
 import Header from '@/components/AdminHeader/Header';
+import { getReservasResumenDB, type ReservasResumenData } from '@/lib/api/reservas';
 import styles from './page.module.css';
 
-const KPI_PRIMARY = [
+type KpiCard = {
+  label: string;
+  icon: React.ReactNode;
+  color: string;
+  colorRgb: string;
+  getValue: (resumen: ReservasResumenData, isLoading: boolean) => string;
+  getSub: (isLoading: boolean) => string;
+  trend: string;
+};
+
+const EMPTY_RESUMEN: ReservasResumenData = {
+  reservas_agendadas_dia: 0,
+  servicios_completados_dia: 0,
+  semana: {
+    total_reservas: 0,
+    lunes: 0,
+    martes: 0,
+    miercoles: 0,
+    jueves: 0,
+    viernes: 0,
+  },
+};
+
+const getTodayISO = () => {
+  const now = new Date();
+  const offset = now.getTimezoneOffset();
+  return new Date(now.getTime() - offset * 60_000).toISOString().slice(0, 10);
+};
+
+const KPI_PRIMARY: KpiCard[] = [
   {
     label: 'Reservas del día',
+    trend: 'Hoy',
     icon: <CalendarCheck size={16} strokeWidth={1.5} />,
     color: '#EC008C',
     colorRgb: '236, 0, 140',
+    getValue: (resumen, isLoading) => isLoading ? '—' : String(resumen.reservas_agendadas_dia),
+    getSub: () => 'Agendadas para la fecha seleccionada',
   },
   {
     label: 'Ingresos de hoy',
+    trend: '—',
     icon: <DollarSign size={16} strokeWidth={1.5} />,
     color: '#92278F',
     colorRgb: '146, 39, 143',
+    getValue: () => '—',
+    getSub: () => 'Disponible próximamente',
   },
   {
     label: 'Clientes activos',
+    trend: '—',
     icon: <Users size={16} strokeWidth={1.5} />,
     color: '#14AEEF',
     colorRgb: '20, 174, 239',
+    getValue: () => '—',
+    getSub: () => 'Disponible próximamente',
   }
 ];
 
-const KPI_SECONDARY = [
+const KPI_SECONDARY: KpiCard[] = [
   {
     label: 'Servicios completados',
+    trend: 'Hoy',
     icon: <CheckCircle2 size={16} strokeWidth={1.5} />,
     color: '#14AEEF',
     colorRgb: '20, 174, 239',
+    getValue: (resumen, isLoading) => isLoading ? '—' : String(resumen.servicios_completados_dia),
+    getSub: () => 'Atenciones marcadas como completadas',
   },
   {
     label: 'Cancelaciones',
+    trend: '—',
     icon: <CalendarX size={16} strokeWidth={1.5} />,
     color: '#FFE600',
     colorRgb: '255, 230, 0',
+    getValue: () => '—',
+    getSub: () => 'Disponible próximamente',
   }
 ];
 
-const WEEK_BARS = [
-  { day: 'L', height: '40%' },
-  { day: 'M', height: '65%' },
-  { day: 'X', height: '50%' },
-  { day: 'J', height: '80%' },
-  { day: 'V', height: '90%' },
-  { day: 'S', height: '55%' },
-  { day: 'D', height: '30%' },
-];
+const getWeekBars = (resumen: ReservasResumenData) => {
+  const values = [
+    { day: 'Lunes', value: resumen.semana.lunes },
+    { day: 'Martes', value: resumen.semana.martes },
+    { day: 'Miércoles', value: resumen.semana.miercoles },
+    { day: 'Jueves', value: resumen.semana.jueves },
+    { day: 'Viernes', value: resumen.semana.viernes },
+  ];
+  const max = Math.max(1, ...values.map((bar) => bar.value));
+
+  return values.map((bar) => ({
+    ...bar,
+    height: `${Math.max(8, Math.round((bar.value / max) * 100))}%`,
+  }));
+};
 
 export default function AdminDashboardPage() {
   const router = useRouter();
@@ -82,6 +134,10 @@ export default function AdminDashboardPage() {
     return raw.charAt(0).toUpperCase() + raw.slice(1);
   });
   const [year] = useState(() => String(new Date().getFullYear()));
+  const [resumenFecha] = useState(getTodayISO);
+  const [resumen, setResumen] = useState<ReservasResumenData>(EMPTY_RESUMEN);
+  const [resumenLoading, setResumenLoading] = useState(true);
+  const [resumenError, setResumenError] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
@@ -95,6 +151,23 @@ export default function AdminDashboardPage() {
       router.push('/admin/login');
       return;
     }
+
+    const loadResumen = async () => {
+      setResumenLoading(true);
+      setResumenError(null);
+
+      try {
+        const response = await getReservasResumenDB(resumenFecha);
+        setResumen(response.data ?? EMPTY_RESUMEN);
+      } catch (loadError) {
+        setResumen(EMPTY_RESUMEN);
+        setResumenError(loadError instanceof Error ? loadError.message : 'No se pudo cargar el resumen');
+      } finally {
+        setResumenLoading(false);
+      }
+    };
+
+    void loadResumen();
 
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
@@ -144,7 +217,9 @@ export default function AdminDashboardPage() {
     }, containerRef);
 
     return () => ctx.revert();
-  }, [router]);
+  }, [resumenFecha, router]);
+
+  const weekBars = getWeekBars(resumen);
 
   return (
     <div ref={containerRef} className={styles.pageContainer}>
@@ -206,12 +281,12 @@ export default function AdminDashboardPage() {
 
                 <div className={styles.kpiTop}>
                   <span className={styles.kpiIcon}>{kpi.icon}</span>
-                  <span className={styles.kpiTrendNeutral}>—</span>
+                  <span className={styles.kpiTrendNeutral}>{kpi.trend}</span>
                 </div>
 
-                <div className={styles.kpiValue}>—</div>
+                <div className={styles.kpiValue}>{kpi.getValue(resumen, resumenLoading)}</div>
                 <div className={styles.kpiLabel}>{kpi.label}</div>
-                <div className={styles.kpiSub}>Disponible próximamente</div>
+                <div className={styles.kpiSub}>{kpi.getSub(resumenLoading)}</div>
               </div>
             ))}
           </div>
@@ -233,15 +308,22 @@ export default function AdminDashboardPage() {
 
                 <div className={styles.kpiTop}>
                   <span className={styles.kpiIcon}>{kpi.icon}</span>
-                  <span className={styles.kpiTrendNeutral}>—</span>
+                  <span className={styles.kpiTrendNeutral}>{kpi.trend}</span>
                 </div>
 
-                <div className={styles.kpiValue}>—</div>
+                <div className={styles.kpiValue}>{kpi.getValue(resumen, resumenLoading)}</div>
                 <div className={styles.kpiLabel}>{kpi.label}</div>
-                <div className={styles.kpiSub}>Disponible próximamente</div>
+                <div className={styles.kpiSub}>{kpi.getSub(resumenLoading)}</div>
               </div>
             ))}
           </div>
+
+          {resumenError && (
+            <div className={styles.summaryError} role="status">
+              <AlertCircle size={16} strokeWidth={1.7} />
+              {resumenError}
+            </div>
+          )}
 
           {/* ── Section label ── */}
           <div className={styles.gridLabel}>
@@ -257,17 +339,17 @@ export default function AdminDashboardPage() {
                 <div className={styles.panelTitleGroup}>
                   <BarChart2 size={15} strokeWidth={1.5} className={styles.panelIcon} />
                   <span className={styles.panelTitle}>
-                    Reservas — últimos 7 días
+                    Reservas — semana
                   </span>
                 </div>
-                <span className={styles.comingSoonChip}>
+                <span className={styles.liveChip}>
                   <Clock size={10} strokeWidth={1.5} />
-                  Próximamente
+                  {resumenFecha}
                 </span>
               </div>
 
               <div className={styles.chartArea}>
-                {WEEK_BARS.map((bar, i) => (
+                {weekBars.map((bar, i) => (
                   <div key={i} className={styles.barWrap}>
                     <div
                       className={styles.bar}
@@ -275,7 +357,9 @@ export default function AdminDashboardPage() {
                         height: bar.height,
                         background: i < 5 ? '#EC008C' : '#92278F',
                       }}
+                      aria-label={`${bar.day}: ${bar.value} reservas`}
                     />
+                    <strong className={styles.barValue}>{resumenLoading ? '—' : bar.value}</strong>
                     <span className={styles.barLabel}>{bar.day}</span>
                   </div>
                 ))}
@@ -287,26 +371,24 @@ export default function AdminDashboardPage() {
               <div className={styles.panelHeader}>
                 <div className={styles.panelTitleGroup}>
                   <CalendarCheck size={15} strokeWidth={1.5} className={styles.panelIcon} />
-                  <span className={styles.panelTitle}>Actividad reciente</span>
+                <span className={styles.panelTitle}>Actividad reciente</span>
                 </div>
-                <span className={styles.comingSoonChip}>
-                  <Clock size={10} strokeWidth={1.5} />
-                  Próximamente
-                </span>
+                <span className={styles.liveChip}>Resumen del día</span>
               </div>
 
-              <div className={styles.emptyState}>
-                <CalendarCheck
-                  size={28}
-                  strokeWidth={1}
-                  className={styles.emptyIcon}
-                />
-                <p className={styles.emptyText}>
-                  Las reservas del día aparecerán aquí
-                </p>
-                <span className={styles.emptyTag}>
-                  Disponible al conectar la API
-                </span>
+              <div className={styles.activitySummary}>
+                <div>
+                  <span>Reservas agendadas</span>
+                  <strong>{resumenLoading ? '—' : resumen.reservas_agendadas_dia}</strong>
+                </div>
+                <div>
+                  <span>Servicios completados</span>
+                  <strong>{resumenLoading ? '—' : resumen.servicios_completados_dia}</strong>
+                </div>
+                <div>
+                  <span>Total semanal</span>
+                  <strong>{resumenLoading ? '—' : resumen.semana.total_reservas}</strong>
+                </div>
               </div>
             </div>
           </div>

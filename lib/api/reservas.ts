@@ -43,6 +43,21 @@ export interface GetReservasCalendarioParams {
   reservados?: boolean;
 }
 
+export interface ReservasResumenSemana {
+  total_reservas: number;
+  lunes: number;
+  martes: number;
+  miercoles: number;
+  jueves: number;
+  viernes: number;
+}
+
+export interface ReservasResumenData {
+  reservas_agendadas_dia: number;
+  servicios_completados_dia: number;
+  semana: ReservasResumenSemana;
+}
+
 export interface CrearReservaDBData {
   local: string;
   fecha: string;
@@ -145,6 +160,13 @@ export async function getReservasCalendario(params: GetReservasCalendarioParams)
       cliente: params.cliente,
       reservados: params.reservados?.toString(),
     },
+  });
+}
+
+/** Obtiene el resumen operativo de reservas para una fecha. */
+export async function getReservasResumenDB(fecha: string): Promise<ApiResponse<ReservasResumenData>> {
+  return apiClient.get<ApiResponse<ReservasResumenData>>('/bd/reservas/resumen', {
+    params: { fecha },
   });
 }
 
