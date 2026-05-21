@@ -84,6 +84,28 @@ const getWhatsappHref = (telefono?: string) => {
   return `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`;
 };
 
+const getConfirmationWhatsappHref = (reserva: ReservaBD) => {
+  const phoneDigits = reserva.numero_telefono?.replace(/\D/g, '') ?? '';
+  if (!phoneDigits) return null;
+
+  const phone = phoneDigits.startsWith('591') ? phoneDigits : `591${phoneDigits}`;
+  const tratamiento = reserva.servicio_confirmado || reserva.servicio_solicitado || reserva.servicio || 'Tratamiento confirmado';
+  const message = [
+    '*Su cita ha sido confirmada y reservada con éxito 🎉 en Atrevida Fit - Tecnología y Salud 🌟*',
+    '',
+    `*📅 Fecha:* ${formatDate(reserva.fecha)} (${reserva.fecha})`,
+    `*⏰ Horario:* ${reserva.hora_desde} - ${reserva.hora_hasta}`,
+    `*✨ Tratamiento:* ${tratamiento}`,
+    `*📍 Sucursal:* ${reserva.local}`,
+    '',
+    '*Vienes con el estómago lleno (desayuno) y 1 litro de agua* ✨🥰',
+    '',
+    'Será un placer atenderte! 🤗',
+  ].join('\n');
+
+  return `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`;
+};
+
 const getDefaultConfirmedService = (reserva: ReservaBD) => {
   const requested = reserva.servicio_solicitado || reserva.servicio_confirmado || reserva.servicio;
   const match = SERVICIOS_ADMIN_DISPONIBLES.find((servicio) => servicio.label === requested);
@@ -92,6 +114,16 @@ const getDefaultConfirmedService = (reserva: ReservaBD) => {
 
 const normalizeSearchText = (value?: string | number | null) =>
   String(value ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+const getClientInitials = (name?: string) => {
+  const parts = (name || 'Cliente')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2);
+
+  return parts.map((part) => part[0]?.toUpperCase()).join('') || 'CL';
+};
 
 export default function AdminReservasAprobacionPage() {
   const router = useRouter();
@@ -110,6 +142,7 @@ export default function AdminReservasAprobacionPage() {
   const [rejectCauses, setRejectCauses] = useState<Record<number, string>>({});
   const [approvalReserva, setApprovalReserva] = useState<ReservaBD | null>(null);
   const [approvalDraft, setApprovalDraft] = useState<ApprovalDraft | null>(null);
+  const [notificationReserva, setNotificationReserva] = useState<ReservaBD | null>(null);
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [estadoFiltro, setEstadoFiltro] = useState<EstadoFiltro>('PENDIENTE');
   const [searchQuery, setSearchQuery] = useState('');
@@ -150,6 +183,22 @@ export default function AdminReservasAprobacionPage() {
   const tipoOptions = useMemo(
     () => Array.from(new Set(reservas.map((reserva) => reserva.tipo).filter(Boolean))).sort(),
     [reservas],
+  );
+
+  const localFilterOptions = useMemo(
+    () => [
+      { value: 'TODOS', label: 'Todas' },
+      ...localOptions.map((local) => ({ value: local, label: local })),
+    ],
+    [localOptions],
+  );
+
+  const tipoFilterOptions = useMemo(
+    () => [
+      { value: 'TODOS', label: 'Todos' },
+      ...tipoOptions.map((tipo) => ({ value: tipo, label: TIPO_LABELS[tipo] ?? tipo })),
+    ],
+    [tipoOptions],
   );
 
   const reservasVisibles = useMemo(() => {
@@ -324,23 +373,26 @@ export default function AdminReservasAprobacionPage() {
         tipo,
       });
 
+      const updatedReserva: ReservaBD = {
+        ...approvalReserva,
+        estado: 'AGENDADO',
+        fecha: approvalDraft.fecha,
+        hora_desde: approvalDraft.horaDesde,
+        hora_hasta: approvalDraft.horaHasta,
+        numero_telefono: cleanPhone,
+        notas: approvalDraft.notas,
+        servicio_confirmado: confirmedService.label,
+        precio: confirmedService.precio,
+        tipo,
+      };
+
       setReservas((current) =>
-        current.map((item) => item.id === approvalReserva.id ? {
-          ...item,
-          estado: 'AGENDADO',
-          fecha: approvalDraft.fecha,
-          hora_desde: approvalDraft.horaDesde,
-          hora_hasta: approvalDraft.horaHasta,
-          numero_telefono: cleanPhone,
-          notas: approvalDraft.notas,
-          servicio_confirmado: confirmedService.label,
-          precio: confirmedService.precio,
-          tipo,
-        } : item),
+        current.map((item) => item.id === approvalReserva.id ? updatedReserva : item),
       );
 
       setApprovalReserva(null);
       setApprovalDraft(null);
+      setNotificationReserva(updatedReserva);
       setStatusMessage({ type: 'success', text: `Reserva #${approvalReserva.id} agendada correctamente.` });
       window.setTimeout(() => setStatusMessage(null), 3600);
     } catch (updateError) {
@@ -483,31 +535,32 @@ export default function AdminReservasAprobacionPage() {
 
               <label className={styles.controlField}>
                 <span>Sucursal</span>
-                <select value={localFiltro} onChange={(event) => setLocalFiltro(event.target.value)}>
-                  <option value="TODOS">Todas</option>
-                  {localOptions.map((local) => (
-                    <option key={local} value={local}>{local}</option>
-                  ))}
-                </select>
+                <CustomSelect
+                  value={localFiltro}
+                  onChange={setLocalFiltro}
+                  options={localFilterOptions}
+                />
               </label>
 
               <label className={styles.controlField}>
                 <span>Tipo</span>
-                <select value={tipoFiltro} onChange={(event) => setTipoFiltro(event.target.value)}>
-                  <option value="TODOS">Todos</option>
-                  {tipoOptions.map((tipo) => (
-                    <option key={tipo} value={tipo}>{TIPO_LABELS[tipo] ?? tipo}</option>
-                  ))}
-                </select>
+                <CustomSelect
+                  value={tipoFiltro}
+                  onChange={setTipoFiltro}
+                  options={tipoFilterOptions}
+                />
               </label>
 
               <label className={styles.controlField}>
                 <span>Fecha</span>
-                <input
-                  type="date"
-                  value={fechaFiltro}
-                  onChange={(event) => setFechaFiltro(event.target.value)}
-                />
+                <div className={styles.dateInputWrap}>
+                  <Calendar size={16} strokeWidth={1.8} />
+                  <input
+                    type="date"
+                    value={fechaFiltro}
+                    onChange={(event) => setFechaFiltro(event.target.value)}
+                  />
+                </div>
               </label>
 
               <button
@@ -571,9 +624,10 @@ export default function AdminReservasAprobacionPage() {
                 {reservasVisibles.map((reserva) => {
                   const estadoNormalizado = normalizeEstado(reserva.estado);
                   const whatsappHref = getWhatsappHref(reserva.numero_telefono);
+                  const confirmationWhatsappHref = getConfirmationWhatsappHref(reserva);
 
                   return (
-                  <article key={reserva.id} className={`approval-card ${styles.pendingCard}`}>
+                  <article key={reserva.id} className={`approval-card ${styles.pendingCard} ${styles[`card${estadoNormalizado}`]}`}>
                     <div className={styles.pendingContent}>
                       <div className={styles.pendingTop}>
                         <span className={`${styles.pendingState} ${styles[`state${estadoNormalizado}`]}`}>
@@ -582,8 +636,15 @@ export default function AdminReservasAprobacionPage() {
                         <span className={styles.pendingId}>#{reserva.id}</span>
                       </div>
 
-                      <h3>{reserva.cliente || 'Cliente sin nombre'}</h3>
-                      <p className={styles.pendingService}>{reserva.servicio || 'Servicio por definir'}</p>
+                      <div className={styles.clientHeader}>
+                        <span className={styles.clientAvatar} aria-hidden="true">
+                          {getClientInitials(reserva.cliente)}
+                        </span>
+                        <div className={styles.clientInfo}>
+                          <h3>{reserva.cliente || 'Cliente sin nombre'}</h3>
+                          <p className={styles.pendingService}>{reserva.servicio || 'Servicio por definir'}</p>
+                        </div>
+                      </div>
                       {(reserva.servicio_solicitado || reserva.servicio_confirmado) && (
                         <div className={styles.serviceTrace}>
                           {reserva.servicio_solicitado && (
@@ -675,6 +736,30 @@ export default function AdminReservasAprobacionPage() {
                           <XCircle size={15} strokeWidth={1.8} />
                           {rejectingId === reserva.id ? 'Confirmar rechazo' : 'Rechazar'}
                         </button>
+                      </div>
+                    )}
+                    {estadoNormalizado === 'AGENDADO' && (
+                      <div className={`${styles.pendingActions} ${styles.notifyActions}`}>
+                        {confirmationWhatsappHref ? (
+                          <a
+                            href={confirmationWhatsappHref}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={styles.notifyButton}
+                          >
+                            <MessageCircle size={15} strokeWidth={1.8} />
+                            Enviar confirmación
+                          </a>
+                        ) : (
+                          <button
+                            type="button"
+                            className={styles.notifyButton}
+                            disabled
+                          >
+                            <MessageCircle size={15} strokeWidth={1.8} />
+                            Sin teléfono
+                          </button>
+                        )}
                       </div>
                     )}
                   </article>
@@ -830,6 +915,39 @@ export default function AdminReservasAprobacionPage() {
               </button>
             </div>
           </section>
+        </div>
+      )}
+
+      {notificationReserva && (
+        <div className={styles.confirmationPrompt} role="status" aria-live="polite">
+          <div className={styles.promptText}>
+            <span>Reserva agendada</span>
+            <strong>Envía la confirmación por WhatsApp al cliente.</strong>
+          </div>
+          {getConfirmationWhatsappHref(notificationReserva) ? (
+            <a
+              href={getConfirmationWhatsappHref(notificationReserva) ?? undefined}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.promptAction}
+            >
+              <MessageCircle size={16} strokeWidth={1.8} />
+              Enviar WhatsApp
+            </a>
+          ) : (
+            <button type="button" className={styles.promptAction} disabled>
+              <MessageCircle size={16} strokeWidth={1.8} />
+              Sin teléfono
+            </button>
+          )}
+          <button
+            type="button"
+            className={styles.promptClose}
+            onClick={() => setNotificationReserva(null)}
+            aria-label="Ocultar aviso de confirmación"
+          >
+            <XCircle size={18} strokeWidth={1.8} />
+          </button>
         </div>
       )}
 

@@ -82,6 +82,7 @@
 .refreshButton,
 .approveButton,
 .contactButton,
+.notifyButton,
 .rejectButton {
   display: inline-flex;
   align-items: center;
@@ -112,6 +113,7 @@
 .refreshButton:hover,
 .approveButton:hover,
 .contactButton:hover,
+.notifyButton:hover,
 .rejectButton:hover {
   transform: translateY(-2px);
 }
@@ -119,6 +121,7 @@
 .refreshButton:disabled,
 .approveButton:disabled,
 .contactButton:disabled,
+.notifyButton:disabled,
 .rejectButton:disabled {
   cursor: not-allowed;
   opacity: 0.62;
@@ -298,7 +301,8 @@
 
 .controlField input,
 .controlField select,
-.searchInputWrap {
+.searchInputWrap,
+.dateInputWrap {
   width: 100%;
   min-height: 42px;
   border: 1px solid var(--admin-border-subtle);
@@ -334,18 +338,43 @@
     box-shadow var(--admin-t-normal) var(--admin-ease);
 }
 
-.searchInputWrap svg {
+.dateInputWrap {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0 0.74rem;
+  transition:
+    border-color var(--admin-t-normal) var(--admin-ease),
+    box-shadow var(--admin-t-normal) var(--admin-ease),
+    background var(--admin-t-normal) var(--admin-ease);
+}
+
+.searchInputWrap svg,
+.dateInputWrap svg {
   color: var(--admin-accent-tertiary);
 }
 
-.searchInputWrap input {
+.searchInputWrap input,
+.dateInputWrap input {
   min-height: 40px;
   padding: 0;
   border: 0;
   background: transparent;
 }
 
+.dateInputWrap input {
+  cursor: pointer;
+}
+
+.dateInputWrap input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.82;
+  filter: var(--admin-date-icon-filter, none);
+}
+
 .searchInputWrap:focus-within,
+.dateInputWrap:focus-within,
 .controlField input:focus,
 .controlField select:focus {
   border-color: var(--admin-border-focus);
@@ -461,37 +490,83 @@
 .pendingGrid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0.8rem;
+  gap: 0.95rem;
 }
 
 .pendingCard {
+  --card-accent: var(--admin-accent-yellow);
+  --card-accent-rgb: 255, 230, 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(156px, auto);
+  grid-template-columns: minmax(0, 1fr) minmax(172px, auto);
   align-items: stretch;
-  gap: 1rem;
+  gap: 1.1rem;
   min-height: auto;
-  padding: clamp(0.95rem, 2vw, 1.15rem);
-  border: 1px solid var(--admin-border-subtle);
+  padding: clamp(1rem, 2vw, 1.2rem);
+  border: 1px solid rgba(var(--card-accent-rgb), 0.18);
   border-radius: var(--admin-radius-lg);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent),
+    radial-gradient(ellipse 58% 140% at 0% 0%, rgba(var(--card-accent-rgb), 0.13), transparent 58%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.07), transparent 48%),
     var(--admin-surface-1);
-  box-shadow: var(--admin-shadow-sm);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 16px 36px rgba(0, 0, 0, 0.10);
   overflow: hidden;
+  position: relative;
   transition:
     transform var(--admin-t-normal) var(--admin-ease),
     box-shadow var(--admin-t-normal) var(--admin-ease),
     border-color var(--admin-t-normal) var(--admin-ease);
 }
 
+.pendingCard::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: linear-gradient(180deg, rgba(var(--card-accent-rgb), 0.95), rgba(var(--card-accent-rgb), 0.22));
+}
+
+.pendingCard::after {
+  content: '';
+  position: absolute;
+  top: -46px;
+  right: 138px;
+  width: 120px;
+  height: 120px;
+  border-radius: 999px;
+  background: rgba(var(--card-accent-rgb), 0.09);
+  filter: blur(2px);
+  pointer-events: none;
+}
+
+.cardPENDIENTE {
+  --card-accent: var(--admin-accent-yellow);
+  --card-accent-rgb: 255, 230, 0;
+}
+
+.cardAGENDADO {
+  --card-accent: var(--admin-accent-tertiary);
+  --card-accent-rgb: 20, 174, 239;
+}
+
+.cardRECHAZADO {
+  --card-accent: var(--admin-accent-danger);
+  --card-accent-rgb: 255, 77, 109;
+}
+
 .pendingContent {
   min-width: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .pendingCard:hover {
-  transform: translateY(-3px);
-  border-color: var(--admin-border-hover);
-  box-shadow: var(--admin-shadow-md);
+  transform: translateY(-3px) scale(1.002);
+  border-color: rgba(var(--card-accent-rgb), 0.34);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    0 22px 48px rgba(0, 0, 0, 0.14);
 }
 
 .pendingTop {
@@ -499,56 +574,98 @@
   justify-content: space-between;
   gap: 1rem;
   align-items: center;
-  margin-bottom: 0.85rem;
+  margin-bottom: 0.95rem;
 }
 
 .pendingState {
-  padding: 0.34rem 0.62rem;
+  gap: 0.42rem;
+  padding: 0.36rem 0.68rem;
   color: var(--admin-accent-yellow);
-  background: rgba(255, 230, 0, 0.11);
-  border: 1px solid rgba(255, 230, 0, 0.22);
+  background: rgba(var(--card-accent-rgb), 0.11);
+  border: 1px solid rgba(var(--card-accent-rgb), 0.24);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .stateAGENDADO {
   color: var(--admin-accent-tertiary);
-  background: rgba(255, 230, 0, 0.11);
-  border-color: rgba(20, 174, 239, 0.24);
 }
 
 .stateRECHAZADO {
   color: var(--admin-accent-danger);
-  background: rgba(255, 230, 0, 0.11);
-  border-color: rgba(255, 77, 109, 0.24);
 }
 
 .pendingId {
   color: var(--admin-text-dim);
+  padding: 0.34rem 0.58rem;
+  border: 1px solid var(--admin-border-subtle);
+  background: var(--admin-pill-bg);
+}
+
+.clientHeader {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.82rem;
+  margin-bottom: 0.78rem;
+}
+
+.clientAvatar {
+  display: inline-grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border: 1px solid rgba(var(--card-accent-rgb), 0.26);
+  border-radius: 16px;
+  color: var(--admin-foreground);
+  background:
+    linear-gradient(135deg, rgba(var(--card-accent-rgb), 0.24), rgba(255, 255, 255, 0.035)),
+    var(--admin-pill-bg);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  font-size: 0.82rem;
+  font-weight: 950;
+  letter-spacing: 0.4px;
+}
+
+.clientInfo {
+  min-width: 0;
 }
 
 .pendingCard h3 {
   margin: 0;
   color: var(--admin-foreground);
-  font-size: 1.08rem;
+  font-size: clamp(1.08rem, 1.6vw, 1.25rem);
   line-height: 1.2;
   letter-spacing: -0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .pendingService {
-  margin: 0.38rem 0 0.9rem;
-  color: var(--admin-accent-primary);
-  font-size: 0.86rem;
+  margin: 0.3rem 0 0;
+  color: var(--card-accent);
+  font-size: 0.88rem;
   font-weight: 850;
+  line-height: 1.35;
 }
 
 .serviceTrace {
-  display: grid;
-  gap: 0.32rem;
-  margin: -0.25rem 0 0.9rem;
-  padding: 0.68rem 0.75rem;
-  border: 1px solid rgba(255, 230, 0, 0.16);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.46rem;
+  margin: 0 0 0.9rem;
+}
+
+.serviceTrace span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 32px;
+  padding: 0.42rem 0.62rem;
+  border: 1px solid rgba(var(--card-accent-rgb), 0.16);
   border-radius: var(--admin-radius-md);
   color: var(--admin-text-dim);
-  background: rgba(255, 230, 0, 0.06);
+  background: rgba(var(--card-accent-rgb), 0.055);
   font-size: 0.78rem;
   line-height: 1.4;
 }
@@ -561,31 +678,37 @@
 .pendingMeta {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 0.52rem 0.8rem;
-  margin-bottom: 0.85rem;
+  gap: 0.58rem 0.76rem;
+  margin-bottom: 0.9rem;
 }
 
 .pendingMeta span {
   display: flex;
   align-items: center;
   gap: 0.48rem;
-  color: var(--admin-text-muted);
+  min-height: 36px;
+  padding: 0.5rem 0.62rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  color: var(--admin-text-light);
+  background: rgba(255, 255, 255, 0.035);
   font-size: 0.8rem;
+  font-weight: 760;
   line-height: 1.35;
 }
 
 .pendingMeta svg {
-  color: var(--admin-accent-tertiary);
+  color: var(--card-accent);
   flex-shrink: 0;
 }
 
 .pendingNotes {
   margin: 0 0 0.9rem;
-  padding: 0.72rem;
+  padding: 0.78rem 0.86rem;
   border-radius: var(--admin-radius-md);
   color: var(--admin-text-muted);
-  background: rgba(20, 174, 239, 0.07);
-  border: 1px solid rgba(20, 174, 239, 0.12);
+  background: rgba(var(--card-accent-rgb), 0.055);
+  border: 1px solid rgba(var(--card-accent-rgb), 0.14);
   font-size: 0.8rem;
   line-height: 1.5;
 }
@@ -625,14 +748,17 @@
   display: grid;
   align-content: center;
   justify-self: end;
-  width: min(190px, 100%);
-  gap: 0.55rem;
-  padding-left: 1rem;
-  border-left: 1px solid var(--admin-border-subtle);
+  width: min(202px, 100%);
+  gap: 0.62rem;
+  padding-left: 1.05rem;
+  border-left: 1px solid rgba(var(--card-accent-rgb), 0.16);
+  position: relative;
+  z-index: 1;
 }
 
 .approveButton,
 .contactButton,
+.notifyButton,
 .rejectButton {
   min-height: 40px;
   padding: 0.68rem 0.82rem;
@@ -640,31 +766,145 @@
   font-size: 0.8rem;
   text-decoration: none;
   width: 100%;
-  box-shadow: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .approveButton {
   color: #ffffff;
   background: var(--admin-grad-success);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .contactButton {
   color: var(--admin-accent-success);
-  background: rgba(20, 174, 239, 0.1);
+  background:
+    linear-gradient(180deg, rgba(20, 174, 239, 0.13), rgba(20, 174, 239, 0.07));
   border: 1px solid rgba(20, 174, 239, 0.22);
+}
+
+.notifyButton {
+  color: #ffffff;
+  background:
+    linear-gradient(135deg, rgba(20, 174, 239, 0.92), rgba(236, 0, 140, 0.88));
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .rejectButton {
   color: var(--admin-accent-danger);
-  background: rgba(255, 77, 109, 0.1);
+  background:
+    linear-gradient(180deg, rgba(255, 77, 109, 0.13), rgba(255, 77, 109, 0.07));
   border: 1px solid rgba(255, 77, 109, 0.22);
 }
 
 .approveButton:active,
 .contactButton:active,
+.notifyButton:active,
 .rejectButton:active,
 .clearFiltersButton:active {
   transform: translateY(0) scale(0.98);
+}
+
+.notifyActions {
+  align-content: center;
+}
+
+.confirmationPrompt {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  z-index: 125;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.8rem;
+  width: min(620px, calc(100vw - var(--admin-sidebar-width) - 2rem));
+  padding: 0.88rem;
+  border: 1px solid rgba(20, 174, 239, 0.24);
+  border-radius: var(--admin-radius-lg);
+  background:
+    linear-gradient(135deg, rgba(20, 174, 239, 0.12), rgba(236, 0, 140, 0.08)),
+    var(--admin-panel-elevated);
+  box-shadow: var(--admin-shadow-lg);
+  backdrop-filter: blur(18px);
+  animation: promptIn 0.28s var(--admin-ease);
+}
+
+.promptText {
+  display: grid;
+  gap: 0.18rem;
+  min-width: 0;
+}
+
+.promptText span {
+  color: var(--admin-accent-success);
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.promptText strong {
+  color: var(--admin-foreground);
+  font-size: 0.88rem;
+  line-height: 1.35;
+}
+
+.promptAction,
+.promptClose {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  font-family: var(--admin-font-family);
+  font-weight: 900;
+  cursor: pointer;
+  transition:
+    transform var(--admin-t-normal) var(--admin-ease),
+    opacity var(--admin-t-normal) var(--admin-ease);
+}
+
+.promptAction {
+  gap: 0.46rem;
+  min-height: 40px;
+  padding: 0.68rem 0.9rem;
+  border-radius: var(--admin-radius-md);
+  color: #ffffff;
+  background: var(--admin-grad-success);
+  text-decoration: none;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.promptClose {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--admin-radius-md);
+  color: var(--admin-text-muted);
+  background: var(--admin-pill-bg);
+  border: 1px solid var(--admin-border-subtle);
+}
+
+.promptAction:hover,
+.promptClose:hover {
+  transform: translateY(-2px);
+}
+
+.promptAction:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+  transform: none;
+}
+
+@keyframes promptIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .approvalModalOverlay {
@@ -991,6 +1231,12 @@
     max-width: calc(100vw - 2rem);
   }
 
+  .confirmationPrompt {
+    right: 1rem;
+    left: 1rem;
+    width: auto;
+  }
+
   .controlsPanel {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1057,6 +1303,15 @@
 
   .modalGhost,
   .modalPrimary {
+    width: 100%;
+  }
+
+  .confirmationPrompt {
+    grid-template-columns: 1fr auto;
+  }
+
+  .promptAction {
+    grid-column: 1 / -1;
     width: 100%;
   }
 }

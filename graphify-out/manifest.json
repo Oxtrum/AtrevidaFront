@@ -70,8 +70,8 @@
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/admin/reservas/aprobacion/page.tsx": {
-    "mtime": 1779324927.3955438,
-    "ast_hash": "7471e5ac0c755e3a3817a6d753467b0f",
+    "mtime": 1779378185.7558866,
+    "ast_hash": "b23a3c0ba6ccd93ba44830a2cd5d2ab7",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/admin/configuracion/page.tsx": {
@@ -280,7 +280,7 @@
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/Hero/Hero.tsx": {
-    "mtime": 1779294459.780494,
+    "mtime": 1779325758.9939792,
     "ast_hash": "47fa0a9af35dc346c6df1966ec750d23",
     "semantic_hash": ""
   },
