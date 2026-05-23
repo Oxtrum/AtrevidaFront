@@ -68,7 +68,7 @@ export function useCrearReserva(): UseCrearReservaReturn {
             
             // Si no tiene fecha, usar Sheets (legacy)
             const { crearReserva } = await import('@/lib/api/reservas');
-            return await crearReserva(data as ReservaFormData);
+            return await crearReserva(data as unknown as ReservaFormData);
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : 'Error desconocido';
             setError(errorMsg);

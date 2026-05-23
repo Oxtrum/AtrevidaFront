@@ -29,6 +29,7 @@ import {
   getServiciosAdminPorCategoria,
   getServiciosAdminPorSucursal,
   getTipoFromServicio,
+  getTipoBackendFromServicio,
   type EstadoReserva,
   type ReservaBD,
 } from '@/types/reserva';
@@ -374,7 +375,7 @@ export default function AdminReservasAprobacionPage() {
         await actualizarReservaDB(updateData);
       }
 
-      const tipo = getTipoFromServicio(confirmedService.value);
+      const tipoBackend = getTipoBackendFromServicio(confirmedService.value);
 
       await actualizarEstadoReservaDB({
         id: approvalReserva.id,
@@ -382,7 +383,7 @@ export default function AdminReservasAprobacionPage() {
         causa: '',
         servicio_confirmado: confirmedService.label,
         precio: confirmedService.precio,
-        tipo,
+        tipo: tipoBackend,
       });
 
       const updatedReserva: ReservaBD = {
@@ -395,7 +396,7 @@ export default function AdminReservasAprobacionPage() {
         notas: approvalDraft.notas,
         servicio_confirmado: confirmedService.label,
         precio: confirmedService.precio,
-        tipo,
+        tipo: tipoBackend,
       };
 
       setReservas((current) =>

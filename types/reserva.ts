@@ -218,6 +218,14 @@ export function getTipoFromServicio(servicioValue?: string): string {
   return 'M';
 }
 
+/**
+ * Devuelve el `tipo` tal como lo espera la API (`mesa` | `bicicleta`).
+ * Úsalo siempre al armar payloads para `/bd/reservas`.
+ */
+export function getTipoBackendFromServicio(servicioValue?: string): 'mesa' | 'bicicleta' {
+  return getTipoFromServicio(servicioValue) === 'B' ? 'bicicleta' : 'mesa';
+}
+
 export function getTipoColor(tipo: string): { bg: string; border: string; accent: string } {
   switch (tipo) {
     case 'b':

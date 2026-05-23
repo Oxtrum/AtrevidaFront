@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   DiaSemana, SERVICIOS_DISPONIBLES, SUCURSALES,
   SERVICIOS_ESPECIALIZADOS_DISPONIBLES,
-  getServiciosPorSucursal, getServiciosPorCategoria, getTipoFromServicio,
+  getServiciosPorSucursal, getServiciosPorCategoria, getTipoFromServicio, getTipoBackendFromServicio,
   getServiciosAdminPorCategoria,
   generarSemanas, getFechasDeSemana, esFechaPasada,
   type ReservaBD,
@@ -439,7 +439,7 @@ export function useReservationForm(
     if (!validate()) return;
 
     setError(null);
-    const tipo = getTipoFromServicio(servicio);
+    const tipoBackend = getTipoBackendFromServicio(servicio);
     const horaDesdeNorm = normalizarHora(horaDesde);
     const horaHastaNorm = normalizarHora(horaHasta);
 
@@ -455,7 +455,7 @@ export function useReservationForm(
           fecha: fechaISO,
           hora_desde: horaDesdeNorm,
           hora_hasta: horaHastaNorm,
-          tipo,
+          tipo: tipoBackend,
           cliente,
           numero_telefono: phoneDigits,
           servicio: servicioInfo?.label || servicio,

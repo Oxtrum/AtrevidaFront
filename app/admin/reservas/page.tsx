@@ -59,7 +59,7 @@ export default function AdminReservasPage() {
         local: filtroLocal,
         fecha_desde: filtroFechaDesde,
         fecha_hasta: filtroFechaHasta,
-        tipo: filtroTipo || undefined,
+        tipo: (filtroTipo as 'mesa' | 'bicicleta' | '') || undefined,
         cliente: filtroCliente || undefined,
       });
     }
@@ -131,7 +131,7 @@ export default function AdminReservasPage() {
         local: filtroLocal,
         fecha_desde: filtroFechaDesde,
         fecha_hasta: filtroFechaHasta,
-        tipo: filtroTipo || undefined,
+        tipo: (filtroTipo as 'mesa' | 'bicicleta' | '') || undefined,
         cliente: filtroCliente || undefined,
       });
     } catch (err) {
