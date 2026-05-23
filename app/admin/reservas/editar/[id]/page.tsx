@@ -5,7 +5,7 @@ import { useRef, useState, useEffect, useMemo } from 'react';
 import gsap from 'gsap';
 import { Save } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
-import { actualizarReservaDB, getReservaByID } from '@/lib/api/reservas';
+import { actualizarReservaDB, actualizarEstadoReservaDB, getReservaByID } from '@/lib/api/reservas';
 import { useReservas } from '@/lib/hooks/useReservas';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { DiaSemana, EstadoReserva, ReservaBD, generarSemanas, getFechasDeSemana, esFechaPasada, getTipoFromServicio } from '@/types/reserva';
@@ -34,8 +34,6 @@ function EditarReservaContent() {
   const [nuevaHoraDesde, setNuevaHoraDesde] = useState('');
   const [nuevaHoraHasta, setNuevaHoraHasta] = useState('');
   const [nuevoEstado, setNuevoEstado] = useState<EstadoReserva>('PENDIENTE');
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [clienteName, setClienteName] = useState('');
 
   const semanasDisponibles = useMemo(() => generarSemanas(6), []);
   const [semanaIndex, setSemanaIndex] = useState(0);
@@ -82,6 +80,7 @@ function EditarReservaContent() {
     () => [
       { value: 'PENDIENTE', label: 'Pendiente' },
       { value: 'AGENDADO', label: 'Agendado' },
+      { value: 'COMPLETADO', label: 'Completado' },
       { value: 'RECHAZADO', label: 'Rechazado' },
     ],
     [],
@@ -90,8 +89,6 @@ function EditarReservaContent() {
   const hoursAvailability = useMemo(() => {
     const map = new Map<string, SlotStatus>();
     const hoy = new Date();
-    const hoyMid = new Date(hoy);
-    hoyMid.setHours(0, 0, 0, 0);
 
     // 1. Marcar pasados
     for (const hora of HORAS) {
@@ -162,7 +159,6 @@ function EditarReservaContent() {
           setNuevaHoraDesde(found.hora_desde);
           setNuevaHoraHasta(found.hora_hasta);
           setNuevoEstado(found.estado || 'PENDIENTE');
-          setClienteName(found.cliente);
 
           // Buscar en qué semana está la reserva
           const reservaDate = new Date(found.fecha + 'T00:00:00');
@@ -245,29 +241,40 @@ function EditarReservaContent() {
     setMessage(null);
 
     try {
-      const tipoBackend: 'mesa' | 'bicicleta' =
-        reserva.tipo.toLowerCase().startsWith('b') ? 'bicicleta' : 'mesa';
+      // PATCH /bd/reservas — solo campos que cambian. Spec localiza por id+local.
+      const fechaChanged = nuevaFecha && nuevaFecha !== reserva.fecha;
+      const desdeChanged = nuevaHoraDesde && nuevaHoraDesde !== reserva.hora_desde;
+      const hastaChanged = nuevaHoraHasta && nuevaHoraHasta !== reserva.hora_hasta;
+      const estadoActual = reserva.estado || 'PENDIENTE';
+      const estadoChanged = nuevoEstado !== estadoActual;
 
-      // Solo enviar campos que realmente cambian — el spec PATCH usa prefijo `nuevo_*`
-      // y localiza la reserva por id + local. No mandamos fecha/hora/cliente actuales.
-      const result = await actualizarReservaDB({
-        id: reserva.id,
-        local: reserva.local,
-        ...(nuevaFecha && nuevaFecha !== reserva.fecha && { nueva_fecha: nuevaFecha }),
-        ...(nuevaHoraDesde && nuevaHoraDesde !== reserva.hora_desde && { nueva_hora_desde: nuevaHoraDesde }),
-        ...(nuevaHoraHasta && nuevaHoraHasta !== reserva.hora_hasta && { nueva_hora_hasta: nuevaHoraHasta }),
-        nuevo_tipo: tipoBackend,
-        ...(nuevoEstado !== (reserva.estado || 'PENDIENTE') && { nuevo_estado: nuevoEstado }),
-      });
+      const reservaChanged = fechaChanged || desdeChanged || hastaChanged;
 
-      if (result.mensaje?.toLowerCase().includes('error') || result.mensaje?.toLowerCase().includes('no encontrada')) {
-        setMessage({ type: 'error', text: result.mensaje || 'Error al actualizar' });
-      } else {
-        setMessage({ type: 'success', text: result.mensaje || 'Reserva actualizada correctamente' });
-        setTimeout(() => {
-          router.push('/admin/reservas');
-        }, 1500);
+      if (reservaChanged) {
+        await actualizarReservaDB({
+          id: reserva.id,
+          local: reserva.local,
+          ...(fechaChanged && { nueva_fecha: nuevaFecha }),
+          ...(desdeChanged && { nueva_hora_desde: nuevaHoraDesde }),
+          ...(hastaChanged && { nueva_hora_hasta: nuevaHoraHasta }),
+        });
       }
+
+      // PATCH /bd/reservas/estado — endpoint dedicado para cambios de estado.
+      if (estadoChanged) {
+        await actualizarEstadoReservaDB({
+          id: reserva.id,
+          estado: nuevoEstado,
+        });
+      }
+
+      if (!reservaChanged && !estadoChanged) {
+        setMessage({ type: 'error', text: 'No hay cambios para guardar' });
+        return;
+      }
+
+      setMessage({ type: 'success', text: 'Reserva actualizada correctamente' });
+      window.setTimeout(() => router.push('/admin/reservas'), 1500);
     } catch (err) {
       setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Error al actualizar reserva' });
     } finally {
