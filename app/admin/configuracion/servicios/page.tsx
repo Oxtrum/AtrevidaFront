@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
-import { Plus } from 'lucide-react';
+import { Filter, Plus, Search, X } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
 import { PageHeader, DataTable, FormModal } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
@@ -96,9 +96,16 @@ export default function ServiciosPage() {
   const [filtroCategoria, setFiltroCategoria] = useState('');
   const [filtroNombre, setFiltroNombre] = useState('');
   const [filtroSesiones, setFiltroSesiones] = useState('');
-  /** 'all' | 'true' | 'false' — filtro tri-estado (incluye opción sin filtrar). */
+  /** 'all' | 'true' | 'false' — filtro tri-estado */
   const [filtroEvaluacion, setFiltroEvaluacion] = useState<'all' | 'true' | 'false'>('all');
   const hasFilter = !!(filtroLocal || filtroCategoria);
+
+  // Contar filtros secundarios activos para mostrar indicador
+  const activeSecondaryFilters = [
+    filtroNombre,
+    filtroSesiones,
+    filtroEvaluacion !== 'all' ? filtroEvaluacion : '',
+  ].filter(Boolean).length;
 
   // Row-action state
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -121,7 +128,6 @@ export default function ServiciosPage() {
   // ─── Data fetching ───────────────────────────────────────────────────────────
 
   const fetchServicios = useCallback(async () => {
-    // Requiere al menos un filtro para consultar
     if (!filtroLocal && !filtroCategoria) return;
     setLoading(true);
     setError(null);
@@ -176,7 +182,7 @@ export default function ServiciosPage() {
         { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out' }
       );
     }, containerRef);
-    return () => ctx.revert(); // era ctx.kill()
+    return () => ctx.revert();
   }, []);
 
   // ─── Form ────────────────────────────────────────────────────────────────────
@@ -248,8 +254,6 @@ export default function ServiciosPage() {
 
     try {
       if (isEdit && editingId !== null) {
-        // PATCH spec: nombre, categoria, tiempo, costo, sesiones, tipo_espacio_requerido, activo
-        // (NO local — backend ignores it on PATCH)
         await actualizarServicio(editingId, {
           nombre: form.nombre.trim(),
           categoria: form.categoria,
@@ -280,8 +284,8 @@ export default function ServiciosPage() {
       if (err instanceof Error) console.error(isEdit ? 'actualizarServicio' : 'crearServicioDB', err);
       toast.error(
         isEdit
-          ? 'No se pudo actualizar el servicio. Verifica los datos e inténtalo de nuevo.'
-          : 'No se pudo crear el servicio. Verifica los datos e inténtalo de nuevo.',
+          ? 'No se pudo actualizar el servicio.'
+          : 'No se pudo crear el servicio.',
       );
     } finally {
       setSaving(false);
@@ -303,7 +307,7 @@ export default function ServiciosPage() {
   };
 
   const handleDelete = async (row: ServicioRow) => {
-    if (!confirm(`¿Eliminar el servicio "${row.nombre}"? Se hará borrado lógico (activo = false).`)) return;
+    if (!confirm(`¿Eliminar el servicio "${row.nombre}"? Se hará borrado lógico.`)) return;
     setDeletingId(row.id);
     try {
       await eliminarServicioDB(row.id);
@@ -360,11 +364,9 @@ export default function ServiciosPage() {
       label: 'Espacio',
       searchable: false,
       render: (val) =>
-        val === 'M'
-          ? 'Mesas'
-          : val === 'B'
-            ? 'Bicicletas'
-            : String(val),
+        val === 'M' ? 'Mesas'
+        : val === 'B' ? 'Bicicletas'
+        : String(val),
     },
     {
       key: 'requiere_evaluacion',
@@ -372,9 +374,7 @@ export default function ServiciosPage() {
       searchable: false,
       render: (_val, row) =>
         row.requiere_evaluacion ? (
-          <span className={styles.evaluacionBadge} title="Requiere evaluación previa">
-            Requerida
-          </span>
+          <span className={styles.evaluacionBadge}>Requerida</span>
         ) : (
           <span className={styles.evaluacionMuted}>—</span>
         ),
@@ -391,7 +391,7 @@ export default function ServiciosPage() {
             onClick={() => handleToggleActivo(row)}
             className={activo ? styles.statusActive : styles.statusInactive}
             aria-label={activo ? 'Desactivar servicio' : 'Activar servicio'}
-            title={activo ? 'Desactivar' : 'Activar'}
+            title={activo ? 'Clic para desactivar' : 'Clic para activar'}
           >
             {activo ? 'Activo' : 'Inactivo'}
           </button>
@@ -408,18 +408,18 @@ export default function ServiciosPage() {
             type="button"
             className={styles.linkAction}
             onClick={() => openActivarLocal(row)}
-            title="Activar este servicio en otro local"
+            title="Activar en otro local"
           >
-            Activar en otro local
+            + Local
           </button>
           <button
             type="button"
             className={styles.dangerAction}
             onClick={() => handleDelete(row)}
             disabled={deletingId === row.id}
-            title="Eliminar servicio (borrado lógico)"
+            title="Eliminar servicio"
           >
-            {deletingId === row.id ? 'Eliminando…' : 'Eliminar'}
+            {deletingId === row.id ? '…' : 'Eliminar'}
           </button>
         </div>
       ),
@@ -437,77 +437,144 @@ export default function ServiciosPage() {
           subtitle="Configura los servicios ofrecidos por local"
           backHref="/admin/configuracion"
           actions={
-            <button
-              className="admin-button admin-button-primary"
-              onClick={openCreate}
-            >
-              <Plus size={18} strokeWidth={2} />
+            <button className="admin-button admin-button-primary" onClick={openCreate}>
+              <Plus size={16} strokeWidth={2.2} />
               Nuevo Servicio
             </button>
           }
         />
 
         <div ref={contentRef} className={styles.contentStack}>
-          {/* ── Filter bar — card propio ── */}
+
+          {/* ── Filter card ── */}
           <div className={styles.filterCard}>
-            <div className={styles.filterBar}>
-              <div className={styles.filterGroup}>
-                <label id="lbl-filtro-local" htmlFor="filtro-local">Local</label>
-                <CustomSelect
-                  id="filtro-local"
-                  ariaLabelledBy="lbl-filtro-local"
-                  value={filtroLocal}
-                  onChange={setFiltroLocal}
-                  options={[
-                    { value: '', label: 'Seleccionar local' },
-                    ...locales.map((l) => ({ value: l.nombre, label: l.nombre })),
-                  ]}
-                />
-              </div>
-              <div className={styles.filterGroup}>
-                <label id="lbl-filtro-categoria" htmlFor="filtro-categoria">Categoría</label>
-                <CustomSelect
-                  id="filtro-categoria"
-                  ariaLabelledBy="lbl-filtro-categoria"
-                  value={filtroCategoria}
-                  onChange={setFiltroCategoria}
-                  options={[
-                    { value: '', label: 'Todas' },
-                    ...categorias.map((c) => ({ value: c.Nombre, label: c.Nombre })),
-                  ]}
-                />
-              </div>
-              <div className={styles.filterGroup}>
-                <label id="lbl-filtro-eval" htmlFor="filtro-eval">Requiere evaluación</label>
-                <CustomSelect
-                  id="filtro-eval"
-                  ariaLabelledBy="lbl-filtro-eval"
-                  value={filtroEvaluacion}
-                  onChange={(v) => setFiltroEvaluacion(v as 'all' | 'true' | 'false')}
-                  options={[
-                    { value: 'all', label: 'Todos' },
-                    { value: 'true', label: 'Requieren' },
-                    { value: 'false', label: 'No requieren' },
-                  ]}
-                />
+            <div className={styles.filterCardInner}>
+              <div className={styles.filterSectionLabel}>
+                <Filter size={12} />
+                Filtros de búsqueda
+                {activeSecondaryFilters > 0 && (
+                  <span className={styles.filterActiveChip}>
+                    {activeSecondaryFilters} activo{activeSecondaryFilters !== 1 ? 's' : ''}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFiltroNombre('');
+                        setFiltroSesiones('');
+                        setFiltroEvaluacion('all');
+                      }}
+                      aria-label="Limpiar filtros secundarios"
+                    >
+                      <X size={9} strokeWidth={2.5} />
+                    </button>
+                  </span>
+                )}
               </div>
 
+              <div className={styles.filterBar}>
+                {/* Local — requerido */}
+                <div className={styles.filterGroup}>
+                  <label id="lbl-filtro-local" htmlFor="filtro-local" className={`${styles.filterLabel} ${styles.filterRequired}`}>
+                    Local
+                  </label>
+                  <CustomSelect
+                    id="filtro-local"
+                    ariaLabelledBy="lbl-filtro-local"
+                    value={filtroLocal}
+                    onChange={setFiltroLocal}
+                    options={[
+                      { value: '', label: 'Seleccionar local' },
+                      ...locales.map((l) => ({ value: l.nombre, label: l.nombre })),
+                    ]}
+                  />
+                </div>
+
+                {/* Categoría */}
+                <div className={styles.filterGroup}>
+                  <label id="lbl-filtro-categoria" htmlFor="filtro-categoria" className={styles.filterLabel}>
+                    Categoría
+                  </label>
+                  <CustomSelect
+                    id="filtro-categoria"
+                    ariaLabelledBy="lbl-filtro-categoria"
+                    value={filtroCategoria}
+                    onChange={setFiltroCategoria}
+                    options={[
+                      { value: '', label: 'Todas' },
+                      ...categorias.map((c) => ({ value: c.Nombre, label: c.Nombre })),
+                    ]}
+                  />
+                </div>
+
+                {/* Nombre — filtro servidor */}
+                <div className={styles.filterGroup}>
+                  <label htmlFor="filtro-nombre" className={styles.filterLabel}>
+                    <Search size={10} strokeWidth={2} />
+                    Nombre
+                  </label>
+                  <input
+                    id="filtro-nombre"
+                    type="text"
+                    value={filtroNombre}
+                    onChange={(e) => setFiltroNombre(e.target.value)}
+                    placeholder="Buscar por nombre…"
+                    disabled={!hasFilter}
+                  />
+                </div>
+
+                {/* Sesiones */}
+                <div className={styles.filterGroup}>
+                  <label htmlFor="filtro-sesiones" className={styles.filterLabel}>
+                    Sesiones
+                  </label>
+                  <input
+                    id="filtro-sesiones"
+                    type="number"
+                    min={1}
+                    value={filtroSesiones}
+                    onChange={(e) => setFiltroSesiones(e.target.value)}
+                    placeholder="Ej: 10"
+                    disabled={!hasFilter}
+                  />
+                </div>
+
+                {/* Evaluación */}
+                <div className={styles.filterGroup}>
+                  <label id="lbl-filtro-eval" htmlFor="filtro-eval" className={styles.filterLabel}>
+                    Evaluación previa
+                  </label>
+                  <CustomSelect
+                    id="filtro-eval"
+                    ariaLabelledBy="lbl-filtro-eval"
+                    value={filtroEvaluacion}
+                    onChange={(v) => setFiltroEvaluacion(v as 'all' | 'true' | 'false')}
+                    options={[
+                      { value: 'all', label: 'Todos' },
+                      { value: 'true', label: 'Requieren' },
+                      { value: 'false', label: 'No requieren' },
+                    ]}
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* ── Hint: pide seleccionar filtro ── */}
+          {/* ── Hint ── */}
           {!hasFilter && (
             <div className={styles.hint}>
-              Selecciona un <strong>local</strong> o una <strong>categoría</strong> para ver los servicios.
+              <div className={styles.hintIcon}>
+                <Filter size={20} strokeWidth={1.5} />
+              </div>
+              <p className={styles.hintText}>Selecciona un <strong>local</strong> o una <strong>categoría</strong></p>
+              <p className={styles.hintSub}>Los servicios aparecerán aquí una vez que apliques al menos un filtro principal.</p>
             </div>
           )}
 
-          {/* ── Tabla (DataTable es self-contained) ── */}
+          {/* ── Tabla ── */}
           {hasFilter && (
             <>
               {total > 0 && (
                 <p className={styles.totalLabel}>
-                  {total} servicio{total !== 1 ? 's' : ''} encontrado{total !== 1 ? 's' : ''}
+                  <strong>{total}</strong> servicio{total !== 1 ? 's' : ''} encontrado{total !== 1 ? 's' : ''}
                 </p>
               )}
               <DataTable<ServicioRow>
@@ -518,7 +585,7 @@ export default function ServiciosPage() {
                 onRefresh={fetchServicios}
                 onEdit={openEdit}
                 getRowKey={(s) => s.id ?? `${s.nombre}-${s.local}-${s.categoria}`}
-                searchPlaceholder="Filtrar resultados..."
+                searchPlaceholder="Filtrar resultados locales…"
                 emptyMessage="No se encontraron servicios con los filtros actuales"
               />
             </>
@@ -526,19 +593,25 @@ export default function ServiciosPage() {
         </div>
       </main>
 
-      {/* ── Modal ── */}
+      {/* ── Modal: Crear / Editar ── */}
       <FormModal
         isOpen={modalOpen}
         onClose={() => { setModalOpen(false); resetModal(); }}
         title={isEdit ? 'Editar Servicio' : 'Nuevo Servicio'}
         onSubmit={handleSubmit}
         loading={saving}
-        submitLabel={isEdit ? 'Guardar cambios' : 'Crear'}
+        submitLabel={isEdit ? 'Guardar cambios' : 'Crear servicio'}
       >
         <div className={styles.formGrid}>
+
+          {/* ── Sección: Información básica ── */}
+          <div className={styles.formDivider}>
+            <span className={styles.formDividerLabel}>Información básica</span>
+          </div>
+
           {/* Nombre */}
           <div className={`${styles.field} ${styles.colSpan2}`}>
-            <label htmlFor="srv-nombre">Nombre</label>
+            <label htmlFor="srv-nombre">Nombre del servicio</label>
             <input
               id="srv-nombre"
               type="text"
@@ -597,7 +670,7 @@ export default function ServiciosPage() {
                   if (formErrors.local) setFormErrors((p) => ({ ...p, local: undefined }));
                 }}
                 options={[
-                  { value: '', label: 'Seleccionar' },
+                  { value: '', label: 'Seleccionar local' },
                   ...locales.map((l) => ({ value: l.nombre, label: l.nombre })),
                 ]}
                 hasError={!!formErrors.local}
@@ -606,9 +679,14 @@ export default function ServiciosPage() {
             {formErrors.local && <span className={styles.fieldError}>{formErrors.local}</span>}
           </div>
 
+          {/* ── Sección: Detalles de sesión ── */}
+          <div className={styles.formDivider}>
+            <span className={styles.formDividerLabel}>Detalles de sesión</span>
+          </div>
+
           {/* Tiempo */}
           <div className={styles.field}>
-            <label htmlFor="srv-tiempo">Tiempo (Min)</label>
+            <label htmlFor="srv-tiempo">Duración (min)</label>
             <input
               id="srv-tiempo"
               type="number"
@@ -618,7 +696,7 @@ export default function ServiciosPage() {
                 patchForm({ tiempo: e.target.value });
                 if (formErrors.tiempo) setFormErrors((p) => ({ ...p, tiempo: undefined }));
               }}
-              placeholder="Ej: 60"
+              placeholder="60"
               aria-invalid={!!formErrors.tiempo}
               className={formErrors.tiempo ? styles.inputError : ''}
             />
@@ -627,7 +705,7 @@ export default function ServiciosPage() {
 
           {/* Costo */}
           <div className={styles.field}>
-            <label htmlFor="srv-costo">Costo</label>
+            <label htmlFor="srv-costo">Costo (Bs.)</label>
             <input
               id="srv-costo"
               type="number"
@@ -647,7 +725,7 @@ export default function ServiciosPage() {
 
           {/* Sesiones */}
           <div className={styles.field}>
-            <label htmlFor="srv-sesiones">Sesiones</label>
+            <label htmlFor="srv-sesiones">N.° de sesiones</label>
             <input
               id="srv-sesiones"
               type="number"
@@ -666,7 +744,7 @@ export default function ServiciosPage() {
 
           {/* Tipo espacio */}
           <div className={styles.field}>
-            <label id="lbl-srv-espacio" htmlFor="srv-espacio">Tipo espacio</label>
+            <label id="lbl-srv-espacio" htmlFor="srv-espacio">Tipo de espacio</label>
             <CustomSelect
               id="srv-espacio"
               ariaLabelledBy="lbl-srv-espacio"
@@ -679,21 +757,29 @@ export default function ServiciosPage() {
             />
           </div>
 
-          {/* Requiere evaluación */}
-          <div className={`${styles.field} ${styles.colSpan2}`}>
-            <label className={styles.checkboxRow} htmlFor="srv-requiere-eval">
-              <input
-                id="srv-requiere-eval"
-                type="checkbox"
-                checked={form.requiere_evaluacion}
-                onChange={(e) => patchForm({ requiere_evaluacion: e.target.checked })}
-              />
-              <span>Requiere evaluación previa antes de reservar</span>
-            </label>
+          {/* ── Sección: Requisitos ── */}
+          <div className={styles.formDivider}>
+            <span className={styles.formDividerLabel}>Requisitos</span>
           </div>
+
+          {/* Requiere evaluación — card estilo mejorado */}
+          <label className={`${styles.checkboxCard} ${styles.colSpan2}`} htmlFor="srv-requiere-eval">
+            <input
+              id="srv-requiere-eval"
+              type="checkbox"
+              checked={form.requiere_evaluacion}
+              onChange={(e) => patchForm({ requiere_evaluacion: e.target.checked })}
+            />
+            <div className={styles.checkboxCardContent}>
+              <span className={styles.checkboxCardTitle}>Requiere evaluación previa</span>
+              <span className={styles.checkboxCardDesc}>
+                El cliente deberá completar una evaluación antes de poder reservar este servicio.
+              </span>
+            </div>
+          </label>
+
         </div>
 
-        {/* Submit error */}
         {formErrors.submit && (
           <div className={styles.submitError}>{formErrors.submit}</div>
         )}
@@ -703,31 +789,54 @@ export default function ServiciosPage() {
       <FormModal
         isOpen={activarLocalRow !== null}
         onClose={closeActivarLocal}
-        title={activarLocalRow ? `Activar "${activarLocalRow.nombre}" en otro local` : 'Activar en local'}
+        title={activarLocalRow ? `Activar en otro local` : 'Activar en local'}
         onSubmit={handleActivarLocal}
         loading={activarLocalSaving}
-        submitLabel="Activar"
+        submitLabel="Activar servicio"
       >
-        <div className={styles.formGrid}>
-          <div className={`${styles.field} ${styles.colSpan2}`}>
-            <label id="lbl-act-local" htmlFor="act-local">Local destino</label>
-            <CustomSelect
-              id="act-local"
-              ariaLabelledBy="lbl-act-local"
-              value={activarLocalValue}
-              onChange={setActivarLocalValue}
-              options={[
-                { value: '', label: 'Seleccionar local' },
-                ...locales
-                  .filter((l) => l.nombre !== activarLocalRow?.local)
-                  .map((l) => ({ value: l.nombre, label: l.nombre })),
-              ]}
-            />
-            <p className={styles.helpText}>
-              El servicio quedará disponible también en el local seleccionado. No se modifica el local original.
-            </p>
+        {activarLocalRow && (
+          <div className={styles.formGrid}>
+            {/* Chip con el servicio de origen */}
+            <div className={`${styles.field} ${styles.colSpan2}`}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.65rem 0.875rem',
+                borderRadius: 'var(--admin-radius-md)',
+                background: 'rgba(236, 0, 140, 0.06)',
+                border: '1px solid rgba(236, 0, 140, 0.2)',
+                fontSize: '0.8rem',
+                color: 'var(--admin-foreground)',
+              }}>
+                <span style={{ color: '#EC008C', fontWeight: 700 }}>Servicio:</span>
+                <span style={{ fontWeight: 500 }}>{activarLocalRow.nombre}</span>
+                <span style={{ marginLeft: 'auto', color: 'var(--admin-text-dim)', fontSize: '0.72rem' }}>
+                  Local actual: {activarLocalRow.local}
+                </span>
+              </div>
+            </div>
+
+            <div className={`${styles.field} ${styles.colSpan2}`}>
+              <label id="lbl-act-local" htmlFor="act-local">Local destino</label>
+              <CustomSelect
+                id="act-local"
+                ariaLabelledBy="lbl-act-local"
+                value={activarLocalValue}
+                onChange={setActivarLocalValue}
+                options={[
+                  { value: '', label: 'Seleccionar local' },
+                  ...locales
+                    .filter((l) => l.nombre !== activarLocalRow?.local)
+                    .map((l) => ({ value: l.nombre, label: l.nombre })),
+                ]}
+              />
+              <p className={styles.helpText}>
+                El servicio quedará disponible también en el local seleccionado sin modificar el original.
+              </p>
+            </div>
           </div>
-        </div>
+        )}
       </FormModal>
     </div>
   );
