@@ -88,7 +88,7 @@ export function ReservasTable({
   };
 
   const getEstadoClass = (estado?: string) => {
-    if (estado === 'AGENDADO' || estado === 'APROBADO') return styles.estadoAprobado;
+    if (estado === 'AGENDADO' || estado === 'COMPLETADO') return styles.estadoAprobado;
     if (estado === 'RECHAZADO') return styles.estadoRechazado;
     return styles.estadoPendiente;
   };

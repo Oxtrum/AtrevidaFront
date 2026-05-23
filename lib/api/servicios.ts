@@ -11,6 +11,7 @@ export interface GetServiciosParams {
   nombre?: string;
   categoria?: string;
   sesiones?: number;
+  requiere_evaluacion?: boolean;
 }
 
 export interface GetCombosParams {
@@ -38,6 +39,7 @@ export interface CrearServicioData {
   sesiones: number;
   tipo_espacio_requerido: string;
   local: string;
+  requiere_evaluacion?: boolean;
 }
 
 export interface ActualizarServicioData {
@@ -47,6 +49,7 @@ export interface ActualizarServicioData {
   costo?: number;
   sesiones?: number;
   tipo_espacio_requerido?: string;
+  requiere_evaluacion?: boolean;
   activo?: boolean;
 }
 
@@ -76,6 +79,7 @@ export async function getServiciosDB(params: GetServiciosParams) {
       nombre: params.nombre,
       categoria: params.categoria,
       sesiones: params.sesiones,
+      requiere_evaluacion: params.requiere_evaluacion?.toString(),
     },
   });
 }
@@ -93,6 +97,11 @@ export async function crearServicioDB(data: CrearServicioData) {
 /** Actualiza un servicio existente. */
 export async function actualizarServicio(id: number | string, data: ActualizarServicioData) {
   return apiClient.patch(`/bd/servicios/${id}`, data);
+}
+
+/** Borrado lógico de un servicio (DELETE /bd/servicios/{id} → activo=false). */
+export async function eliminarServicioDB(id: number | string) {
+  return apiClient.delete(`/bd/servicios/${id}`);
 }
 
 /** Asocia (activa) un servicio existente a un local. */

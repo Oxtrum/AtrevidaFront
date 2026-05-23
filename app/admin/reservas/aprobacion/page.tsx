@@ -58,7 +58,7 @@ const TIPO_LABELS: Record<string, string> = {
 };
 
 const normalizeEstado = (estado?: EstadoReserva | string): EstadoGestion => {
-  if (estado === 'AGENDADO' || estado === 'APROBADO') return 'AGENDADO';
+  if (estado === 'AGENDADO' || estado === 'COMPLETADO') return 'AGENDADO';
   if (estado === 'RECHAZADO') return 'RECHAZADO';
   return 'PENDIENTE';
 };
