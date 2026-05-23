@@ -82,6 +82,7 @@ export function validateReservationForm(
     horaDesde: string,
     horaHasta: string,
     servicioSolicitado?: string,
+    skipSlotRestrictions = false,
 ): Record<string, string> {
     const errors: Record<string, string> = {};
 
@@ -125,7 +126,7 @@ export function validateReservationForm(
         errors.horaHasta = 'Selecciona hora de fin';
     } else if (timeToMinutes(horaDesde) >= timeToMinutes(horaHasta)) {
         errors.horaHasta = 'La hora de fin debe ser mayor a la de inicio';
-    } else {
+    } else if (!skipSlotRestrictions) {
         const slotRestriction = getReservationSlotRestriction(fecha, horaDesde, horaHasta);
         if (slotRestriction) {
             errors.horaDesde = slotRestriction;

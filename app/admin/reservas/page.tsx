@@ -24,8 +24,8 @@ export default function AdminReservasPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const calendarRef = useRef<HTMLDivElement>(null);
-  const [sucursalActiva, setSucursalActiva] = useState('');
-  const [semanaActiva, setSemanaActiva] = useState('');
+  const [sucursalActiva, setSucursalActiva] = useState('SAN MARTIN');
+  const [semanaActiva, setSemanaActiva] = useState('0');
 
   // Estado para filtros de lista de reservas
   const [vistaActiva, setVistaActiva] = useState<'calendario' | 'lista'>('calendario');

@@ -348,6 +348,8 @@ export function useReservationForm(
       servicio,
       horaDesde,
       horaHasta,
+      undefined,
+      true, // admin can book any time slot
     );
     // No validar aquí si está ocupado - dejar que el backend lo valide
     // para permitir cambios de último minuto si hay slots disponibles
