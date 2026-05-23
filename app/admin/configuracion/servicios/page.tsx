@@ -15,6 +15,8 @@ import {
   getServiciosDB,
   crearServicioDB,
   actualizarServicio,
+  eliminarServicioDB,
+  activarServicioEnLocal,
 } from '@/lib/api/servicios';
 import styles from './page.module.css';
 
@@ -30,6 +32,7 @@ interface ServicioRow extends Record<string, unknown> {
   sesiones: number;
   tipoEspacio: string;
   activo?: boolean;
+  requiere_evaluacion?: boolean;
 }
 
 interface CategoriaOption {
@@ -50,6 +53,7 @@ interface FormState {
   sesiones: number;
   tipo_espacio_requerido: string;
   local: string;
+  requiere_evaluacion: boolean;
 }
 
 interface FormErrors {
@@ -72,6 +76,7 @@ const FORM_INITIAL: FormState = {
   sesiones: 1,
   tipo_espacio_requerido: 'M',
   local: '',
+  requiere_evaluacion: false,
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -91,7 +96,15 @@ export default function ServiciosPage() {
   const [filtroCategoria, setFiltroCategoria] = useState('');
   const [filtroNombre, setFiltroNombre] = useState('');
   const [filtroSesiones, setFiltroSesiones] = useState('');
+  /** 'all' | 'true' | 'false' — filtro tri-estado (incluye opción sin filtrar). */
+  const [filtroEvaluacion, setFiltroEvaluacion] = useState<'all' | 'true' | 'false'>('all');
   const hasFilter = !!(filtroLocal || filtroCategoria);
+
+  // Row-action state
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [activarLocalRow, setActivarLocalRow] = useState<ServicioRow | null>(null);
+  const [activarLocalValue, setActivarLocalValue] = useState('');
+  const [activarLocalSaving, setActivarLocalSaving] = useState(false);
 
   // Options
   const [categorias, setCategorias] = useState<CategoriaOption[]>([]);
@@ -118,6 +131,8 @@ export default function ServiciosPage() {
         categoria: filtroCategoria || undefined,
         nombre: filtroNombre || undefined,
         sesiones: filtroSesiones ? Number(filtroSesiones) : undefined,
+        requiere_evaluacion:
+          filtroEvaluacion === 'all' ? undefined : filtroEvaluacion === 'true',
       }) as { data?: { servicios?: ServicioRow[]; total?: number } };
       setServicios(res?.data?.servicios ?? []);
       setTotal(res?.data?.total ?? 0);
@@ -126,7 +141,7 @@ export default function ServiciosPage() {
     } finally {
       setLoading(false);
     }
-  }, [filtroLocal, filtroCategoria, filtroNombre, filtroSesiones]);
+  }, [filtroLocal, filtroCategoria, filtroNombre, filtroSesiones, filtroEvaluacion]);
 
   const fetchOptions = useCallback(async () => {
     try {
@@ -193,6 +208,7 @@ export default function ServiciosPage() {
         : row.tipoEspacio === 'Bicicletas' ? 'B'
         : (row.tipoEspacio || 'M'),
       local: row.local,
+      requiere_evaluacion: row.requiere_evaluacion ?? false,
     });
     setModalOpen(true);
   };
@@ -241,6 +257,7 @@ export default function ServiciosPage() {
           costo,
           sesiones,
           tipo_espacio_requerido: form.tipo_espacio_requerido,
+          requiere_evaluacion: form.requiere_evaluacion,
         });
         toast.success('Servicio actualizado correctamente');
       } else {
@@ -252,6 +269,7 @@ export default function ServiciosPage() {
           sesiones,
           tipo_espacio_requerido: form.tipo_espacio_requerido,
           local: form.local,
+          requiere_evaluacion: form.requiere_evaluacion,
         });
         toast.success('Servicio creado correctamente');
       }
@@ -284,6 +302,50 @@ export default function ServiciosPage() {
     }
   };
 
+  const handleDelete = async (row: ServicioRow) => {
+    if (!confirm(`¿Eliminar el servicio "${row.nombre}"? Se hará borrado lógico (activo = false).`)) return;
+    setDeletingId(row.id);
+    try {
+      await eliminarServicioDB(row.id);
+      toast.success('Servicio eliminado');
+      await fetchServicios();
+    } catch (err) {
+      if (err instanceof Error) console.error('eliminarServicioDB', err);
+      toast.error('No se pudo eliminar el servicio.');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const openActivarLocal = (row: ServicioRow) => {
+    setActivarLocalRow(row);
+    setActivarLocalValue('');
+  };
+
+  const closeActivarLocal = () => {
+    setActivarLocalRow(null);
+    setActivarLocalValue('');
+  };
+
+  const handleActivarLocal = async () => {
+    if (!activarLocalRow || !activarLocalValue) {
+      toast.error('Selecciona un local');
+      return;
+    }
+    setActivarLocalSaving(true);
+    try {
+      await activarServicioEnLocal(activarLocalRow.id, { local: activarLocalValue });
+      toast.success(`Servicio activado en ${activarLocalValue}`);
+      closeActivarLocal();
+      await fetchServicios();
+    } catch (err) {
+      if (err instanceof Error) console.error('activarServicioEnLocal', err);
+      toast.error('No se pudo activar el servicio en el local seleccionado.');
+    } finally {
+      setActivarLocalSaving(false);
+    }
+  };
+
   // ─── Columns ─────────────────────────────────────────────────────────────────
 
   const columns: Column<ServicioRow>[] = [
@@ -305,6 +367,19 @@ export default function ServiciosPage() {
             : String(val),
     },
     {
+      key: 'requiere_evaluacion',
+      label: 'Evaluación',
+      searchable: false,
+      render: (_val, row) =>
+        row.requiere_evaluacion ? (
+          <span className={styles.evaluacionBadge} title="Requiere evaluación previa">
+            Requerida
+          </span>
+        ) : (
+          <span className={styles.evaluacionMuted}>—</span>
+        ),
+    },
+    {
       key: 'activo',
       label: 'Estado',
       searchable: false,
@@ -322,6 +397,32 @@ export default function ServiciosPage() {
           </button>
         );
       },
+    },
+    {
+      key: 'acciones',
+      label: 'Acciones',
+      searchable: false,
+      render: (_val, row) => (
+        <div className={styles.rowActions}>
+          <button
+            type="button"
+            className={styles.linkAction}
+            onClick={() => openActivarLocal(row)}
+            title="Activar este servicio en otro local"
+          >
+            Activar en otro local
+          </button>
+          <button
+            type="button"
+            className={styles.dangerAction}
+            onClick={() => handleDelete(row)}
+            disabled={deletingId === row.id}
+            title="Eliminar servicio (borrado lógico)"
+          >
+            {deletingId === row.id ? 'Eliminando…' : 'Eliminar'}
+          </button>
+        </div>
+      ),
     },
   ];
 
@@ -373,6 +474,20 @@ export default function ServiciosPage() {
                   options={[
                     { value: '', label: 'Todas' },
                     ...categorias.map((c) => ({ value: c.Nombre, label: c.Nombre })),
+                  ]}
+                />
+              </div>
+              <div className={styles.filterGroup}>
+                <label id="lbl-filtro-eval" htmlFor="filtro-eval">Requiere evaluación</label>
+                <CustomSelect
+                  id="filtro-eval"
+                  ariaLabelledBy="lbl-filtro-eval"
+                  value={filtroEvaluacion}
+                  onChange={(v) => setFiltroEvaluacion(v as 'all' | 'true' | 'false')}
+                  options={[
+                    { value: 'all', label: 'Todos' },
+                    { value: 'true', label: 'Requieren' },
+                    { value: 'false', label: 'No requieren' },
                   ]}
                 />
               </div>
@@ -563,12 +678,56 @@ export default function ServiciosPage() {
               ]}
             />
           </div>
+
+          {/* Requiere evaluación */}
+          <div className={`${styles.field} ${styles.colSpan2}`}>
+            <label className={styles.checkboxRow} htmlFor="srv-requiere-eval">
+              <input
+                id="srv-requiere-eval"
+                type="checkbox"
+                checked={form.requiere_evaluacion}
+                onChange={(e) => patchForm({ requiere_evaluacion: e.target.checked })}
+              />
+              <span>Requiere evaluación previa antes de reservar</span>
+            </label>
+          </div>
         </div>
 
         {/* Submit error */}
         {formErrors.submit && (
           <div className={styles.submitError}>{formErrors.submit}</div>
         )}
+      </FormModal>
+
+      {/* ── Modal: Activar en otro local ── */}
+      <FormModal
+        isOpen={activarLocalRow !== null}
+        onClose={closeActivarLocal}
+        title={activarLocalRow ? `Activar "${activarLocalRow.nombre}" en otro local` : 'Activar en local'}
+        onSubmit={handleActivarLocal}
+        loading={activarLocalSaving}
+        submitLabel="Activar"
+      >
+        <div className={styles.formGrid}>
+          <div className={`${styles.field} ${styles.colSpan2}`}>
+            <label id="lbl-act-local" htmlFor="act-local">Local destino</label>
+            <CustomSelect
+              id="act-local"
+              ariaLabelledBy="lbl-act-local"
+              value={activarLocalValue}
+              onChange={setActivarLocalValue}
+              options={[
+                { value: '', label: 'Seleccionar local' },
+                ...locales
+                  .filter((l) => l.nombre !== activarLocalRow?.local)
+                  .map((l) => ({ value: l.nombre, label: l.nombre })),
+              ]}
+            />
+            <p className={styles.helpText}>
+              El servicio quedará disponible también en el local seleccionado. No se modifica el local original.
+            </p>
+          </div>
+        </div>
       </FormModal>
     </div>
   );
