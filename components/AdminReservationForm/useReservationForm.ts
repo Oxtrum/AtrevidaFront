@@ -378,6 +378,7 @@ export function useReservationForm(
 
       try {
         const servicioInfo = SERVICIOS_ADMIN_DISPONIBLES.find(s => s.value === servicio);
+        const servicioLabel = servicioInfo?.label || servicio;
         const payload = {
           local: sucursal,
           fecha: fechaISO,
@@ -386,10 +387,12 @@ export function useReservationForm(
           tipo: tipoBackend,
           cliente,
           numero_telefono: '+591' + numeroTelefono.replace(/\D/g, ''),
-          servicio: servicioInfo?.label || servicio,
+          servicio: servicioLabel,
+          servicio_solicitado: servicioLabel,
+          servicio_confirmado: servicioLabel,
           precio: servicioInfo?.precio ?? 0,
           notas: '',
-          estado: 'PENDIENTE' as const,
+          estado: 'AGENDADO' as const,
         };
 
         await crearReserva(payload);

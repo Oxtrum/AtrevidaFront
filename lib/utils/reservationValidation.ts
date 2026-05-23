@@ -114,8 +114,8 @@ export function validateReservationForm(
     const phoneDigits = numeroTelefono.replace(/\D/g, '');
     if (!phoneDigits) {
         errors.numeroTelefono = 'Ingresa el teléfono del cliente';
-    } else if (!/^[67]\d{7}$/.test(phoneDigits)) {
-        errors.numeroTelefono = 'Ingresa 8 dígitos locales de Bolivia';
+    } else if (!/^\d{8}$/.test(phoneDigits)) {
+        errors.numeroTelefono = 'Ingresa 8 dígitos del teléfono';
     }
 
     if (!servicio) {
