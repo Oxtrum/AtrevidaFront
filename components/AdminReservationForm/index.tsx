@@ -105,6 +105,7 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
               diaActivo={dia}
               onChange={handleDiaChange}
             />
+            {errors.fecha && <span className={styles.errorText}>{errors.fecha}</span>}
           </div>
 
           {/* Horario */}

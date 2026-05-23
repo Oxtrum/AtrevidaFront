@@ -163,6 +163,17 @@ export function useReservationForm(
   );
 
   const tipo = useMemo(() => getTipoFromServicio(servicio), [servicio]);
+
+  // Auto-select first non-past day on mount (default 'LUNES' may be in the past mid-week)
+  useEffect(() => {
+    if (!initialData?.dia && fechasSemana) {
+      for (const [d, info] of fechasSemana) {
+        if (!info.esPasado) { setDia(d); break; }
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fechasSemana]);
+
   const servicioSeleccionado = useMemo(
     () => SERVICIOS_DISPONIBLES.find(s => s.value === servicio),
     [servicio],
