@@ -21,7 +21,7 @@ export interface GetReservasSheetsParams {
 // ─── Parámetros (DB) ────────────────────────────────────────────────────────
 
 /** Tipo de reserva tal como lo espera el backend en el body / query. */
-export type ReservaTipoBackend = string;
+export type ReservaTipoBackend = 'mesa' | 'bicicleta';
 
 export interface GetReservasDBParams {
   local?: string;
@@ -93,12 +93,11 @@ export interface ActualizarReservaDBData {
   nuevo_servicio_solicitado?: string | null;
   nuevo_servicio_confirmado?: string | null;
   nuevo_tipo?: ReservaTipoBackend;
-  nuevo_estado?: EstadoReserva;
 }
 
 export interface ActualizarEstadoReservaDBData {
   id: number;
-  estado: Extract<EstadoReserva, 'PENDIENTE' | 'AGENDADO' | 'RECHAZADO'>;
+  estado: EstadoReserva;
   causa?: string;
   servicio_confirmado?: string | null;
   precio?: number;
@@ -178,6 +177,11 @@ export async function crearReservaDB(data: CrearReservaDBData): Promise<CrearRes
 /** Actualiza una reserva existente en la base de datos. */
 export async function actualizarReservaDB(data: ActualizarReservaDBData): Promise<CrearReservaResult> {
   return apiClient.patch<CrearReservaResult>('/bd/reservas', data);
+}
+
+/** Borrado lógico de una reserva (DELETE /bd/reservas/{id} → activo=false). */
+export async function eliminarReservaDB(id: number | string): Promise<CrearReservaResult> {
+  return apiClient.delete<CrearReservaResult>(`/bd/reservas/${id}`);
 }
 
 /** Actualiza únicamente el estado administrativo de una reserva. */
