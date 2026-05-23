@@ -132,8 +132,11 @@ export default function AdminReservasAprobacionPage() {
   const boardRef = useRef<HTMLDivElement>(null);
   const cardsGridRef = useRef<HTMLDivElement>(null);
   const hasLoadedRef = useRef(false);
+  const hasRenderedListRef = useRef(false);
+  const preservedScrollYRef = useRef<number | null>(null);
 
   const [reservas, setReservas] = useState<ReservaBD[]>([]);
+  const [renderedReservas, setRenderedReservas] = useState<ReservaBD[]>([]);
   const [initialLoading, setInitialLoading] = useState(true);
   const [isFetching, setIsFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -173,6 +176,11 @@ export default function AdminReservasAprobacionPage() {
       setInitialLoading(false);
       setIsFetching(false);
     }
+  }, []);
+
+  const preserveScrollPosition = useCallback((callback: () => void) => {
+    preservedScrollYRef.current = window.scrollY;
+    callback();
   }, []);
 
   const localOptions = useMemo(
@@ -225,13 +233,17 @@ export default function AdminReservasAprobacionPage() {
   }, [estadoFiltro, fechaFiltro, localFiltro, reservas, searchQuery, tipoFiltro]);
 
   const hasAdvancedFilters = Boolean(searchQuery.trim() || localFiltro !== 'TODOS' || tipoFiltro !== 'TODOS' || fechaFiltro);
+  const reservasVisiblesSignature = useMemo(
+    () => reservasVisibles.map((reserva) => `${reserva.id}:${reserva.estado}:${reserva.servicio_confirmado ?? ''}`).join('|'),
+    [reservasVisibles],
+  );
 
-  const resetFilters = () => {
+  const resetFilters = () => preserveScrollPosition(() => {
     setSearchQuery('');
     setLocalFiltro('TODOS');
     setTipoFiltro('TODOS');
     setFechaFiltro('');
-  };
+  });
 
   const reservasPendientes = useMemo(
     () => reservas.filter((reserva) => normalizeEstado(reserva.estado) === 'PENDIENTE'),
@@ -427,21 +439,54 @@ export default function AdminReservasAprobacionPage() {
   }, []);
 
   useEffect(() => {
-    if (initialLoading || !cardsGridRef.current) return;
+    if (initialLoading) return undefined;
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const grid = cardsGridRef.current;
+
+    if (!grid || !hasRenderedListRef.current || prefersReducedMotion) {
+      setRenderedReservas(reservasVisibles);
+      hasRenderedListRef.current = true;
+      return undefined;
+    }
 
     const ctx = gsap.context(() => {
-      const cards = gsap.utils.toArray<HTMLElement>('.approval-card', cardsGridRef.current);
-      if (cards.length > 0) {
-        gsap.fromTo(
-          cards,
-          { y: 8, opacity: 0.72 },
-          { y: 0, opacity: 1, duration: 0.18, stagger: 0.025, ease: 'power2.out', clearProps: 'transform,opacity' },
-        );
-      }
+      gsap.killTweensOf(grid);
+      gsap.to(grid, {
+        autoAlpha: 0,
+        y: 5,
+        duration: 0.1,
+        ease: 'power2.out',
+        onComplete: () => {
+          setRenderedReservas(reservasVisibles);
+          window.requestAnimationFrame(() => {
+            gsap.fromTo(
+              grid,
+              { autoAlpha: 0, y: 5 },
+              { autoAlpha: 1, y: 0, duration: 0.18, ease: 'power2.out', clearProps: 'transform,opacity,visibility' },
+            );
+          });
+        },
+      });
     }, cardsGridRef);
 
     return () => ctx.revert();
-  }, [estadoFiltro, initialLoading, reservasVisibles.length]);
+  }, [initialLoading, reservasVisibles, reservasVisiblesSignature]);
+
+  useEffect(() => {
+    if (preservedScrollYRef.current === null) return undefined;
+
+    const targetY = preservedScrollYRef.current;
+    const raf = window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+        window.scrollTo(0, Math.min(targetY, maxY));
+        preservedScrollYRef.current = null;
+      });
+    });
+
+    return () => window.cancelAnimationFrame(raf);
+  }, [estadoFiltro, fechaFiltro, localFiltro, reservas.length, reservasVisibles.length, searchQuery, tipoFiltro]);
 
   useEffect(() => {
     if (!approvalReserva) return undefined;
@@ -482,7 +527,7 @@ export default function AdminReservasAprobacionPage() {
             <button
               type="button"
               className={styles.refreshButton}
-              onClick={() => fetchReservas(estadoFiltro)}
+              onClick={() => preserveScrollPosition(() => { void fetchReservas(estadoFiltro); })}
               disabled={initialLoading || isFetching}
             >
               <RefreshCw size={16} strokeWidth={1.8} className={isFetching ? styles.spinIcon : ''} />
@@ -527,7 +572,7 @@ export default function AdminReservasAprobacionPage() {
                   <Search size={16} strokeWidth={1.8} />
                   <input
                     value={searchQuery}
-                    onChange={(event) => setSearchQuery(event.target.value)}
+                    onChange={(event) => preserveScrollPosition(() => setSearchQuery(event.target.value))}
                     placeholder="Cliente, teléfono, servicio o #ID"
                   />
                 </div>
@@ -537,7 +582,7 @@ export default function AdminReservasAprobacionPage() {
                 <span>Sucursal</span>
                 <CustomSelect
                   value={localFiltro}
-                  onChange={setLocalFiltro}
+                  onChange={(value) => preserveScrollPosition(() => setLocalFiltro(value))}
                   options={localFilterOptions}
                 />
               </label>
@@ -546,7 +591,7 @@ export default function AdminReservasAprobacionPage() {
                 <span>Tipo</span>
                 <CustomSelect
                   value={tipoFiltro}
-                  onChange={setTipoFiltro}
+                  onChange={(value) => preserveScrollPosition(() => setTipoFiltro(value))}
                   options={tipoFilterOptions}
                 />
               </label>
@@ -558,7 +603,7 @@ export default function AdminReservasAprobacionPage() {
                   <input
                     type="date"
                     value={fechaFiltro}
-                    onChange={(event) => setFechaFiltro(event.target.value)}
+                    onChange={(event) => preserveScrollPosition(() => setFechaFiltro(event.target.value))}
                   />
                 </div>
               </label>
@@ -580,7 +625,7 @@ export default function AdminReservasAprobacionPage() {
                   key={option.value}
                   type="button"
                   className={`${styles.filterButton} ${estadoFiltro === option.value ? styles.filterButtonActive : ''}`}
-                  onClick={() => fetchReservas(option.value)}
+                  onClick={() => preserveScrollPosition(() => { void fetchReservas(option.value); })}
                   disabled={initialLoading || isFetching || estadoFiltro === option.value}
                 >
                   {option.label}
@@ -588,40 +633,41 @@ export default function AdminReservasAprobacionPage() {
               ))}
             </div>
 
-            {isFetching && !initialLoading && (
-              <div className={styles.updatingPill}>
-                <RefreshCw size={13} strokeWidth={1.8} className={styles.spinIcon} />
-                Actualizando solicitudes...
-              </div>
-            )}
+            <div className={styles.resultsSurface}>
+              {isFetching && !initialLoading && (
+                <div className={styles.updatingPill}>
+                  <RefreshCw size={13} strokeWidth={1.8} className={styles.spinIcon} />
+                  Actualizando solicitudes...
+                </div>
+              )}
 
-            {initialLoading && (
-              <div className={styles.loadingGrid}>
-                <span />
-                <span />
-                <span />
-              </div>
-            )}
+              {initialLoading && (
+                <div className={styles.loadingGrid}>
+                  <span />
+                  <span />
+                  <span />
+                </div>
+              )}
 
-            {!initialLoading && error && reservasVisibles.length === 0 && (
-              <div className={styles.emptyState}>
-                <AlertCircle size={30} strokeWidth={1.5} />
-                <strong>No se pudieron cargar las reservas</strong>
-                <span>{error}</span>
-              </div>
-            )}
+              {!initialLoading && error && renderedReservas.length === 0 && (
+                <div className={styles.emptyState}>
+                  <AlertCircle size={30} strokeWidth={1.5} />
+                  <strong>No se pudieron cargar las reservas</strong>
+                  <span>{error}</span>
+                </div>
+              )}
 
-            {!initialLoading && !error && reservasVisibles.length === 0 && (
-              <div className={styles.emptyState}>
-                <CalendarCheck size={32} strokeWidth={1.5} />
-                <strong>No hay reservas con estos filtros</strong>
-                <span>Ajusta la búsqueda, limpia filtros o actualiza la bandeja para revisar nuevas solicitudes.</span>
-              </div>
-            )}
+              {!initialLoading && !error && renderedReservas.length === 0 && (
+                <div className={styles.emptyState}>
+                  <CalendarCheck size={32} strokeWidth={1.5} />
+                  <strong>No hay reservas con estos filtros</strong>
+                  <span>Ajusta la búsqueda, limpia filtros o actualiza la bandeja para revisar nuevas solicitudes.</span>
+                </div>
+              )}
 
-            {!initialLoading && reservasVisibles.length > 0 && (
-              <div ref={cardsGridRef} className={styles.pendingGrid}>
-                {reservasVisibles.map((reserva) => {
+              {!initialLoading && renderedReservas.length > 0 && (
+                <div ref={cardsGridRef} className={styles.pendingGrid}>
+                  {renderedReservas.map((reserva) => {
                   const estadoNormalizado = normalizeEstado(reserva.estado);
                   const whatsappHref = getWhatsappHref(reserva.numero_telefono);
                   const confirmationWhatsappHref = getConfirmationWhatsappHref(reserva);
@@ -764,9 +810,10 @@ export default function AdminReservasAprobacionPage() {
                     )}
                   </article>
                   );
-                })}
-              </div>
-            )}
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </main>
