@@ -6,8 +6,6 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ChevronLeft, ChevronRight, Quote, Star } from 'lucide-react';
 import styles from './Testimonios.module.css';
 
-gsap.registerPlugin(ScrollTrigger);
-
 const TESTIMONIOS = [
   {
     nombre: 'María Fernanda López',
@@ -63,6 +61,7 @@ export default function Testimonios() {
   const [active, setActive] = useState(0);
 
   useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
     const ctx = gsap.context(() => {
       gsap.fromTo(
         titleRef.current,

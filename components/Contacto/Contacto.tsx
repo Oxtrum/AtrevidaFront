@@ -7,8 +7,6 @@ import { ArrowRight, CalendarCheck, Camera, Clock, ExternalLink, MapPin, Message
 import styles from './Contacto.module.css';
 import Link from 'next/link';
 
-gsap.registerPlugin(ScrollTrigger);
-
 const INFO_ITEMS = [
   {
     icono: <MapPin strokeWidth={1.5} />,
@@ -67,6 +65,7 @@ export default function Contacto() {
   const [locationsOpen, setLocationsOpen] = useState(false);
 
   useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
     const ctx = gsap.context(() => {
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (reduceMotion) return;
