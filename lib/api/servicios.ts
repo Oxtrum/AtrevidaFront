@@ -26,9 +26,14 @@ export interface CrearLocalData {
   espacios: Array<{ tipo_espacio: string; cantidad_espacios: number }>;
 }
 
+/**
+ * PATCH /bd/locales/{id} — spec body: { activo, nombre }.
+ * `espacios` no es modificable por PATCH; se gestiona aparte si el backend
+ * lo expone.
+ */
 export interface ActualizarLocalData {
   nombre?: string;
-  espacios?: Array<{ tipo_espacio: string; cantidad_espacios: number }>;
+  activo?: boolean;
 }
 
 export interface CrearServicioData {
@@ -143,7 +148,12 @@ export async function crearLocalDB(data: CrearLocalData) {
   return apiClient.post('/bd/locales', data);
 }
 
-/** Actualiza un local existente. */
+/** Actualiza un local existente (nombre / activo). */
 export async function actualizarLocal(id: number | string, data: ActualizarLocalData) {
   return apiClient.patch(`/bd/locales/${id}`, data);
+}
+
+/** Borrado lógico de un local (DELETE /bd/locales/{id} → activo=false). */
+export async function eliminarLocalDB(id: number | string) {
+  return apiClient.delete(`/bd/locales/${id}`);
 }

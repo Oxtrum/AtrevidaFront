@@ -69,29 +69,14 @@
     "ast_hash": "791f6496a618e6009730da1e600a5c15",
     "semantic_hash": ""
   },
-  "/home/skully/Progra/Atrevida/AtrevidaFront/app/admin/reservas/aprobacion/page.tsx": {
-    "mtime": 1779489828.8331413,
-    "ast_hash": "abf8964992c1bf384ed1a60e751a741d",
-    "semantic_hash": ""
-  },
-  "/home/skully/Progra/Atrevida/AtrevidaFront/app/admin/configuracion/page.tsx": {
-    "mtime": 1779079884.232316,
-    "ast_hash": "ee81444ef46847c9abcb49064ea50f03",
-    "semantic_hash": ""
-  },
-  "/home/skully/Progra/Atrevida/AtrevidaFront/app/admin/configuracion/categorias/page.tsx": {
-    "mtime": 1778603069.3249192,
-    "ast_hash": "e847fe03270833c85d5a1178313bbea3",
-    "semantic_hash": ""
-  },
   "C:\\Projects\\Atrevida\\AtrevidaFront\\app\\admin\\configuracion\\locales\\page.tsx": {
     "mtime": 1779193681.8497927,
     "ast_hash": "4b6fbb06ca86ac4b50f55197fc0af534",
     "semantic_hash": ""
   },
   "C:\\Projects\\Atrevida\\AtrevidaFront\\app\\admin\\configuracion\\locales\\[id]\\page.tsx": {
-    "mtime": 1778444416.8799782,
-    "ast_hash": "18ffa8eb17d23468ac39cea1bd7902b7",
+    "mtime": 1779498002.90534,
+    "ast_hash": "ec719fea2cb1c5eb21905ed633641f07",
     "semantic_hash": ""
   },
   "C:\\Projects\\Atrevida\\AtrevidaFront\\app\\admin\\configuracion\\servicios\\page.tsx": {
@@ -115,8 +100,8 @@
     "semantic_hash": ""
   },
   "C:\\Projects\\Atrevida\\AtrevidaFront\\app\\admin\\reservas\\aprobacion\\page.tsx": {
-    "mtime": 1779494566.5664895,
-    "ast_hash": "177d2880d183100d31d87e9e9fdafb4e",
+    "mtime": 1779496827.9971015,
+    "ast_hash": "d473d7a00b84ed5cf383e750d52aa6eb",
     "semantic_hash": ""
   },
   "C:\\Projects\\Atrevida\\AtrevidaFront\\app\\admin\\reservas\\crear\\page.tsx": {
@@ -205,8 +190,8 @@
     "semantic_hash": ""
   },
   "C:\\Projects\\Atrevida\\AtrevidaFront\\components\\AdminConfig\\DataTable.tsx": {
-    "mtime": 1779193681.8654027,
-    "ast_hash": "ffeca3f0f8f065277019f762ceb2c249",
+    "mtime": 1779497935.8414192,
+    "ast_hash": "144d8731c81701f034f244dc38f4377d",
     "semantic_hash": ""
   },
   "C:\\Projects\\Atrevida\\AtrevidaFront\\components\\AdminConfig\\FormModal.tsx": {
@@ -455,8 +440,8 @@
     "semantic_hash": ""
   },
   "C:\\Projects\\Atrevida\\AtrevidaFront\\lib\\api\\servicios.ts": {
-    "mtime": 1779494705.7911217,
-    "ast_hash": "b1f3147ea69114514ff17060b63227a7",
+    "mtime": 1779497972.958213,
+    "ast_hash": "53c6fb359b60c90c89578e32fd291a17",
     "semantic_hash": ""
   },
   "C:\\Projects\\Atrevida\\AtrevidaFront\\lib\\constants\\reservationForm.ts": {
@@ -697,6 +682,11 @@
   "C:\\Projects\\Atrevida\\AtrevidaFront\\public\\window.svg": {
     "mtime": 1775435247.0862818,
     "ast_hash": "a2760511c65806022ad20adf74370ff3",
+    "semantic_hash": ""
+  },
+  "C:\\Projects\\Atrevida\\AtrevidaFront\\app\\admin\\configuracion\\categorias\\page.tsx": {
+    "mtime": 1778446375.6776235,
+    "ast_hash": "e847fe03270833c85d5a1178313bbea3",
     "semantic_hash": ""
   }
 }

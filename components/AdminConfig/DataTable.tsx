@@ -64,7 +64,7 @@ export function DataTable<T extends Record<string, unknown>>({
             onChange={(e) => setQuery(e.target.value)}
             placeholder={searchPlaceholder}
             className={styles.searchInput}
-            disabled={loading || !!error}
+            disabled={Boolean(loading) || Boolean(error)}
           />
         </div>
 
@@ -82,7 +82,7 @@ export function DataTable<T extends Record<string, unknown>>({
               className={styles.refreshButton}
               onClick={onRefresh}
               aria-label="Actualizar"
-              disabled={loading}
+              disabled={Boolean(loading)}
             >
               <RefreshCw
                 size={14}

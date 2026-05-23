@@ -1,16 +1,16 @@
 # Graph Report - AtrevidaFront  (2026-05-22)
 
 ## Corpus Check
-- 112 files · ~2,965,190 words
+- 112 files · ~2,965,402 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 726 nodes · 1051 edges · 63 communities (48 shown, 15 thin omitted)
+- 727 nodes · 1052 edges · 62 communities (47 shown, 15 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `c99d428d`
+- Built from commit: `4cfc8793`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -43,7 +43,6 @@
 - [[_COMMUNITY_Community 35|Community 35]]
 - [[_COMMUNITY_Community 36|Community 36]]
 - [[_COMMUNITY_Community 37|Community 37]]
-- [[_COMMUNITY_Community 38|Community 38]]
 - [[_COMMUNITY_Community 39|Community 39]]
 - [[_COMMUNITY_Community 40|Community 40]]
 - [[_COMMUNITY_Community 41|Community 41]]
@@ -81,8 +80,8 @@
 ## Surprising Connections (you probably didn't know these)
 - `AdminReservasPage()` --calls--> `useLocales()`  [EXTRACTED]
   app/admin/reservas/page.tsx → lib/hooks/useLocales.ts
-- `EditarReservaContent()` --calls--> `useLocales()`  [EXTRACTED]
-  app/admin/reservas/editar/[id]/page.tsx → lib/hooks/useLocales.ts
+- `EditarReservaContent()` --calls--> `useReservas()`  [EXTRACTED]
+  app/admin/reservas/editar/[id]/page.tsx → lib/hooks/useReservas.ts
 - `useReservationForm()` --calls--> `useLocales()`  [EXTRACTED]
   components/AdminReservationForm/useReservationForm.ts → lib/hooks/useLocales.ts
 - `TimeSlotAdmin()` --calls--> `esHoraDisponible()`  [EXTRACTED]
@@ -90,19 +89,19 @@
 - `TimeSlotAdmin()` --calls--> `esHoraDisponible()`  [EXTRACTED]
   components/Calendar/TimeSlotAdminAdmin.tsx → lib/utils/calendarHelpers.ts
 
-## Communities (63 total, 15 thin omitted)
+## Communities (62 total, 15 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.29
 Nodes (5): crearLocalDB(), getLocalesDB(), Espacio, FormErrors, LocalRow
 
 ### Community 1 - "Community 1"
-Cohesion: 0.05
-Nodes (51): CalendarGridProps, DIA_CORTO, DIAS, CalendarGridProps, DIA_CORTO, DIAS, ReservationCardProps, SlotBadges() (+43 more)
+Cohesion: 0.13
+Nodes (18): ReservationCardProps, SlotBadges(), SlotBadgesProps, TimeSlotAdmin(), TimeSlotAdminProps, TimeSlotAdmin(), TimeSlotAdminProps, TimeSlotPublico() (+10 more)
 
 ### Community 2 - "Community 2"
-Cohesion: 0.11
-Nodes (11): ReservationFormInitialData, CrearReservaContent(), CrearReservaPage(), NAV_LINKS, ReservasLandingProps, ReservationFormProps, ServiceGroup, ServiceSelect() (+3 more)
+Cohesion: 0.10
+Nodes (13): CrearReservaContent(), CrearReservaPage(), CustomSelect(), CustomSelectProps, SelectOption, NAV_LINKS, ReservasLandingProps, ReservationFormProps (+5 more)
 
 ### Community 3 - "Community 3"
 Cohesion: 0.10
@@ -110,11 +109,11 @@ Nodes (8): INFO_ITEMS, LOCATIONS, LINKS_NAV, LINKS_SERVICIOS, STATS, VALORES, SE
 
 ### Community 4 - "Community 4"
 Cohesion: 0.05
-Nodes (39): apiClient, ApiError, getAuthToken(), request(), RequestOptions, ActualizarEstadoReservaDBData, actualizarReservaDB(), ActualizarReservaDBData (+31 more)
+Nodes (40): apiClient, ApiError, getAuthToken(), request(), RequestOptions, actualizarEstadoReservaDB(), ActualizarEstadoReservaDBData, actualizarReservaDB() (+32 more)
 
 ### Community 5 - "Community 5"
-Cohesion: 0.15
-Nodes (19): getReservasCalendario(), Calendar(), CalendarProps, CalendarAdmin(), CalendarAdminProps, CalendarPublico(), CalendarPublicoProps, CustomSelect() (+11 more)
+Cohesion: 0.05
+Nodes (51): DayInfo, DaySelector(), DaySelectorProps, ReservationFormProps, ServiceGroup, ServiceSelect(), ServiceSelectProps, TimeSlotPicker() (+43 more)
 
 ### Community 6 - "Community 6"
 Cohesion: 0.33
@@ -125,8 +124,8 @@ Cohesion: 0.15
 Nodes (5): NAV_LINKS, AdminTheme, AdminThemeToggle(), AdminThemeToggleProps, OPTIONS
 
 ### Community 8 - "Community 8"
-Cohesion: 0.09
-Nodes (37): ReservasTableProps, TimeSlotPicker(), TimeSlotPickerProps, useReservationForm(), DIAS_COMPLETO, DIAS_SEMANA, HORAS, useCrearReserva() (+29 more)
+Cohesion: 0.05
+Nodes (56): ReservasTableProps, CATEGORIAS_ORDEN, useReservationForm(), AdminReservasAprobacionPage(), ApprovalDraft, ESTADO_OPTIONS, EstadoFiltro, EstadoGestion (+48 more)
 
 ### Community 9 - "Community 9"
 Cohesion: 0.22
@@ -172,25 +171,21 @@ Nodes (19): compilerOptions, allowJs, esModuleInterop, incremental, isolatedModu
 Cohesion: 0.17
 Nodes (12): code:css (--af-radius-pill: 9999px;), code:css (--af-ease: cubic-bezier(0.16, 1, 0.3, 1);), code:css (--af-glass: rgba(9, 9, 11, 0.80);), code:css (--color-background: #09090b;          /* Fondo oscuro casi n), code:css (--af-accent-primary: #dc2626;         /* Rojo profundo */), code:css (--af-muted: rgba(250, 250, 250, 0.65);    /* Texto semitrans), code:css (--af-surface-1: rgba(15, 15, 15, 0.50);   /* Vidrio suave */), code:css (--af-border: rgba(228, 228, 231, 0.10);       /* Borde sutil) (+4 more)
 
-### Community 38 - "Community 38"
-Cohesion: 0.08
-Nodes (21): CATEGORIAS_ORDEN, DayInfo, DaySelector(), DaySelectorProps, ReservationFormProps, ServiceGroup, ServiceSelect(), ServiceSelectProps (+13 more)
-
 ### Community 39 - "Community 39"
 Cohesion: 0.15
 Nodes (12): computedHash, skillPath, source, sourceType, computedHash, skillPath, source, sourceType (+4 more)
 
 ### Community 40 - "Community 40"
 Cohesion: 0.18
-Nodes (8): activarServicioEnLocal(), ActivarServicioEnLocalData, ActualizarLocalData, ActualizarServicioData, CrearLocalData, CrearServicioData, GetCombosParams, GetServiciosParams
+Nodes (7): ActivarServicioEnLocalData, ActualizarLocalData, ActualizarServicioData, CrearLocalData, CrearServicioData, GetCombosParams, GetServiciosParams
 
 ### Community 41 - "Community 41"
 Cohesion: 0.17
 Nodes (11): Action Elements, Brand & Style, Colors, Components, Elevation & Depth, Glass Containers, Inputs & Interaction, Layout & Spacing (+3 more)
 
 ### Community 42 - "Community 42"
-Cohesion: 0.17
-Nodes (10): actualizarServicio(), crearServicioDB(), eliminarServicioDB(), getServiciosDB(), CategoriaOption, FORM_INITIAL, FormErrors, FormState (+2 more)
+Cohesion: 0.15
+Nodes (11): activarServicioEnLocal(), actualizarServicio(), crearServicioDB(), eliminarServicioDB(), getServiciosDB(), CategoriaOption, FORM_INITIAL, FormErrors (+3 more)
 
 ### Community 43 - "Community 43"
 Cohesion: 0.25
@@ -240,7 +235,7 @@ Nodes (4): 9. TECNOLOGÍAS Y LIBRERÍAS, Architecture Pattern:, Dependencies:, D
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `DiaSemana` connect `Community 1` to `Community 2`, `Community 4`, `Community 5`, `Community 38`, `Community 8`?**
+- **Why does `DiaSemana` connect `Community 5` to `Community 8`, `Community 1`, `Community 2`, `Community 4`?**
   _High betweenness centrality (0.017) - this node is a cross-community bridge._
 - **Why does `toast` connect `Community 8` to `Community 0`, `Community 4`, `Community 6`, `Community 42`, `Community 45`, `Community 60`?**
   _High betweenness centrality (0.007) - this node is a cross-community bridge._
@@ -249,8 +244,8 @@ _Questions this graph is uniquely positioned to answer:_
 - **What connects `eslintConfig`, `nextConfig`, `name` to the rest of the system?**
   _346 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 1` be split into smaller, more focused modules?**
-  _Cohesion score 0.05311871227364185 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.1349206349206349 - nodes in this community are weakly interconnected._
 - **Should `Community 2` be split into smaller, more focused modules?**
-  _Cohesion score 0.11067193675889328 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.10461538461538461 - nodes in this community are weakly interconnected._
 - **Should `Community 3` be split into smaller, more focused modules?**
   _Cohesion score 0.1 - nodes in this community are weakly interconnected._
