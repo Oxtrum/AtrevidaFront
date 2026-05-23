@@ -45,7 +45,7 @@ export default function AdminReservasPage() {
   const getInitialFechaHasta = () => {
     const hoy = new Date();
     const proximoSabado = new Date(hoy);
-    proximoSabado.setDate(hoy.getDate() + (6 - hoy.getDay()));
+    proximoSabado.setDate(hoy.getDate() + (13 - hoy.getDay()));
     return proximoSabado.toISOString().split('T')[0];
   };
 
