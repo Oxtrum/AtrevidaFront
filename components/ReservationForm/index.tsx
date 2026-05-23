@@ -221,7 +221,6 @@ export default function ReservationForm({ initialData, onSuccess, onCancel }: Re
               <input
                 type="tel"
                 inputMode="numeric"
-                maxLength={12}
                 value={numeroTelefono}
                 onChange={e => setNumeroTelefono(normalizeBolivianPhone(e.target.value))}
                 placeholder="77777777"

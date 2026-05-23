@@ -163,7 +163,6 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
               value={numeroTelefono}
               onChange={e => setNumeroTelefono(normalizeBolivianPhone(e.target.value))}
               placeholder="77777777"
-              maxLength={12}
               className={errors.numeroTelefono ? styles.inputError : ''}
             />
             {errors.numeroTelefono && <span className={styles.errorText}>{errors.numeroTelefono}</span>}
