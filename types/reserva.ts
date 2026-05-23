@@ -1,7 +1,7 @@
 export type DiaSemana = 'LUNES' | 'MARTES' | 'MIÉRCOLES' | 'JUEVES' | 'VIERNES' | 'SÁBADO';
 
 export type TipoReserva = 'm' | 'b' | 'M' | 'B' | 'feriado';
-export type EstadoReserva = 'PENDIENTE' | 'AGENDADO' | 'RECHAZADO' | 'APROBADO';
+export type EstadoReserva = 'PENDIENTE' | 'AGENDADO' | 'RECHAZADO' | 'COMPLETADO';
 
 export interface FechaDia {
   dia: number;
