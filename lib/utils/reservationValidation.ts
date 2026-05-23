@@ -5,6 +5,12 @@
 
 import type { DiaSemana, EstadoReserva } from '@/types/reserva';
 
+export function normalizeBolivianPhone(raw: string): string {
+  const digits = raw.replace(/\D/g, '');
+  const local = digits.startsWith('591') ? digits.slice(3) : digits;
+  return local.slice(0, 8);
+}
+
 interface ReservaPayload {
   local: string;
   semana?: string;

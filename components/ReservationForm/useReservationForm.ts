@@ -468,7 +468,7 @@ export function useReservationForm(
           hora_hasta: horaHastaNorm,
           tipo: tipoBackend,
           cliente,
-          numero_telefono: phoneDigits,
+          numero_telefono: '+591' + phoneDigits,
           servicio: servicioInfo?.label || servicio,
           servicio_solicitado: servicioSolicitadoInfo?.label || servicioInfo?.label || servicio,
           servicio_confirmado: null,

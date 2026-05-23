@@ -356,7 +356,8 @@ export default function AdminReservasAprobacionPage() {
       return;
     }
 
-    const cleanPhone = approvalDraft.telefono.replace(/\D/g, '');
+    const rawDigits = approvalDraft.telefono.replace(/\D/g, '');
+    const cleanPhone = rawDigits.startsWith('591') ? `+${rawDigits}` : `+591${rawDigits}`;
     const updateData = {
       id: approvalReserva.id,
       local: approvalReserva.local,
