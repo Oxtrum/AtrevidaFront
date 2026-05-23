@@ -907,7 +907,7 @@
       "label": "ServicioRow",
       "file_type": "code",
       "source_file": "app/admin/configuracion/servicios/page.tsx",
-      "source_location": "L23",
+      "source_location": "L25",
       "id": "servicios_page_serviciorow",
       "community": 42,
       "norm_label": "serviciorow"
@@ -916,7 +916,7 @@
       "label": "CategoriaOption",
       "file_type": "code",
       "source_file": "app/admin/configuracion/servicios/page.tsx",
-      "source_location": "L35",
+      "source_location": "L38",
       "id": "servicios_page_categoriaoption",
       "community": 42,
       "norm_label": "categoriaoption"
@@ -925,7 +925,7 @@
       "label": "LocalOption",
       "file_type": "code",
       "source_file": "app/admin/configuracion/servicios/page.tsx",
-      "source_location": "L40",
+      "source_location": "L43",
       "id": "servicios_page_localoption",
       "community": 42,
       "norm_label": "localoption"
@@ -934,7 +934,7 @@
       "label": "FormState",
       "file_type": "code",
       "source_file": "app/admin/configuracion/servicios/page.tsx",
-      "source_location": "L45",
+      "source_location": "L48",
       "id": "servicios_page_formstate",
       "community": 42,
       "norm_label": "formstate"
@@ -943,7 +943,7 @@
       "label": "FormErrors",
       "file_type": "code",
       "source_file": "app/admin/configuracion/servicios/page.tsx",
-      "source_location": "L55",
+      "source_location": "L59",
       "id": "servicios_page_formerrors",
       "community": 42,
       "norm_label": "formerrors"
@@ -952,7 +952,7 @@
       "label": "FORM_INITIAL",
       "file_type": "code",
       "source_file": "app/admin/configuracion/servicios/page.tsx",
-      "source_location": "L67",
+      "source_location": "L71",
       "id": "servicios_page_form_initial",
       "community": 42,
       "norm_label": "form_initial"
@@ -961,7 +961,7 @@
       "label": "ServiciosPage()",
       "file_type": "code",
       "source_file": "app/admin/configuracion/servicios/page.tsx",
-      "source_location": "L79",
+      "source_location": "L84",
       "id": "servicios_page_serviciospage",
       "community": 42,
       "norm_label": "serviciospage()"
@@ -1062,16 +1062,16 @@
       "source_file": "app/admin/reservas/page.tsx",
       "source_location": "L1",
       "id": "app_admin_reservas_page_tsx",
-      "community": 5,
+      "community": 4,
       "norm_label": "page.tsx"
     },
     {
       "label": "AdminReservasPage()",
       "file_type": "code",
       "source_file": "app/admin/reservas/page.tsx",
-      "source_location": "L19",
+      "source_location": "L21",
       "id": "reservas_page_adminreservaspage",
-      "community": 5,
+      "community": 4,
       "norm_label": "adminreservaspage()"
     },
     {
@@ -1080,7 +1080,7 @@
       "source_file": "app/admin/reservas/aprobacion/page.tsx",
       "source_location": "L1",
       "id": "app_admin_reservas_aprobacion_page_tsx",
-      "community": 8,
+      "community": 38,
       "norm_label": "page.tsx"
     },
     {
@@ -1089,7 +1089,7 @@
       "source_file": "app/admin/reservas/aprobacion/page.tsx",
       "source_location": "L37",
       "id": "aprobacion_page_estadogestion",
-      "community": 8,
+      "community": 38,
       "norm_label": "estadogestion"
     },
     {
@@ -1098,7 +1098,7 @@
       "source_file": "app/admin/reservas/aprobacion/page.tsx",
       "source_location": "L38",
       "id": "aprobacion_page_estadofiltro",
-      "community": 8,
+      "community": 38,
       "norm_label": "estadofiltro"
     },
     {
@@ -1107,7 +1107,7 @@
       "source_file": "app/admin/reservas/aprobacion/page.tsx",
       "source_location": "L39",
       "id": "aprobacion_page_approvaldraft",
-      "community": 8,
+      "community": 38,
       "norm_label": "approvaldraft"
     },
     {
@@ -1116,7 +1116,7 @@
       "source_file": "app/admin/reservas/aprobacion/page.tsx",
       "source_location": "L48",
       "id": "aprobacion_page_estado_options",
-      "community": 8,
+      "community": 38,
       "norm_label": "estado_options"
     },
     {
@@ -1125,7 +1125,7 @@
       "source_file": "app/admin/reservas/aprobacion/page.tsx",
       "source_location": "L55",
       "id": "aprobacion_page_tipo_labels",
-      "community": 8,
+      "community": 38,
       "norm_label": "tipo_labels"
     },
     {
@@ -1134,7 +1134,7 @@
       "source_file": "app/admin/reservas/aprobacion/page.tsx",
       "source_location": "L60",
       "id": "aprobacion_page_normalizeestado",
-      "community": 8,
+      "community": 38,
       "norm_label": "normalizeestado()"
     },
     {
@@ -1143,7 +1143,7 @@
       "source_file": "app/admin/reservas/aprobacion/page.tsx",
       "source_location": "L66",
       "id": "aprobacion_page_formatdate",
-      "community": 8,
+      "community": 38,
       "norm_label": "formatdate()"
     },
     {
@@ -1152,7 +1152,7 @@
       "source_file": "app/admin/reservas/aprobacion/page.tsx",
       "source_location": "L77",
       "id": "aprobacion_page_getwhatsapphref",
-      "community": 8,
+      "community": 38,
       "norm_label": "getwhatsapphref()"
     },
     {
@@ -1161,7 +1161,7 @@
       "source_file": "app/admin/reservas/aprobacion/page.tsx",
       "source_location": "L87",
       "id": "aprobacion_page_getconfirmationwhatsapphref",
-      "community": 8,
+      "community": 38,
       "norm_label": "getconfirmationwhatsapphref()"
     },
     {
@@ -1170,7 +1170,7 @@
       "source_file": "app/admin/reservas/aprobacion/page.tsx",
       "source_location": "L109",
       "id": "aprobacion_page_getdefaultconfirmedservice",
-      "community": 8,
+      "community": 38,
       "norm_label": "getdefaultconfirmedservice()"
     },
     {
@@ -1179,7 +1179,7 @@
       "source_file": "app/admin/reservas/aprobacion/page.tsx",
       "source_location": "L115",
       "id": "aprobacion_page_normalizesearchtext",
-      "community": 8,
+      "community": 38,
       "norm_label": "normalizesearchtext()"
     },
     {
@@ -1188,7 +1188,7 @@
       "source_file": "app/admin/reservas/aprobacion/page.tsx",
       "source_location": "L118",
       "id": "aprobacion_page_getclientinitials",
-      "community": 8,
+      "community": 38,
       "norm_label": "getclientinitials()"
     },
     {
@@ -1197,7 +1197,7 @@
       "source_file": "app/admin/reservas/aprobacion/page.tsx",
       "source_location": "L128",
       "id": "aprobacion_page_adminreservasaprobacionpage",
-      "community": 8,
+      "community": 38,
       "norm_label": "adminreservasaprobacionpage()"
     },
     {
@@ -1233,7 +1233,7 @@
       "source_file": "app/admin/reservas/editar/[id]/page.tsx",
       "source_location": "L1",
       "id": "app_admin_reservas_editar_id_page_tsx",
-      "community": 5,
+      "community": 8,
       "norm_label": "page.tsx"
     },
     {
@@ -1242,7 +1242,7 @@
       "source_file": "app/admin/reservas/editar/[id]/page.tsx",
       "source_location": "L19",
       "id": "id_page_editarreservacontent",
-      "community": 5,
+      "community": 8,
       "norm_label": "editarreservacontent()"
     },
     {
@@ -1251,7 +1251,7 @@
       "source_file": "app/admin/reservas/editar/[id]/page.tsx",
       "source_location": "L422",
       "id": "id_page_editarreservapage",
-      "community": 5,
+      "community": 8,
       "norm_label": "editarreservapage()"
     },
     {
@@ -1692,7 +1692,7 @@
       "source_file": "components/AdminReservas/index.ts",
       "source_location": "L1",
       "id": "components_adminreservas_index_ts",
-      "community": 5,
+      "community": 4,
       "norm_label": "index.ts"
     },
     {
@@ -1717,7 +1717,7 @@
       "label": "ReservasTable()",
       "file_type": "code",
       "source_file": "components/AdminReservas/ReservasTable.tsx",
-      "source_location": "L16",
+      "source_location": "L18",
       "id": "adminreservas_reservastable_reservastable",
       "community": 8,
       "norm_label": "reservastable()"
@@ -1728,7 +1728,7 @@
       "source_file": "components/AdminReservationForm/constants.ts",
       "source_location": "L1",
       "id": "components_adminreservationform_constants_ts",
-      "community": 8,
+      "community": 38,
       "norm_label": "constants.ts"
     },
     {
@@ -1737,7 +1737,7 @@
       "source_file": "components/AdminReservationForm/constants.ts",
       "source_location": "L1",
       "id": "adminreservationform_constants_categorias_orden",
-      "community": 8,
+      "community": 38,
       "norm_label": "categorias_orden"
     },
     {
@@ -1746,7 +1746,7 @@
       "source_file": "components/AdminReservationForm/DaySelector.tsx",
       "source_location": "L1",
       "id": "components_adminreservationform_dayselector_tsx",
-      "community": 5,
+      "community": 38,
       "norm_label": "dayselector.tsx"
     },
     {
@@ -1755,7 +1755,7 @@
       "source_file": "components/AdminReservationForm/DaySelector.tsx",
       "source_location": "L6",
       "id": "adminreservationform_dayselector_dayinfo",
-      "community": 5,
+      "community": 38,
       "norm_label": "dayinfo"
     },
     {
@@ -1764,7 +1764,7 @@
       "source_file": "components/AdminReservationForm/DaySelector.tsx",
       "source_location": "L13",
       "id": "adminreservationform_dayselector_dayselectorprops",
-      "community": 5,
+      "community": 38,
       "norm_label": "dayselectorprops"
     },
     {
@@ -1773,7 +1773,7 @@
       "source_file": "components/AdminReservationForm/DaySelector.tsx",
       "source_location": "L19",
       "id": "adminreservationform_dayselector_dayselector",
-      "community": 5,
+      "community": 38,
       "norm_label": "dayselector()"
     },
     {
@@ -1782,7 +1782,7 @@
       "source_file": "components/AdminReservationForm/index.tsx",
       "source_location": "L1",
       "id": "components_adminreservationform_index_tsx",
-      "community": 5,
+      "community": 38,
       "norm_label": "index.tsx"
     },
     {
@@ -1791,7 +1791,7 @@
       "source_file": "components/AdminReservationForm/index.tsx",
       "source_location": "L12",
       "id": "adminreservationform_index_reservationformprops",
-      "community": 5,
+      "community": 38,
       "norm_label": "reservationformprops"
     },
     {
@@ -1800,7 +1800,7 @@
       "source_file": "components/AdminReservationForm/index.tsx",
       "source_location": "L17",
       "id": "adminreservationform_index_adminreservationform",
-      "community": 5,
+      "community": 38,
       "norm_label": "adminreservationform()"
     },
     {
@@ -1809,7 +1809,7 @@
       "source_file": "components/AdminReservationForm/ServiceSelect.tsx",
       "source_location": "L1",
       "id": "components_adminreservationform_serviceselect_tsx",
-      "community": 5,
+      "community": 38,
       "norm_label": "serviceselect.tsx"
     },
     {
@@ -1818,7 +1818,7 @@
       "source_file": "components/AdminReservationForm/ServiceSelect.tsx",
       "source_location": "L6",
       "id": "adminreservationform_serviceselect_servicegroup",
-      "community": 5,
+      "community": 38,
       "norm_label": "servicegroup"
     },
     {
@@ -1827,7 +1827,7 @@
       "source_file": "components/AdminReservationForm/ServiceSelect.tsx",
       "source_location": "L11",
       "id": "adminreservationform_serviceselect_serviceselectprops",
-      "community": 5,
+      "community": 38,
       "norm_label": "serviceselectprops"
     },
     {
@@ -1836,7 +1836,7 @@
       "source_file": "components/AdminReservationForm/ServiceSelect.tsx",
       "source_location": "L19",
       "id": "adminreservationform_serviceselect_serviceselect",
-      "community": 5,
+      "community": 38,
       "norm_label": "serviceselect()"
     },
     {
@@ -1845,7 +1845,7 @@
       "source_file": "components/AdminReservationForm/TimeSlotPicker.tsx",
       "source_location": "L1",
       "id": "components_adminreservationform_timeslotpicker_tsx",
-      "community": 5,
+      "community": 8,
       "norm_label": "timeslotpicker.tsx"
     },
     {
@@ -1854,7 +1854,7 @@
       "source_file": "components/AdminReservationForm/TimeSlotPicker.tsx",
       "source_location": "L8",
       "id": "adminreservationform_timeslotpicker_timeslotpickerprops",
-      "community": 5,
+      "community": 8,
       "norm_label": "timeslotpickerprops"
     },
     {
@@ -1863,7 +1863,7 @@
       "source_file": "components/AdminReservationForm/TimeSlotPicker.tsx",
       "source_location": "L15",
       "id": "adminreservationform_timeslotpicker_timeslotpicker",
-      "community": 5,
+      "community": 8,
       "norm_label": "timeslotpicker()"
     },
     {
@@ -2338,7 +2338,7 @@
       "label": "INFO_ITEMS",
       "file_type": "code",
       "source_file": "components/Contacto/Contacto.tsx",
-      "source_location": "L12",
+      "source_location": "L10",
       "id": "contacto_contacto_info_items",
       "community": 3,
       "norm_label": "info_items"
@@ -2347,7 +2347,7 @@
       "label": "LOCATIONS",
       "file_type": "code",
       "source_file": "components/Contacto/Contacto.tsx",
-      "source_location": "L50",
+      "source_location": "L48",
       "id": "contacto_contacto_locations",
       "community": 3,
       "norm_label": "locations"
@@ -2356,7 +2356,7 @@
       "label": "Contacto()",
       "file_type": "code",
       "source_file": "components/Contacto/Contacto.tsx",
-      "source_location": "L63",
+      "source_location": "L61",
       "id": "contacto_contacto_contacto",
       "community": 3,
       "norm_label": "contacto()"
@@ -2374,7 +2374,7 @@
       "label": "CtaBanner()",
       "file_type": "code",
       "source_file": "components/CtaBanner/CtaBanner.tsx",
-      "source_location": "L10",
+      "source_location": "L8",
       "id": "ctabanner_ctabanner_ctabanner",
       "community": 28,
       "norm_label": "ctabanner()"
@@ -2385,7 +2385,7 @@
       "source_file": "components/Custom/CustomSelect.tsx",
       "source_location": "L1",
       "id": "components_custom_customselect_tsx",
-      "community": 2,
+      "community": 5,
       "norm_label": "customselect.tsx"
     },
     {
@@ -2394,7 +2394,7 @@
       "source_file": "components/Custom/CustomSelect.tsx",
       "source_location": "L8",
       "id": "custom_customselect_selectoption",
-      "community": 2,
+      "community": 5,
       "norm_label": "selectoption"
     },
     {
@@ -2403,7 +2403,7 @@
       "source_file": "components/Custom/CustomSelect.tsx",
       "source_location": "L14",
       "id": "custom_customselect_customselectprops",
-      "community": 2,
+      "community": 5,
       "norm_label": "customselectprops"
     },
     {
@@ -2412,7 +2412,7 @@
       "source_file": "components/Custom/CustomSelect.tsx",
       "source_location": "L23",
       "id": "custom_customselect_customselect",
-      "community": 2,
+      "community": 5,
       "norm_label": "customselect()"
     },
     {
@@ -2421,7 +2421,7 @@
       "source_file": "components/Custom/CustomSelectAdmin.tsx",
       "source_location": "L1",
       "id": "components_custom_customselectadmin_tsx",
-      "community": 5,
+      "community": 38,
       "norm_label": "customselectadmin.tsx"
     },
     {
@@ -2430,7 +2430,7 @@
       "source_file": "components/Custom/CustomSelectAdmin.tsx",
       "source_location": "L8",
       "id": "custom_customselectadmin_selectoption",
-      "community": 5,
+      "community": 38,
       "norm_label": "selectoption"
     },
     {
@@ -2439,7 +2439,7 @@
       "source_file": "components/Custom/CustomSelectAdmin.tsx",
       "source_location": "L14",
       "id": "custom_customselectadmin_customselectprops",
-      "community": 5,
+      "community": 38,
       "norm_label": "customselectprops"
     },
     {
@@ -2448,7 +2448,7 @@
       "source_file": "components/Custom/CustomSelectAdmin.tsx",
       "source_location": "L25",
       "id": "custom_customselectadmin_customselect",
-      "community": 5,
+      "community": 38,
       "norm_label": "customselect()"
     },
     {
@@ -2545,7 +2545,7 @@
       "label": "STATS",
       "file_type": "code",
       "source_file": "components/Nosotros/Nosotros.tsx",
-      "source_location": "L12",
+      "source_location": "L10",
       "id": "nosotros_nosotros_stats",
       "community": 3,
       "norm_label": "stats"
@@ -2554,7 +2554,7 @@
       "label": "VALORES",
       "file_type": "code",
       "source_file": "components/Nosotros/Nosotros.tsx",
-      "source_location": "L19",
+      "source_location": "L17",
       "id": "nosotros_nosotros_valores",
       "community": 3,
       "norm_label": "valores"
@@ -2563,7 +2563,7 @@
       "label": "Nosotros()",
       "file_type": "code",
       "source_file": "components/Nosotros/Nosotros.tsx",
-      "source_location": "L37",
+      "source_location": "L35",
       "id": "nosotros_nosotros_nosotros",
       "community": 3,
       "norm_label": "nosotros()"
@@ -2691,7 +2691,7 @@
       "source_file": "components/ReservationForm/TimeSlotPicker.tsx",
       "source_location": "L1",
       "id": "components_reservationform_timeslotpicker_tsx",
-      "community": 5,
+      "community": 8,
       "norm_label": "timeslotpicker.tsx"
     },
     {
@@ -2700,7 +2700,7 @@
       "source_file": "components/ReservationForm/TimeSlotPicker.tsx",
       "source_location": "L7",
       "id": "reservationform_timeslotpicker_timeslotpickerprops",
-      "community": 5,
+      "community": 8,
       "norm_label": "timeslotpickerprops"
     },
     {
@@ -2826,7 +2826,7 @@
       "source_file": "components/Shared/index.ts",
       "source_location": "L1",
       "id": "components_shared_index_ts",
-      "community": 5,
+      "community": 4,
       "norm_label": "index.ts"
     },
     {
@@ -2862,7 +2862,7 @@
       "source_file": "components/Shared/Toast.tsx",
       "source_location": "L1",
       "id": "components_shared_toast_tsx",
-      "community": 0,
+      "community": 60,
       "norm_label": "toast.tsx"
     },
     {
@@ -2871,7 +2871,7 @@
       "source_file": "components/Shared/Toast.tsx",
       "source_location": "L8",
       "id": "shared_toast_toasttype",
-      "community": 0,
+      "community": 60,
       "norm_label": "toasttype"
     },
     {
@@ -2880,7 +2880,7 @@
       "source_file": "components/Shared/Toast.tsx",
       "source_location": "L10",
       "id": "shared_toast_toaststate",
-      "community": 0,
+      "community": 60,
       "norm_label": "toaststate"
     },
     {
@@ -2889,7 +2889,7 @@
       "source_file": "components/Shared/Toast.tsx",
       "source_location": "L21",
       "id": "shared_toast_usetoast",
-      "community": 0,
+      "community": 60,
       "norm_label": "usetoast()"
     },
     {
@@ -2898,7 +2898,7 @@
       "source_file": "components/Shared/Toast.tsx",
       "source_location": "L42",
       "id": "shared_toast_toast",
-      "community": 0,
+      "community": 8,
       "norm_label": "toast"
     },
     {
@@ -2907,7 +2907,7 @@
       "source_file": "components/Shared/Toast.tsx",
       "source_location": "L48",
       "id": "shared_toast_toastcontainer",
-      "community": 0,
+      "community": 60,
       "norm_label": "toastcontainer()"
     },
     {
@@ -2923,7 +2923,7 @@
       "label": "TESTIMONIOS",
       "file_type": "code",
       "source_file": "components/Testimonios/Testimonios.tsx",
-      "source_location": "L11",
+      "source_location": "L9",
       "id": "testimonios_testimonios_testimonios",
       "community": 3,
       "norm_label": "testimonios"
@@ -2974,10 +2974,19 @@
       "norm_label": "client.ts"
     },
     {
+      "label": "getAuthToken()",
+      "file_type": "code",
+      "source_file": "lib/api/client.ts",
+      "source_location": "L12",
+      "id": "api_client_getauthtoken",
+      "community": 4,
+      "norm_label": "getauthtoken()"
+    },
+    {
       "label": "ApiError",
       "file_type": "code",
       "source_file": "lib/api/client.ts",
-      "source_location": "L10",
+      "source_location": "L23",
       "id": "api_client_apierror",
       "community": 4,
       "norm_label": "apierror"
@@ -2986,7 +2995,7 @@
       "label": ".constructor()",
       "file_type": "code",
       "source_file": "lib/api/client.ts",
-      "source_location": "L11",
+      "source_location": "L24",
       "id": "api_client_apierror_constructor",
       "community": 4,
       "norm_label": ".constructor()"
@@ -2995,7 +3004,7 @@
       "label": "RequestOptions",
       "file_type": "code",
       "source_file": "lib/api/client.ts",
-      "source_location": "L23",
+      "source_location": "L36",
       "id": "api_client_requestoptions",
       "community": 4,
       "norm_label": "requestoptions"
@@ -3004,7 +3013,7 @@
       "label": "request()",
       "file_type": "code",
       "source_file": "lib/api/client.ts",
-      "source_location": "L32",
+      "source_location": "L45",
       "id": "api_client_request",
       "community": 4,
       "norm_label": "request()"
@@ -3013,7 +3022,7 @@
       "label": "apiClient",
       "file_type": "code",
       "source_file": "lib/api/client.ts",
-      "source_location": "L73",
+      "source_location": "L88",
       "id": "api_client_apiclient",
       "community": 4,
       "norm_label": "apiclient"
@@ -3204,7 +3213,7 @@
       "source_file": "lib/api/reservas.ts",
       "source_location": "L188",
       "id": "api_reservas_actualizarestadoreservadb",
-      "community": 4,
+      "community": 38,
       "norm_label": "actualizarestadoreservadb()"
     },
     {
@@ -3357,7 +3366,7 @@
       "source_file": "lib/api/servicios.ts",
       "source_location": "L103",
       "id": "api_servicios_eliminarserviciodb",
-      "community": 40,
+      "community": 42,
       "norm_label": "eliminarserviciodb()"
     },
     {
@@ -3384,7 +3393,7 @@
       "source_file": "lib/api/servicios.ts",
       "source_location": "L132",
       "id": "api_servicios_getlocalesdb",
-      "community": 5,
+      "community": 0,
       "norm_label": "getlocalesdb()"
     },
     {
@@ -3420,7 +3429,7 @@
       "source_file": "lib/constants/reservationForm.ts",
       "source_location": "L1",
       "id": "lib_constants_reservationform_ts",
-      "community": 5,
+      "community": 8,
       "norm_label": "reservationform.ts"
     },
     {
@@ -3429,7 +3438,7 @@
       "source_file": "lib/constants/reservationForm.ts",
       "source_location": "L8",
       "id": "constants_reservationform_horas",
-      "community": 5,
+      "community": 8,
       "norm_label": "horas"
     },
     {
@@ -3438,7 +3447,7 @@
       "source_file": "lib/constants/reservationForm.ts",
       "source_location": "L13",
       "id": "constants_reservationform_dias_semana",
-      "community": 5,
+      "community": 8,
       "norm_label": "dias_semana"
     },
     {
@@ -3447,7 +3456,7 @@
       "source_file": "lib/constants/reservationForm.ts",
       "source_location": "L22",
       "id": "constants_reservationform_dias_completo",
-      "community": 5,
+      "community": 8,
       "norm_label": "dias_completo"
     },
     {
@@ -3472,7 +3481,7 @@
       "label": "CrearReservaResult",
       "file_type": "code",
       "source_file": "lib/hooks/useCrearReserva.ts",
-      "source_location": "L7",
+      "source_location": "L8",
       "id": "hooks_usecrearreserva_crearreservaresult",
       "community": 4,
       "norm_label": "crearreservaresult"
@@ -3481,7 +3490,7 @@
       "label": "UseCrearReservaReturn",
       "file_type": "code",
       "source_file": "lib/hooks/useCrearReserva.ts",
-      "source_location": "L12",
+      "source_location": "L13",
       "id": "hooks_usecrearreserva_usecrearreservareturn",
       "community": 4,
       "norm_label": "usecrearreservareturn"
@@ -3490,7 +3499,7 @@
       "label": "CrearReservaData",
       "file_type": "code",
       "source_file": "lib/hooks/useCrearReserva.ts",
-      "source_location": "L18",
+      "source_location": "L19",
       "id": "hooks_usecrearreserva_crearreservadata",
       "community": 4,
       "norm_label": "crearreservadata"
@@ -3499,7 +3508,7 @@
       "label": "useCrearReserva()",
       "file_type": "code",
       "source_file": "lib/hooks/useCrearReserva.ts",
-      "source_location": "L39",
+      "source_location": "L40",
       "id": "hooks_usecrearreserva_usecrearreserva",
       "community": 8,
       "norm_label": "usecrearreserva()"
@@ -3636,7 +3645,7 @@
       "source_file": "lib/hooks/useReservasFiltradas.ts",
       "source_location": "L16",
       "id": "hooks_usereservasfiltradas_usereservasfiltradas",
-      "community": 5,
+      "community": 4,
       "norm_label": "usereservasfiltradas()"
     },
     {
@@ -3744,7 +3753,7 @@
       "source_file": "lib/utils/hoursAvailability.ts",
       "source_location": "L1",
       "id": "lib_utils_hoursavailability_ts",
-      "community": 5,
+      "community": 8,
       "norm_label": "hoursavailability.ts"
     },
     {
@@ -3753,7 +3762,7 @@
       "source_file": "lib/utils/hoursAvailability.ts",
       "source_location": "L11",
       "id": "utils_hoursavailability_slotstatus",
-      "community": 5,
+      "community": 8,
       "norm_label": "slotstatus"
     },
     {
@@ -3762,7 +3771,7 @@
       "source_file": "lib/utils/hoursAvailability.ts",
       "source_location": "L13",
       "id": "utils_hoursavailability_hoursavailability",
-      "community": 5,
+      "community": 8,
       "norm_label": "hoursavailability"
     },
     {
@@ -3771,7 +3780,7 @@
       "source_file": "lib/utils/hoursAvailability.ts",
       "source_location": "L15",
       "id": "utils_hoursavailability_params",
-      "community": 5,
+      "community": 8,
       "norm_label": "params"
     },
     {
@@ -3780,7 +3789,7 @@
       "source_file": "lib/utils/hoursAvailability.ts",
       "source_location": "L19",
       "id": "utils_hoursavailability_calcpaststatus",
-      "community": 5,
+      "community": 8,
       "norm_label": "calcpaststatus()"
     },
     {
@@ -3789,7 +3798,7 @@
       "source_file": "lib/utils/hoursAvailability.ts",
       "source_location": "L40",
       "id": "utils_hoursavailability_buildhoursavailability",
-      "community": 5,
+      "community": 8,
       "norm_label": "buildhoursavailability()"
     },
     {
@@ -3870,7 +3879,7 @@
       "source_file": "types/reserva.ts",
       "source_location": "L1",
       "id": "types_reserva_diasemana",
-      "community": 5,
+      "community": 1,
       "norm_label": "diasemana"
     },
     {
@@ -3933,7 +3942,7 @@
       "source_file": "types/reserva.ts",
       "source_location": "L43",
       "id": "types_reserva_servicios_admin_disponibles",
-      "community": 8,
+      "community": 38,
       "norm_label": "servicios_admin_disponibles"
     },
     {
@@ -4968,7 +4977,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L164",
       "id": "atrevidafront_atrevida_structure_report_4_archivos_de_estilos_globales_configuraci\u00f3n_tailwind_y_temas",
-      "community": 37,
+      "community": 58,
       "norm_label": "4. archivos de estilos globales, configuracion tailwind y temas"
     },
     {
@@ -4977,7 +4986,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L166",
       "id": "atrevidafront_atrevida_structure_report_archivo_global_css_app_globals_css_452_l\u00edneas",
-      "community": 37,
+      "community": 58,
       "norm_label": "archivo global css (`app/globals.css` - 452 lineas):"
     },
     {
@@ -5094,7 +5103,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L262",
       "id": "atrevidafront_atrevida_structure_report_clases_css_globales_disponibles",
-      "community": 37,
+      "community": 58,
       "norm_label": "clases css globales disponibles:"
     },
     {
@@ -5103,7 +5112,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L271",
       "id": "atrevidafront_atrevida_structure_report_animaciones_globales",
-      "community": 37,
+      "community": 58,
       "norm_label": "animaciones globales:"
     },
     {
@@ -5112,7 +5121,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L285",
       "id": "atrevidafront_atrevida_structure_report_postcss_config_postcss_config_mjs",
-      "community": 37,
+      "community": 58,
       "norm_label": "postcss config (`postcss.config.mjs`):"
     },
     {
@@ -5121,7 +5130,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L286",
       "id": "atrevidafront_atrevida_structure_report_codeblock_13",
-      "community": 37,
+      "community": 58,
       "norm_label": "code:javascript ({)"
     },
     {
@@ -5130,7 +5139,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L292",
       "id": "atrevidafront_atrevida_structure_report_next_js_config_next_config_ts",
-      "community": 37,
+      "community": 58,
       "norm_label": "next.js config (`next.config.ts`):"
     },
     {
@@ -5139,7 +5148,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L298",
       "id": "atrevidafront_atrevida_structure_report_5_sistema_de_theming_tema_actual",
-      "community": 12,
+      "community": 59,
       "norm_label": "5. sistema de theming/tema actual"
     },
     {
@@ -5148,7 +5157,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L300",
       "id": "atrevidafront_atrevida_structure_report_an\u00e1lisis_del_theming",
-      "community": 12,
+      "community": 59,
       "norm_label": "analisis del theming:"
     },
     {
@@ -5157,7 +5166,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L318",
       "id": "atrevidafront_atrevida_structure_report_codeblock_14",
-      "community": 12,
+      "community": 59,
       "norm_label": "code:css (::-webkit-scrollbar-thumb {)"
     },
     {
@@ -5166,7 +5175,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L325",
       "id": "atrevidafront_atrevida_structure_report_codeblock_15",
-      "community": 12,
+      "community": 59,
       "norm_label": "code:css (::selection {)"
     },
     {
@@ -5175,7 +5184,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L332",
       "id": "atrevidafront_atrevida_structure_report_conclusi\u00f3n_sobre_theming",
-      "community": 12,
+      "community": 59,
       "norm_label": "conclusion sobre theming:"
     },
     {
@@ -5184,7 +5193,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L341",
       "id": "atrevidafront_atrevida_structure_report_6_componentes_del_admin",
-      "community": 12,
+      "community": 44,
       "norm_label": "6. componentes del admin"
     },
     {
@@ -5193,7 +5202,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L343",
       "id": "atrevidafront_atrevida_structure_report_componentes_admin_espec\u00edficos",
-      "community": 12,
+      "community": 44,
       "norm_label": "componentes admin especificos:"
     },
     {
@@ -5202,7 +5211,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L345",
       "id": "atrevidafront_atrevida_structure_report_components_adminheader_header_tsx_199_l\u00edneas",
-      "community": 12,
+      "community": 44,
       "norm_label": "`components/adminheader/header.tsx` (199 lineas)"
     },
     {
@@ -5211,7 +5220,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L357",
       "id": "atrevidafront_atrevida_structure_report_components_adminreservas_reservastable_tsx_160_l\u00edneas",
-      "community": 12,
+      "community": 44,
       "norm_label": "`components/adminreservas/reservastable.tsx` (160 lineas)"
     },
     {
@@ -5220,7 +5229,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L367",
       "id": "atrevidafront_atrevida_structure_report_components_adminreservas_editarreservamodal_module_css",
-      "community": 12,
+      "community": 44,
       "norm_label": "`components/adminreservas/editarreservamodal.module.css`"
     },
     {
@@ -5229,7 +5238,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L370",
       "id": "atrevidafront_atrevida_structure_report_componentes_compartidos_utilizados_en_admin",
-      "community": 12,
+      "community": 44,
       "norm_label": "componentes compartidos utilizados en admin:"
     },
     {
@@ -5238,7 +5247,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L372",
       "id": "atrevidafront_atrevida_structure_report_components_calendar_calendaradmin_tsx",
-      "community": 12,
+      "community": 44,
       "norm_label": "`components/calendar/calendaradmin.tsx`"
     },
     {
@@ -5247,7 +5256,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L377",
       "id": "atrevidafront_atrevida_structure_report_components_custom_customselect_tsx",
-      "community": 12,
+      "community": 44,
       "norm_label": "`components/custom/customselect.tsx`"
     },
     {
@@ -5256,7 +5265,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L381",
       "id": "atrevidafront_atrevida_structure_report_components_shared",
-      "community": 12,
+      "community": 44,
       "norm_label": "`components/shared/`"
     },
     {
@@ -5265,7 +5274,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L389",
       "id": "atrevidafront_atrevida_structure_report_7_estilos_css_y_herencia_del_tema_oscuro",
-      "community": 12,
+      "community": 61,
       "norm_label": "7. estilos css y herencia del tema oscuro"
     },
     {
@@ -5274,7 +5283,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L391",
       "id": "atrevidafront_atrevida_structure_report_css_modules_del_admin",
-      "community": 12,
+      "community": 61,
       "norm_label": "css modules del admin:"
     },
     {
@@ -5283,7 +5292,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L403",
       "id": "atrevidafront_atrevida_structure_report_caracter\u00edsticas_css_del_admin",
-      "community": 12,
+      "community": 61,
       "norm_label": "caracteristicas css del admin:"
     },
     {
@@ -5292,7 +5301,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L438",
       "id": "atrevidafront_atrevida_structure_report_herencia_del_tema_oscuro",
-      "community": 12,
+      "community": 61,
       "norm_label": "herencia del tema oscuro:"
     },
     {
@@ -5301,7 +5310,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L451",
       "id": "atrevidafront_atrevida_structure_report_8_resumen_de_archivos_principales",
-      "community": 12,
+      "community": 47,
       "norm_label": "8. resumen de archivos principales"
     },
     {
@@ -5310,7 +5319,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L453",
       "id": "atrevidafront_atrevida_structure_report_rutas_administrativas_10_archivos",
-      "community": 12,
+      "community": 47,
       "norm_label": "rutas administrativas (10 archivos):"
     },
     {
@@ -5319,7 +5328,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L454",
       "id": "atrevidafront_atrevida_structure_report_codeblock_16",
-      "community": 12,
+      "community": 47,
       "norm_label": "code:block16 (/admin/login           \u2192 page.tsx + page.module.css)"
     },
     {
@@ -5328,7 +5337,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L462",
       "id": "atrevidafront_atrevida_structure_report_componentes_admin_4_componentes",
-      "community": 12,
+      "community": 47,
       "norm_label": "componentes admin (4 componentes):"
     },
     {
@@ -5337,7 +5346,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L463",
       "id": "atrevidafront_atrevida_structure_report_codeblock_17",
-      "community": 12,
+      "community": 47,
       "norm_label": "code:block17 (adminheader/header.tsx)"
     },
     {
@@ -5346,7 +5355,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L472",
       "id": "atrevidafront_atrevida_structure_report_api_routes_7_endpoints",
-      "community": 12,
+      "community": 47,
       "norm_label": "api routes (7 endpoints):"
     },
     {
@@ -5355,7 +5364,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L473",
       "id": "atrevidafront_atrevida_structure_report_codeblock_18",
-      "community": 12,
+      "community": 47,
       "norm_label": "code:block18 (/api/admin/login)"
     },
     {
@@ -5364,7 +5373,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L483",
       "id": "atrevidafront_atrevida_structure_report_configuraci\u00f3n_global",
-      "community": 12,
+      "community": 47,
       "norm_label": "configuracion global:"
     },
     {
@@ -5373,7 +5382,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L484",
       "id": "atrevidafront_atrevida_structure_report_codeblock_19",
-      "community": 12,
+      "community": 47,
       "norm_label": "code:block19 (app/globals.css (452 lineas - css variables + utilidades))"
     },
     {
@@ -5382,7 +5391,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L494",
       "id": "atrevidafront_atrevida_structure_report_9_tecnolog\u00edas_y_librer\u00edas",
-      "community": 12,
+      "community": 62,
       "norm_label": "9. tecnologias y librerias"
     },
     {
@@ -5391,7 +5400,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L496",
       "id": "atrevidafront_atrevida_structure_report_dependencies",
-      "community": 12,
+      "community": 62,
       "norm_label": "dependencies:"
     },
     {
@@ -5400,7 +5409,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L502",
       "id": "atrevidafront_atrevida_structure_report_devdependencies",
-      "community": 12,
+      "community": 62,
       "norm_label": "devdependencies:"
     },
     {
@@ -5409,7 +5418,7 @@
       "source_file": "atrevida_structure_report.md",
       "source_location": "L508",
       "id": "atrevidafront_atrevida_structure_report_architecture_pattern",
-      "community": 12,
+      "community": 62,
       "norm_label": "architecture pattern:"
     },
     {
@@ -7824,6 +7833,28 @@
       "target": "api_servicios_actualizarservicio"
     },
     {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/admin/configuracion/servicios/page.tsx",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "app_admin_configuracion_servicios_page_tsx",
+      "target": "api_servicios_eliminarserviciodb",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/admin/configuracion/servicios/page.tsx",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "app_admin_configuracion_servicios_page_tsx",
+      "target": "api_servicios_activarservicioenlocal",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/admin/configuracion/servicios/page.tsx",
@@ -8104,6 +8135,17 @@
       "target": "types_reserva_diasemana"
     },
     {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/admin/reservas/page.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "app_admin_reservas_page_tsx",
+      "target": "types_reserva_reservabd",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -8212,6 +8254,50 @@
       "confidence_score": 1.0,
       "source": "app_admin_reservas_page_tsx",
       "target": "components_adminheader_header_tsx"
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/admin/reservas/page.tsx",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "app_admin_reservas_page_tsx",
+      "target": "lib_api_reservas_ts",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/admin/reservas/page.tsx",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "app_admin_reservas_page_tsx",
+      "target": "api_reservas_eliminarreservadb",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/admin/reservas/page.tsx",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "app_admin_reservas_page_tsx",
+      "target": "components_shared_toast_tsx",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/admin/reservas/page.tsx",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "app_admin_reservas_page_tsx",
+      "target": "shared_toast_toast",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -8719,9 +8805,9 @@
       "source_file": "app/admin/reservas/editar/[id]/page.tsx",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_admin_reservas_editar_id_page_tsx",
-      "target": "api_reservas_actualizarestadoreservadb",
-      "confidence_score": 1.0
+      "target": "api_reservas_actualizarestadoreservadb"
     },
     {
       "relation": "imports",
@@ -13080,6 +13166,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "lib/api/client.ts",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "lib_api_client_ts",
+      "target": "api_client_getauthtoken",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lib/api/client.ts",
       "source_location": "L10",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -13137,6 +13233,17 @@
       "confidence_score": 1.0,
       "source": "lib_api_servicios_ts",
       "target": "lib_api_client_ts"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "lib/api/client.ts",
+      "source_location": "L60",
+      "weight": 1.0,
+      "source": "api_client_request",
+      "target": "api_client_getauthtoken",
+      "confidence_score": 1.0
     },
     {
       "relation": "method",
@@ -13412,9 +13519,9 @@
       "source_file": "lib/api/reservas.ts",
       "source_location": "L183",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_api_reservas_ts",
-      "target": "api_reservas_eliminarreservadb",
-      "confidence_score": 1.0
+      "target": "api_reservas_eliminarreservadb"
     },
     {
       "relation": "contains",
@@ -13489,6 +13596,17 @@
       "confidence_score": 1.0,
       "source": "lib_hooks_usereservasfiltradas_ts",
       "target": "lib_api_reservas_ts"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "lib/hooks/useCrearReserva.ts",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "lib_hooks_usecrearreserva_ts",
+      "target": "api_reservas_reservatipobackend",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports",
@@ -13703,9 +13821,9 @@
       "source_file": "lib/api/servicios.ts",
       "source_location": "L103",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_api_servicios_ts",
-      "target": "api_servicios_eliminarserviciodb",
-      "confidence_score": 1.0
+      "target": "api_servicios_eliminarserviciodb"
     },
     {
       "relation": "contains",
@@ -17364,5 +17482,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "f72536633b3f152776d43965a739729841d4a4c1"
+  "built_at_commit": "c99d428d0ae9b71da508eb939ac1426a042bf49a"
 }
