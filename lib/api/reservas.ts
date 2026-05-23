@@ -20,8 +20,10 @@ export interface GetReservasSheetsParams {
 
 // ─── Parámetros (DB) ────────────────────────────────────────────────────────
 
-/** Tipo de reserva tal como lo espera el backend en el body / query. */
+/** Tipo de reserva en filtros GET (mesa/bicicleta). */
 export type ReservaTipoBackend = 'mesa' | 'bicicleta';
+/** Tipo de reserva en body POST/PATCH (M/B). */
+export type ReservaTipoBody = 'M' | 'B';
 
 export interface GetReservasDBParams {
   local?: string;
@@ -63,7 +65,7 @@ export interface CrearReservaDBData {
   fecha: string;
   hora_desde: string;
   hora_hasta: string;
-  tipo: ReservaTipoBackend;
+  tipo: ReservaTipoBody;
   cliente: string;
   numero_telefono: string;
   servicio: string;
@@ -92,7 +94,7 @@ export interface ActualizarReservaDBData {
   nuevo_servicio?: string;
   nuevo_servicio_solicitado?: string | null;
   nuevo_servicio_confirmado?: string | null;
-  nuevo_tipo?: ReservaTipoBackend;
+  nuevo_tipo?: ReservaTipoBody;
 }
 
 export interface ActualizarEstadoReservaDBData {
@@ -101,7 +103,7 @@ export interface ActualizarEstadoReservaDBData {
   causa?: string;
   servicio_confirmado?: string | null;
   precio?: number;
-  tipo?: ReservaTipoBackend;
+  tipo?: ReservaTipoBody;
 }
 
 export interface CrearReservaResult {

@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { crearReservaDB } from '@/lib/api/reservas';
-import type { ReservaTipoBackend } from '@/lib/api/reservas';
+import type { ReservaTipoBody } from '@/lib/api/reservas';
 import type { DiaSemana, EstadoReserva, ReservaFormData } from '@/types/reserva';
 
 interface CrearReservaResult {
@@ -23,7 +23,7 @@ interface CrearReservaData {
     fecha?: string;
     hora_desde: string;
     hora_hasta: string;
-    tipo: ReservaTipoBackend;
+    tipo: ReservaTipoBody;
     cliente: string;
     numero_telefono?: string;
     servicio: string;
