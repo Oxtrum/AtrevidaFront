@@ -3,7 +3,7 @@
 import { useRef, useEffect, useState, useMemo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import gsap from 'gsap';
-import { DiaSemana } from '@/types/reserva';
+import { DiaSemana, ReservaBD } from '@/types/reserva';
 import { CalendarAdmin } from '@/components/Calendar';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { useReservasFiltradas } from '@/lib/hooks/useReservasFiltradas';
@@ -11,6 +11,8 @@ import { ReservasTable } from '@/components/AdminReservas';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { Input } from '@/components/Shared';
 import Header from '@/components/AdminHeader/Header';
+import { eliminarReservaDB } from '@/lib/api/reservas';
+import { toast } from '@/components/Shared/Toast';
 import styles from './page.module.css';
 
 /**
@@ -33,6 +35,7 @@ export default function AdminReservasPage() {
 
   const { locales } = useLocales();
   const { reservas, total, loading, error, fetch: fetchReservas } = useReservasFiltradas();
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   // Inicializar fechas por defecto
   const getInitialFechaDesde = () => {
@@ -113,6 +116,30 @@ export default function AdminReservasPage() {
 
   const handleSucursalChange = (sucursal: string) => {
     setSucursalActiva(sucursal);
+  };
+
+  const handleDeleteReserva = async (reserva: ReservaBD) => {
+    const etiqueta = reserva.cliente || `#${reserva.id}`;
+    if (!window.confirm(`¿Eliminar la reserva de ${etiqueta}? Esta acción puede revertirse desde el backend (borrado lógico).`)) {
+      return;
+    }
+    setDeletingId(reserva.id);
+    try {
+      await eliminarReservaDB(reserva.id);
+      toast.success('Reserva eliminada');
+      await fetchReservas({
+        local: filtroLocal,
+        fecha_desde: filtroFechaDesde,
+        fecha_hasta: filtroFechaHasta,
+        tipo: filtroTipo || undefined,
+        cliente: filtroCliente || undefined,
+      });
+    } catch (err) {
+      if (err instanceof Error) console.error('eliminarReservaDB', err);
+      toast.error('No se pudo eliminar la reserva');
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const handleSemanaChange = (semana: string) => {
@@ -224,6 +251,8 @@ export default function AdminReservasPage() {
               total={total}
               loading={loading}
               error={error}
+              onDelete={handleDeleteReserva}
+              deletingId={deletingId}
             />
           </div>
         )}

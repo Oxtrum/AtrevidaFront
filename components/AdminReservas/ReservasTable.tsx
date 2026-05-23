@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
-import { AlertTriangle, ClipboardList } from 'lucide-react';
+import { AlertTriangle, ClipboardList, Trash2 } from 'lucide-react';
 import type { ReservaBD } from '@/types/reserva';
 import styles from './ReservasTable.module.css';
 
@@ -11,6 +11,8 @@ interface ReservasTableProps {
   total: number;
   loading: boolean;
   error: string | null;
+  onDelete?: (reserva: ReservaBD) => void;
+  deletingId?: number | string | null;
 }
 
 export function ReservasTable({
@@ -18,6 +20,8 @@ export function ReservasTable({
   total,
   loading,
   error,
+  onDelete,
+  deletingId,
 }: ReservasTableProps) {
   const tableRef = useRef<HTMLDivElement>(null);
   const rowsRef = useRef<HTMLDivElement>(null);
@@ -156,13 +160,28 @@ export function ReservasTable({
                 </div>
 
                 <div className={styles.cell} data-label="Acciones">
-                  <a
-                    href={`/admin/reservas/editar/${reserva.id}`}
-                    className={styles.editButton}
-                    title="Editar reserva"
-                  >
-                    Editar
-                  </a>
+                  <div className={styles.actionGroup}>
+                    <a
+                      href={`/admin/reservas/editar/${reserva.id}`}
+                      className={styles.editButton}
+                      title="Editar reserva"
+                    >
+                      Editar
+                    </a>
+                    {onDelete && (
+                      <button
+                        type="button"
+                        className={styles.deleteButton}
+                        onClick={() => onDelete(reserva)}
+                        disabled={deletingId === reserva.id}
+                        title="Eliminar reserva"
+                        aria-label={`Eliminar reserva de ${reserva.cliente || reserva.id}`}
+                      >
+                        <Trash2 size={14} strokeWidth={1.6} />
+                        {deletingId === reserva.id ? 'Eliminando…' : 'Eliminar'}
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
