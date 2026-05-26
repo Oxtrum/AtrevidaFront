@@ -70,8 +70,8 @@
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/admin/reservas/aprobacion/page.tsx": {
-    "mtime": 1779757727.6139693,
-    "ast_hash": "ff47fcac809e6b8c6350e85573f0b07f",
+    "mtime": 1779758551.664898,
+    "ast_hash": "adcabbae3ff35497d594c6da3e63d77f",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/admin/configuracion/page.tsx": {
@@ -175,8 +175,8 @@
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/AdminHeader/Header.tsx": {
-    "mtime": 1779295570.7628422,
-    "ast_hash": "f2e680e8a45ed98c5a1249816849f78e",
+    "mtime": 1779758519.7908876,
+    "ast_hash": "77703c2c3a074d4397d818806ab37625",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/AdminReservas/index.ts": {
@@ -687,6 +687,11 @@
   "/home/skully/Progra/Atrevida/AtrevidaFront/public/reserva.jpg": {
     "mtime": 1779246583.7018156,
     "ast_hash": "015368f6f1e9cb60ab27d76acc65dbee",
+    "semantic_hash": ""
+  },
+  "/home/skully/Progra/Atrevida/AtrevidaFront/app/admin/reservas/proximas/page.tsx": {
+    "mtime": 1779758746.67398,
+    "ast_hash": "eafd54d7ae88e1d43a9fd579f4d2060e",
     "semantic_hash": ""
   }
 }

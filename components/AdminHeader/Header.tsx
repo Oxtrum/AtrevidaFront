@@ -7,6 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import gsap from 'gsap';
 import {
   CalendarDays,
+  Clock3,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -36,6 +37,12 @@ const NAV_LINKS = [
     detail: 'Solicitudes pendientes',
     href: '/admin/reservas/aprobacion',
     icon: ShieldCheck,
+  },
+  {
+    label: 'Citas próximas',
+    detail: 'Recordatorios de hoy',
+    href: '/admin/reservas/proximas',
+    icon: Clock3,
   },
   {
     label: 'Configuración',

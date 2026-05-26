@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
 import {
@@ -587,15 +588,21 @@ export default function AdminReservasAprobacionPage() {
               </p>
             </div>
 
-            <button
-              type="button"
-              className={styles.refreshButton}
-              onClick={() => preserveScrollPosition(() => { void fetchReservas(); })}
-              disabled={initialLoading || isFetching}
-            >
-              <RefreshCw size={16} strokeWidth={1.8} className={isFetching ? styles.spinIcon : ''} />
-              {isFetching ? 'Actualizando' : 'Actualizar'}
-            </button>
+            <div className={styles.headerActions}>
+              <Link href="/admin/reservas/proximas" className={styles.secondaryNavButton}>
+                <Clock size={16} strokeWidth={1.8} />
+                Citas próximas
+              </Link>
+              <button
+                type="button"
+                className={styles.refreshButton}
+                onClick={() => preserveScrollPosition(() => { void fetchReservas(); })}
+                disabled={initialLoading || isFetching}
+              >
+                <RefreshCw size={16} strokeWidth={1.8} className={isFetching ? styles.spinIcon : ''} />
+                {isFetching ? 'Actualizando' : 'Actualizar'}
+              </button>
+            </div>
           </div>
 
           <div ref={boardRef} className={styles.board}>
@@ -861,7 +868,7 @@ export default function AdminReservasAprobacionPage() {
                             href={confirmationWhatsappHref}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className={styles.notifyButton}
+                            className={`${styles.notifyButton} ${confirmationSent ? styles.notifyButtonSent : ''}`}
                             onClick={() => markConfirmationSent(reserva.id)}
                           >
                             <MessageCircle size={15} strokeWidth={1.8} />
@@ -886,6 +893,7 @@ export default function AdminReservasAprobacionPage() {
               )}
             </div>
           </div>
+
         </div>
       </main>
 

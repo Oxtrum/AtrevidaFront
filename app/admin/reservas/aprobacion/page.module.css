@@ -104,6 +104,7 @@
 }
 
 .refreshButton,
+.secondaryNavButton,
 .approveButton,
 .contactButton,
 .notifyButton,
@@ -134,7 +135,28 @@
   box-shadow: var(--admin-shadow-sm);
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.65rem;
+}
+
+.secondaryNavButton {
+  min-height: 42px;
+  padding: 0.72rem 0.95rem;
+  border-radius: var(--admin-radius-full);
+  color: var(--admin-accent-success);
+  background:
+    linear-gradient(180deg, rgba(20, 174, 239, 0.13), rgba(20, 174, 239, 0.07));
+  border: 1px solid rgba(20, 174, 239, 0.24);
+  box-shadow: var(--admin-shadow-sm);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
 .refreshButton:hover,
+.secondaryNavButton:hover,
 .approveButton:hover,
 .contactButton:hover,
 .notifyButton:hover,
@@ -887,6 +909,13 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.notifyButtonSent {
+  color: var(--admin-accent-success);
+  background:
+    linear-gradient(180deg, rgba(20, 174, 239, 0.14), rgba(20, 174, 239, 0.075));
+  border: 1px solid rgba(20, 174, 239, 0.26);
+}
+
 .rejectButton {
   color: var(--admin-accent-danger);
   background:
@@ -1322,6 +1351,11 @@
 
   .refreshButton {
     width: fit-content;
+  }
+
+  .headerActions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
   }
 
   .toastMessage {
