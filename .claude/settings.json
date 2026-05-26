@@ -38,7 +38,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if [ -f graphify-out/.needs_update ]; then echo '{\"hookSpecificOutput\":{\"hookEventName\":\"Stop\",\"additionalContext\":\"Edits this session - graph stale. Pending: /code-simplifier:code-simplifier, /code-review:code-review, `graphify --update .`. Mention to user if task complete.\"}}'; fi"
+            "command": "if [ -f graphify-out/.needs_update ]; then echo '{\"systemMessage\":\"Edits this session - graph stale. Pending: /code-simplifier:code-simplifier, /code-review:code-review, `graphify --update .`. Mention to user if task complete.\"}'; fi"
           }
         ]
       }

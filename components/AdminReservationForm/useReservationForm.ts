@@ -392,7 +392,7 @@ export function useReservationForm(
           servicio_confirmado: servicioLabel,
           precio: servicioInfo?.precio ?? 0,
           notas: '',
-          estado: 'AGENDADO' as const,
+          estado: (servicioInfo?.requiere_evaluacion ? 'PENDIENTE' : 'AGENDADO') as const,
         };
 
         await crearReserva(payload);
