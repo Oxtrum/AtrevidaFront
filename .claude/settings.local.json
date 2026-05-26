@@ -5,7 +5,11 @@
       "Bash(graphify update *)",
       "Bash(xargs grep -l \"normalize\\\\|sanitize\")",
       "Bash(npm run *)",
-      "PowerShell(gh pr *)"
+      "PowerShell(gh pr *)",
+      "Bash(/home/jhunior/.local/bin/graphify update *)",
+      "Bash(/home/jhunior/.local/bin/graphify query *)",
+      "Bash(git commit *)",
+      "Bash(git add *)"
     ]
   }
 }
