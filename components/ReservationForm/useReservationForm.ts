@@ -168,6 +168,7 @@ export function useReservationForm(
     [servicio],
   );
   const esTratamientoEspecializado = servicio === 'tratamiento_especializado';
+  const requiereAprobacion = servicioSeleccionado?.requiere_evaluacion ?? true;
   const scheduleWarning = useMemo(
     () => getReservationDateRestriction(fecha),
     [fecha],
@@ -444,9 +445,11 @@ export function useReservationForm(
     const horaHastaNorm = normalizarHora(horaHasta);
 
     const servicioInfo = SERVICIOS_DISPONIBLES.find(s => s.value === servicio);
+    const reservaRequiereAprobacion = servicioInfo?.requiere_evaluacion ?? true;
     const servicioSolicitadoInfo = esTratamientoEspecializado
       ? SERVICIOS_ESPECIALIZADOS_DISPONIBLES.find(s => s.value === servicioSolicitado)
       : servicioInfo;
+    const servicioLabel = servicioInfo?.label || servicio;
     const phoneDigits = numeroTelefono.replace(/\D/g, '');
 
       try {
@@ -458,16 +461,20 @@ export function useReservationForm(
           tipo,
           cliente,
           numero_telefono: phoneDigits,
-          servicio: servicioInfo?.label || servicio,
-          servicio_solicitado: servicioSolicitadoInfo?.label || servicioInfo?.label || servicio,
-          servicio_confirmado: null,
+          servicio: servicioLabel,
+          servicio_solicitado: servicioSolicitadoInfo?.label || servicioLabel,
+          servicio_confirmado: reservaRequiereAprobacion ? null : servicioLabel,
           precio: esTratamientoEspecializado ? 0 : servicioInfo?.precio ?? 0,
           notas,
-          estado: 'PENDIENTE' as const,
+          estado: reservaRequiereAprobacion ? 'PENDIENTE' as const : 'AGENDADO' as const,
         };
 
         await crearReserva(payload);
-        toast.success('Reserva enviada. Quedará pendiente de aprobación.');
+        toast.success(
+          reservaRequiereAprobacion
+            ? 'Reserva enviada. Quedará pendiente de aprobación.'
+            : 'Reserva agendada correctamente.',
+        );
 
         if (onSuccess) {
           onSuccess();
@@ -504,6 +511,7 @@ export function useReservationForm(
     servicioSolicitadoGroups,
     servicioSeleccionado,
     esTratamientoEspecializado,
+    requiereAprobacion,
     isSundaySelected,
     // Handlers
     handleSemanaChange,

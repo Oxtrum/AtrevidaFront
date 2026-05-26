@@ -7,6 +7,7 @@ import { DiaSemana } from '@/types/reserva';
 import { CalendarAdmin } from '@/components/Calendar';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { useReservasFiltradas } from '@/lib/hooks/useReservasFiltradas';
+import type { ReservaTipoBackend } from '@/lib/api/reservas';
 import { ReservasTable } from '@/components/AdminReservas';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { Input } from '@/components/Shared';
@@ -28,7 +29,7 @@ export default function AdminReservasPage() {
   // Estado para filtros de lista de reservas
   const [vistaActiva, setVistaActiva] = useState<'calendario' | 'lista'>('calendario');
   const [filtroLocal, setFiltroLocal] = useState('SAN MARTIN');
-  const [filtroTipo, setFiltroTipo] = useState('');
+  const [filtroTipo, setFiltroTipo] = useState<ReservaTipoBackend | ''>('');
   const [filtroCliente, setFiltroCliente] = useState('');
 
   const { locales } = useLocales();
@@ -58,6 +59,7 @@ export default function AdminReservasPage() {
         fecha_hasta: filtroFechaHasta,
         tipo: filtroTipo || undefined,
         cliente: filtroCliente || undefined,
+        estado: 'AGENDADO',
       });
     }
   }, [filtroLocal, filtroFechaDesde, filtroFechaHasta, filtroTipo, filtroCliente, fetchReservas]);
@@ -124,11 +126,15 @@ export default function AdminReservasPage() {
     [locales]
   );
 
-  const tipoOptions = [
+  const tipoOptions: Array<{ value: ReservaTipoBackend | ''; label: string }> = [
     { value: '', label: 'Todos' },
     { value: 'mesa', label: 'Mesa' },
     { value: 'bicicleta', label: 'Bicicleta' },
   ];
+
+  const handleTipoFiltroChange = (value: string) => {
+    setFiltroTipo(value === 'mesa' || value === 'bicicleta' ? value : '');
+  };
 
   return (
     <div ref={containerRef} className={styles.pageContainer}>
@@ -138,7 +144,7 @@ export default function AdminReservasPage() {
           <div>
             <h1 className={styles.title}>Gestión de Reservas</h1>
             <p className={styles.subtitle}>
-              Vista detallada de todas las reservas. Haz clic en el (+) para crear una nueva reserva
+              Vista detallada de reservas aprobadas. Revisa cliente, horario y tratamiento final confirmado.
             </p>
           </div>
 
@@ -204,7 +210,7 @@ export default function AdminReservasPage() {
                 <label>Tipo</label>
                 <CustomSelect
                   value={filtroTipo}
-                  onChange={setFiltroTipo}
+                  onChange={handleTipoFiltroChange}
                   options={tipoOptions}
                 />
               </div>
@@ -224,6 +230,7 @@ export default function AdminReservasPage() {
               total={total}
               loading={loading}
               error={error}
+              title="Reservas aprobadas"
             />
           </div>
         )}

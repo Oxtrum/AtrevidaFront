@@ -37,6 +37,7 @@ export default function ReservationForm({ initialData, onSuccess, onCancel }: Re
     servicioSolicitadoGroups,
     servicioSeleccionado,
     esTratamientoEspecializado,
+    requiereAprobacion,
     isSundaySelected,
     handleServicioChange,
     handleFechaChange,
@@ -69,7 +70,9 @@ export default function ReservationForm({ initialData, onSuccess, onCancel }: Re
           </div>
           <h2 className={styles.formTitle}>Nueva Reserva</h2>
           <p className={styles.formSubtitle}>
-            Elige fecha y horario. La reserva quedará pendiente hasta aprobación.
+            {requiereAprobacion
+              ? 'Elige fecha y horario. La reserva quedará pendiente hasta aprobación.'
+              : 'Elige fecha y horario. Este servicio se agenda directamente.'}
           </p>
         </div>
 
@@ -263,7 +266,7 @@ export default function ReservationForm({ initialData, onSuccess, onCancel }: Re
           </button>
           <button type="submit" className={styles.submitButton} disabled={loading}>
             <span className={styles.submitButtonText}>
-              {loading ? 'Enviando...' : 'Solicitar reserva'}
+              {loading ? 'Enviando...' : requiereAprobacion ? 'Solicitar reserva' : 'Reservar'}
             </span>
           </button>
         </div>

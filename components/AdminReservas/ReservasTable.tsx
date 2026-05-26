@@ -11,6 +11,7 @@ interface ReservasTableProps {
   total: number;
   loading: boolean;
   error: string | null;
+  title?: string;
 }
 
 export function ReservasTable({
@@ -18,6 +19,7 @@ export function ReservasTable({
   total,
   loading,
   error,
+  title = 'Reservas',
 }: ReservasTableProps) {
   const tableRef = useRef<HTMLDivElement>(null);
   const rowsRef = useRef<HTMLDivElement>(null);
@@ -93,13 +95,17 @@ export function ReservasTable({
     return styles.estadoPendiente;
   };
 
+  const getServicioFinal = (reserva: ReservaBD) => {
+    return reserva.servicio_confirmado || reserva.servicio || reserva.servicio_solicitado || 'Por definir';
+  };
+
   /* ── Table ───────────────────────────────────────────────────────────── */
   return (
     <div ref={tableRef} className={styles.tableContainer}>
       {/* Header — record count */}
       <div className={styles.tableHeader}>
         <span className={styles.totalCount}>
-          Reservas &mdash; <strong>{total}</strong>
+          {title} &mdash; <strong>{total}</strong>
         </span>
       </div>
 
@@ -111,7 +117,7 @@ export function ReservasTable({
             <div className={styles.cell}>Hora</div>
             <div className={styles.cell}>Cliente</div>
             <div className={styles.cell}>Tipo</div>
-            <div className={styles.cell}>Servicio</div>
+            <div className={styles.cell}>Servicio final</div>
             <div className={styles.cell}>Estado</div>
             <div className={styles.cell}>Local</div>
             <div className={styles.cell}>Acciones</div>
@@ -139,9 +145,9 @@ export function ReservasTable({
                   </span>
                 </div>
 
-                <div className={styles.cell} data-label="Servicio">
+                <div className={styles.cell} data-label="Servicio final">
                   <span className={styles.servicioText}>
-                    {reserva.servicio || '—'}
+                    {getServicioFinal(reserva)}
                   </span>
                 </div>
 

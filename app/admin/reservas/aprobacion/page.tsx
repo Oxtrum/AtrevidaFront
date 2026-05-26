@@ -374,7 +374,7 @@ export default function AdminReservasAprobacionPage() {
         await actualizarReservaDB(updateData);
       }
 
-      const tipo = getTipoFromServicio(confirmedService.value);
+      const tipo = getTipoFromServicio(confirmedService.value) === 'B' ? 'bicicleta' : 'mesa';
 
       await actualizarEstadoReservaDB({
         id: approvalReserva.id,

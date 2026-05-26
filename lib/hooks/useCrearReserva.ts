@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { crearReservaDB } from '@/lib/api/reservas';
+import type { ReservaTipoBackend } from '@/lib/api/reservas';
 import type { DiaSemana, EstadoReserva, ReservaFormData } from '@/types/reserva';
 
 interface CrearReservaResult {
@@ -33,6 +34,11 @@ interface CrearReservaData {
     estado?: EstadoReserva;
 }
 
+const normalizeReservaTipo = (tipo: string): ReservaTipoBackend => {
+    const normalized = tipo.trim().toLowerCase();
+    return normalized === 'b' || normalized === 'bicicleta' ? 'B' : 'M';
+};
+
 /**
  * Hook para crear una reserva en la base de datos.
  */
@@ -52,7 +58,7 @@ export function useCrearReserva(): UseCrearReservaReturn {
                     fecha: data.fecha,
                     hora_desde: data.hora_desde,
                     hora_hasta: data.hora_hasta,
-                    tipo: data.tipo,
+                    tipo: normalizeReservaTipo(data.tipo),
                     cliente: data.cliente,
                     numero_telefono: data.numero_telefono || '',
                     servicio: data.servicio,

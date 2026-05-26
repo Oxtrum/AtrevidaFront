@@ -20,8 +20,8 @@ export interface GetReservasSheetsParams {
 
 // ─── Parámetros (DB) ────────────────────────────────────────────────────────
 
-/** Tipo de reserva tal como lo espera el backend en el body / query. */
-export type ReservaTipoBackend = 'mesa' | 'bicicleta';
+/** Tipo de reserva tal como lo espera el backend en body / query. */
+export type ReservaTipoBackend = 'M' | 'B' | 'mesa' | 'bicicleta';
 
 export interface GetReservasDBParams {
   local?: string;
