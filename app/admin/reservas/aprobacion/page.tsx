@@ -52,6 +52,8 @@ const ESTADO_OPTIONS: Array<{ value: EstadoFiltro; label: string }> = [
   { value: 'TODOS', label: 'Todas' },
 ];
 
+const CONFIRMATION_STORAGE_KEY = 'atrevida:confirmaciones-whatsapp-enviadas';
+
 const TIPO_LABELS: Record<string, string> = {
   M: 'Tratamiento',
   B: 'Bicicleta',
@@ -84,12 +86,19 @@ const getWhatsappHref = (telefono?: string) => {
   return `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`;
 };
 
+const getMealLabelByTime = (horaDesde: string) => {
+  const [hourRaw = '0'] = horaDesde.split(':');
+  const hour = Number(hourRaw);
+  return Number.isFinite(hour) && hour < 12 ? 'desayuno' : 'almuerzo';
+};
+
 const getConfirmationWhatsappHref = (reserva: ReservaBD) => {
   const phoneDigits = reserva.numero_telefono?.replace(/\D/g, '') ?? '';
   if (!phoneDigits) return null;
 
   const phone = phoneDigits.startsWith('591') ? phoneDigits : `591${phoneDigits}`;
   const tratamiento = reserva.servicio_confirmado || reserva.servicio_solicitado || reserva.servicio || 'Tratamiento confirmado';
+  const comidaPrevia = getMealLabelByTime(reserva.hora_desde);
   const message = [
     '*Su cita ha sido confirmada y reservada con éxito 🎉 en Atrevida Fit - Tecnología y Salud 🌟*',
     '',
@@ -98,7 +107,7 @@ const getConfirmationWhatsappHref = (reserva: ReservaBD) => {
     `*✨ Tratamiento:* ${tratamiento}`,
     `*📍 Sucursal:* ${reserva.local}`,
     '',
-    '*Vienes con el estómago lleno (desayuno) y 1 litro de agua* ✨🥰',
+    `*Vienes con el estómago lleno (${comidaPrevia}) y 1 litro de agua* ✨🥰`,
     '',
     'Será un placer atenderte! 🤗',
   ].join('\n');
@@ -114,6 +123,30 @@ const getDefaultConfirmedService = (reserva: ReservaBD) => {
 
 const normalizeSearchText = (value?: string | number | null) =>
   String(value ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+const normalizeTimeForDate = (time?: string) => {
+  const [hours = '0', minutes = '0'] = (time || '0:00').split(':');
+  return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}:00`;
+};
+
+const getReservaDateTimeMs = (reserva: ReservaBD, time: string) => {
+  const timestamp = new Date(`${reserva.fecha}T${normalizeTimeForDate(time)}`).getTime();
+  return Number.isFinite(timestamp) ? timestamp : 0;
+};
+
+const getReservaStartMs = (reserva: ReservaBD) => getReservaDateTimeMs(reserva, reserva.hora_desde);
+
+const getReservaEndMs = (reserva: ReservaBD) =>
+  getReservaDateTimeMs(reserva, reserva.hora_hasta || reserva.hora_desde);
+
+const getDateISOWithOffset = (daysOffset: number) => {
+  const date = new Date();
+  date.setDate(date.getDate() + daysOffset);
+  return date.toLocaleDateString('en-CA');
+};
+
+const isReservaPendienteVigente = (reserva: ReservaBD) =>
+  normalizeEstado(reserva.estado) === 'PENDIENTE' && getReservaEndMs(reserva) >= Date.now();
 
 const getClientInitials = (name?: string) => {
   const parts = (name || 'Cliente')
@@ -146,6 +179,7 @@ export default function AdminReservasAprobacionPage() {
   const [approvalReserva, setApprovalReserva] = useState<ReservaBD | null>(null);
   const [approvalDraft, setApprovalDraft] = useState<ApprovalDraft | null>(null);
   const [notificationReserva, setNotificationReserva] = useState<ReservaBD | null>(null);
+  const [sentConfirmationIds, setSentConfirmationIds] = useState<Set<number>>(new Set());
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [estadoFiltro, setEstadoFiltro] = useState<EstadoFiltro>('PENDIENTE');
   const [searchQuery, setSearchQuery] = useState('');
@@ -153,7 +187,7 @@ export default function AdminReservasAprobacionPage() {
   const [tipoFiltro, setTipoFiltro] = useState('TODOS');
   const [fechaFiltro, setFechaFiltro] = useState('');
 
-  const fetchReservas = useCallback(async (estado: EstadoFiltro) => {
+  const fetchReservas = useCallback(async () => {
     const isInitialRequest = !hasLoadedRef.current;
     if (isInitialRequest) {
       setInitialLoading(true);
@@ -164,10 +198,9 @@ export default function AdminReservasAprobacionPage() {
 
     try {
       const response = await getReservasDB({
-        estado: estado === 'TODOS' ? undefined : estado,
+        fecha_desde: getDateISOWithOffset(-14),
       });
       setReservas(response.data?.reservas ?? []);
-      setEstadoFiltro(estado);
       hasLoadedRef.current = true;
     } catch (fetchError) {
       setError(fetchError instanceof Error ? fetchError.message : 'No se pudieron cargar las reservas');
@@ -176,6 +209,15 @@ export default function AdminReservasAprobacionPage() {
       setInitialLoading(false);
       setIsFetching(false);
     }
+  }, []);
+
+  const markConfirmationSent = useCallback((reservaId: number) => {
+    setSentConfirmationIds((current) => {
+      const next = new Set(current);
+      next.add(reservaId);
+      window.localStorage.setItem(CONFIRMATION_STORAGE_KEY, JSON.stringify(Array.from(next)));
+      return next;
+    });
   }, []);
 
   const preserveScrollPosition = useCallback((callback: () => void) => {
@@ -212,8 +254,10 @@ export default function AdminReservasAprobacionPage() {
   const reservasVisibles = useMemo(() => {
     const term = normalizeSearchText(searchQuery.trim());
 
-    return reservas.filter((reserva) => {
-      const matchesEstado = estadoFiltro === 'TODOS' || normalizeEstado(reserva.estado) === estadoFiltro;
+    const filteredReservas = reservas.filter((reserva) => {
+      const estadoNormalizado = normalizeEstado(reserva.estado);
+      const isVisibleByStateWindow = estadoNormalizado !== 'PENDIENTE' || isReservaPendienteVigente(reserva);
+      const matchesEstado = estadoFiltro === 'TODOS' || estadoNormalizado === estadoFiltro;
       const matchesLocal = localFiltro === 'TODOS' || reserva.local === localFiltro;
       const matchesTipo = tipoFiltro === 'TODOS' || reserva.tipo === tipoFiltro;
       const matchesFecha = !fechaFiltro || reserva.fecha === fechaFiltro;
@@ -228,8 +272,14 @@ export default function AdminReservasAprobacionPage() {
         reserva.fecha,
       ].join(' '));
 
-      return matchesEstado && matchesLocal && matchesTipo && matchesFecha && (!term || searchable.includes(term));
+      return isVisibleByStateWindow && matchesEstado && matchesLocal && matchesTipo && matchesFecha && (!term || searchable.includes(term));
     });
+
+    if (estadoFiltro !== 'AGENDADO') {
+      return filteredReservas;
+    }
+
+    return filteredReservas.sort((a, b) => getReservaStartMs(b) - getReservaStartMs(a));
   }, [estadoFiltro, fechaFiltro, localFiltro, reservas, searchQuery, tipoFiltro]);
 
   const hasAdvancedFilters = Boolean(searchQuery.trim() || localFiltro !== 'TODOS' || tipoFiltro !== 'TODOS' || fechaFiltro);
@@ -246,7 +296,7 @@ export default function AdminReservasAprobacionPage() {
   });
 
   const reservasPendientes = useMemo(
-    () => reservas.filter((reserva) => normalizeEstado(reserva.estado) === 'PENDIENTE'),
+    () => reservas.filter(isReservaPendienteVigente),
     [reservas],
   );
 
@@ -425,7 +475,19 @@ export default function AdminReservasAprobacionPage() {
       return;
     }
 
-    void fetchReservas('PENDIENTE');
+    const storedConfirmations = window.localStorage.getItem(CONFIRMATION_STORAGE_KEY);
+    if (storedConfirmations) {
+      try {
+        const ids = JSON.parse(storedConfirmations);
+        if (Array.isArray(ids)) {
+          setSentConfirmationIds(new Set(ids.filter((id): id is number => typeof id === 'number' && Number.isFinite(id))));
+        }
+      } catch {
+        window.localStorage.removeItem(CONFIRMATION_STORAGE_KEY);
+      }
+    }
+
+    void fetchReservas();
   }, [fetchReservas, router]);
 
   useEffect(() => {
@@ -528,7 +590,7 @@ export default function AdminReservasAprobacionPage() {
             <button
               type="button"
               className={styles.refreshButton}
-              onClick={() => preserveScrollPosition(() => { void fetchReservas(estadoFiltro); })}
+              onClick={() => preserveScrollPosition(() => { void fetchReservas(); })}
               disabled={initialLoading || isFetching}
             >
               <RefreshCw size={16} strokeWidth={1.8} className={isFetching ? styles.spinIcon : ''} />
@@ -626,7 +688,7 @@ export default function AdminReservasAprobacionPage() {
                   key={option.value}
                   type="button"
                   className={`${styles.filterButton} ${estadoFiltro === option.value ? styles.filterButtonActive : ''}`}
-                  onClick={() => preserveScrollPosition(() => { void fetchReservas(option.value); })}
+                  onClick={() => preserveScrollPosition(() => setEstadoFiltro(option.value))}
                   disabled={initialLoading || isFetching || estadoFiltro === option.value}
                 >
                   {option.label}
@@ -672,6 +734,7 @@ export default function AdminReservasAprobacionPage() {
                   const estadoNormalizado = normalizeEstado(reserva.estado);
                   const whatsappHref = getWhatsappHref(reserva.numero_telefono);
                   const confirmationWhatsappHref = getConfirmationWhatsappHref(reserva);
+                  const confirmationSent = sentConfirmationIds.has(reserva.id);
 
                   return (
                   <article key={reserva.id} className={`approval-card ${styles.pendingCard} ${styles[`card${estadoNormalizado}`]}`}>
@@ -701,6 +764,12 @@ export default function AdminReservasAprobacionPage() {
                             <span>Confirmado: <strong>{reserva.servicio_confirmado}</strong></span>
                           )}
                         </div>
+                      )}
+
+                      {estadoNormalizado === 'AGENDADO' && (
+                        <p className={`${styles.confirmationStatus} ${confirmationSent ? styles.confirmationSent : styles.confirmationPending}`}>
+                          {confirmationSent ? 'Confirmación enviada' : 'Confirmación pendiente'}
+                        </p>
                       )}
 
                       <div className={styles.pendingMeta}>
@@ -793,9 +862,10 @@ export default function AdminReservasAprobacionPage() {
                             target="_blank"
                             rel="noopener noreferrer"
                             className={styles.notifyButton}
+                            onClick={() => markConfirmationSent(reserva.id)}
                           >
                             <MessageCircle size={15} strokeWidth={1.8} />
-                            Enviar confirmación
+                            {confirmationSent ? 'Reenviar confirmación' : 'Enviar confirmación'}
                           </a>
                         ) : (
                           <button
@@ -978,6 +1048,7 @@ export default function AdminReservasAprobacionPage() {
               target="_blank"
               rel="noopener noreferrer"
               className={styles.promptAction}
+              onClick={() => markConfirmationSent(notificationReserva.id)}
             >
               <MessageCircle size={16} strokeWidth={1.8} />
               Enviar WhatsApp

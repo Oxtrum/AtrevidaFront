@@ -742,6 +742,32 @@
   font-weight: 850;
 }
 
+.confirmationStatus {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 32px;
+  margin: 0 0 0.9rem;
+  padding: 0.42rem 0.68rem;
+  border-radius: var(--admin-radius-full);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+}
+
+.confirmationPending {
+  color: var(--admin-accent-yellow);
+  background: rgba(255, 230, 0, 0.09);
+  border: 1px solid rgba(255, 230, 0, 0.22);
+}
+
+.confirmationSent {
+  color: var(--admin-accent-success);
+  background: rgba(20, 174, 239, 0.10);
+  border: 1px solid rgba(20, 174, 239, 0.24);
+}
+
 .pendingMeta {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
