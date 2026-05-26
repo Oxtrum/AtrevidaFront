@@ -15,6 +15,7 @@ import { Input } from '@/components/Shared';
 import Header from '@/components/AdminHeader/Header';
 import { eliminarReservaDB } from '@/lib/api/reservas';
 import { toast } from '@/components/Shared/Toast';
+import { ReservaDetailModal } from '@/components/AdminReservas';
 import styles from './page.module.css';
 
 interface ReservaRow extends Record<string, unknown> {
@@ -55,6 +56,7 @@ export default function AdminReservasPage() {
   const { locales } = useLocales();
   const { reservas, loading, error, fetch: fetchReservas } = useReservasFiltradas();
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [selectedReserva, setSelectedReserva] = useState<ReservaBD | null>(null);
 
   // Inicializar fechas por defecto
   const getInitialFechaDesde = () => {
@@ -269,10 +271,12 @@ export default function AdminReservasPage() {
       label: '',
       searchable: false,
       render: (_v, row) => (
+        <div onClick={e => e.stopPropagation()}>
         <RowActionsMenu actions={[
           { label: 'Editar', icon: <Pencil size={12} strokeWidth={2} />, onClick: () => router.push(`/admin/reservas/editar/${row.id}`) },
           { label: 'Eliminar', icon: <Trash2 size={12} strokeWidth={2} />, onClick: () => handleDeleteReserva(row as unknown as ReservaBD), variant: 'danger', disabled: deletingId === (row.id as number) },
         ]} />
+        </div>
       ),
     },
   ];
@@ -379,8 +383,25 @@ export default function AdminReservasPage() {
               getRowKey={(r) => r.id as number}
               searchPlaceholder="Buscar cliente, servicio..."
               emptyMessage="No se encontraron reservas"
+              onRowClick={(row) => setSelectedReserva(row as unknown as ReservaBD)}
               />
               </>
+        )}
+
+        {selectedReserva && (
+          <ReservaDetailModal
+            reserva={selectedReserva}
+            onClose={() => setSelectedReserva(null)}
+            onEdit={(r) => {
+              setSelectedReserva(null);
+              router.push(`/admin/reservas/editar/${r.id}`);
+            }}
+            onDelete={(r) => {
+              setSelectedReserva(null);
+              handleDeleteReserva(r);
+            }}
+            deleting={deletingId === selectedReserva.id}
+          />
         )}
 
         {vistaActiva === 'calendario' && (

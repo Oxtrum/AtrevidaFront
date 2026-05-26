@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "mkdir -p graphify-out 2>/dev/null; touch graphify-out/.needs_update 2>/dev/null; echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"Files modified. Graph stale (graphify-out/.needs_update flag set). After batch of edits complete: chain /code-simplifier:code-simplifier (refactor) -> /code-review:code-review (audit diff) -> `graphify --update .` (refresh graph). Do NOT chain after every single edit, only at end of logical task.\"}}'"
+            "command": "mkdir -p graphify-out 2>/dev/null; touch graphify-out/.needs_update 2>/dev/null; echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"Files modified. Graph stale (graphify-out/.needs_update flag set). Run `graphify --update .` after batch of edits complete.\"}}'"
           }
         ]
       }
@@ -27,7 +27,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "PROMPT=$(python3 -c \"import json,sys; d=json.load(sys.stdin); print(d.get('prompt',''))\" 2>/dev/null || true); case \"$PROMPT\" in */frontend-design*) echo '{\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"additionalContext\":\"WORKFLOW CHAIN: /frontend-design -> /code-simplifier:code-simplifier -> /code-review:code-review. After implementing the design, automatically: 1) run /code-simplifier:code-simplifier on the new/changed files, 2) run /code-review:code-review on the diff. Announce chain to user before starting.\"}}' ;; */code-simplifier*) echo '{\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"additionalContext\":\"After /code-simplifier finishes, next link in chain is /code-review:code-review on the simplified diff.\"}}' ;; esac"
+            "command": "PROMPT=$(python3 -c \"import json,sys; d=json.load(sys.stdin); print(d.get('prompt',''))\" 2>/dev/null || true); case \"$PROMPT\" in */frontend-design*) echo '{\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"additionalContext\":\"After implementing the design, run `graphify --update .` to refresh the graph.\"}}' ;; esac"
           }
         ]
       }
@@ -38,7 +38,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "if [ -f graphify-out/.needs_update ]; then echo '{\"systemMessage\":\"Edits this session - graph stale. Pending: /code-simplifier:code-simplifier, /code-review:code-review, `graphify --update .`. Mention to user if task complete.\"}'; fi"
+            "command": "if [ -f graphify-out/.needs_update ]; then echo '{\"systemMessage\":\"Edits this session - graph stale. Run `graphify --update .` to refresh.\"}'; fi"
           }
         ]
       }

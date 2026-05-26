@@ -165,7 +165,19 @@ export function CustomSelect({
             ? groups.map(g => (
               <div key={g.label}>
                 <div className={styles.selectGroup}>{g.label}</div>
-                {g.options.map(renderOption)}
+                {g.options.map((opt, idx) => (
+                  <div
+                    key={`${g.label}-${opt.value}-${idx}`}
+                    className={`${styles.selectOption}
+                      ${opt.value === value ? styles.selectOptionActive : ''}
+                      ${opt.disabled ? styles.selectOptionDisabled : ''}`}
+                    onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); !opt.disabled && handleSelect(opt.value); }}
+                    role="option"
+                    aria-selected={opt.value === value}
+                  >
+                    {opt.label}
+                  </div>
+                ))}
               </div>
             ))
             : options.map(renderOption)
