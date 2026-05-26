@@ -212,7 +212,7 @@ export default function AdminReservasProximasPage() {
                     {reserva.numero_telefono && (
                       <span>
                         <Phone size={14} strokeWidth={1.7} />
-                        +591 {reserva.numero_telefono}
+                        {reserva.numero_telefono}
                       </span>
                     )}
                   </div>
