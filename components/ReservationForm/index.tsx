@@ -7,6 +7,7 @@ import { CustomSelect } from '../Custom/CustomSelect';
 import { TimeSlotPicker } from './TimeSlotPicker';
 import { ServiceSelect } from './ServiceSelect';
 import { useReservationForm, type ReservationFormInitialData } from './useReservationForm';
+import { normalizeBolivianPhone } from '@/lib/utils/reservationValidation';
 import styles from './ReservationForm.module.css';
 
 interface ReservationFormProps {
@@ -224,7 +225,7 @@ export default function ReservationForm({ initialData, onSuccess, onCancel }: Re
                 type="tel"
                 inputMode="numeric"
                 value={numeroTelefono}
-                onChange={e => setNumeroTelefono(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                onChange={e => setNumeroTelefono(normalizeBolivianPhone(e.target.value))}
                 placeholder="77777777"
                 className={errors.numeroTelefono ? styles.inputError : ''}
               />

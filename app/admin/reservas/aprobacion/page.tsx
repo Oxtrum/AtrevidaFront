@@ -28,7 +28,7 @@ import {
   SERVICIOS_ADMIN_DISPONIBLES,
   getServiciosAdminPorCategoria,
   getServiciosAdminPorSucursal,
-  getTipoFromServicio,
+  getTipoBackendFromServicio,
   type EstadoReserva,
   type ReservaBD,
 } from '@/types/reserva';
@@ -355,7 +355,8 @@ export default function AdminReservasAprobacionPage() {
       return;
     }
 
-    const cleanPhone = approvalDraft.telefono.replace(/\D/g, '');
+    const rawDigits = approvalDraft.telefono.replace(/\D/g, '');
+    const cleanPhone = rawDigits.startsWith('591') ? `+${rawDigits}` : `+591${rawDigits}`;
     const updateData = {
       id: approvalReserva.id,
       local: approvalReserva.local,
@@ -374,7 +375,7 @@ export default function AdminReservasAprobacionPage() {
         await actualizarReservaDB(updateData);
       }
 
-      const tipo = getTipoFromServicio(confirmedService.value) === 'B' ? 'bicicleta' : 'mesa';
+      const tipoBackend = getTipoBackendFromServicio(confirmedService.value);
 
       await actualizarEstadoReservaDB({
         id: approvalReserva.id,
@@ -382,7 +383,7 @@ export default function AdminReservasAprobacionPage() {
         causa: '',
         servicio_confirmado: confirmedService.label,
         precio: confirmedService.precio,
-        tipo,
+        tipo: tipoBackend,
       });
 
       const updatedReserva: ReservaBD = {
@@ -395,7 +396,7 @@ export default function AdminReservasAprobacionPage() {
         notas: approvalDraft.notas,
         servicio_confirmado: confirmedService.label,
         precio: confirmedService.precio,
-        tipo,
+        tipo: tipoBackend,
       };
 
       setReservas((current) =>

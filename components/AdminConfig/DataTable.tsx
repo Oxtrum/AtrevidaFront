@@ -1,14 +1,14 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Pencil, Search, RefreshCw } from 'lucide-react';
+import { Pencil, Search, RefreshCw, X, Inbox } from 'lucide-react';
 import styles from './DataTable.module.css';
 
 export interface Column<T> {
   key: string;
   label: string;
   render?: (value: unknown, row: T) => React.ReactNode;
-  searchable?: boolean; // si false, excluye esta columna del filtro de búsqueda
+  searchable?: boolean; // false → excluye del filtro local
 }
 
 interface DataTableProps<T> {
@@ -38,7 +38,6 @@ export function DataTable<T extends Record<string, unknown>>({
 }: DataTableProps<T>) {
   const [query, setQuery] = useState('');
 
-  // Filtra por las columnas que no tengan searchable=false
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return data;
@@ -52,28 +51,45 @@ export function DataTable<T extends Record<string, unknown>>({
     );
   }, [data, query, columns]);
 
+  const isFiltering = query.trim().length > 0;
+  const hasData = !loading && !error;
+
   return (
     <div className={styles.wrapper}>
+
       {/* ── Toolbar ── */}
       <div className={styles.toolbar}>
         <div className={styles.searchBox}>
-          <Search size={14} strokeWidth={1.5} className={styles.searchIcon} />
+          <Search size={13} strokeWidth={2} className={styles.searchIcon} />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={searchPlaceholder}
             className={styles.searchInput}
-            disabled={loading || !!error}
+            disabled={Boolean(loading) || Boolean(error)}
+            aria-label="Filtrar resultados"
           />
+          {isFiltering && (
+            <button
+              type="button"
+              className={styles.clearSearchInline}
+              onClick={() => setQuery('')}
+              aria-label="Limpiar búsqueda"
+            >
+              <X size={11} strokeWidth={2.5} />
+            </button>
+          )}
         </div>
 
         <div className={styles.toolbarRight}>
-          {!loading && !error && (
+          {hasData && (
             <span className={styles.rowCount}>
-              {filtered.length} {filtered.length === 1 ? 'registro' : 'registros'}
-              {query && data.length !== filtered.length && (
-                <span className={styles.rowCountTotal}> de {data.length}</span>
+              <span className={styles.rowCountHighlight}>{filtered.length}</span>
+              {' '}
+              {filtered.length === 1 ? 'registro' : 'registros'}
+              {isFiltering && data.length !== filtered.length && (
+                <span className={styles.rowCountTotal}>&nbsp;de {data.length}</span>
               )}
             </span>
           )}
@@ -81,12 +97,13 @@ export function DataTable<T extends Record<string, unknown>>({
             <button
               className={styles.refreshButton}
               onClick={onRefresh}
-              aria-label="Actualizar"
-              disabled={loading}
+              aria-label="Actualizar tabla"
+              disabled={Boolean(loading)}
+              title="Actualizar"
             >
               <RefreshCw
-                size={14}
-                strokeWidth={1.5}
+                size={13}
+                strokeWidth={1.8}
                 className={loading ? styles.spinning : ''}
               />
             </button>
@@ -102,22 +119,26 @@ export function DataTable<T extends Record<string, unknown>>({
               {columns.map((col) => (
                 <th key={col.key}>{col.label}</th>
               ))}
-              {onEdit && <th style={{ width: 80 }} />}
+              {onEdit && <th style={{ width: 96 }} />}
             </tr>
           </thead>
           <tbody>
+
             {/* Skeleton */}
             {loading &&
               Array.from({ length: SKELETON_ROWS }).map((_, i) => (
                 <tr key={`sk-${i}`} className={styles.skeletonRow}>
                   {columns.map((col) => (
                     <td key={col.key}>
-                      <div className={styles.skeletonCell} style={{ width: `${60 + (i * 13 + col.key.length * 7) % 35}%` }} />
+                      <div
+                        className={styles.skeletonCell}
+                        style={{ width: `${55 + (i * 13 + col.key.length * 7) % 38}%` }}
+                      />
                     </td>
                   ))}
                   {onEdit && (
                     <td>
-                      <div className={styles.skeletonCell} style={{ width: 64, marginLeft: 'auto' }} />
+                      <div className={styles.skeletonCell} style={{ width: 72, marginLeft: 'auto' }} />
                     </td>
                   )}
                 </tr>
@@ -140,23 +161,33 @@ export function DataTable<T extends Record<string, unknown>>({
             )}
 
             {/* Empty */}
-            {!loading && !error && filtered.length === 0 && (
+            {hasData && filtered.length === 0 && (
               <tr>
                 <td colSpan={columns.length + (onEdit ? 1 : 0)}>
                   <div className={styles.empty}>
-                    {query ? `Sin resultados para "${query}"` : emptyMessage}
-                    {query && (
-                      <button className={styles.clearSearch} onClick={() => setQuery('')}>
-                        Limpiar búsqueda
-                      </button>
+                    <div className={styles.emptyIcon}>
+                      <Inbox size={20} strokeWidth={1.5} />
+                    </div>
+                    <p className={styles.emptyTitle}>
+                      {isFiltering ? `Sin resultados para "${query}"` : emptyMessage}
+                    </p>
+                    {isFiltering ? (
+                      <>
+                        <p className={styles.emptyHint}>Prueba con otro término de búsqueda</p>
+                        <button className={styles.clearSearch} onClick={() => setQuery('')}>
+                          Limpiar búsqueda
+                        </button>
+                      </>
+                    ) : (
+                      <p className={styles.emptyHint}>Ajusta los filtros para ver resultados</p>
                     )}
                   </div>
                 </td>
               </tr>
             )}
 
-            {!loading &&
-              !error &&
+            {/* Data rows */}
+            {hasData &&
               filtered.map((row, index) => (
                 <tr key={`${getRowKey(row)}-${index}`}>
                   {columns.map((col) => (
@@ -172,9 +203,9 @@ export function DataTable<T extends Record<string, unknown>>({
                         <button
                           className={styles.editButton}
                           onClick={() => onEdit(row)}
-                          aria-label="Editar"
+                          aria-label="Editar fila"
                         >
-                          <Pencil size={14} strokeWidth={1.5} />
+                          <Pencil size={12} strokeWidth={2} />
                           Editar
                         </button>
                       </div>

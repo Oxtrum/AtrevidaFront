@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   DiaSemana, SERVICIOS_DISPONIBLES, SUCURSALES,
   SERVICIOS_ESPECIALIZADOS_DISPONIBLES,
-  getServiciosPorSucursal, getServiciosPorCategoria, getTipoFromServicio,
+  getServiciosPorSucursal, getServiciosPorCategoria, getTipoFromServicio, getTipoBackendFromServicio,
   getServiciosAdminPorCategoria,
   generarSemanas, getFechasDeSemana, esFechaPasada,
   type ReservaBD,
@@ -163,6 +163,17 @@ export function useReservationForm(
   );
 
   const tipo = useMemo(() => getTipoFromServicio(servicio), [servicio]);
+
+  // Auto-select first non-past day on mount (default 'LUNES' may be in the past mid-week)
+  useEffect(() => {
+    if (!initialData?.dia && fechasSemana) {
+      for (const [d, info] of fechasSemana) {
+        if (!info.esPasado) { setDia(d); break; }
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fechasSemana]);
+
   const servicioSeleccionado = useMemo(
     () => SERVICIOS_DISPONIBLES.find(s => s.value === servicio),
     [servicio],
@@ -440,7 +451,7 @@ export function useReservationForm(
     if (!validate()) return;
 
     setError(null);
-    const tipo = getTipoFromServicio(servicio);
+    const tipoBackend = getTipoBackendFromServicio(servicio);
     const horaDesdeNorm = normalizarHora(horaDesde);
     const horaHastaNorm = normalizarHora(horaHasta);
 
@@ -458,9 +469,9 @@ export function useReservationForm(
           fecha: fechaISO,
           hora_desde: horaDesdeNorm,
           hora_hasta: horaHastaNorm,
-          tipo,
+          tipo: tipoBackend,
           cliente,
-          numero_telefono: phoneDigits,
+          numero_telefono: '+591' + phoneDigits,
           servicio: servicioLabel,
           servicio_solicitado: servicioSolicitadoInfo?.label || servicioLabel,
           servicio_confirmado: reservaRequiereAprobacion ? null : servicioLabel,

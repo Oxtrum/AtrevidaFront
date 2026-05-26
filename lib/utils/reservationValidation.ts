@@ -5,6 +5,12 @@
 
 import type { DiaSemana, EstadoReserva } from '@/types/reserva';
 
+export function normalizeBolivianPhone(raw: string): string {
+  const digits = raw.replace(/\D/g, '');
+  const local = digits.startsWith('591') ? digits.slice(3) : digits;
+  return local.slice(0, 8);
+}
+
 interface ReservaPayload {
   local: string;
   semana?: string;
@@ -82,6 +88,7 @@ export function validateReservationForm(
     horaDesde: string,
     horaHasta: string,
     servicioSolicitado?: string,
+    skipSlotRestrictions = false,
 ): Record<string, string> {
     const errors: Record<string, string> = {};
 
@@ -107,8 +114,8 @@ export function validateReservationForm(
     const phoneDigits = numeroTelefono.replace(/\D/g, '');
     if (!phoneDigits) {
         errors.numeroTelefono = 'Ingresa el teléfono del cliente';
-    } else if (!/^[67]\d{7}$/.test(phoneDigits)) {
-        errors.numeroTelefono = 'Ingresa 8 dígitos locales de Bolivia';
+    } else if (!/^\d{8}$/.test(phoneDigits)) {
+        errors.numeroTelefono = 'Ingresa 8 dígitos del teléfono';
     }
 
     if (!servicio) {
@@ -125,7 +132,7 @@ export function validateReservationForm(
         errors.horaHasta = 'Selecciona hora de fin';
     } else if (timeToMinutes(horaDesde) >= timeToMinutes(horaHasta)) {
         errors.horaHasta = 'La hora de fin debe ser mayor a la de inicio';
-    } else {
+    } else if (!skipSlotRestrictions) {
         const slotRestriction = getReservationSlotRestriction(fecha, horaDesde, horaHasta);
         if (slotRestriction) {
             errors.horaDesde = slotRestriction;

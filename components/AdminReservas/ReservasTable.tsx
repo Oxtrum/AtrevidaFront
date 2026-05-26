@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
-import { AlertTriangle, ClipboardList } from 'lucide-react';
+import { AlertTriangle, ClipboardList, Pencil, Trash2 } from 'lucide-react';
 import type { ReservaBD } from '@/types/reserva';
 import styles from './ReservasTable.module.css';
 
@@ -12,6 +12,8 @@ interface ReservasTableProps {
   loading: boolean;
   error: string | null;
   title?: string;
+  onDelete?: (reserva: ReservaBD) => void;
+  deletingId?: number | string | null;
 }
 
 export function ReservasTable({
@@ -20,6 +22,8 @@ export function ReservasTable({
   loading,
   error,
   title = 'Reservas',
+  onDelete,
+  deletingId,
 }: ReservasTableProps) {
   const tableRef = useRef<HTMLDivElement>(null);
   const rowsRef = useRef<HTMLDivElement>(null);
@@ -28,12 +32,12 @@ export function ReservasTable({
     if (!loading && rowsRef.current && reservas.length > 0) {
       gsap.fromTo(
         rowsRef.current.children,
-        { opacity: 0, y: 12 },
+        { opacity: 0, y: 10 },
         {
           opacity: 1,
           y: 0,
-          duration: 0.35,
-          stagger: 0.04,
+          duration: 0.32,
+          stagger: 0.035,
           ease: 'power2.out',
           clearProps: 'transform',
         }
@@ -41,7 +45,7 @@ export function ReservasTable({
     }
   }, [loading, reservas]);
 
-  /* ── Loading ─────────────────────────────────────────────────────────── */
+  /* ── Loading ── */
   if (loading) {
     return (
       <div className={styles.loadingContainer}>
@@ -51,30 +55,34 @@ export function ReservasTable({
     );
   }
 
-  /* ── Error ───────────────────────────────────────────────────────────── */
+  /* ── Error ── */
   if (error) {
     return (
       <div className={styles.errorContainer}>
-        <AlertTriangle size={32} strokeWidth={1.5} className={styles.errorIcon} />
+        <div className={styles.errorIcon}>
+          <AlertTriangle size={22} strokeWidth={1.5} />
+        </div>
         <p className={styles.errorMessage}>{error}</p>
       </div>
     );
   }
 
-  /* ── Empty ───────────────────────────────────────────────────────────── */
+  /* ── Empty ── */
   if (reservas.length === 0) {
     return (
       <div className={styles.emptyContainer}>
-        <ClipboardList size={40} strokeWidth={1.4} className={styles.emptyIcon} />
+        <div className={styles.emptyIcon}>
+          <ClipboardList size={22} strokeWidth={1.4} />
+        </div>
         <p className={styles.emptyMessage}>
-          No se encontraron reservas para los filtros seleccionados
+          No se encontraron reservas
         </p>
-        <p className={styles.emptyHint}>Prueba ajustando los filtros de búsqueda</p>
+        <p className={styles.emptyHint}>Ajusta los filtros de búsqueda para ver resultados</p>
       </div>
     );
   }
 
-  /* ── Helpers ─────────────────────────────────────────────────────────── */
+  /* ── Helpers ── */
   const getTipoLabel = (tipo: string) => {
     const t = tipo?.toLowerCase();
     if (t === 'b' || t === 'bicicleta') return 'Bicicleta';
@@ -99,10 +107,11 @@ export function ReservasTable({
     return reserva.servicio_confirmado || reserva.servicio || reserva.servicio_solicitado || 'Por definir';
   };
 
-  /* ── Table ───────────────────────────────────────────────────────────── */
+  /* ── Table ── */
   return (
     <div ref={tableRef} className={styles.tableContainer}>
-      {/* Header — record count */}
+
+      {/* Header */}
       <div className={styles.tableHeader}>
         <span className={styles.totalCount}>
           {title} &mdash; <strong>{total}</strong>
@@ -111,7 +120,8 @@ export function ReservasTable({
 
       <div className={styles.tableWrapper}>
         <div className={styles.table}>
-          {/* Column labels */}
+
+          {/* Column headers */}
           <div className={styles.tableHead}>
             <div className={styles.cell}>Fecha</div>
             <div className={styles.cell}>Hora</div>
@@ -127,6 +137,7 @@ export function ReservasTable({
           <div ref={rowsRef}>
             {reservas.map((reserva) => (
               <div key={reserva.id} className={styles.tableRow}>
+
                 <div className={styles.cell} data-label="Fecha">
                   {reserva.fecha}
                 </div>
@@ -162,14 +173,30 @@ export function ReservasTable({
                 </div>
 
                 <div className={styles.cell} data-label="Acciones">
-                  <a
-                    href={`/admin/reservas/editar/${reserva.id}`}
-                    className={styles.editButton}
-                    title="Editar reserva"
-                  >
-                    Editar
-                  </a>
+                  <div className={styles.actionGroup}>
+                    <a
+                      href={`/admin/reservas/editar/${reserva.id}`}
+                      className={styles.editButton}
+                      title="Editar reserva"
+                      aria-label={`Editar reserva de ${reserva.cliente || reserva.id}`}
+                    >
+                      <Pencil size={13} strokeWidth={1.8} />
+                    </a>
+                    {onDelete && (
+                      <button
+                        type="button"
+                        className={styles.deleteButton}
+                        onClick={() => onDelete(reserva)}
+                        disabled={deletingId === reserva.id}
+                        title="Eliminar reserva"
+                        aria-label={`Eliminar reserva de ${reserva.cliente || reserva.id}`}
+                      >
+                        <Trash2 size={13} strokeWidth={1.8} />
+                      </button>
+                    )}
+                  </div>
                 </div>
+
               </div>
             ))}
           </div>

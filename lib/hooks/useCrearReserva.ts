@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { crearReservaDB } from '@/lib/api/reservas';
-import type { ReservaTipoBackend } from '@/lib/api/reservas';
+import type { ReservaTipoBody } from '@/lib/api/reservas';
 import type { DiaSemana, EstadoReserva, ReservaFormData } from '@/types/reserva';
 
 interface CrearReservaResult {
@@ -23,7 +23,7 @@ interface CrearReservaData {
     fecha?: string;
     hora_desde: string;
     hora_hasta: string;
-    tipo: string;
+    tipo: ReservaTipoBody;
     cliente: string;
     numero_telefono?: string;
     servicio: string;
@@ -33,11 +33,6 @@ interface CrearReservaData {
     notas?: string;
     estado?: EstadoReserva;
 }
-
-const normalizeReservaTipo = (tipo: string): ReservaTipoBackend => {
-    const normalized = tipo.trim().toLowerCase();
-    return normalized === 'b' || normalized === 'bicicleta' ? 'B' : 'M';
-};
 
 /**
  * Hook para crear una reserva en la base de datos.
@@ -58,7 +53,7 @@ export function useCrearReserva(): UseCrearReservaReturn {
                     fecha: data.fecha,
                     hora_desde: data.hora_desde,
                     hora_hasta: data.hora_hasta,
-                    tipo: normalizeReservaTipo(data.tipo),
+                    tipo: data.tipo,
                     cliente: data.cliente,
                     numero_telefono: data.numero_telefono || '',
                     servicio: data.servicio,
@@ -66,14 +61,14 @@ export function useCrearReserva(): UseCrearReservaReturn {
                     servicio_confirmado: data.servicio_confirmado,
                     precio: data.precio,
                     notas: data.notas,
-                    estado: 'PENDIENTE',
+                    estado: data.estado ?? 'PENDIENTE',
                 });
                 return result;
             }
             
             // Si no tiene fecha, usar Sheets (legacy)
             const { crearReserva } = await import('@/lib/api/reservas');
-            return await crearReserva(data as ReservaFormData);
+            return await crearReserva(data as unknown as ReservaFormData);
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : 'Error desconocido';
             setError(errorMsg);

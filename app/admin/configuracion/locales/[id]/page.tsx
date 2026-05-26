@@ -57,10 +57,11 @@ export default function EditarLocalPage() {
 
   const handleSave = async () => {
     if (!nombre.trim()) return;
-    const espaciosValidos = espacios.filter((e) => e.cantidad_espacios > 0);
     setSaving(true);
     try {
-      await actualizarLocal(params.id, { nombre: nombre.trim(), espacios: espaciosValidos });
+      // PATCH /bd/locales/{id} spec acepta solo { nombre, activo }.
+      // Los espacios solo se setean al crear el local; backend ignora cambios aquí.
+      await actualizarLocal(params.id, { nombre: nombre.trim() });
       toast.success('Local actualizado correctamente');
       router.push('/admin/configuracion/locales');
     } catch (err) {

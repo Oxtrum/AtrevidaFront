@@ -7,8 +7,6 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowRight, BadgeCheck, HeartPulse, ShieldCheck } from 'lucide-react';
 import styles from './Nosotros.module.css';
 
-gsap.registerPlugin(ScrollTrigger);
-
 const STATS = [
   { numero: '4+', label: 'Años de experiencia' },
   { numero: '7000+', label: 'Clientes satisfechas' },
@@ -42,6 +40,7 @@ export default function Nosotros() {
   const valoresRef = useRef<HTMLDivElement[]>([]);
 
   useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
     const ctx = gsap.context(() => {
       // Left column slides in
       gsap.fromTo(

@@ -5,6 +5,19 @@
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
+/**
+ * Reads the admin token from localStorage on the client.
+ * Returns null on the server or when the user is not authenticated.
+ */
+function getAuthToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    return window.localStorage.getItem('adminToken');
+  } catch {
+    return null;
+  }
+}
+
 // ─── Error tipado ──────────────────────────────────────────────────────────────
 
 export class ApiError extends Error {
@@ -44,10 +57,12 @@ async function request<T>(
     });
   }
 
+  const token = getAuthToken();
   const res = await fetch(url.toString(), {
     ...init,
     headers: {
       'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
       ...init.headers,
     },
     body: body !== undefined ? JSON.stringify(body) : undefined,

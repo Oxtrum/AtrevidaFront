@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   DiaSemana, SERVICIOS_ADMIN_DISPONIBLES, SUCURSALES,
   getServiciosAdminPorSucursal, getServiciosAdminPorCategoria, getTipoFromServicio,
+  getTipoBackendFromServicio,
   generarSemanas, getFechasDeSemana, esFechaPasada,
   type ReservaBD,
 } from '@/types/reserva';
@@ -125,6 +126,16 @@ export function useReservationForm(
   );
 
   const tipo = useMemo(() => getTipoFromServicio(servicio), [servicio]);
+
+  // Auto-select first non-past day on mount (default 'LUNES' may be in the past mid-week)
+  useEffect(() => {
+    if (!initialData?.dia && fechasSemana) {
+      for (const [d, info] of fechasSemana) {
+        if (!info.esPasado) { setDia(d); break; }
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fechasSemana]);
 
   // ── Fetch reservas cuando cambian sucursal o semana ─────────
   useEffect(() => {
@@ -337,6 +348,8 @@ export function useReservationForm(
       servicio,
       horaDesde,
       horaHasta,
+      undefined,
+      true, // admin can book any time slot
     );
     // No validar aquí si está ocupado - dejar que el backend lo valide
     // para permitir cambios de último minuto si hay slots disponibles
@@ -359,24 +372,27 @@ export function useReservationForm(
     if (!validate()) return;
 
     setError(null);
-    const tipo = getTipoFromServicio(servicio);
+    const tipoBackend = getTipoBackendFromServicio(servicio);
     const horaDesdeNorm = normalizarHora(horaDesde);
     const horaHastaNorm = normalizarHora(horaHasta);
 
       try {
         const servicioInfo = SERVICIOS_ADMIN_DISPONIBLES.find(s => s.value === servicio);
+        const servicioLabel = servicioInfo?.label || servicio;
         const payload = {
           local: sucursal,
           fecha: fechaISO,
           hora_desde: horaDesdeNorm,
           hora_hasta: horaHastaNorm,
-          tipo,
+          tipo: tipoBackend,
           cliente,
-          numero_telefono: numeroTelefono.replace(/\D/g, ''),
-          servicio: servicioInfo?.label || servicio,
+          numero_telefono: '+591' + numeroTelefono.replace(/\D/g, ''),
+          servicio: servicioLabel,
+          servicio_solicitado: servicioLabel,
+          servicio_confirmado: servicioLabel,
           precio: servicioInfo?.precio ?? 0,
           notas: '',
-          estado: 'PENDIENTE' as const,
+          estado: 'AGENDADO' as const,
         };
 
         await crearReserva(payload);

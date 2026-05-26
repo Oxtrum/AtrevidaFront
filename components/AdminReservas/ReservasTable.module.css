@@ -1,6 +1,15 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   ReservasTable.module.css — AtrevidaFit Admin
+   Dark-luxury table optimized for dense data display.
+───────────────────────────────────────────────────────────────────────── */
+
+/* ══════════════════════════════════════════════════════════════════════════
+   CONTAINER
+══════════════════════════════════════════════════════════════════════════ */
+
 .tableContainer {
   position: relative;
-  background: linear-gradient(180deg, var(--admin-surface-1), rgba(12, 12, 18, 0.84));
+  background: linear-gradient(180deg, var(--admin-surface-1), rgba(12, 12, 18, 0.88));
   border-radius: var(--admin-radius-xl);
   border: 1px solid var(--admin-border-subtle);
   overflow: hidden;
@@ -8,6 +17,7 @@
   backdrop-filter: blur(18px);
 }
 
+/* Gradiente 3-color en la franja superior */
 .tableContainer::before {
   content: '';
   position: absolute;
@@ -15,78 +25,70 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: var(--admin-grad-primary);
+  background: linear-gradient(90deg, #EC008C 0%, #92278F 50%, #14AEEF 100%);
   z-index: 2;
 }
 
-.tableContainer::after {
-  display: none;
-}
-
-/* ─── Table header bar ──────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════
+   TABLE HEADER BAR
+══════════════════════════════════════════════════════════════════════════ */
 
 .tableHeader {
-  padding: 1rem 1.5rem;
+  padding: 0.9rem 1.5rem;
   border-bottom: 1px solid var(--admin-border-subtle);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: rgba(255, 255, 255, 0.035);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .totalCount {
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   color: var(--admin-text-muted);
-  font-weight: 600;
-  letter-spacing: 1.5px;
+  font-weight: 700;
+  letter-spacing: 1.6px;
   text-transform: uppercase;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.7rem;
 }
 
+/* Indicador pulsante */
 .totalCount::before {
   content: '';
   display: inline-block;
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--admin-accent-tertiary);
-  box-shadow: 0 0 8px rgba(20, 174, 239, 0.45);
-  animation: pulse 2.2s ease-in-out infinite;
+  background: #14AEEF;
+  box-shadow: 0 0 8px rgba(20, 174, 239, 0.5);
+  animation: livePulse 2.4s ease-in-out infinite;
   flex-shrink: 0;
 }
 
 .totalCount strong {
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 800;
   color: var(--admin-foreground);
   letter-spacing: -0.5px;
   text-transform: none;
 }
 
-@keyframes pulse {
-
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 0.5;
-    transform: scale(1.6);
-  }
+@keyframes livePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(1.7); }
 }
 
-/* ─── Table wrapper ─────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════
+   TABLE WRAPPER + SCROLLBAR
+══════════════════════════════════════════════════════════════════════════ */
 
 .tableWrapper {
   overflow-x: auto;
   overflow-y: auto;
   max-height: 560px;
   scrollbar-width: thin;
-  scrollbar-color: rgba(146, 39, 143, 0.55) transparent;
+  scrollbar-color: rgba(146, 39, 143, 0.5) transparent;
 }
 
 .tableWrapper::-webkit-scrollbar {
@@ -99,15 +101,17 @@
 }
 
 .tableWrapper::-webkit-scrollbar-thumb {
-  background: rgba(146, 39, 143, 0.55);
+  background: rgba(146, 39, 143, 0.5);
   border-radius: 4px;
 }
 
 .tableWrapper::-webkit-scrollbar-thumb:hover {
-  background: rgba(236, 0, 140, 0.68);
+  background: rgba(236, 0, 140, 0.65);
 }
 
-/* ─── Table ─────────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════
+   TABLE GRID — columnas
+══════════════════════════════════════════════════════════════════════════ */
 
 .table {
   min-width: 820px;
@@ -116,125 +120,95 @@
   z-index: 1;
 }
 
-/* ─── Column grid ───────────────────────────────────────────────────────── */
-
 .tableHead,
 .tableRow {
   display: grid;
-  grid-template-columns: 110px 145px 1fr 110px 155px 120px 115px 90px;
+  grid-template-columns: 108px 148px 1fr 108px 155px 120px 115px 72px;
   align-items: center;
   padding: 0 1.5rem;
 }
 
-/* ─── Column headers ────────────────────────────────────────────────────── */
-
+/* ── Column headers ── */
 .tableHead {
   position: sticky;
   top: 0;
   z-index: 10;
-  padding-top: 0.75rem;
-  padding-bottom: 0.75rem;
-  background: rgba(255, 255, 255, 0.04);
+  padding-top: 0.8rem;
+  padding-bottom: 0.8rem;
+  background: rgba(12, 12, 18, 0.92);
+  backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--admin-border-subtle);
-  font-size: 0.6rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 1.8px;
-}
-
-.tableHead::after {
-  display: none;
 }
 
 .tableHead .cell {
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   font-weight: 700;
   letter-spacing: 1.8px;
-  color: var(--admin-text-muted);
-  gap: 0.45rem;
+  text-transform: uppercase;
+  color: var(--admin-text-dim);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
+/* Pequeño punto decorativo por columna */
 .tableHead .cell::before {
   content: '';
   display: inline-block;
-  width: 4px;
-  height: 4px;
+  width: 3px;
+  height: 3px;
   border-radius: 50%;
   background: currentColor;
-  opacity: 0.8;
+  opacity: 0.7;
   flex-shrink: 0;
 }
 
-.tableHead .cell:nth-child(1) {
-  color: var(--admin-text-dim);
-}
-
-.tableHead .cell:nth-child(2) {
-  color: var(--admin-accent-tertiary);
-}
-
-.tableHead .cell:nth-child(3) {
-  color: var(--admin-text-light);
-}
-
-.tableHead .cell:nth-child(4) {
-  color: var(--admin-accent-primary);
-}
-
-.tableHead .cell:nth-child(5) {
-  color: var(--admin-text-muted);
-}
-
-.tableHead .cell:nth-child(6) {
-  color: var(--admin-accent-secondary);
-}
-
-.tableHead .cell:nth-child(7) {
-  color: var(--admin-accent-secondary);
-}
-
-.tableHead .cell:nth-child(8) {
-  color: var(--admin-text-dim);
-  letter-spacing: 1px;
-}
+/* Colores diferenciados por columna */
+.tableHead .cell:nth-child(1)  { color: var(--admin-text-dim); }
+.tableHead .cell:nth-child(2)  { color: #14AEEF; }
+.tableHead .cell:nth-child(3)  { color: var(--admin-text-muted); }
+.tableHead .cell:nth-child(4)  { color: #EC008C; }
+.tableHead .cell:nth-child(5)  { color: var(--admin-text-dim); }
+.tableHead .cell:nth-child(6)  { color: #92278F; }
+.tableHead .cell:nth-child(7)  { color: #92278F; }
+.tableHead .cell:nth-child(8)  { color: var(--admin-text-dim); }
 
 .tableHead .cell:nth-child(8)::before {
   display: none;
 }
 
-/* ─── Data rows ─────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════
+   DATA ROWS
+══════════════════════════════════════════════════════════════════════════ */
 
 .tableRow {
-  padding-top: 0.8rem;
-  padding-bottom: 0.8rem;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
   border-bottom: 1px solid var(--admin-border-subtle);
   transition: background 0.15s ease;
   position: relative;
   cursor: default;
 }
 
+/* Borde izquierdo animado */
 .tableRow::before {
   content: '';
   position: absolute;
   left: 0;
-  top: 6px;
-  bottom: 6px;
+  top: 8px;
+  bottom: 8px;
   width: 0;
-  background: var(--admin-grad-primary);
+  background: linear-gradient(180deg, #EC008C, #92278F);
   border-radius: 0 3px 3px 0;
   transition: width 0.2s ease;
 }
 
-.tableRow::after {
-  display: none;
-}
-
 .tableRow:nth-child(even) {
-  background: rgba(255, 255, 255, 0.018);
+  background: rgba(255, 255, 255, 0.016);
 }
 
 .tableRow:hover {
-  background: rgba(236, 0, 140, 0.06);
+  background: rgba(236, 0, 140, 0.055);
 }
 
 .tableRow:hover::before {
@@ -245,8 +219,7 @@
   border-bottom: none;
 }
 
-/* ─── Cells ─────────────────────────────────────────────────────────────── */
-
+/* ── Cells ── */
 .cell {
   font-size: 0.78rem;
   color: var(--admin-text-light);
@@ -260,52 +233,55 @@
   transition: color 0.15s ease;
 }
 
+/* Fecha — tabulada */
 .cell:first-child {
   font-variant-numeric: tabular-nums;
   color: var(--admin-text-dim);
-  letter-spacing: 0.4px;
+  letter-spacing: 0.3px;
+  font-size: 0.76rem;
 }
 
-.cell:nth-child(2) {
-  color: var(--admin-accent-tertiary);
-  background: rgba(20, 174, 239, 0.08);
+/* Hora — badge cyan (solo en filas de datos, NO en el header) */
+.tableRow .cell:nth-child(2) {
+  color: #14AEEF;
+  background: rgba(20, 174, 239, 0.07);
   border-radius: 6px;
-  padding: 0.25rem 0.6rem 0.25rem 0.5rem;
-  border: 1px solid rgba(20, 174, 239, 0.18);
+  padding: 0.22rem 0.6rem 0.22rem 0.5rem;
+  border: 1px solid rgba(20, 174, 239, 0.16);
   max-width: fit-content;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
+  font-size: 0.76rem;
 }
 
-.cell:nth-child(3) {
+/* Cliente — bold solo en filas de datos */
+.tableRow .cell:nth-child(3) {
   color: var(--admin-foreground);
   font-weight: 500;
 }
 
-.tableRow:hover .cell:nth-child(3) {
-  color: var(--admin-foreground);
-}
-
-/* ─── Tipo badges ───────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════
+   TIPO BADGES
+══════════════════════════════════════════════════════════════════════════ */
 
 .tipoBadge {
   display: inline-flex;
   align-items: center;
-  gap: 0.38rem;
-  padding: 0.28rem 0.75rem;
-  border-radius: 50px;
-  font-size: 0.62rem;
+  gap: 0.35rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: 100px;
+  font-size: 0.6rem;
   font-weight: 700;
-  letter-spacing: 1.2px;
+  letter-spacing: 1.1px;
   text-transform: uppercase;
   white-space: nowrap;
-  transition: box-shadow 0.2s ease, transform 0.15s ease;
+  transition: box-shadow 0.2s ease, transform 0.18s ease;
 }
 
 .tipoBadge::before {
   content: '';
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
   background: currentColor;
   opacity: 0.9;
@@ -313,59 +289,62 @@
 }
 
 .tipoBicicleta {
-  background: rgba(20, 174, 239, 0.10);
+  background: rgba(20, 174, 239, 0.1);
   color: #8fe4ff;
-  border: 1px solid rgba(20, 174, 239, 0.28);
+  border: 1px solid rgba(20, 174, 239, 0.26);
 }
 
 .tipoMesa {
-  background: rgba(236, 0, 140, 0.10);
+  background: rgba(236, 0, 140, 0.1);
   color: #ff8fd4;
-  border: 1px solid rgba(236, 0, 140, 0.28);
+  border: 1px solid rgba(236, 0, 140, 0.26);
 }
 
 .tableRow:hover .tipoBicicleta {
-  box-shadow: 0 10px 24px rgba(20, 174, 239, 0.14);
+  box-shadow: 0 6px 18px rgba(20, 174, 239, 0.16);
   transform: translateY(-1px);
 }
 
 .tableRow:hover .tipoMesa {
-  box-shadow: 0 10px 24px rgba(236, 0, 140, 0.14);
+  box-shadow: 0 6px 18px rgba(236, 0, 140, 0.16);
   transform: translateY(-1px);
 }
 
-/* ─── Local badge ───────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════
+   LOCAL BADGE
+══════════════════════════════════════════════════════════════════════════ */
 
 .localBadge {
   display: inline-flex;
   align-items: center;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 500;
   color: var(--admin-text-muted);
-  background: rgba(255, 255, 255, 0.045);
+  background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--admin-border-subtle);
   border-radius: 8px;
-  padding: 0.22rem 0.6rem;
+  padding: 0.2rem 0.55rem;
   white-space: nowrap;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.2px;
   transition: border-color 0.15s ease, color 0.15s ease;
 }
 
 .tableRow:hover .localBadge {
-  border-color: rgba(146, 39, 143, 0.44);
+  border-color: rgba(146, 39, 143, 0.4);
   color: #f6a8f4;
 }
 
-/* ─── Servicio ──────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════
+   SERVICIO TEXT
+══════════════════════════════════════════════════════════════════════════ */
 
 .servicioText {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--admin-text-muted);
   font-weight: 400;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-style: italic;
   transition: color 0.15s ease;
 }
 
@@ -373,15 +352,17 @@
   color: var(--admin-text-light);
 }
 
-/* ─── Estado badge ─────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════
+   ESTADO BADGE
+══════════════════════════════════════════════════════════════════════════ */
 
 .estadoBadge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50px;
-  padding: 0.28rem 0.7rem;
-  font-size: 0.58rem;
+  border-radius: 100px;
+  padding: 0.24rem 0.65rem;
+  font-size: 0.56rem;
   font-weight: 800;
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -391,62 +372,114 @@
 
 .estadoPendiente {
   color: #ffe9a3;
-  background: rgba(255, 230, 0, 0.10);
-  border-color: rgba(255, 230, 0, 0.24);
+  background: rgba(255, 230, 0, 0.1);
+  border-color: rgba(255, 230, 0, 0.22);
 }
 
 .estadoAprobado {
   color: #8fe4ff;
-  background: rgba(20, 174, 239, 0.10);
-  border-color: rgba(20, 174, 239, 0.26);
+  background: rgba(20, 174, 239, 0.1);
+  border-color: rgba(20, 174, 239, 0.24);
 }
 
 .estadoRechazado {
   color: #fca5a5;
-  background: rgba(220, 38, 38, 0.10);
-  border-color: rgba(220, 38, 38, 0.28);
+  background: rgba(220, 38, 38, 0.1);
+  border-color: rgba(220, 38, 38, 0.26);
 }
 
-/* ─── Edit button ───────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════
+   ACTION GROUP — botones icono circulares
+   Se muestran tenues en reposo y brillan al hover de la fila
+══════════════════════════════════════════════════════════════════════════ */
 
-.editButton {
+.actionGroup {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  background: transparent;
-  color: var(--admin-text-muted);
-  border: 1px solid var(--admin-border-subtle);
-  padding: 0.38rem 1rem;
-  border-radius: 50px;
-  font-family: inherit;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  text-decoration: none;
-  cursor: pointer;
-  transition: color 0.2s ease, border-color 0.2s ease,
-    box-shadow 0.2s ease, transform 0.15s ease;
-  white-space: nowrap;
+  gap: 0.3rem;
+  flex-wrap: nowrap;
   flex-shrink: 0;
 }
 
-.editButton::before {
-  display: none;
+/* Botón base circular */
+.editButton,
+.deleteButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  flex-shrink: 0;
+  /* Tenues en reposo — se iluminan cuando la fila está en hover */
+  opacity: 0.8;
+  color: var(--admin-text-dim);
+  text-decoration: none;
 }
 
+/* Al hacer hover en la fila, revelar los botones */
+.tableRow:hover .editButton,
+.tableRow:hover .deleteButton {
+  opacity: 1;
+}
+
+/* Editar — icono pink */
 .editButton:hover {
-  border-color: rgba(236, 0, 140, 0.42);
-  color: var(--admin-accent-primary);
-  box-shadow: 0 12px 24px rgba(236, 0, 140, 0.12);
-  transform: translateY(-1px);
+  background: rgba(236, 0, 140, 0.12);
+  border-color: rgba(236, 0, 140, 0.35);
+  color: #EC008C;
+  box-shadow: 0 0 12px rgba(236, 0, 140, 0.25);
+  transform: scale(1.12);
+  opacity: 1;
 }
 
 .editButton:active {
-  transform: translateY(0) scale(0.96);
+  transform: scale(0.94);
 }
 
-/* ─── States: loading / error / empty ──────────────────────────────────── */
+/* Eliminar — icono danger */
+.deleteButton {
+  color: var(--admin-text-dim);
+}
+
+.deleteButton:hover:not(:disabled) {
+  background: rgba(255, 77, 109, 0.12);
+  border-color: rgba(255, 77, 109, 0.35);
+  color: var(--admin-accent-danger, rgb(255, 77, 109));
+  box-shadow: 0 0 12px rgba(255, 77, 109, 0.2);
+  transform: scale(1.12);
+  opacity: 1;
+}
+
+.deleteButton:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.deleteButton:disabled {
+  opacity: 0.2 !important;
+  cursor: not-allowed;
+  /* spinner sutil cuando está eliminando */
+  animation: deleteSpin 1s linear infinite;
+}
+
+@keyframes deleteSpin {
+  to { transform: rotate(360deg); }
+}
+
+.editButton:focus-visible,
+.deleteButton:focus-visible {
+  outline: 2px solid #EC008C;
+  outline-offset: 2px;
+  opacity: 1;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   STATES: loading / error / empty
+══════════════════════════════════════════════════════════════════════════ */
 
 .loadingContainer,
 .errorContainer,
@@ -457,44 +490,47 @@
   justify-content: center;
   padding: 5rem 2rem;
   text-align: center;
-  gap: 1.1rem;
-  background: rgba(255, 255, 255, 0.03);
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.02);
   border-radius: 16px;
   border: 1px solid var(--admin-border-subtle);
 }
 
-.loadingContainer::before,
-.emptyContainer::before {
-  display: none;
-}
-
+/* Spinner tri-color */
 .loadingSpinner {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   border: 2.5px solid transparent;
-  border-top-color: var(--admin-accent-tertiary);
-  border-right-color: var(--admin-accent-secondary);
-  border-bottom-color: rgba(236, 0, 140, 0.45);
+  border-top-color: #14AEEF;
+  border-right-color: #92278F;
+  border-bottom-color: rgba(236, 0, 140, 0.4);
   animation: spin 0.7s linear infinite;
 }
 
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
 .loadingContainer p {
   color: var(--admin-text-dim);
   font-size: 0.82rem;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
   margin: 0;
 }
 
+/* Empty state icon */
 .emptyIcon {
-  font-size: 2.5rem;
-  opacity: 0.25;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--admin-border-subtle);
+  color: var(--admin-text-dim);
+  opacity: 0.55;
 }
 
 .emptyMessage {
@@ -510,9 +546,17 @@
   margin: 0;
 }
 
+/* Error */
 .errorIcon {
-  font-size: 2rem;
-  opacity: 0.5;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: rgba(255, 77, 109, 0.08);
+  border: 1px solid rgba(255, 77, 109, 0.2);
+  color: var(--admin-accent-danger);
 }
 
 .errorMessage {
@@ -522,7 +566,9 @@
   margin: 0;
 }
 
-/* ─── Responsive ────────────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════════════════════════════════════ */
 
 @media (max-width: 768px) {
   .tableHead {
@@ -533,9 +579,8 @@
     display: flex;
     flex-direction: column;
     grid-template-columns: unset;
-    gap: 0.6rem;
+    gap: 0.55rem;
     padding: 1rem 1.25rem;
-    border-bottom: 1px solid var(--admin-border-subtle);
     border-radius: 0;
   }
 
@@ -549,7 +594,7 @@
     justify-content: space-between;
     white-space: normal;
     padding-right: 0;
-    font-size: 0.875rem;
+    font-size: 0.845rem;
     color: var(--admin-text-light);
   }
 
@@ -558,32 +603,34 @@
     border: none;
     padding: 0;
     color: var(--admin-text-muted);
+    font-size: 0.8rem;
   }
 
-  .cell:first-child,
-  .cell:nth-child(2) {
+  .cell:first-child {
     color: var(--admin-text-dim);
     font-size: 0.8rem;
   }
 
   .cell[data-label]::before {
     content: attr(data-label);
-    font-size: 0.6rem;
+    font-size: 0.58rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1.3px;
-    color: var(--admin-accent-secondary);
+    color: #92278F;
     flex-shrink: 0;
     min-width: 5rem;
   }
 
   .tableHeader {
-    padding: 0.9rem 1.25rem;
-    flex-wrap: wrap;
+    padding: 0.85rem 1.25rem;
+    flex-wrap: nowrap;
+  flex-shrink: 0;
     gap: 0.4rem;
   }
 
   .tipoBadge:hover {
     transform: none;
+    box-shadow: none;
   }
 }
