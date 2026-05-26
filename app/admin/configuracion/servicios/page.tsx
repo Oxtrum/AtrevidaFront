@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
-import { Filter, Plus, Search, X } from 'lucide-react';
+import { Filter, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
-import { PageHeader, DataTable, FormModal } from '@/components/AdminConfig';
+import { PageHeader, DataTable, FormModal, RowActionsMenu } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
@@ -64,6 +64,11 @@ interface FormErrors {
   tiempo?: string;
   sesiones?: string;
   submit?: string;
+}
+
+interface ConfirmState {
+  message: string;
+  onConfirm: () => void;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -125,6 +130,16 @@ export default function ServiciosPage() {
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const isEdit = editingId !== null;
 
+  // ─── Confirm dialog ───────────────────────────────────────────────────────
+  const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
+
+  // ─── Debounced nombre filter ──────────────────────────────────────────────
+  const [filtroNombreDebounced, setFiltroNombreDebounced] = useState('');
+  useEffect(() => {
+    const timer = setTimeout(() => setFiltroNombreDebounced(filtroNombre), 350);
+    return () => clearTimeout(timer);
+  }, [filtroNombre]);
+
   // ─── Data fetching ───────────────────────────────────────────────────────────
 
   const fetchServicios = useCallback(async () => {
@@ -135,7 +150,7 @@ export default function ServiciosPage() {
       const res = await getServiciosDB({
         local: filtroLocal || undefined,
         categoria: filtroCategoria || undefined,
-        nombre: filtroNombre || undefined,
+        nombre: filtroNombreDebounced || undefined,
         sesiones: filtroSesiones ? Number(filtroSesiones) : undefined,
         requiere_evaluacion:
           filtroEvaluacion === 'all' ? undefined : filtroEvaluacion === 'true',
@@ -147,7 +162,7 @@ export default function ServiciosPage() {
     } finally {
       setLoading(false);
     }
-  }, [filtroLocal, filtroCategoria, filtroNombre, filtroSesiones, filtroEvaluacion]);
+  }, [filtroLocal, filtroCategoria, filtroNombreDebounced, filtroSesiones, filtroEvaluacion]);
 
   const fetchOptions = useCallback(async () => {
     try {
@@ -179,7 +194,7 @@ export default function ServiciosPage() {
       gsap.fromTo(
         contentRef.current,
         { y: 20, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out' }
+        { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out', clearProps: 'transform' }
       );
     }, containerRef);
     return () => ctx.revert();
@@ -292,33 +307,41 @@ export default function ServiciosPage() {
     }
   };
 
-  const handleToggleActivo = async (row: ServicioRow) => {
+  const handleToggleActivo = (row: ServicioRow) => {
     const next = !(row.activo ?? true);
     const verb = next ? 'activar' : 'desactivar';
-    if (!confirm(`¿Seguro que quieres ${verb} "${row.nombre}"?`)) return;
-    try {
-      await actualizarServicio(row.id, { activo: next });
-      toast.success(next ? 'Servicio activado' : 'Servicio desactivado');
-      await fetchServicios();
-    } catch (err) {
-      if (err instanceof Error) console.error('actualizarServicio.activo', err);
-      toast.error(`No se pudo ${verb} el servicio.`);
-    }
+    setConfirmState({
+      message: `¿Seguro que quieres ${verb} "${row.nombre}"?`,
+      onConfirm: async () => {
+        try {
+          await actualizarServicio(row.id, { activo: next });
+          toast.success(next ? 'Servicio activado' : 'Servicio desactivado');
+          await fetchServicios();
+        } catch (err) {
+          if (err instanceof Error) console.error('actualizarServicio.activo', err);
+          toast.error(`No se pudo ${verb} el servicio.`);
+        }
+      },
+    });
   };
 
-  const handleDelete = async (row: ServicioRow) => {
-    if (!confirm(`¿Eliminar el servicio "${row.nombre}"? Se hará borrado lógico.`)) return;
-    setDeletingId(row.id);
-    try {
-      await eliminarServicioDB(row.id);
-      toast.success('Servicio eliminado');
-      await fetchServicios();
-    } catch (err) {
-      if (err instanceof Error) console.error('eliminarServicioDB', err);
-      toast.error('No se pudo eliminar el servicio.');
-    } finally {
-      setDeletingId(null);
-    }
+  const handleDelete = (row: ServicioRow) => {
+    setConfirmState({
+      message: `¿Eliminar el servicio "${row.nombre}"? Se hará borrado lógico.`,
+      onConfirm: async () => {
+        setDeletingId(row.id);
+        try {
+          await eliminarServicioDB(row.id);
+          toast.success('Servicio eliminado');
+          await fetchServicios();
+        } catch (err) {
+          if (err instanceof Error) console.error('eliminarServicioDB', err);
+          toast.error('No se pudo eliminar el servicio.');
+        } finally {
+          setDeletingId(null);
+        }
+      },
+    });
   };
 
   const openActivarLocal = (row: ServicioRow) => {
@@ -400,28 +423,14 @@ export default function ServiciosPage() {
     },
     {
       key: 'acciones',
-      label: 'Acciones',
+      label: '',
       searchable: false,
       render: (_val, row) => (
-        <div className={styles.rowActions}>
-          <button
-            type="button"
-            className={styles.linkAction}
-            onClick={() => openActivarLocal(row)}
-            title="Activar en otro local"
-          >
-            + Local
-          </button>
-          <button
-            type="button"
-            className={styles.dangerAction}
-            onClick={() => handleDelete(row)}
-            disabled={deletingId === row.id}
-            title="Eliminar servicio"
-          >
-            {deletingId === row.id ? '…' : 'Eliminar'}
-          </button>
-        </div>
+        <RowActionsMenu actions={[
+          { label: 'Editar', icon: <Pencil size={12} strokeWidth={2} />, onClick: () => openEdit(row) },
+          { label: 'Activar local', icon: <Plus size={12} strokeWidth={2} />, onClick: () => openActivarLocal(row) },
+          { label: 'Eliminar', icon: <Trash2 size={12} strokeWidth={2} />, onClick: () => handleDelete(row), variant: 'danger', disabled: deletingId === row.id },
+        ]} />
       ),
     },
   ];
@@ -473,7 +482,7 @@ export default function ServiciosPage() {
               <div className={styles.filterBar}>
                 {/* Local — requerido */}
                 <div className={styles.filterGroup}>
-                  <label id="lbl-filtro-local" htmlFor="filtro-local" className={`${styles.filterLabel} ${styles.filterRequired}`}>
+                  <label id="lbl-filtro-local" htmlFor="filtro-local" className={styles.filterLabel}>
                     Local
                   </label>
                   <CustomSelect
@@ -583,7 +592,6 @@ export default function ServiciosPage() {
                 loading={loading}
                 error={error}
                 onRefresh={fetchServicios}
-                onEdit={openEdit}
                 getRowKey={(s) => s.id ?? `${s.nombre}-${s.local}-${s.categoria}`}
                 searchPlaceholder="Filtrar resultados locales…"
                 emptyMessage="No se encontraron servicios con los filtros actuales"
@@ -783,6 +791,22 @@ export default function ServiciosPage() {
         {formErrors.submit && (
           <div className={styles.submitError}>{formErrors.submit}</div>
         )}
+      </FormModal>
+
+      {/* ── Modal: Confirmar acción ── */}
+      <FormModal
+        isOpen={confirmState !== null}
+        onClose={() => setConfirmState(null)}
+        title="Confirmar acción"
+        onSubmit={() => {
+          confirmState?.onConfirm();
+          setConfirmState(null);
+        }}
+        submitLabel="Confirmar"
+      >
+        <p style={{ color: 'var(--admin-foreground)', fontSize: '0.9rem', lineHeight: 1.6 }}>
+          {confirmState?.message}
+        </p>
       </FormModal>
 
       {/* ── Modal: Activar en otro local ── */}
