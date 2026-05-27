@@ -18,6 +18,7 @@ interface DataTableProps<T> {
   error?: string | null;
   onRefresh?: () => void;
   onEdit?: (item: T) => void;
+  onRowClick?: (item: T) => void;
   getRowKey: (item: T) => string | number;
   searchPlaceholder?: string;
   emptyMessage?: string;
@@ -32,6 +33,7 @@ export function DataTable<T extends Record<string, unknown>>({
   error,
   onRefresh,
   onEdit,
+  onRowClick,
   getRowKey,
   searchPlaceholder = 'Buscar...',
   emptyMessage = 'No hay datos disponibles',
@@ -189,7 +191,11 @@ export function DataTable<T extends Record<string, unknown>>({
             {/* Data rows */}
             {hasData &&
               filtered.map((row, index) => (
-                <tr key={`${getRowKey(row)}-${index}`}>
+                <tr
+                  key={`${getRowKey(row)}-${index}`}
+                  onClick={() => onRowClick?.(row)}
+                  style={onRowClick ? { cursor: 'pointer' } : undefined}
+                >
                   {columns.map((col) => (
                     <td key={`${col.key}-${index}`}>
                       {col.render

@@ -101,11 +101,11 @@ const KPI_SECONDARY: KpiCard[] = [
 
 const getWeekBars = (resumen: ReservasResumenData) => {
   const values = [
-    { day: 'Lunes', value: resumen.semana.lunes },
-    { day: 'Martes', value: resumen.semana.martes },
-    { day: 'Miércoles', value: resumen.semana.miercoles },
-    { day: 'Jueves', value: resumen.semana.jueves },
-    { day: 'Viernes', value: resumen.semana.viernes },
+    { day: 'Lunes', value: resumen.semana.lunes ?? 0 },
+    { day: 'Martes', value: resumen.semana.martes ?? 0 },
+    { day: 'Miércoles', value: resumen.semana.miercoles ?? 0 },
+    { day: 'Jueves', value: resumen.semana.jueves ?? 0 },
+    { day: 'Viernes', value: resumen.semana.viernes ?? 0 },
   ];
   const max = Math.max(1, ...values.map((bar) => bar.value));
 

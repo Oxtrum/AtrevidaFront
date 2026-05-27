@@ -1,0 +1,345 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.15s var(--admin-ease, ease-out);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal {
+  background: var(--admin-panel-elevated, #15151d);
+  border: 1px solid var(--admin-border-subtle, rgba(255,255,255,0.06));
+  border-radius: var(--admin-radius-xl, 16px);
+  box-shadow:
+    0 25px 60px rgba(0, 0, 0, 0.55),
+    0 0 1px rgba(236, 0, 140, 0.2);
+  width: 100%;
+  max-width: 640px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: scaleIn 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(146, 39, 143, 0.35) transparent;
+}
+
+.modal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    #FFE600 15%,
+    #EC008C 40%,
+    #92278F 60%,
+    #14AEEF 80%,
+    transparent 100%);
+  border-radius: 16px 16px 0 0;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.modal::-webkit-scrollbar {
+  width: 4px;
+}
+
+.modal::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #92278F, #EC008C);
+  border-radius: 4px;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ─── Header ───────────────────────────────────────────────────────────────── */
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--admin-border-subtle, rgba(255,255,255,0.06));
+}
+
+.titleGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--admin-foreground, #fafafa);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.idBadge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  background: rgba(146, 39, 143, 0.12);
+  color: #c084fc;
+  letter-spacing: 0.5px;
+}
+
+.closeButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--admin-text-dim, rgba(245,245,245,0.4));
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  flex-shrink: 0;
+}
+
+.closeButton:hover {
+  background: rgba(236, 0, 140, 0.1);
+  border-color: rgba(236, 0, 140, 0.35);
+  color: #EC008C;
+  transform: rotate(90deg);
+}
+
+/* ─── Body grid ────────────────────────────────────────────────────────────── */
+
+.body {
+  padding: 1.5rem;
+}
+
+.dataGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.625rem 0.875rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  transition: border-color 0.2s ease;
+}
+
+.field:hover {
+  border-color: rgba(146, 39, 143, 0.15);
+}
+
+.fieldFull {
+  grid-column: 1 / -1;
+}
+
+.fieldLabel {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: rgba(245, 245, 245, 0.3);
+}
+
+.fieldValue {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--admin-foreground, #fafafa);
+  word-break: break-word;
+}
+
+.fieldEmpty {
+  color: rgba(245, 245, 245, 0.2);
+  font-style: italic;
+  font-weight: 400;
+}
+
+/* ─── Badges ───────────────────────────────────────────────────────────────── */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.73rem;
+  font-weight: 600;
+  width: fit-content;
+  letter-spacing: 0.3px;
+}
+
+.estadoAgendado {
+  background: rgba(20, 174, 239, 0.12);
+  color: #14AEEF;
+}
+
+.estadoPendiente {
+  background: rgba(250, 204, 21, 0.12);
+  color: #FACC15;
+}
+
+.estadoCompletado {
+  background: rgba(34, 197, 94, 0.12);
+  color: #22C55E;
+}
+
+.estadoRechazado {
+  background: rgba(239, 68, 68, 0.12);
+  color: #EF4444;
+}
+
+.tipoMesa {
+  background: rgba(236, 0, 140, 0.12);
+  color: #EC008C;
+}
+
+.tipoBicicleta {
+  background: rgba(146, 39, 143, 0.12);
+  color: #c084fc;
+}
+
+.notificadoSi {
+  background: rgba(34, 197, 94, 0.1);
+  color: #22C55E;
+}
+
+.notificadoNo {
+  background: rgba(250, 204, 21, 0.1);
+  color: #FACC15;
+}
+
+/* ─── Timestamp row ────────────────────────────────────────────────────────── */
+
+.timestamps {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 1.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  margin-top: 0.25rem;
+}
+
+.timestamp {
+  font-size: 0.7rem;
+  color: rgba(245, 245, 245, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.timestampLabel {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ─── Footer ───────────────────────────────────────────────────────────────── */
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--admin-border-subtle, rgba(255,255,255,0.06));
+}
+
+.editButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--admin-radius-md, 8px);
+  border: none;
+  background: var(--admin-grad-primary, linear-gradient(135deg, #EC008C, #92278F));
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.editButton:hover {
+  filter: saturate(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(236, 0, 140, 0.3);
+}
+
+.deleteButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: var(--admin-radius-md, 8px);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  background: rgba(239, 68, 68, 0.08);
+  color: #EF4444;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.deleteButton:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  transform: translateY(-1px);
+}
+
+.deleteButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ─── Responsive ───────────────────────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+  .dataGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .timestamps {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .footer {
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+  }
+
+  .editButton,
+  .deleteButton {
+    width: 100%;
+    justify-content: center;
+  }
+}

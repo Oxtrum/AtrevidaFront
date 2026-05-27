@@ -24,6 +24,7 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
     horaDesde, horaHasta,
     cliente, setCliente,
     numeroTelefono, setNumeroTelefono,
+    notas, setNotas,
     servicio,
     error, errors,
     slotWarning,
@@ -166,6 +167,16 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
               className={errors.numeroTelefono ? styles.inputError : ''}
             />
             {errors.numeroTelefono && <span className={styles.errorText}>{errors.numeroTelefono}</span>}
+          </div>
+
+          <div className={`${styles.formGroup} ${styles.fullWidth}`}>
+            <label>Notas <span style={{ opacity: 0.4, fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(opcional)</span></label>
+            <textarea
+              value={notas}
+              onChange={e => setNotas(e.target.value)}
+              placeholder="Observaciones sobre la reserva..."
+              rows={3}
+            />
           </div>
 
         </div>

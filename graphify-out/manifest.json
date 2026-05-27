@@ -45,8 +45,8 @@
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/admin/dashboard/page.tsx": {
-    "mtime": 1779381729.9341013,
-    "ast_hash": "5348b501cb1dcfe827289d89a5940efe",
+    "mtime": 1779840687.6661134,
+    "ast_hash": "8c8f71ce3d53400ff1b6690c3a3ae346",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/admin/login/page.tsx": {
@@ -55,8 +55,8 @@
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/admin/reservas/page.tsx": {
-    "mtime": 1779755451.7636871,
-    "ast_hash": "1f689a90e0845404a2552749aea4bea6",
+    "mtime": 1779840566.5700948,
+    "ast_hash": "4ac38762356f70cce03e784ba1e8436c",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/admin/reservas/crear/page.tsx": {
@@ -65,8 +65,8 @@
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/admin/reservas/editar/[id]/page.tsx": {
-    "mtime": 1779496683.8652787,
-    "ast_hash": "67edb4ffc5b82b8f9528802a3907ebab",
+    "mtime": 1779840566.5697312,
+    "ast_hash": "50e075128032afeda51949d4935395a5",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/admin/reservas/aprobacion/page.tsx": {
@@ -95,8 +95,8 @@
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/admin/configuracion/servicios/page.tsx": {
-    "mtime": 1779755320.0746138,
-    "ast_hash": "2f0aafd99cceb382b9b8c37d8e180064",
+    "mtime": 1779840566.569193,
+    "ast_hash": "56303b73f1327942d6f6a4e0585effad",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/api/admin/importar/route.ts": {
@@ -180,8 +180,8 @@
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/AdminReservas/index.ts": {
-    "mtime": 1778185773.9793303,
-    "ast_hash": "42b56c86b2a147b3cd619eced9f95e6d",
+    "mtime": 1779840566.5714014,
+    "ast_hash": "4091a2769b4607660014266d58c1fc78",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/AdminReservas/ReservasTable.tsx": {
@@ -265,8 +265,8 @@
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/Custom/CustomSelectAdmin.tsx": {
-    "mtime": 1779243582.338495,
-    "ast_hash": "e60a9aafdd106236640d14bb33bad354",
+    "mtime": 1779840566.5724385,
+    "ast_hash": "0d2c78400c9ed867214c117355ddbf71",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/Footer/Footer.tsx": {
@@ -370,13 +370,13 @@
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/AdminReservationForm/index.tsx": {
-    "mtime": 1779755320.0758593,
-    "ast_hash": "c856dc297958a1c28daffc4e77414721",
+    "mtime": 1779840566.5720668,
+    "ast_hash": "747d384767ed6a3ece27adb90aa87f47",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/AdminReservationForm/useReservationForm.ts": {
-    "mtime": 1779755320.0758593,
-    "ast_hash": "c82e7cfa9c4f1eb997617ff4f9e10bb4",
+    "mtime": 1779840713.3313487,
+    "ast_hash": "9893fb13b8a35fc922f2b95a0378f934",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/AdminConfig/FormModal.tsx": {
@@ -390,13 +390,13 @@
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/AdminConfig/index.ts": {
-    "mtime": 1778598497.7525308,
-    "ast_hash": "7001e500cb822754f88319d5ee71dcfd",
+    "mtime": 1779840566.571131,
+    "ast_hash": "50da54c9ec6c6d6414dd7b45710eed50",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/AdminConfig/DataTable.tsx": {
-    "mtime": 1779755320.075427,
-    "ast_hash": "ef82a70e744ef02554b1e238cb9feb0a",
+    "mtime": 1779840566.570825,
+    "ast_hash": "d851d75cdafca0d912d3fa911e5cc1cc",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/AdminThemeToggle/AdminThemeToggle.tsx": {
@@ -420,8 +420,8 @@
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/lib/api/reservas.ts": {
-    "mtime": 1779840306.149161,
-    "ast_hash": "c3d3a3752e4b0a779caaa8276e456c19",
+    "mtime": 1779840646.9177337,
+    "ast_hash": "d6d80e586ad68d53431211453d00c2bb",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/lib/api/servicios.ts": {
@@ -485,13 +485,13 @@
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/.claude/settings.json": {
-    "mtime": 1779243582.3363175,
-    "ast_hash": "1af31de766e30f801bc020c927c250d9",
+    "mtime": 1779840566.5685215,
+    "ast_hash": "b148d10f826da56e21262ba1c276d719",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/.claude/settings.local.json": {
-    "mtime": 1779755320.0741215,
-    "ast_hash": "026924566a63b98252b27cd5f67e17b5",
+    "mtime": 1779840566.5685215,
+    "ast_hash": "f2bf11657eb0ab097526cff395379d75",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/.opencode/opencode.json": {
@@ -545,8 +545,8 @@
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/CLAUDE.md": {
-    "mtime": 1779243582.3374112,
-    "ast_hash": "03e3d38ba74cf8886d3d8fc322d9da8a",
+    "mtime": 1779840566.5685215,
+    "ast_hash": "b1b7137ad5e3a45f705a803b31fcfd7f",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/design.md": {
@@ -692,6 +692,16 @@
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/admin/reservas/proximas/page.tsx": {
     "mtime": 1779759057.6385167,
     "ast_hash": "ab6a754d4b08403ba8e89e382af058ee",
+    "semantic_hash": ""
+  },
+  "/home/skully/Progra/Atrevida/AtrevidaFront/components/AdminReservas/ReservaDetailModal.tsx": {
+    "mtime": 1779840566.5714014,
+    "ast_hash": "b3e1621a81ad80e0f8eeaa2de3e6cd90",
+    "semantic_hash": ""
+  },
+  "/home/skully/Progra/Atrevida/AtrevidaFront/components/AdminConfig/RowActionsMenu.tsx": {
+    "mtime": 1779840566.5709908,
+    "ast_hash": "b818eca9a972d2cf7d9523edea5abb75",
     "semantic_hash": ""
   }
 }

@@ -33,6 +33,9 @@ export interface GetReservasDBParams {
   tipo?: ReservaTipoBackend;
   cliente?: string;
   estado?: EstadoReserva;
+  numero_telefono?: string;
+  servicio_solicitado?: string;
+  servicio_confirmado?: string;
 }
 
 export interface GetReservasCalendarioParams {
@@ -47,11 +50,12 @@ export interface GetReservasCalendarioParams {
 
 export interface ReservasResumenSemana {
   total_reservas: number;
-  lunes: number;
-  martes: number;
-  miercoles: number;
-  jueves: number;
-  viernes: number;
+  lunes?: number;
+  martes?: number;
+  miercoles?: number;
+  jueves?: number;
+  viernes?: number;
+  sabado?: number;
 }
 
 export interface ReservasResumenData {
@@ -145,6 +149,9 @@ export async function getReservasDB(params: GetReservasDBParams): Promise<Reserv
       tipo: params.tipo,
       cliente: params.cliente,
       estado: params.estado,
+      numero_telefono: params.numero_telefono,
+      servicio_solicitado: params.servicio_solicitado,
+      servicio_confirmado: params.servicio_confirmado,
     },
   });
 }
@@ -209,6 +216,11 @@ export async function actualizarReservaNotificadoDB(data: ActualizarReservaNotif
     id: data.id,
     notificado: data.notificado,
   });
+}
+
+/** Marca una reserva como notificada o no (PATCH /bd/reservas/notificar). */
+export async function notificarReservaDB(id: number | string, notificado: boolean): Promise<CrearReservaResult> {
+  return apiClient.patch<CrearReservaResult>('/bd/reservas/notificar', { id: Number(id), notificado });
 }
 
 // ─── Helpers (Sheets - DEPRECATED) ─────────────────────────────────────────

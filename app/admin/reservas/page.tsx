@@ -3,18 +3,37 @@
 import { useRef, useEffect, useState, useMemo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import gsap from 'gsap';
-import { DiaSemana, ReservaBD } from '@/types/reserva';
+import { Pencil, Trash2 } from 'lucide-react';
+import { DiaSemana, EstadoReserva, ReservaBD } from '@/types/reserva';
 import { CalendarAdmin } from '@/components/Calendar';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { useReservasFiltradas } from '@/lib/hooks/useReservasFiltradas';
 import type { ReservaTipoBackend } from '@/lib/api/reservas';
-import { ReservasTable } from '@/components/AdminReservas';
+import { DataTable, Column, RowActionsMenu } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { Input } from '@/components/Shared';
 import Header from '@/components/AdminHeader/Header';
 import { eliminarReservaDB } from '@/lib/api/reservas';
 import { toast } from '@/components/Shared/Toast';
+import { ReservaDetailModal } from '@/components/AdminReservas';
 import styles from './page.module.css';
+
+interface ReservaRow extends Record<string, unknown> {
+  id: number;
+  local: string;
+  tipo: string;
+  fecha: string;
+  hora_desde: string;
+  hora_hasta: string;
+  cliente: string;
+  numero_telefono?: string;
+  servicio: string;
+  servicio_solicitado?: string | null;
+  servicio_confirmado?: string | null;
+  precio?: number;
+  notas?: string;
+  estado?: EstadoReserva;
+}
 
 /**
  * AdminReservasPage - Página de gestión de reservas para administrador
@@ -32,11 +51,12 @@ export default function AdminReservasPage() {
   const [vistaActiva, setVistaActiva] = useState<'calendario' | 'lista'>('calendario');
   const [filtroLocal, setFiltroLocal] = useState('SAN MARTIN');
   const [filtroTipo, setFiltroTipo] = useState<ReservaTipoBackend | ''>('');
-  const [filtroCliente, setFiltroCliente] = useState('');
+  const [filtroEstado, setFiltroEstado] = useState<EstadoReserva | ''>('');
 
   const { locales } = useLocales();
-  const { reservas, total, loading, error, fetch: fetchReservas } = useReservasFiltradas();
+  const { reservas, loading, error, fetch: fetchReservas } = useReservasFiltradas();
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [selectedReserva, setSelectedReserva] = useState<ReservaBD | null>(null);
 
   // Inicializar fechas por defecto
   const getInitialFechaDesde = () => {
@@ -61,11 +81,10 @@ export default function AdminReservasPage() {
         fecha_desde: filtroFechaDesde,
         fecha_hasta: filtroFechaHasta,
         tipo: (filtroTipo as 'mesa' | 'bicicleta' | '') || undefined,
-        cliente: filtroCliente || undefined,
-        estado: 'AGENDADO',
+        estado: filtroEstado || undefined,
       });
     }
-  }, [filtroLocal, filtroFechaDesde, filtroFechaHasta, filtroTipo, filtroCliente, fetchReservas]);
+  }, [filtroLocal, filtroFechaDesde, filtroFechaHasta, filtroTipo, filtroEstado, fetchReservas]);
 
   // Verificar autenticación admin
   useEffect(() => {
@@ -134,8 +153,7 @@ export default function AdminReservasPage() {
         fecha_desde: filtroFechaDesde,
         fecha_hasta: filtroFechaHasta,
         tipo: (filtroTipo as 'mesa' | 'bicicleta' | '') || undefined,
-        cliente: filtroCliente || undefined,
-        estado: 'AGENDADO',
+        estado: filtroEstado || undefined,
       });
     } catch (err) {
       if (err instanceof Error) console.error('eliminarReservaDB', err);
@@ -160,6 +178,109 @@ export default function AdminReservasPage() {
     { value: 'bicicleta', label: 'Bicicleta' },
   ];
 
+  const estadoOptions: Array<{ value: EstadoReserva | ''; label: string }> = [
+    { value: '', label: 'Todos' },
+    { value: 'PENDIENTE', label: 'Pendiente' },
+    { value: 'AGENDADO', label: 'Agendado' },
+    { value: 'RECHAZADO', label: 'Rechazado' },
+    { value: 'COMPLETADO', label: 'Completado' },
+  ];
+
+  const ESTADO_COLORS: Record<string, { bg: string; color: string }> = {
+    AGENDADO:   { bg: 'rgba(20,174,239,0.12)',  color: '#14AEEF' },
+    COMPLETADO: { bg: 'rgba(34,197,94,0.12)',   color: '#22C55E' },
+    RECHAZADO:  { bg: 'rgba(239,68,68,0.12)',   color: '#EF4444' },
+    PENDIENTE:  { bg: 'rgba(250,204,21,0.12)',  color: '#FACC15' },
+  };
+
+  const TIPO_COLORS: Record<string, { bg: string; color: string }> = {
+    mesa:      { bg: 'rgba(236,0,140,0.12)', color: '#EC008C' },
+    bicicleta: { bg: 'rgba(146,39,143,0.12)', color: '#92278F' },
+  };
+
+  const columns: Column<ReservaRow>[] = [
+    {
+      key: 'fecha',
+      label: 'Fecha',
+      render: (_v, row) => <span style={{ fontVariantNumeric: 'tabular-nums' }}>{row.fecha as string}</span>,
+    },
+    {
+      key: 'hora_desde',
+      label: 'Hora',
+      searchable: false,
+      render: (_v, row) => (
+        <span style={{ fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+          {row.hora_desde as string} – {row.hora_hasta as string}
+        </span>
+      ),
+    },
+    {
+      key: 'cliente',
+      label: 'Cliente',
+      render: (_v, row) => <span>{(row.cliente as string) || '—'}</span>,
+    },
+    {
+      key: 'tipo',
+      label: 'Tipo',
+      render: (_v, row) => {
+        const t = ((row.tipo as string) || '').toLowerCase();
+        const key = t === 'm' ? 'mesa' : t === 'b' ? 'bicicleta' : t;
+        const c = TIPO_COLORS[key] ?? { bg: 'rgba(255,255,255,0.08)', color: 'inherit' };
+        const label = key === 'mesa' ? 'Mesa' : key === 'bicicleta' ? 'Bicicleta' : key || '—';
+        return (
+          <span style={{ background: c.bg, color: c.color, borderRadius: 6, padding: '2px 8px', fontSize: '0.73rem', fontWeight: 600, whiteSpace: 'nowrap' }}>
+            {label}
+          </span>
+        );
+      },
+    },
+    {
+      key: 'servicio',
+      label: 'Servicio',
+      render: (_v, row) => (
+        <span style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
+          {(row.servicio_confirmado as string) || (row.servicio as string) || (row.servicio_solicitado as string) || 'Por definir'}
+        </span>
+      ),
+    },
+    {
+      key: 'estado',
+      label: 'Estado',
+      searchable: false,
+      render: (_v, row) => {
+        const e = (row.estado as string) || 'PENDIENTE';
+        const c = ESTADO_COLORS[e] ?? { bg: 'rgba(255,255,255,0.08)', color: 'inherit' };
+        return (
+          <span style={{ background: c.bg, color: c.color, borderRadius: 6, padding: '2px 8px', fontSize: '0.73rem', fontWeight: 600, whiteSpace: 'nowrap' }}>
+            {e}
+          </span>
+        );
+      },
+    },
+    {
+      key: 'local',
+      label: 'Local',
+      render: (_v, row) => (
+        <span style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 6, padding: '2px 8px', fontSize: '0.73rem', whiteSpace: 'nowrap' }}>
+          {row.local as string}
+        </span>
+      ),
+    },
+    {
+      key: 'acciones',
+      label: '',
+      searchable: false,
+      render: (_v, row) => (
+        <div onClick={e => e.stopPropagation()}>
+        <RowActionsMenu actions={[
+          { label: 'Editar', icon: <Pencil size={12} strokeWidth={2} />, onClick: () => router.push(`/admin/reservas/editar/${row.id}`) },
+          { label: 'Eliminar', icon: <Trash2 size={12} strokeWidth={2} />, onClick: () => handleDeleteReserva(row as unknown as ReservaBD), variant: 'danger', disabled: deletingId === (row.id as number) },
+        ]} />
+        </div>
+      ),
+    },
+  ];
+
   const handleTipoFiltroChange = (value: string) => {
     setFiltroTipo(value === 'mesa' || value === 'bicicleta' ? value : '');
   };
@@ -172,7 +293,7 @@ export default function AdminReservasPage() {
           <div>
             <h1 className={styles.title}>Gestión de Reservas</h1>
             <p className={styles.subtitle}>
-              Vista detallada de reservas aprobadas. Revisa cliente, horario y tratamiento final confirmado.
+              Vista detallada de reservas. Filtra por local, fecha, estado y tipo.
             </p>
           </div>
 
@@ -208,6 +329,7 @@ export default function AdminReservasPage() {
         </div>
 
         {vistaActiva === 'lista' && (
+          <>
           <div className={styles.filtrosSection}>
             <div className={styles.filtrosRow}>
               <div className={styles.filtroGroup}>
@@ -243,30 +365,46 @@ export default function AdminReservasPage() {
                 />
               </div>
               <div className={styles.filtroGroup}>
-                <label>Cliente</label>
-                <Input
-                  type="text"
-                  value={filtroCliente}
-                  onChange={(e) => setFiltroCliente(e.target.value)}
-                  placeholder="Buscar cliente..."
+                <label>Estado</label>
+                <CustomSelect
+                  value={filtroEstado}
+                  onChange={(v) => setFiltroEstado(v as EstadoReserva | '')}
+                  options={estadoOptions}
                 />
               </div>
             </div>
 
-            <ReservasTable
-              reservas={reservas}
-              total={total}
+          </div>
+            <DataTable<ReservaRow>
+              columns={columns}
+              data={reservas as unknown as ReservaRow[]}
               loading={loading}
               error={error}
-              title="Reservas aprobadas"
-              onDelete={handleDeleteReserva}
-              deletingId={deletingId}
-            />
-          </div>
+              getRowKey={(r) => r.id as number}
+              searchPlaceholder="Buscar cliente, servicio..."
+              emptyMessage="No se encontraron reservas"
+              onRowClick={(row) => setSelectedReserva(row as unknown as ReservaBD)}
+              />
+              </>
+        )}
+
+        {selectedReserva && (
+          <ReservaDetailModal
+            reserva={selectedReserva}
+            onClose={() => setSelectedReserva(null)}
+            onEdit={(r) => {
+              setSelectedReserva(null);
+              router.push(`/admin/reservas/editar/${r.id}`);
+            }}
+            onDelete={(r) => {
+              setSelectedReserva(null);
+              handleDeleteReserva(r);
+            }}
+            deleting={deletingId === selectedReserva.id}
+          />
         )}
 
         {vistaActiva === 'calendario' && (
-          <div ref={calendarRef} className={styles.calendarSection}>
             <CalendarAdmin
               key={pathname}
               localInicial="SAN MARTIN"
@@ -274,7 +412,6 @@ export default function AdminReservasPage() {
               onSucursalChange={handleSucursalChange}
               onSemanaChange={handleSemanaChange}
             />
-          </div>
         )}
       </main>
     </div>

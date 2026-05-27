@@ -3,20 +3,18 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  DiaSemana, SERVICIOS_ADMIN_DISPONIBLES, SUCURSALES,
-  getServiciosAdminPorSucursal, getServiciosAdminPorCategoria, getTipoFromServicio,
-  getTipoBackendFromServicio,
+  DiaSemana, SUCURSALES,
   generarSemanas, getFechasDeSemana, esFechaPasada,
   type ReservaBD,
 } from '@/types/reserva';
 import { useCrearReserva } from '@/lib/hooks/useCrearReserva';
 import { useReservas } from '@/lib/hooks/useReservas';
 import { useLocales } from '@/lib/hooks/useLocales';
+import { getServiciosDB } from '@/lib/api/servicios';
 import { toast } from '../Shared/Toast';
 import { validateReservationForm, } from '@/lib/utils/reservationValidation';
 import { type SlotStatus } from '@/lib/utils/hoursAvailability';
 import { HORAS, DIAS_SEMANA } from '@/lib/constants/reservationForm';
-import { CATEGORIAS_ORDEN } from './constants';
 
 export interface ReservationFormInitialData {
   local?: string;
@@ -78,17 +76,19 @@ export function useReservationForm(
   const [cliente, setCliente] = useState('');
   const [numeroTelefono, setNumeroTelefono] = useState('');
   const [servicio, setServicio] = useState(initialData?.servicio || '');
+  const [notas, setNotas] = useState('');
+  const [serviciosAPI, setServiciosAPI] = useState<Array<{ nombre: string; categoria: string; tipoEspacio: string; costo: string; tiempo: string; requiere_evaluacion: boolean }>>([]);
   const [horaPreestablecida] = useState(!!initialData?.hora_desde); // Marca si hora vino del URL
 
   // Calcular horaHasta cuando hora viene del URL y se selecciona servicio
   useEffect(() => {
     if (!horaPreestablecida || !horaDesde || !servicio) return;
 
-    const servicioInfo = SERVICIOS_ADMIN_DISPONIBLES.find(s => s.value === servicio);
+    const servicioInfo = serviciosAPI.find(s => s.nombre === servicio);
     if (!servicioInfo) return;
 
-    const match = servicioInfo.duracion.match(/(\d+)/);
-    const duracionMin = match ? parseInt(match[1]) : 60;
+    const [hh = 0, mm = 0] = (servicioInfo.tiempo || '01:00').split(':').map(Number);
+    const duracionMin = hh * 60 + mm;
     const duracionSlots = Math.ceil(duracionMin / 60);
 
     const idxInicio = HORAS.indexOf(horaDesde);
@@ -99,7 +99,7 @@ export function useReservationForm(
       }, 0);
       return () => window.clearTimeout(timeoutId);
     }
-  }, [horaPreestablecida, horaDesde, servicio]);
+  }, [horaPreestablecida, horaDesde, servicio, serviciosAPI]);
   // ── Locales dinámicos ─────────────────────────
   // Usar locales dinámicos, si no hay usar SUCURSALES estático
   const sucursalOptions = useMemo(
@@ -125,7 +125,10 @@ export function useReservationForm(
     [semanaActual],
   );
 
-  const tipo = useMemo(() => getTipoFromServicio(servicio), [servicio]);
+  const tipo = useMemo(() => {
+    const svc = serviciosAPI.find(s => s.nombre === servicio);
+    return svc?.tipoEspacio || 'M';
+  }, [servicio, serviciosAPI]);
 
   // Auto-select first non-past day on mount (default 'LUNES' may be in the past mid-week)
   useEffect(() => {
@@ -237,24 +240,35 @@ export function useReservationForm(
   }, [dia, fechasSemana, reservasData, sucursal, tipo, locales]);
 
 
-  // ── Limpiar servicio si cambia sucursal y no aplica ───────────
+  // ── Fetch servicios desde API cuando cambia sucursal ───────────
   useEffect(() => {
-    if (sucursal && servicio) {
-      const info = SERVICIOS_ADMIN_DISPONIBLES.find(s => s.value === servicio);
-      if (info) {
-        const normalizedSucursal = sucursal === 'SAN MARTIN' ? 'CENTRO' : sucursal;
-        if (info.sucursal !== 'ambos' && info.sucursal !== normalizedSucursal) {
-          const timeoutId = window.setTimeout(() => {
-            setServicio('');
-            setHoraDesde('');
-            setHoraHasta('');
-          }, 0);
+    if (!sucursal) { setServiciosAPI([]); return; }
+    let cancelled = false;
+    const fetchSvc = async () => {
+      try {
+        const res = await getServiciosDB({ local: sucursal }) as { data?: { servicios?: typeof serviciosAPI } };
+        if (!cancelled) setServiciosAPI(res?.data?.servicios ?? []);
+      } catch {
+        if (!cancelled) setServiciosAPI([]);
+      }
+    };
+    fetchSvc();
+    return () => { cancelled = true; };
+  }, [sucursal]);
 
-          return () => window.clearTimeout(timeoutId);
-        }
+  // ── Limpiar servicio si cambia sucursal (nuevo local puede no tener ese servicio) ───────────
+  useEffect(() => {
+    if (sucursal && servicio && serviciosAPI.length > 0) {
+      if (!serviciosAPI.some(s => s.nombre === servicio)) {
+        const timeoutId = window.setTimeout(() => {
+          setServicio('');
+          setHoraDesde('');
+          setHoraHasta('');
+        }, 0);
+        return () => window.clearTimeout(timeoutId);
       }
     }
-  }, [sucursal, servicio]);
+  }, [sucursal, servicio, serviciosAPI]);
 
   // ── Días disponibles ───────────────────────────────────
   const diasDisponibles = useMemo(
@@ -270,25 +284,23 @@ export function useReservationForm(
     [fechasSemana],
   );
 
-  // ── Servicios filtrados por sucursal ───────────────────────────
-  const serviciosFiltrados = getServiciosAdminPorSucursal(sucursal);
-  const serviciosPorCategoria = getServiciosAdminPorCategoria(serviciosFiltrados);
-  const categoriasDisponibles = CATEGORIAS_ORDEN.filter(
-    c => serviciosPorCategoria[c]?.length > 0,
-  );
-
   // ── Select options ─────────────────────────────────────
   const semanaOptions = semanasDisponibles.map((s, idx) => ({
     value: String(idx),
     label: s.titulo,
   }));
-  const servicioGroups = categoriasDisponibles.map(cat => ({
-    label: cat,
-    options: serviciosPorCategoria[cat].map(s => ({
-      value: s.value,
-      label: `${s.label} — ${s.duracion} — ${s.costo}`,
-    })),
-  }));
+  const servicioGroups = useMemo(() => {
+    const byCategory = new Map<string, Array<{ value: string; label: string }>>();
+    for (const s of serviciosAPI) {
+      const cat = s.categoria || 'Otros';
+      if (!byCategory.has(cat)) byCategory.set(cat, []);
+      byCategory.get(cat)!.push({
+        value: s.nombre,
+        label: `${s.nombre} — ${s.tiempo || ''} — Bs ${s.costo || 0}`,
+      });
+    }
+    return Array.from(byCategory.entries()).map(([label, options]) => ({ label, options }));
+  }, [serviciosAPI]);
 
   // ── Handlers ───────────────────────────────────────────
   const handleSemanaChange = (value: string) => {
@@ -372,27 +384,27 @@ export function useReservationForm(
     if (!validate()) return;
 
     setError(null);
-    const tipoBackend = getTipoBackendFromServicio(servicio);
     const horaDesdeNorm = normalizarHora(horaDesde);
     const horaHastaNorm = normalizarHora(horaHasta);
 
       try {
-        const servicioInfo = SERVICIOS_ADMIN_DISPONIBLES.find(s => s.value === servicio);
-        const servicioLabel = servicioInfo?.label || servicio;
+        const servicioInfo = serviciosAPI.find(s => s.nombre === servicio);
+        const reqEval = servicioInfo?.requiere_evaluacion ?? true;
+        const tipoBody = (servicioInfo?.tipoEspacio === 'B' ? 'B' : 'M') as 'M' | 'B';
         const payload = {
           local: sucursal,
           fecha: fechaISO,
           hora_desde: horaDesdeNorm,
           hora_hasta: horaHastaNorm,
-          tipo: tipoBackend,
+          tipo: tipoBody,
           cliente,
           numero_telefono: '+591' + numeroTelefono.replace(/\D/g, ''),
-          servicio: servicioLabel,
-          servicio_solicitado: servicioLabel,
-          servicio_confirmado: servicioLabel,
-          precio: servicioInfo?.precio ?? 0,
-          notas: '',
-          estado: 'AGENDADO' as const,
+          servicio,
+          servicio_solicitado: servicio,
+          servicio_confirmado: reqEval ? null : servicio,
+          precio: servicioInfo ? Number(servicioInfo.costo) || 0 : 0,
+          notas: notas || undefined,
+          estado: reqEval ? 'PENDIENTE' as const : 'AGENDADO' as const,
         };
 
         await crearReserva(payload);
@@ -416,6 +428,7 @@ export function useReservationForm(
     horaDesde, horaHasta,
     cliente, setCliente,
     numeroTelefono, setNumeroTelefono,
+    notas, setNotas,
     servicio,
     error, errors,
     slotWarning,
