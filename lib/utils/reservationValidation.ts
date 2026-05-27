@@ -4,6 +4,7 @@
  */
 
 import type { DiaSemana, EstadoReserva } from '@/types/reserva';
+import { getSaturdayClosingTime, isSlotOutsideBusinessHours, timeToMinutes } from '@/lib/constants/reservationForm';
 
 export function normalizeBolivianPhone(raw: string): string {
   const digits = raw.replace(/\D/g, '');
@@ -29,13 +30,6 @@ interface ReservaPayload {
   estado: EstadoReserva;
 }
 
-const SATURDAY_LAST_ALLOWED_END_MINUTES = 12 * 60;
-
-function timeToMinutes(time: string): number {
-    const [hh, mm] = time.split(':').map(Number);
-    return (hh || 0) * 60 + (mm || 0);
-}
-
 export function getReservationDateRestriction(fecha: string): string | null {
     if (!fecha) return null;
 
@@ -47,13 +41,14 @@ export function getReservationDateRestriction(fecha: string): string | null {
     }
 
     if (day === 6) {
-        return 'Los sábados atendemos solo por la mañana.';
+        return 'Los sábados tienen horario reducido según sucursal.';
     }
 
     return null;
 }
 
 export function getReservationSlotRestriction(
+    sucursal: string,
     fecha: string,
     horaDesde: string,
     horaHasta: string,
@@ -68,11 +63,8 @@ export function getReservationSlotRestriction(
     }
 
     if (day === 6 && horaDesde && horaHasta) {
-        const desdeMin = timeToMinutes(horaDesde);
-        const hastaMin = timeToMinutes(horaHasta);
-
-        if (desdeMin >= SATURDAY_LAST_ALLOWED_END_MINUTES || hastaMin > SATURDAY_LAST_ALLOWED_END_MINUTES) {
-            return 'Los sábados solo se puede reservar en horarios de mañana.';
+        if (isSlotOutsideBusinessHours(sucursal, date, horaDesde, horaHasta)) {
+            return `Los sábados en ${sucursal} solo se puede reservar hasta las ${getSaturdayClosingTime(sucursal)}.`;
         }
     }
 
@@ -133,7 +125,7 @@ export function validateReservationForm(
     } else if (timeToMinutes(horaDesde) >= timeToMinutes(horaHasta)) {
         errors.horaHasta = 'La hora de fin debe ser mayor a la de inicio';
     } else if (!skipSlotRestrictions) {
-        const slotRestriction = getReservationSlotRestriction(fecha, horaDesde, horaHasta);
+        const slotRestriction = getReservationSlotRestriction(sucursal, fecha, horaDesde, horaHasta);
         if (slotRestriction) {
             errors.horaDesde = slotRestriction;
         }

@@ -14,7 +14,7 @@ import { getServiciosDB } from '@/lib/api/servicios';
 import { toast } from '../Shared/Toast';
 import { validateReservationForm, } from '@/lib/utils/reservationValidation';
 import { type SlotStatus } from '@/lib/utils/hoursAvailability';
-import { HORAS, DIAS_SEMANA } from '@/lib/constants/reservationForm';
+import { HORAS, DIAS_SEMANA, isSlotOutsideBusinessHours } from '@/lib/constants/reservationForm';
 
 export interface ReservationFormInitialData {
   local?: string;
@@ -171,8 +171,17 @@ export function useReservationForm(
       map.set(hora, 'free');
     }
 
-    // 2. Marcar horas pasadas
+    // 2. Aplicar reglas de atención por sucursal
     const fechaDia = fechasSemana?.get(dia)?.fecha ?? null;
+    if (fechaDia) {
+      for (const hora of HORAS) {
+        if (isSlotOutsideBusinessHours(sucursal, fechaDia, hora)) {
+          map.set(hora, 'closed');
+        }
+      }
+    }
+
+    // 3. Marcar horas pasadas
     if (fechaDia) {
       const hoy = new Date();
       const hoyMid = new Date(hoy);
@@ -186,15 +195,15 @@ export function useReservationForm(
         const slotMin = hh * 60 + mm;
         const ahoraMin = hoy.getHours() * 60 + hoy.getMinutes();
 
-        if (fechaDiaStr < hoyStr || (fechaDiaStr === hoyStr && slotMin < ahoraMin)) {
+        if (map.get(hora) !== 'closed' && (fechaDiaStr < hoyStr || (fechaDiaStr === hoyStr && slotMin < ahoraMin))) {
           map.set(hora, 'past');
-        } else if (fechaDia.getTime() < hoyMid.getTime()) {
+        } else if (map.get(hora) !== 'closed' && fechaDia.getTime() < hoyMid.getTime()) {
           map.set(hora, 'past');
         }
       }
     }
 
-    // 3. Marcar horas ocupadas basado en reservasData y capacidad
+    // 4. Marcar horas ocupadas basado en reservasData y capacidad
     if (reservasData?.data?.reservas && fechaDia && sucursal && tipo) {
       const fechaDiaStr = fechaDia.toISOString().split('T')[0];
       const currentLocal = locales.find(l => l.nombre === sucursal);
@@ -230,7 +239,7 @@ export function useReservationForm(
 
       // Marcar como ocupado solo si se alcanza la capacidad máxima
       for (const [hora, conteo] of conteoPorHora.entries()) {
-        if (conteo >= capacidadMaxima && map.get(hora) !== 'past') {
+        if (conteo >= capacidadMaxima && map.get(hora) !== 'past' && map.get(hora) !== 'closed') {
           map.set(hora, 'occupied');
         }
       }
@@ -367,6 +376,8 @@ export function useReservationForm(
     // para permitir cambios de último minuto si hay slots disponibles
     if (horaDesde && hoursAvailability.get(horaDesde) === 'past') {
       e.horaDesde = 'No se pueden hacer reservas en horarios pasados';
+    } else if (horaDesde && hoursAvailability.get(horaDesde) === 'closed') {
+      e.horaDesde = 'Ese horario está fuera de atención';
     }
     setErrors(e);
     return Object.keys(e).length === 0;

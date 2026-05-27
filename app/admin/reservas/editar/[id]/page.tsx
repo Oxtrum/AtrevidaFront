@@ -10,7 +10,7 @@ import { getServiciosDB } from '@/lib/api/servicios';
 import { useReservas } from '@/lib/hooks/useReservas';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { DiaSemana, EstadoReserva, ReservaBD, generarSemanas, getFechasDeSemana, esFechaPasada } from '@/types/reserva';
-import { HORAS, DIAS_SEMANA } from '@/lib/constants/reservationForm';
+import { HORAS, DIAS_SEMANA, isSlotOutsideBusinessHours } from '@/lib/constants/reservationForm';
 import { DaySelector } from '@/components/AdminReservationForm/DaySelector';
 import { TimeSlotPicker } from '@/components/AdminReservationForm/TimeSlotPicker';
 import { ServiceSelect } from '@/components/AdminReservationForm/ServiceSelect';
@@ -124,7 +124,9 @@ function EditarReservaContent() {
     const map = new Map<string, SlotStatus>();
     const hoy = new Date();
 
-    // 1. Marcar pasados
+    const fechaSeleccionada = nuevaFecha ? new Date(`${nuevaFecha}T00:00:00`) : null;
+
+    // 1. Marcar fuera de atención y pasados
     for (const hora of HORAS) {
       const [hh, mm] = hora.split(':').map(Number);
       const slotMin = hh * 60 + mm;
@@ -133,7 +135,9 @@ function EditarReservaContent() {
       const fechaDiaStr = nuevaFecha;
       const hoyStr = new Date().toLocaleDateString('en-CA');
 
-      if (fechaDiaStr < hoyStr || (fechaDiaStr === hoyStr && slotMin < ahoraMin)) {
+      if (reserva?.local && fechaSeleccionada && isSlotOutsideBusinessHours(reserva.local, fechaSeleccionada, hora)) {
+        map.set(hora, 'closed');
+      } else if (fechaDiaStr < hoyStr || (fechaDiaStr === hoyStr && slotMin < ahoraMin)) {
         map.set(hora, 'past');
       } else {
         map.set(hora, 'free');
@@ -172,7 +176,7 @@ function EditarReservaContent() {
       }
 
       for (const [hora, conteo] of conteoPorHora.entries()) {
-        if (conteo >= capacidadMaxima && map.get(hora) !== 'past') {
+        if (conteo >= capacidadMaxima && map.get(hora) !== 'past' && map.get(hora) !== 'closed') {
           map.set(hora, 'occupied');
         }
       }

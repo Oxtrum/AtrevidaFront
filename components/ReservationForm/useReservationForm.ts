@@ -19,7 +19,7 @@ import {
   validateReservationForm,
 } from '@/lib/utils/reservationValidation';
 import { type SlotStatus } from '@/lib/utils/hoursAvailability';
-import { HORAS, DIAS_SEMANA } from '@/lib/constants/reservationForm';
+import { HORAS, DIAS_SEMANA, isSlotOutsideBusinessHours } from '@/lib/constants/reservationForm';
 import { CATEGORIAS_ORDEN } from './constants';
 
 export interface ReservationFormInitialData {
@@ -53,11 +53,6 @@ function getWeekIndexForDate(fechaISO: string, semanas: ReturnType<typeof genera
 function getDateDay(fechaISO: string) {
   if (!fechaISO) return null;
   return new Date(`${fechaISO}T00:00:00`).getDay();
-}
-
-function getMinutesFromHour(hora: string) {
-  const [hh, mm] = hora.split(':').map(Number);
-  return (hh || 0) * 60 + (mm || 0);
 }
 
 export function useReservationForm(
@@ -206,7 +201,7 @@ export function useReservationForm(
       map.set(hora, 'free');
     }
 
-    // 2. Aplicar reglas de atención: domingos cerrado, sábados solo mañana.
+    // 2. Aplicar reglas de atención por sucursal.
     const selectedDay = getDateDay(fecha);
     if (selectedDay === 0) {
       for (const hora of HORAS) {
@@ -216,8 +211,9 @@ export function useReservationForm(
     }
 
     if (selectedDay === 6) {
+      const fechaDia = new Date(`${fecha}T00:00:00`);
       for (const hora of HORAS) {
-        if (getMinutesFromHour(hora) >= 12 * 60) {
+        if (isSlotOutsideBusinessHours(sucursal, fechaDia, hora)) {
           map.set(hora, 'closed');
         }
       }

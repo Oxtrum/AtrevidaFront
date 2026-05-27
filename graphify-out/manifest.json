@@ -5,12 +5,12 @@
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/next.config.ts": {
-    "mtime": 1778371232.4835172,
+    "mtime": 1779922834.043603,
     "ast_hash": "09afcf0e932f00918e36ed1827fbf7c6",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/package.json": {
-    "mtime": 1778185773.9819903,
+    "mtime": 1779922834.0449262,
     "ast_hash": "b335c251297f5867c60280008f56cdd3",
     "semantic_hash": ""
   },
@@ -20,7 +20,7 @@
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/skills-lock.json": {
-    "mtime": 1778428207.646467,
+    "mtime": 1779922834.4348054,
     "ast_hash": "407d3824619c5fe0be412cce0871bdfa",
     "semantic_hash": ""
   },
@@ -30,512 +30,512 @@
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/page.tsx": {
-    "mtime": 1779922503.5754862,
+    "mtime": 1779922834.0288951,
     "ast_hash": "b649824a56983cb7a68de7c7cd77f8a4",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/layout.tsx": {
-    "mtime": 1779922466.1761413,
+    "mtime": 1779922834.0288951,
     "ast_hash": "b651f62fb6d9b58bb5ca5ebcdd8768ff",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/robots.ts": {
-    "mtime": 1779922487.060897,
+    "mtime": 1779922834.0302958,
     "ast_hash": "495027f27de0971c8832b88dd4abab76",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/sitemap.ts": {
-    "mtime": 1779922493.417634,
+    "mtime": 1779922834.03035,
     "ast_hash": "975010a18a981b92606479ee128db3e7",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/admin/layout.tsx": {
-    "mtime": 1779922650.0817466,
+    "mtime": 1779922834.0256412,
     "ast_hash": "8e7fbc80ade978e57bd11881820713f8",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/admin/dashboard/page.tsx": {
-    "mtime": 1779840687.6661134,
+    "mtime": 1779922834.0256412,
     "ast_hash": "8c8f71ce3d53400ff1b6690c3a3ae346",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/admin/login/page.tsx": {
-    "mtime": 1779080716.9136512,
+    "mtime": 1779922834.0259163,
     "ast_hash": "603b8a75e174ccc4ccb956350c53497c",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/admin/reservas/page.tsx": {
-    "mtime": 1779840566.5700948,
+    "mtime": 1779922834.0270832,
     "ast_hash": "4ac38762356f70cce03e784ba1e8436c",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/admin/reservas/crear/page.tsx": {
-    "mtime": 1778603069.3315926,
+    "mtime": 1779922834.026578,
     "ast_hash": "5eb8e0695c020b4cc6111e2006c0e90f",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/admin/reservas/editar/[id]/page.tsx": {
-    "mtime": 1779840566.5697312,
-    "ast_hash": "50e075128032afeda51949d4935395a5",
+    "mtime": 1779924341.6600902,
+    "ast_hash": "88b180da943c6582b6d21e7b754a2725",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/admin/reservas/aprobacion/page.tsx": {
-    "mtime": 1779841150.6320148,
+    "mtime": 1779922834.0263956,
     "ast_hash": "1c600b0ca172c24f68b2b048bfc2cc11",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/admin/reservas/proximas/page.tsx": {
-    "mtime": 1779759057.6385167,
+    "mtime": 1779922834.0273159,
     "ast_hash": "ab6a754d4b08403ba8e89e382af058ee",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/admin/configuracion/page.tsx": {
-    "mtime": 1779917410.7910576,
+    "mtime": 1779922834.0250742,
     "ast_hash": "f0ec455ae64ec14c6bcece1b67c1ed89",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/admin/configuracion/categorias/page.tsx": {
-    "mtime": 1778603069.3249192,
+    "mtime": 1779922834.0229836,
     "ast_hash": "e847fe03270833c85d5a1178313bbea3",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/admin/configuracion/locales/page.tsx": {
-    "mtime": 1779082750.6549902,
+    "mtime": 1779922834.0249333,
     "ast_hash": "b1a41daf5e796b7bff35acaa4d270d93",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/admin/configuracion/locales/[id]/page.tsx": {
-    "mtime": 1779755320.0741215,
+    "mtime": 1779922834.0246572,
     "ast_hash": "ec719fea2cb1c5eb21905ed633641f07",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/admin/configuracion/servicios/page.tsx": {
-    "mtime": 1779840566.569193,
+    "mtime": 1779922834.0253315,
     "ast_hash": "56303b73f1327942d6f6a4e0585effad",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/admin/configuracion/combos/page.tsx": {
-    "mtime": 1779917410.7910576,
+    "mtime": 1779922834.0242093,
     "ast_hash": "59fa0b10fc57fa44909ea963ce59f2c8",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/api/admin/importar/route.ts": {
-    "mtime": 1778185773.9775798,
+    "mtime": 1779922834.0275517,
     "ast_hash": "723edac7354864a4ae9df22f0776bb47",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/api/admin/login/route.ts": {
-    "mtime": 1778185773.9775798,
+    "mtime": 1779922834.0275517,
     "ast_hash": "10d220c2536376e0922d9345a093c46c",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/api/bd/combos/route.ts": {
-    "mtime": 1778185773.9777212,
+    "mtime": 1779922834.0278268,
     "ast_hash": "2bb64707fc3388b762ca1d2d9ca53dae",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/api/bd/locales/route.ts": {
-    "mtime": 1778598497.7521052,
+    "mtime": 1779922834.0279946,
     "ast_hash": "1093057a5ffff5da1c61b2f09dad8b50",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/api/bd/locales/[id]/route.ts": {
-    "mtime": 1778598497.7521052,
+    "mtime": 1779922834.0279045,
     "ast_hash": "3e0b64ecc3136ba2b6cd8cecb88167bf",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/api/bd/reservas/route.ts": {
-    "mtime": 1779245676.2813563,
+    "mtime": 1779922834.0280843,
     "ast_hash": "bfcfa61bfb7d16ebbc4a4f0ba8404f07",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/api/bd/reservas/calendario/route.ts": {
-    "mtime": 1778185773.9778326,
+    "mtime": 1779922834.0280843,
     "ast_hash": "6bbccf6d4ff41c6ab64ab0eb3949511c",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/api/bd/servicios/route.ts": {
-    "mtime": 1778598497.752323,
+    "mtime": 1779922834.0283654,
     "ast_hash": "ff517af3663b0d1d88ce7b1b029235e3",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/api/bd/servicios/[id]/route.ts": {
-    "mtime": 1778598497.752323,
+    "mtime": 1779922834.0282505,
     "ast_hash": "72580bfb96289b733e403e194f3f6d0c",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/api/bd/servicios/local/[id]/route.ts": {
-    "mtime": 1779243582.3382776,
+    "mtime": 1779922834.0283654,
     "ast_hash": "e34718e8c7f92a8f2f3de54e6eca6625",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/api/bd/categorias/route.ts": {
-    "mtime": 1778598497.7517483,
+    "mtime": 1779922834.0275517,
     "ast_hash": "081c53dcaea5f6dde8ed27c485bd4080",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/api/reservas/route.ts": {
-    "mtime": 1779245769.5059626,
+    "mtime": 1779922834.028568,
     "ast_hash": "e4e8063e31e8365659c1ae712bf9765d",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/reservas/ReservasLanding.tsx": {
-    "mtime": 1779922586.339038,
+    "mtime": 1779922834.0288951,
     "ast_hash": "8a2b0bbfed0478478184fec6fe4d6535",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/reservas/page.tsx": {
-    "mtime": 1779922657.1900408,
+    "mtime": 1779922834.0302246,
     "ast_hash": "64925ef4c49690c882a98048961a385f",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/app/reservas/crear/page.tsx": {
-    "mtime": 1779922482.195722,
+    "mtime": 1779922834.0298927,
     "ast_hash": "2e8582ab461f0000663741380ed7cc9e",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/AdminHeader/Header.tsx": {
-    "mtime": 1779758519.7908876,
+    "mtime": 1779922834.0321698,
     "ast_hash": "77703c2c3a074d4397d818806ab37625",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/AdminReservas/ReservasTable.tsx": {
-    "mtime": 1779755458.9058297,
+    "mtime": 1779922834.0329015,
     "ast_hash": "9732453c29664ba1efa20b2a5da3e86f",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/AdminReservas/ReservaDetailModal.tsx": {
-    "mtime": 1779840566.5714014,
+    "mtime": 1779922834.032742,
     "ast_hash": "b3e1621a81ad80e0f8eeaa2de3e6cd90",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/AdminReservas/index.ts": {
-    "mtime": 1779840566.5714014,
+    "mtime": 1779922834.0329015,
     "ast_hash": "4091a2769b4607660014266d58c1fc78",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/Calendar/CalendarGrid.tsx": {
-    "mtime": 1778379474.18925,
+    "mtime": 1779922834.0346634,
     "ast_hash": "85b18e30c944168c63c71b401a47b3e3",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/Calendar/ReservationCard.tsx": {
-    "mtime": 1778185773.9795144,
+    "mtime": 1779922834.0348992,
     "ast_hash": "5434a6aeaeb9f3ea61a042e0cf96f115",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/Calendar/SlotBadges.tsx": {
-    "mtime": 1778380156.261948,
+    "mtime": 1779922834.0349462,
     "ast_hash": "5efdde9703359b97e4a26835e5a8aedc",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/Calendar/TimeSlot.tsx": {
-    "mtime": 1778185773.9795144,
+    "mtime": 1779922834.0349462,
     "ast_hash": "1fcf439393a5f9e9859e351ed59ce967",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/Calendar/TimeSlotAdmin.tsx": {
-    "mtime": 1778380173.2282135,
+    "mtime": 1779922834.0350866,
     "ast_hash": "eac116ce67f2ed48dc5f292209451188",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/Calendar/TimeSlotPublico.tsx": {
-    "mtime": 1778380166.2061036,
+    "mtime": 1779922834.035387,
     "ast_hash": "b278180ee574b2b60f1dc847905dddb8",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/Calendar/index.ts": {
-    "mtime": 1778185773.9795144,
+    "mtime": 1779922834.035387,
     "ast_hash": "b95385d0b5ac6ecb9dcc964b83a88e59",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/Calendar/Calendar.tsx": {
-    "mtime": 1778371311.0341904,
+    "mtime": 1779922834.0342069,
     "ast_hash": "457667614500ff8d453defbcafcdc208",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/Calendar/CalendarPublico.tsx": {
-    "mtime": 1778426730.6768699,
+    "mtime": 1779922834.0348294,
     "ast_hash": "abfff95897acb6c2c822bab436caf1e0",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/Calendar/CalendarAdmin.tsx": {
-    "mtime": 1779080832.5578034,
+    "mtime": 1779922834.034545,
     "ast_hash": "5c03a0037ec02a048db36787b52afb61",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/Calendar/CalendarGridAdmin.tsx": {
-    "mtime": 1779080832.5578034,
+    "mtime": 1779922834.034723,
     "ast_hash": "3b6a2384f09edd77e9b4381d2dbe6e0d",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/Calendar/TimeSlotAdminAdmin.tsx": {
-    "mtime": 1779080832.5588033,
+    "mtime": 1779922834.0352664,
     "ast_hash": "312b82c4d40b18310463480d4aba54f1",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/Contacto/Contacto.tsx": {
-    "mtime": 1779755320.0760887,
+    "mtime": 1779922834.0356693,
     "ast_hash": "d3ba72603630a874f5bcffb9ded38892",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/CtaBanner/CtaBanner.tsx": {
-    "mtime": 1779755320.0761855,
+    "mtime": 1779922834.035829,
     "ast_hash": "fda13d0125a34e7149df0105e9e034d1",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/Custom/CustomSelect.tsx": {
-    "mtime": 1778427752.954911,
+    "mtime": 1779922834.0359962,
     "ast_hash": "7d5000f49eb3e68731c8051b476b1f9e",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/Custom/CustomSelectAdmin.tsx": {
-    "mtime": 1779840566.5724385,
+    "mtime": 1779922834.0360978,
     "ast_hash": "0d2c78400c9ed867214c117355ddbf71",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/Footer/Footer.tsx": {
-    "mtime": 1779248800.8773947,
-    "ast_hash": "190cfcfd146818660e0855ba8fc7a87f",
+    "mtime": 1779923343.0421083,
+    "ast_hash": "668258aeb8f2ad8e6f767331bf2530f0",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/Header/Header.tsx": {
-    "mtime": 1779298953.527759,
+    "mtime": 1779922834.036548,
     "ast_hash": "56feafff7d8758f2d0122e8046cc1a89",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/Hero/Hero.tsx": {
-    "mtime": 1779325758.9939792,
-    "ast_hash": "47fa0a9af35dc346c6df1966ec750d23",
+    "mtime": 1779923343.038108,
+    "ast_hash": "328ed2b9ca4ae959ea210f48259164f6",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/Nosotros/Nosotros.tsx": {
-    "mtime": 1779755320.0762823,
+    "mtime": 1779922834.036932,
     "ast_hash": "9422507cd005b5e5d5d05456cba3f38a",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/ReservationForm/DaySelector.tsx": {
-    "mtime": 1778185773.9806933,
+    "mtime": 1779922834.036932,
     "ast_hash": "d263c9d176d51cc833424e456b2a9253",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/ReservationForm/ServiceSelect.tsx": {
-    "mtime": 1778185773.9807944,
+    "mtime": 1779922834.0372798,
     "ast_hash": "6ffa4c54ea9e9a6301f7313b61526358",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/ReservationForm/TimeSlotPicker.tsx": {
-    "mtime": 1779299164.7446933,
+    "mtime": 1779922834.0373232,
     "ast_hash": "d0d96eef5c54b99a489b39498e4ffbed",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/ReservationForm/constants.ts": {
-    "mtime": 1779324292.798122,
+    "mtime": 1779922834.0373232,
     "ast_hash": "0a5d26136adc911e8b57d98cb0961ef7",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/ReservationForm/index.tsx": {
-    "mtime": 1779756369.9916997,
+    "mtime": 1779922834.0373232,
     "ast_hash": "5cd248f4debc8715644abca823e110f2",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/ReservationForm/useReservationForm.ts": {
-    "mtime": 1779756360.927112,
-    "ast_hash": "4b9ee85f49eb3d42f34ef9874fd37d76",
+    "mtime": 1779923988.8181098,
+    "ast_hash": "d007ed7f0d4c43fa825e23459623726f",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/Servicios/Servicios.tsx": {
-    "mtime": 1779248659.780513,
+    "mtime": 1779922834.0376525,
     "ast_hash": "ce216d2c024093dbb0e990b2ed164223",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/Shared/Button.tsx": {
-    "mtime": 1778185773.9811304,
+    "mtime": 1779922834.03781,
     "ast_hash": "9d1c520449d2a50cdaac7a7c55b10007",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/Shared/Input.tsx": {
-    "mtime": 1778185773.9812365,
+    "mtime": 1779922834.03781,
     "ast_hash": "b05b52bec66f25a7ab1f38a9111eb4c0",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/Shared/index.ts": {
-    "mtime": 1778185773.9812365,
+    "mtime": 1779922834.038045,
     "ast_hash": "9c4089d5c341a9b875b5a88d67e6a4fd",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/Shared/Toast.tsx": {
-    "mtime": 1778384216.7345054,
+    "mtime": 1779922834.0379474,
     "ast_hash": "5507e39674dc79ee248413f39d277932",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/Testimonios/Testimonios.tsx": {
-    "mtime": 1779755320.0769002,
+    "mtime": 1779922834.0381808,
     "ast_hash": "52175a7b3c9b016b7a4d810aad1bc1c3",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/AdminReservationForm/DaySelector.tsx": {
-    "mtime": 1778430247.6659942,
+    "mtime": 1779922834.033047,
     "ast_hash": "d263c9d176d51cc833424e456b2a9253",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/AdminReservationForm/ServiceSelect.tsx": {
-    "mtime": 1778431931.1805344,
+    "mtime": 1779922834.0332344,
     "ast_hash": "79b3bebe2abdf3e0d046e4b93d7185c2",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/AdminReservationForm/TimeSlotPicker.tsx": {
-    "mtime": 1779080161.2835083,
-    "ast_hash": "c3f8a89290cd74d4e1eba2e3d2a8800c",
+    "mtime": 1779924038.3772416,
+    "ast_hash": "9f906d6cc1e731ee94499d5b8015ddd8",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/AdminReservationForm/constants.ts": {
-    "mtime": 1779324297.3682146,
+    "mtime": 1779922834.0333664,
     "ast_hash": "0a5d26136adc911e8b57d98cb0961ef7",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/AdminReservationForm/index.tsx": {
-    "mtime": 1779840566.5720668,
+    "mtime": 1779922834.03352,
     "ast_hash": "747d384767ed6a3ece27adb90aa87f47",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/AdminReservationForm/useReservationForm.ts": {
-    "mtime": 1779840713.3313487,
-    "ast_hash": "9893fb13b8a35fc922f2b95a0378f934",
+    "mtime": 1779924001.4161325,
+    "ast_hash": "bfeae2bae91931686b8573a25b85efba",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/AdminConfig/FormModal.tsx": {
-    "mtime": 1778598497.7525308,
+    "mtime": 1779922834.0314531,
     "ast_hash": "9902953bc5e6c5deaeed89966c7eb3a9",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/AdminConfig/PageHeader.tsx": {
-    "mtime": 1778598497.7525308,
+    "mtime": 1779922834.0317752,
     "ast_hash": "d5fb758b7cb3df9e149439f9b081a8fc",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/AdminConfig/DataTable.tsx": {
-    "mtime": 1779840566.570825,
+    "mtime": 1779922834.0314531,
     "ast_hash": "d851d75cdafca0d912d3fa911e5cc1cc",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/AdminConfig/RowActionsMenu.tsx": {
-    "mtime": 1779840566.5709908,
+    "mtime": 1779922834.0317752,
     "ast_hash": "b818eca9a972d2cf7d9523edea5abb75",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/AdminConfig/index.ts": {
-    "mtime": 1779840566.571131,
+    "mtime": 1779922834.0317752,
     "ast_hash": "50da54c9ec6c6d6414dd7b45710eed50",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/AdminThemeToggle/AdminThemeToggle.tsx": {
-    "mtime": 1779081704.1095433,
+    "mtime": 1779922834.033955,
     "ast_hash": "c29709b07d6fa3b15e018af214a5702b",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/components/WhatsappFab/WhatsappFab.tsx": {
-    "mtime": 1779244316.434342,
+    "mtime": 1779922834.0383406,
     "ast_hash": "5bd0cfa7cc4515de6f7d899ec20c8482",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/lib/seo.ts": {
-    "mtime": 1779922453.1886647,
+    "mtime": 1779922834.0431666,
     "ast_hash": "99bd2f98aff8c0765f9c0bd4132350c6",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/lib/api/index.ts": {
-    "mtime": 1778185773.981573,
+    "mtime": 1779922834.0426812,
     "ast_hash": "d56166d3e8a796cd758d65e386ce64d4",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/lib/api/client.ts": {
-    "mtime": 1779755320.0806265,
+    "mtime": 1779922834.0426812,
     "ast_hash": "d4329c510d63b6adbe944f239046b606",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/lib/api/reservas.ts": {
-    "mtime": 1779840646.9177337,
+    "mtime": 1779922834.042759,
     "ast_hash": "d6d80e586ad68d53431211453d00c2bb",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/lib/api/servicios.ts": {
-    "mtime": 1779917410.794246,
+    "mtime": 1779922834.0428042,
     "ast_hash": "336909e0a0108501bf2a7e8eb9638489",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/lib/constants/reservationForm.ts": {
-    "mtime": 1778378954.0953496,
-    "ast_hash": "b3af201fe60628f37b871e662ba6e757",
+    "mtime": 1779923970.602091,
+    "ast_hash": "74d3103df81db94f16ae50e8dee5f23d",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/lib/hooks/index.ts": {
-    "mtime": 1778185773.981573,
+    "mtime": 1779922834.0429296,
     "ast_hash": "61f9962eb18618b8f2f873b48f3ea18d",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/lib/hooks/useLocales.ts": {
-    "mtime": 1778380586.0278597,
+    "mtime": 1779922834.0429666,
     "ast_hash": "fd02febb347dd6880fe3341710b74a8f",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/lib/hooks/useReservas.ts": {
-    "mtime": 1779247342.71236,
+    "mtime": 1779922834.0430458,
     "ast_hash": "73c9ca59caececda1e61a7f1dfc5d4e4",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/lib/hooks/useReservasCalendario.ts": {
-    "mtime": 1778185773.9817646,
+    "mtime": 1779922834.0430636,
     "ast_hash": "547805352195567bb522d8b32a10b6f8",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/lib/hooks/useReservasFiltradas.ts": {
-    "mtime": 1778185773.9817646,
+    "mtime": 1779922834.043098,
     "ast_hash": "e0ee17845f130ac287a30c4fec3a040c",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/lib/hooks/useCrearReserva.ts": {
-    "mtime": 1779755430.1952565,
+    "mtime": 1779922834.0429666,
     "ast_hash": "0691ef3c790d7ad1b86f88041fcfa583",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/lib/utils/calendarHelpers.ts": {
-    "mtime": 1778380485.0758226,
+    "mtime": 1779922834.0432127,
     "ast_hash": "87f3e42273821aab0ce6a84a72052be3",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/lib/utils/hoursAvailability.ts": {
-    "mtime": 1779299115.7058294,
+    "mtime": 1779922834.0432596,
     "ast_hash": "cdef497f193946276744825fab915ed2",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/lib/utils/reservationValidation.ts": {
-    "mtime": 1779755320.0810218,
-    "ast_hash": "0b585602e3ee05ca1b4dc8926a2a957f",
+    "mtime": 1779923980.0390987,
+    "ast_hash": "132399fafc27efb7a08c2f120510c0ac",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/types/reserva.ts": {
-    "mtime": 1779840357.287753,
+    "mtime": 1779922834.4348688,
     "ast_hash": "8a9a6bb92ad30d8f30723a6e406fe8fe",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/.claude/settings.json": {
-    "mtime": 1779840566.5685215,
+    "mtime": 1779922834.0193808,
     "ast_hash": "b148d10f826da56e21262ba1c276d719",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/.claude/settings.local.json": {
-    "mtime": 1779840566.5685215,
+    "mtime": 1779922834.0195522,
     "ast_hash": "f2bf11657eb0ab097526cff395379d75",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/.opencode/opencode.json": {
-    "mtime": 1779243582.3373325,
+    "mtime": 1779922834.0211377,
     "ast_hash": "abcc8b9dcd80bca5f9dde6d9f0c3ae79",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/.opencode/plugins/graphify.js": {
-    "mtime": 1779243582.3374112,
+    "mtime": 1779922834.0212548,
     "ast_hash": "64ccd3c03dbfe0980b6095766f5c4e52",
     "semantic_hash": ""
   },
@@ -545,82 +545,82 @@
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/atrevida_structure_report.md": {
-    "mtime": 1778429295.747557,
+    "mtime": 1779922834.0304806,
     "ast_hash": "c72a668f6747ffa93a64b3dd4f52d645",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/archivos_clave.md": {
-    "mtime": 1778429295.7489898,
+    "mtime": 1779922834.0304806,
     "ast_hash": "c8d5be35c2cbd89e989c9f9165e286f0",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/visual_summary.txt": {
-    "mtime": 1778429295.7506235,
+    "mtime": 1779922834.4349856,
     "ast_hash": "c2266ec1bd0d880afbdf007942d97912",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/resumen_ejecutivo.md": {
-    "mtime": 1778429295.7521522,
+    "mtime": 1779922834.4347239,
     "ast_hash": "9f5eb6be2f8bccf8e4c922bc961fd01f",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/ANALISIS_ESTRUCTURA.md": {
-    "mtime": 1778429318.9995737,
+    "mtime": 1779922834.0215364,
     "ast_hash": "212f529ddcbd5ce05f98cac14d3d0070",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/STYLE_GUIDE.md": {
-    "mtime": 1779071514.5567896,
+    "mtime": 1779922834.0218136,
     "ast_hash": "330ace388b9aacbfff3524823f6666dd",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/AGENTS.md": {
-    "mtime": 1779243582.3374112,
+    "mtime": 1779922834.0214453,
     "ast_hash": "5e66ee2edc3bf6d3f4176d322b7b1cc9",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/design.md": {
-    "mtime": 1779243582.3390331,
+    "mtime": 1779922834.0384796,
     "ast_hash": "6f21a233eeae56a34d70adbb0a5629f3",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/CLAUDE.md": {
-    "mtime": 1779840566.5685215,
+    "mtime": 1779922834.021695,
     "ast_hash": "b1b7137ad5e3a45f705a803b31fcfd7f",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/.agents/skills/design-taste-frontend/SKILL.md": {
-    "mtime": 1778185773.9763362,
+    "mtime": 1779922834.0190692,
     "ast_hash": "fb28c4450a0162882898437d2a29fbb2",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/.agents/skills/frontend-design/LICENSE.txt": {
-    "mtime": 1778428207.6350465,
+    "mtime": 1779922834.0191503,
     "ast_hash": "2ee41112a44fe7014dce33e26468ba93",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/.agents/skills/frontend-design/SKILL.md": {
-    "mtime": 1778428207.6350465,
+    "mtime": 1779922834.019233,
     "ast_hash": "06a0520e81f698334258c73ff0de533b",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/docs/superpowers/plans/2026-05-26-admin-combos.md": {
-    "mtime": 1779917410.7913365,
+    "mtime": 1779922834.0385466,
     "ast_hash": "f04635db842f37f02a2192f8b0042749",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/public/E - Pulse Bike 1.JPEG": {
-    "mtime": 1778185773.9984648,
+    "mtime": 1779922834.0713415,
     "ast_hash": "7f82e8934de20f52a018808c31ee65bb",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/public/E-Pulse Bike.JPEG": {
-    "mtime": 1778185774.013465,
+    "mtime": 1779922834.09025,
     "ast_hash": "e518a1d971177e9dc53d73cd9263672b",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/public/Lipolaser.JPEG": {
-    "mtime": 1778185774.019465,
+    "mtime": 1779922834.0987902,
     "ast_hash": "39a1c59050255f403b56a74d38f9b021",
     "semantic_hash": ""
   },
@@ -645,22 +645,22 @@
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/public/Ondas Rusas.JPEG": {
-    "mtime": 1778185774.0324652,
+    "mtime": 1779922834.112901,
     "ast_hash": "c6b6a9f8f94f769b4eaac5c36367fc40",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/public/Radiofrecuencia.JPEG": {
-    "mtime": 1778185774.0384653,
+    "mtime": 1779922834.1235702,
     "ast_hash": "7aa42f806fb050d8473a14269be596b9",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/public/Vacumterpia.JPEG": {
-    "mtime": 1778185774.0444653,
+    "mtime": 1779922834.135152,
     "ast_hash": "27f9e486fd07e89e19a17d4a0d07b876",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/public/crioliposis.jpg": {
-    "mtime": 1778185774.0734658,
+    "mtime": 1779922834.1713786,
     "ast_hash": "52f186915e4c9b657346ad9a14aa01d6",
     "semantic_hash": ""
   },
@@ -680,17 +680,17 @@
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/public/maderoterapiaNuevo.jpg": {
-    "mtime": 1778185774.088466,
+    "mtime": 1779922834.1921573,
     "ast_hash": "4a441b1e822d9d19894b16f90d810250",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/public/modelos2.jpg": {
-    "mtime": 1778185774.1244664,
+    "mtime": 1779922834.2430332,
     "ast_hash": "ff5bbf048c793636a642d39f86eb9cfd",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/public/modelos3.jpg": {
-    "mtime": 1778185774.1574671,
+    "mtime": 1779922834.285043,
     "ast_hash": "0d7c160e653302ae5da2b837a1dba69c",
     "semantic_hash": ""
   },
@@ -700,17 +700,17 @@
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/public/radiofrecuenciaNuevo.jpg": {
-    "mtime": 1778185774.1694672,
+    "mtime": 1779922834.3063717,
     "ast_hash": "477bcf8b7fa30db42d2eeb64d35b4b4c",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/public/reina1.jpg": {
-    "mtime": 1778185774.2044678,
+    "mtime": 1779922834.3616638,
     "ast_hash": "259f92349e9bfff5f6bf140bc865c767",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/public/reina2.jpg": {
-    "mtime": 1778185774.2314682,
+    "mtime": 1779922834.3987188,
     "ast_hash": "aaa20ce0e18a0e520c9e760ac6b0faa0",
     "semantic_hash": ""
   },
@@ -725,7 +725,7 @@
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/public/reserva.jpg": {
-    "mtime": 1779246583.7018156,
+    "mtime": 1779922834.434544,
     "ast_hash": "015368f6f1e9cb60ab27d76acc65dbee",
     "semantic_hash": ""
   }

@@ -21,7 +21,7 @@ export function TimeSlotPicker({
 
   const handleClick = (hora: string) => {
     const status = hoursAvailability.get(hora);
-    if (status === 'past' || status === 'occupied') return;
+    if (status === 'past' || status === 'occupied' || status === 'closed') return;
 
     const idx = HORAS.indexOf(hora);
     const siguiente = HORAS[idx + 1] || hora;
@@ -84,6 +84,7 @@ export function TimeSlotPicker({
           const isStart = hora === horaDesde;
           const isPast = status === 'past';
           const isOccupied = status === 'occupied';
+          const isClosed = status === 'closed';
 
           return (
             <button
@@ -93,14 +94,16 @@ export function TimeSlotPicker({
                 styles.timeChip,
                 isPast ? styles.timeChipPast : '',
                 isOccupied ? styles.timeChipOccupied : '',
+                isClosed ? styles.timeChipClosed : '',
                 inRange ? styles.timeChipSelected : '',
                 isStart ? styles.timeChipStart : '',
               ].filter(Boolean).join(' ')}
               onClick={() => handleClick(hora)}
-              disabled={isPast || isOccupied}
+              disabled={isPast || isOccupied || isClosed}
               title={
                 isPast ? `${hora} — Pasado`
                   : isOccupied ? `${hora} — Ocupado`
+                    : isClosed ? `${hora} — No atiende`
                     : hora
               }
             >

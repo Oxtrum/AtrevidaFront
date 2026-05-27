@@ -27,3 +27,29 @@ export const DIAS_COMPLETO: Record<DiaSemana, string> = {
     VIERNES: 'Viernes',
     SÁBADO: 'Sábado',
 } as const;
+
+export function timeToMinutes(time: string): number {
+    const [hh, mm] = time.split(':').map(Number);
+    return (hh || 0) * 60 + (mm || 0);
+}
+
+export function getSaturdayClosingTime(local: string): string {
+    return local.trim().toUpperCase() === 'PASEO ARANJUEZ' ? '18:00' : '15:00';
+}
+
+export function getBusinessClosingTime(local: string, date: Date): string | null {
+    if (date.getDay() === 0) return null;
+    if (date.getDay() === 6) return getSaturdayClosingTime(local);
+    return '20:00';
+}
+
+export function isSlotOutsideBusinessHours(local: string, date: Date, horaDesde: string, horaHasta?: string): boolean {
+    const closingTime = getBusinessClosingTime(local, date);
+    if (!closingTime) return true;
+
+    const closingMinutes = timeToMinutes(closingTime);
+    const desdeMinutes = timeToMinutes(horaDesde);
+    const hastaMinutes = horaHasta ? timeToMinutes(horaHasta) : desdeMinutes + 60;
+
+    return desdeMinutes >= closingMinutes || hastaMinutes > closingMinutes;
+}

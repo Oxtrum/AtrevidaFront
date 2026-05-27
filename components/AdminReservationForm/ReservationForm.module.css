@@ -285,6 +285,14 @@
   opacity: 0.6;
 }
 
+.timeChipClosed {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px dashed var(--admin-border-subtle) !important;
+  color: var(--admin-text-dim) !important;
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 /* En rango seleccionado */
 .timeChipSelected {
   background: var(--admin-grad-primary) !important;
