@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Tags, Building2, Scissors } from 'lucide-react';
+import { Tags, Building2, Scissors, Package2 } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
 import styles from './page.module.css';
 
@@ -29,6 +29,14 @@ const OPTIONS = [
     href: '/admin/configuracion/servicios',
     color: '#14AEEF',
     colorRgb: '20, 174, 239',
+  },
+  {
+    title: 'Combos',
+    description: 'Ver y gestionar servicios dentro de combos',
+    icon: <Package2 size={24} strokeWidth={1.5} />,
+    href: '/admin/configuracion/combos',
+    color: '#10b981',
+    colorRgb: '16, 185, 129',
   },
 ];
 

@@ -1,0 +1,453 @@
+/* combos/page.module.css — AtrevidaFit Admin · Combos */
+
+.pageContainer {
+  min-height: 100vh;
+  background: var(--admin-grad-subtle), var(--admin-bg);
+  color: var(--admin-foreground);
+  font-family: var(--admin-font-family);
+  position: relative;
+  overflow-x: hidden;
+}
+
+.main {
+  position: relative;
+  z-index: 1;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.contentStack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ── Filter card ──────────────────────────────────────────────── */
+
+.filterCard {
+  background: var(--admin-panel-bg);
+  border-radius: var(--admin-radius-xl);
+  border: 1px solid var(--admin-border-subtle);
+  box-shadow: var(--admin-shadow-sm);
+}
+
+.filterCard::before {
+  content: '';
+  display: block;
+  height: 3px;
+  background: linear-gradient(90deg, #10b981, #14aeef, #92278f);
+}
+
+.filterCardInner {
+  padding: 1.25rem 1.5rem;
+}
+
+.filterSectionLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 1.6px;
+  font-weight: 700;
+  color: var(--admin-text-dim);
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--admin-border-subtle);
+}
+
+.filterSectionLabel svg {
+  color: #10b981;
+  flex-shrink: 0;
+}
+
+.filterBar {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.875rem;
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.filterLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--admin-text-dim);
+}
+
+.filterGroup input,
+.filterGroup select {
+  padding: 0.55rem 0.875rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-input-bg);
+  color: var(--admin-foreground);
+  font-size: 0.83rem;
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  appearance: none;
+  width: 100%;
+}
+
+.filterGroup input[type="number"],
+.filterGroup input[type="text"] {
+  background-image: none;
+  padding-right: 0.875rem;
+}
+
+.filterGroup input:focus,
+.filterGroup select:focus {
+  outline: none;
+  border-color: #EC008C;
+  box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.14);
+  background-color: rgba(236, 0, 140, 0.04);
+}
+
+.filterGroup input:disabled,
+.filterGroup select:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.filterGroup input::placeholder {
+  color: var(--admin-text-dim);
+}
+
+/* ── Hint ──────────────────────────────────────────────────────── */
+
+.hint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 3rem 1rem;
+  text-align: center;
+}
+
+.hintIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  margin-bottom: 0.25rem;
+}
+
+.hintText {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--admin-foreground);
+}
+
+.hintSub {
+  font-size: 0.78rem;
+  color: var(--admin-text-dim);
+  max-width: 360px;
+}
+
+/* ── Total label ───────────────────────────────────────────────── */
+
+.totalLabel {
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
+  padding: 0 0.25rem;
+}
+
+/* ── Combo list ────────────────────────────────────────────────── */
+
+.comboList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.comboRow {
+  background: var(--admin-panel-bg);
+  border-radius: var(--admin-radius-xl);
+  border: 1px solid var(--admin-border-subtle);
+  box-shadow: var(--admin-shadow-sm);
+  overflow: hidden;
+  transition: border-color 0.2s ease;
+}
+
+.comboRow:hover {
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+.comboRowExpanded {
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.comboRowHeader {
+  display: grid;
+  grid-template-columns: 2fr 1.2fr 1fr auto auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.comboRowHeader:hover .comboName {
+  color: #10b981;
+}
+
+.comboName {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--admin-foreground);
+  transition: color 0.15s ease;
+}
+
+.comboMeta {
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
+}
+
+.comboBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: #10b981;
+}
+
+.comboCosto {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--admin-foreground);
+}
+
+.expandToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--admin-border-subtle);
+  color: var(--admin-text-dim);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.expandToggle:hover {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #10b981;
+}
+
+.expandToggleOpen {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #10b981;
+}
+
+/* ── Expanded servicios section ───────────────────────────────── */
+
+.serviciosSection {
+  border-top: 1px solid var(--admin-border-subtle);
+  padding: 1rem 1.25rem 1.25rem;
+}
+
+.serviciosSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.875rem;
+}
+
+.serviciosSectionTitle {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--admin-text-dim);
+}
+
+/* ── Servicios sub-table ───────────────────────────────────────── */
+
+.serviciosTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.serviciosTable th {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--admin-text-dim);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--admin-border-subtle);
+}
+
+.serviciosTable td {
+  padding: 0.6rem 0.75rem;
+  color: var(--admin-foreground);
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  vertical-align: middle;
+}
+
+.serviciosTable tr:last-child td {
+  border-bottom: none;
+}
+
+.serviciosTable tr:hover td {
+  background: rgba(255,255,255,0.02);
+}
+
+.servicioNombre {
+  font-weight: 500;
+}
+
+.emptyServicios {
+  padding: 1.5rem;
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--admin-text-dim);
+}
+
+/* ── Form modal grid ──────────────────────────────────────────── */
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.field label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--admin-text-dim);
+}
+
+.field input,
+.field select {
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-input-bg);
+  color: var(--admin-foreground);
+  font-size: 0.875rem;
+  font-family: inherit;
+  width: 100%;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  appearance: none;
+}
+
+.field input[type="text"],
+.field input[type="number"] {
+  background-image: none;
+  padding-right: 1rem;
+}
+
+.field input:focus,
+.field select:focus {
+  outline: none;
+  border-color: #EC008C;
+  box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.14);
+  background-color: rgba(236, 0, 140, 0.03);
+}
+
+.field input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--admin-surface-2);
+}
+
+.field input::placeholder {
+  color: var(--admin-text-dim);
+}
+
+.colSpan2 {
+  grid-column: span 2;
+}
+
+.fieldError {
+  font-size: 0.7rem;
+  color: var(--admin-accent-danger);
+  margin-top: 0.125rem;
+}
+
+.inputError {
+  border-color: var(--admin-accent-danger) !important;
+}
+
+.formDivider {
+  grid-column: span 2;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.25rem 0;
+}
+
+.formDividerLabel {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--admin-text-dim);
+  white-space: nowrap;
+}
+
+.formDivider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--admin-border-subtle);
+}
+
+/* ── Small action button (e.g. Agregar inside expanded row) ────── */
+
+.btnSm {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  border: 1px solid var(--admin-border);
+  background: var(--admin-pill-bg);
+  color: var(--admin-text-muted);
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.btnSm:hover {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.3);
+  color: #10b981;
+}
