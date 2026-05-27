@@ -13,7 +13,7 @@ interface ToastState {
   isVisible: boolean;
 }
 
-let toastTimeout: NodeJS.Timeout;
+let toastTimeout: ReturnType<typeof setTimeout> | undefined;
 
 /**
  * Hook para controlar el Toast globalmente (versión simplificada)
@@ -37,7 +37,7 @@ export const useToast = () => {
 };
 
 // Singleton-ish state for global access
-let globalShowToast: (msg: string, type?: ToastType) => void;
+let globalShowToast: ((msg: string, type?: ToastType) => void) | undefined;
 
 export const toast = {
   success: (msg: string) => globalShowToast?.(msg, 'success'),
@@ -53,14 +53,28 @@ export default function ToastContainer() {
   });
   const toastRef = useRef<HTMLDivElement>(null);
 
-  globalShowToast = (message: string, type: ToastType = 'success') => {
+  const showGlobalToast = useCallback((message: string, type: ToastType = 'success') => {
     if (toastTimeout) clearTimeout(toastTimeout);
     setState({ message, type, isVisible: true });
     
     toastTimeout = setTimeout(() => {
       setState(prev => ({ ...prev, isVisible: false }));
     }, 4000);
-  };
+  }, []);
+
+  useEffect(() => {
+    globalShowToast = showGlobalToast;
+
+    return () => {
+      if (globalShowToast === showGlobalToast) {
+        globalShowToast = undefined;
+      }
+      if (toastTimeout) {
+        clearTimeout(toastTimeout);
+        toastTimeout = undefined;
+      }
+    };
+  }, [showGlobalToast]);
 
   useEffect(() => {
     if (!toastRef.current) return;

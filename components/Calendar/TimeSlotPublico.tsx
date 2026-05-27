@@ -1,10 +1,8 @@
 'use client';
 
-import { DiaSemana, ReservaDetalle, getTipoColor } from '@/types/reserva';
+import { DiaSemana, ReservaDetalle } from '@/types/reserva';
 import {
   contarSlotsPorTipo,
-  obtenerDisponibilidadEnHora,
-  obtenerEtiquetaDisponibilidad,
   esHoraDisponible,
 } from '@/lib/utils/calendarHelpers';
 import styles from './Calendar.module.css';
@@ -25,7 +23,7 @@ interface TimeSlotPublicoProps {
  * - Rojo/Gris si está ocupado
  * - No muestra nombres de clientes ni servicios específicos
  */
-export default function TimeSlotPublico({ dia, slots, hora, fecha, onClick, esPasado = false }: TimeSlotPublicoProps) {
+export default function TimeSlotPublico({ slots, fecha, onClick, esPasado = false }: TimeSlotPublicoProps) {
   const mesasLibres = contarSlotsPorTipo(slots, 'mesa');
   const bicicletasLibres = contarSlotsPorTipo(slots, 'bicicleta');
   const hayDisponibilidad = (mesasLibres > 0 || bicicletasLibres > 0) && !esPasado;

@@ -19,6 +19,12 @@ interface UseLocalesReturn {
   fetchLocales: () => Promise<void>;
 }
 
+interface LocalesResponse {
+  data?: {
+    locales?: Local[];
+  };
+}
+
 export function useLocales(): UseLocalesReturn {
   const [locales, setLocales] = useState<Local[]>([]);
   const [loading, setLoading] = useState(false);
@@ -29,8 +35,8 @@ export function useLocales(): UseLocalesReturn {
     setError(null);
     
     try {
-      const response = await getLocalesDB();
-      const data = (response as any)?.data?.locales ?? [];
+      const response = await getLocalesDB() as LocalesResponse;
+      const data = response.data?.locales ?? [];
       setLocales(data.filter((l: Local) => l.activo));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar locales');

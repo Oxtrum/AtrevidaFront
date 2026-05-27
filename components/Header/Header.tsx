@@ -71,7 +71,6 @@ export default function Header() {
 
   useEffect(() => {
     if (pathname !== '/') {
-      setActiveSection(pathname.startsWith('/reservas') ? 'reservas' : 'inicio');
       return;
     }
 
@@ -128,7 +127,10 @@ export default function Header() {
     scrolled ? styles.headerScrolled : '',
   ].join(' ').trim();
 
-  const isLinkActive = (section: string) => activeSection === section;
+  const effectiveActiveSection = pathname === '/'
+    ? activeSection
+    : pathname.startsWith('/reservas') ? 'reservas' : 'inicio';
+  const isLinkActive = (section: string) => effectiveActiveSection === section;
 
   return (
     <>

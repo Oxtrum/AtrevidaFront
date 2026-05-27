@@ -112,7 +112,11 @@ export function CustomSelect({
       className={`${styles.selectOption}
         ${opt.value === value ? styles.selectOptionActive : ''}
         ${opt.disabled ? styles.selectOptionDisabled : ''}`}
-      onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); !opt.disabled && handleSelect(opt.value); }}
+      onMouseDown={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!opt.disabled) handleSelect(opt.value);
+      }}
       role="option"
       aria-selected={opt.value === value}
     >
@@ -171,7 +175,11 @@ export function CustomSelect({
                     className={`${styles.selectOption}
                       ${opt.value === value ? styles.selectOptionActive : ''}
                       ${opt.disabled ? styles.selectOptionDisabled : ''}`}
-                    onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); !opt.disabled && handleSelect(opt.value); }}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (!opt.disabled) handleSelect(opt.value);
+                    }}
                     role="option"
                     aria-selected={opt.value === value}
                   >

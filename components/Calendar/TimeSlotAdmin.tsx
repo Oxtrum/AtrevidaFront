@@ -21,9 +21,7 @@ interface TimeSlotAdminProps {
  * - Agrupado por tipo de servicio (mesa, bicicleta)
  */
 export default function TimeSlotAdmin({
-  dia,
   slots,
-  hora,
   fecha,
   onClick,
   esPasado = false,
