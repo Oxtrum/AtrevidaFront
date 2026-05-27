@@ -171,6 +171,7 @@ export default function AdminReservasAprobacionPage() {
   const hasLoadedRef = useRef(false);
   const hasRenderedListRef = useRef(false);
   const preservedScrollYRef = useRef<number | null>(null);
+  const sortStampByReservaIdRef = useRef<Map<number, number>>(new Map());
 
   const [reservas, setReservas] = useState<ReservaBD[]>([]);
   const [renderedReservas, setRenderedReservas] = useState<ReservaBD[]>([]);
@@ -203,7 +204,17 @@ export default function AdminReservasAprobacionPage() {
       const response = await getReservasDB({
         fecha_desde: getDateISOWithOffset(-14),
       });
-      setReservas(response.data?.reservas ?? []);
+      const nextReservas = response.data?.reservas ?? [];
+      const nextIds = new Set(nextReservas.map((reserva) => reserva.id));
+      sortStampByReservaIdRef.current.forEach((_, reservaId) => {
+        if (!nextIds.has(reservaId)) sortStampByReservaIdRef.current.delete(reservaId);
+      });
+      nextReservas.forEach((reserva) => {
+        if (!sortStampByReservaIdRef.current.has(reserva.id)) {
+          sortStampByReservaIdRef.current.set(reserva.id, getReservaAuditMs(reserva));
+        }
+      });
+      setReservas(nextReservas);
       hasLoadedRef.current = true;
     } catch (fetchError) {
       setError(fetchError instanceof Error ? fetchError.message : 'No se pudieron cargar las reservas');
@@ -294,7 +305,11 @@ export default function AdminReservasAprobacionPage() {
       return filteredReservas;
     }
 
-    return filteredReservas.sort((a, b) => getReservaAuditMs(b) - getReservaAuditMs(a));
+    return filteredReservas.sort((a, b) => {
+      const stampA = sortStampByReservaIdRef.current.get(a.id) ?? getReservaAuditMs(a);
+      const stampB = sortStampByReservaIdRef.current.get(b.id) ?? getReservaAuditMs(b);
+      return stampB - stampA;
+    });
   }, [estadoFiltro, fechaFiltro, localFiltro, reservas, searchQuery, tipoFiltro]);
 
   const hasAdvancedFilters = Boolean(searchQuery.trim() || localFiltro !== 'TODOS' || tipoFiltro !== 'TODOS' || fechaFiltro);
@@ -464,6 +479,7 @@ export default function AdminReservasAprobacionPage() {
         tipo: tipoBackend,
         notificado: false,
       };
+      sortStampByReservaIdRef.current.set(updatedReserva.id, Date.now());
 
       setReservas((current) =>
         current.map((item) => item.id === approvalReserva.id ? updatedReserva : item),
