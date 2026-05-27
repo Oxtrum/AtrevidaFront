@@ -95,7 +95,7 @@ export default function Hero() {
           <div ref={badgeRef} className={styles.badge}>
             <Sparkles size={15} strokeWidth={1.8} />
             <span className={styles.badgeDot} />
-            Centro estético corporal
+            Centro estético corporal y facial
           </div>
 
           <h1 ref={titleRef} className={styles.title}>

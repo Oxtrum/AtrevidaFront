@@ -43,7 +43,7 @@ export default function Footer() {
               <span className={styles.logoText}>ATREVIDAFIT</span>
             </div>
             <p className={styles.brandDesc}>
-              Centro especializado en estética corporal y bienestar. Tecnología de última generación
+              Centro especializado en estética corporal, facial y bienestar. Tecnología de última generación
               al servicio de tu transformación.
             </p>
             <div className={styles.socialRow}>

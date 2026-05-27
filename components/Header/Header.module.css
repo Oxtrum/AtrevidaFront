@@ -80,7 +80,7 @@
 }
 
 .logoText {
-  font-size: 1.4rem;
+  font-size: clamp(1.52rem, 1.85vw, 1.78rem);
   font-weight: 700;
   letter-spacing: 2px;
   background: linear-gradient(135deg, #F5F5F5 0%, #EC008C 50%, #92278F 100%);
@@ -287,7 +287,7 @@
   }
 
   .logoText {
-    font-size: 1.1rem;
+    font-size: clamp(1.16rem, 4.8vw, 1.28rem);
   }
 
   .logoImage {
