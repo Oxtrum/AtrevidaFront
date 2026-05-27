@@ -396,6 +396,9 @@ export interface ReservaBD {
   precio?: number;
   notas?: string;
   estado?: EstadoReserva;
+  notificado?: boolean;
+  creado_en?: string;
+  actualizado_en?: string;
 }
 
 export interface ReservasBDResponse {

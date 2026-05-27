@@ -24,7 +24,7 @@ import {
 import Header from '@/components/AdminHeader/Header';
 import { CATEGORIAS_ORDEN } from '@/components/AdminReservationForm/constants';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
-import { actualizarEstadoReservaDB, actualizarReservaDB, getReservasDB } from '@/lib/api/reservas';
+import { actualizarEstadoReservaDB, actualizarReservaDB, actualizarReservaNotificadoDB, getReservasDB } from '@/lib/api/reservas';
 import {
   SERVICIOS_ADMIN_DISPONIBLES,
   getServiciosAdminPorCategoria,
@@ -52,8 +52,6 @@ const ESTADO_OPTIONS: Array<{ value: EstadoFiltro; label: string }> = [
   { value: 'RECHAZADO', label: 'Rechazadas' },
   { value: 'TODOS', label: 'Todas' },
 ];
-
-const CONFIRMATION_STORAGE_KEY = 'atrevida:confirmaciones-whatsapp-enviadas';
 
 const TIPO_LABELS: Record<string, string> = {
   M: 'Tratamiento',
@@ -140,6 +138,11 @@ const getReservaStartMs = (reserva: ReservaBD) => getReservaDateTimeMs(reserva, 
 const getReservaEndMs = (reserva: ReservaBD) =>
   getReservaDateTimeMs(reserva, reserva.hora_hasta || reserva.hora_desde);
 
+const getReservaAuditMs = (reserva: ReservaBD) => {
+  const timestamp = new Date(reserva.actualizado_en || reserva.creado_en || '').getTime();
+  return Number.isFinite(timestamp) ? timestamp : getReservaStartMs(reserva);
+};
+
 const getDateISOWithOffset = (daysOffset: number) => {
   const date = new Date();
   date.setDate(date.getDate() + daysOffset);
@@ -180,7 +183,6 @@ export default function AdminReservasAprobacionPage() {
   const [approvalReserva, setApprovalReserva] = useState<ReservaBD | null>(null);
   const [approvalDraft, setApprovalDraft] = useState<ApprovalDraft | null>(null);
   const [notificationReserva, setNotificationReserva] = useState<ReservaBD | null>(null);
-  const [sentConfirmationIds, setSentConfirmationIds] = useState<Set<number>>(new Set());
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [estadoFiltro, setEstadoFiltro] = useState<EstadoFiltro>('PENDIENTE');
   const [searchQuery, setSearchQuery] = useState('');
@@ -212,13 +214,25 @@ export default function AdminReservasAprobacionPage() {
     }
   }, []);
 
-  const markConfirmationSent = useCallback((reservaId: number) => {
-    setSentConfirmationIds((current) => {
-      const next = new Set(current);
-      next.add(reservaId);
-      window.localStorage.setItem(CONFIRMATION_STORAGE_KEY, JSON.stringify(Array.from(next)));
-      return next;
-    });
+  const markConfirmationSent = useCallback(async (reservaId: number) => {
+    setReservas((current) =>
+      current.map((item) => item.id === reservaId ? { ...item, notificado: true } : item),
+    );
+    setNotificationReserva((current) => current?.id === reservaId ? { ...current, notificado: true } : current);
+
+    try {
+      await actualizarReservaNotificadoDB({ id: reservaId, notificado: true });
+    } catch (updateError) {
+      setReservas((current) =>
+        current.map((item) => item.id === reservaId ? { ...item, notificado: false } : item),
+      );
+      setNotificationReserva((current) => current?.id === reservaId ? { ...current, notificado: false } : current);
+      setStatusMessage({
+        type: 'error',
+        text: updateError instanceof Error ? updateError.message : 'No se pudo marcar la reserva como notificada.',
+      });
+      window.setTimeout(() => setStatusMessage(null), 3600);
+    }
   }, []);
 
   const preserveScrollPosition = useCallback((callback: () => void) => {
@@ -280,12 +294,12 @@ export default function AdminReservasAprobacionPage() {
       return filteredReservas;
     }
 
-    return filteredReservas.sort((a, b) => getReservaStartMs(b) - getReservaStartMs(a));
+    return filteredReservas.sort((a, b) => getReservaAuditMs(b) - getReservaAuditMs(a));
   }, [estadoFiltro, fechaFiltro, localFiltro, reservas, searchQuery, tipoFiltro]);
 
   const hasAdvancedFilters = Boolean(searchQuery.trim() || localFiltro !== 'TODOS' || tipoFiltro !== 'TODOS' || fechaFiltro);
   const reservasVisiblesSignature = useMemo(
-    () => reservasVisibles.map((reserva) => `${reserva.id}:${reserva.estado}:${reserva.servicio_confirmado ?? ''}`).join('|'),
+    () => reservasVisibles.map((reserva) => `${reserva.id}:${reserva.estado}:${reserva.servicio_confirmado ?? ''}:${reserva.notificado ? '1' : '0'}`).join('|'),
     [reservasVisibles],
   );
 
@@ -448,6 +462,7 @@ export default function AdminReservasAprobacionPage() {
         servicio_confirmado: confirmedService.label,
         precio: confirmedService.precio,
         tipo: tipoBackend,
+        notificado: false,
       };
 
       setReservas((current) =>
@@ -474,18 +489,6 @@ export default function AdminReservasAprobacionPage() {
     if (!token) {
       router.push('/admin/login');
       return;
-    }
-
-    const storedConfirmations = window.localStorage.getItem(CONFIRMATION_STORAGE_KEY);
-    if (storedConfirmations) {
-      try {
-        const ids = JSON.parse(storedConfirmations);
-        if (Array.isArray(ids)) {
-          setSentConfirmationIds(new Set(ids.filter((id): id is number => typeof id === 'number' && Number.isFinite(id))));
-        }
-      } catch {
-        window.localStorage.removeItem(CONFIRMATION_STORAGE_KEY);
-      }
     }
 
     void fetchReservas();
@@ -741,7 +744,7 @@ export default function AdminReservasAprobacionPage() {
                   const estadoNormalizado = normalizeEstado(reserva.estado);
                   const whatsappHref = getWhatsappHref(reserva.numero_telefono);
                   const confirmationWhatsappHref = getConfirmationWhatsappHref(reserva);
-                  const confirmationSent = sentConfirmationIds.has(reserva.id);
+                  const confirmationSent = Boolean(reserva.notificado);
 
                   return (
                   <article key={reserva.id} className={`approval-card ${styles.pendingCard} ${styles[`card${estadoNormalizado}`]}`}>
@@ -869,7 +872,7 @@ export default function AdminReservasAprobacionPage() {
                             target="_blank"
                             rel="noopener noreferrer"
                             className={`${styles.notifyButton} ${confirmationSent ? styles.notifyButtonSent : ''}`}
-                            onClick={() => markConfirmationSent(reserva.id)}
+                            onClick={() => { void markConfirmationSent(reserva.id); }}
                           >
                             <MessageCircle size={15} strokeWidth={1.8} />
                             {confirmationSent ? 'Reenviar confirmación' : 'Enviar confirmación'}
@@ -1056,7 +1059,7 @@ export default function AdminReservasAprobacionPage() {
               target="_blank"
               rel="noopener noreferrer"
               className={styles.promptAction}
-              onClick={() => markConfirmationSent(notificationReserva.id)}
+              onClick={() => { void markConfirmationSent(notificationReserva.id); }}
             >
               <MessageCircle size={16} strokeWidth={1.8} />
               Enviar WhatsApp

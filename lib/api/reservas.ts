@@ -106,6 +106,11 @@ export interface ActualizarEstadoReservaDBData {
   tipo?: ReservaTipoBody;
 }
 
+export interface ActualizarReservaNotificadoDBData {
+  id: number;
+  notificado: boolean;
+}
+
 export interface CrearReservaResult {
   id: string;
   mensaje: string;
@@ -195,6 +200,14 @@ export async function actualizarEstadoReservaDB(data: ActualizarEstadoReservaDBD
     ...(data.servicio_confirmado !== undefined && { servicio_confirmado: data.servicio_confirmado }),
     ...(data.precio !== undefined && { precio: data.precio }),
     ...(data.tipo !== undefined && { tipo: data.tipo }),
+  });
+}
+
+/** Marca si ya se notificó al cliente por WhatsApp. */
+export async function actualizarReservaNotificadoDB(data: ActualizarReservaNotificadoDBData): Promise<CrearReservaResult> {
+  return apiClient.patch<CrearReservaResult>('/bd/reservas/notificar', {
+    id: data.id,
+    notificado: data.notificado,
   });
 }
 
