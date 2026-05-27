@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import Image from 'next/image';
 import {
   ArrowRight,
   CalendarCheck,
@@ -17,9 +16,8 @@ import {
 } from 'lucide-react';
 import Header from '@/components/Header/Header';
 import ReservationForm from '@/components/ReservationForm';
+import reservaHero from '@/public/reserva.jpg';
 import styles from './page.module.css';
-
-gsap.registerPlugin(ScrollTrigger);
 
 interface ReservasLandingProps {
   initialModalOpen?: boolean;
@@ -33,152 +31,172 @@ export default function ReservasLanding({ initialModalOpen = false }: ReservasLa
   const openModal = () => setModalOpen(true);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (reduceMotion) return;
+    let cleanupGsap: (() => void) | undefined;
+    let disposed = false;
 
-      const textBlocks = gsap.utils.toArray<HTMLElement>([
-        `.${styles.sectionIntro}`,
-        `.${styles.optionPanel}`,
-        `.${styles.finalCta} > div`,
-      ].join(', '));
-      const cardElements = gsap.utils.toArray<HTMLElement>([
-        `.${styles.benefitCard}`,
-        `.${styles.optionList} article`,
-        `.${styles.processRail} > div`,
-      ].join(', '));
+    void (async () => {
+      const [{ default: gsap }, { ScrollTrigger }] = await Promise.all([
+        import('gsap'),
+        import('gsap/ScrollTrigger'),
+      ]);
 
-      gsap.set([
-        proofRef.current?.children,
-        `.${styles.trustBand} > div`,
-        `.${styles.benefitCard}`,
-        `.${styles.optionList} article`,
-        `.${styles.processRail} > div`,
-      ], { willChange: 'transform, opacity' });
+      if (disposed) return;
 
-      gsap.set(`.${styles.heroContent} > *:not(.${styles.proofStrip})`, { willChange: 'transform, opacity, clip-path' });
-      gsap.set(textBlocks.flatMap(block => Array.from(block.children)), { willChange: 'transform, opacity, clip-path' });
+      gsap.registerPlugin(ScrollTrigger);
 
-      const tl = gsap.timeline({ defaults: { ease: 'power3.out' }, delay: 0.12 });
-      tl.fromTo(
-        `.${styles.heroContent} > *:not(.${styles.proofStrip})`,
-        { x: -46, y: 18, opacity: 0, clipPath: 'inset(0 100% 0 0)' },
-        {
-          x: 0,
-          y: 0,
-          opacity: 1,
-          clipPath: 'inset(0 0% 0 0)',
-          duration: 0.78,
-          stagger: 0.12,
-          force3D: true,
-          clearProps: 'willChange,clipPath',
-        },
-      )
-        .fromTo(
-          proofRef.current?.children || [],
-          { y: 24, opacity: 0, scale: 0.975 },
-          { y: 0, opacity: 1, scale: 1, duration: 0.58, stagger: 0.08, force3D: true, clearProps: 'willChange,transform' },
-          '-=0.28',
-        );
+      const ctx = gsap.context(() => {
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (reduceMotion) return;
 
-      gsap.to(contentRef.current, {
-        y: -34,
-        ease: 'none',
-        force3D: true,
-        scrollTrigger: {
-          trigger: contentRef.current,
-          start: 'top top+=90',
-          end: 'bottom top',
-          scrub: 0.7,
-        },
-      });
+        const textBlocks = gsap.utils.toArray<HTMLElement>([
+          `.${styles.sectionIntro}`,
+          `.${styles.optionPanel}`,
+          `.${styles.finalCta} > div`,
+        ].join(', '));
+        const cardElements = gsap.utils.toArray<HTMLElement>([
+          `.${styles.benefitCard}`,
+          `.${styles.optionList} article`,
+          `.${styles.processRail} > div`,
+        ].join(', '));
 
-      ScrollTrigger.batch(`.${styles.trustBand} > div`, {
-        start: 'top 88%',
-        once: true,
-        onEnter: (batch) => {
-          gsap.fromTo(batch, { y: 22, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, stagger: 0.08, ease: 'power3.out', force3D: true, clearProps: 'willChange' });
-        },
-      });
+        gsap.set([
+          proofRef.current?.children,
+          `.${styles.trustBand} > div`,
+          `.${styles.benefitCard}`,
+          `.${styles.optionList} article`,
+          `.${styles.processRail} > div`,
+        ], { willChange: 'transform, opacity' });
 
-      textBlocks.forEach((block) => {
-        const kicker = block.querySelector(':scope > span');
-        const heading = block.querySelector(':scope > h2');
-        const paragraph = block.querySelector(':scope > p');
-        const button = block.querySelector(':scope > button');
+        gsap.set(`.${styles.heroContent} > *:not(.${styles.proofStrip})`, { willChange: 'transform, opacity' });
+        gsap.set(textBlocks.flatMap(block => Array.from(block.children)), { willChange: 'transform, opacity' });
 
-        if (!kicker || !heading) return;
-
-        const textTimeline = gsap.timeline({
-          scrollTrigger: {
-            trigger: block,
-            start: 'top 82%',
-            once: true,
+        const tl = gsap.timeline({ defaults: { ease: 'power3.out' }, delay: 0.12 });
+        tl.fromTo(
+          `.${styles.heroContent} > *:not(.${styles.proofStrip})`,
+          { x: -34, y: 14, opacity: 0 },
+          {
+            x: 0,
+            y: 0,
+            opacity: 1,
+            duration: 0.62,
+            stagger: 0.09,
+            force3D: true,
+            clearProps: 'willChange',
           },
-          defaults: { ease: 'power3.out', force3D: true },
-        });
-
-        textTimeline
+        )
           .fromTo(
-            kicker,
-            { x: -26, opacity: 0, clipPath: 'inset(0 100% 0 0)' },
-            { x: 0, opacity: 1, clipPath: 'inset(0 0% 0 0)', duration: 0.5, clearProps: 'willChange,clipPath' },
-          )
-          .fromTo(
-            heading,
-            { y: 58, opacity: 0, rotateX: -16, clipPath: 'inset(0 0 100% 0)' },
-            { y: 0, opacity: 1, rotateX: 0, clipPath: 'inset(0 0 0% 0)', duration: 0.82, clearProps: 'willChange,clipPath,transform' },
-            '-=0.16',
-          );
-
-        if (paragraph) {
-          textTimeline.fromTo(
-            paragraph,
-            { x: -38, y: 16, opacity: 0 },
-            { x: 0, y: 0, opacity: 1, duration: 0.58, clearProps: 'willChange,transform' },
-            '-=0.44',
-          );
-        }
-
-        if (button) {
-          textTimeline.fromTo(
-            button,
-            { x: -26, opacity: 0, scale: 0.96 },
-            { x: 0, opacity: 1, scale: 1, duration: 0.48, clearProps: 'willChange,transform' },
+            proofRef.current?.children || [],
+            { y: 24, opacity: 0, scale: 0.975 },
+            { y: 0, opacity: 1, scale: 1, duration: 0.58, stagger: 0.08, force3D: true, clearProps: 'willChange,transform' },
             '-=0.28',
           );
-        }
-      });
 
-      ScrollTrigger.batch(cardElements, {
-        start: 'top 86%',
-        once: true,
-        onEnter: (batch) => {
-          gsap.fromTo(
-            batch,
-            { y: 24, opacity: 0, scale: 0.985 },
-            { y: 0, opacity: 1, scale: 1, duration: 0.56, stagger: 0.07, ease: 'power3.out', force3D: true, clearProps: 'willChange,transform' },
-          );
-        },
-      });
+        gsap.to(contentRef.current, {
+          y: -34,
+          ease: 'none',
+          force3D: true,
+          scrollTrigger: {
+            trigger: contentRef.current,
+            start: 'top top+=90',
+            end: 'bottom top',
+            scrub: 0.7,
+          },
+        });
 
-      gsap.to(`.${styles.proofStrip} span`, {
-        y: -3,
-        duration: 1.8,
-        ease: 'sine.inOut',
-        yoyo: true,
-        repeat: -1,
-        stagger: 0.18,
-        force3D: true,
-      });
-    }, containerRef);
+        ScrollTrigger.batch(`.${styles.trustBand} > div`, {
+          start: 'top 88%',
+          once: true,
+          onEnter: (batch) => {
+            gsap.fromTo(batch, { y: 22, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, stagger: 0.08, ease: 'power3.out', force3D: true, clearProps: 'willChange' });
+          },
+        });
+
+        textBlocks.forEach((block) => {
+          const kicker = block.querySelector(':scope > span');
+          const heading = block.querySelector(':scope > h2');
+          const paragraph = block.querySelector(':scope > p');
+          const button = block.querySelector(':scope > button');
+
+          if (!kicker || !heading) return;
+
+          const textTimeline = gsap.timeline({
+            scrollTrigger: {
+              trigger: block,
+              start: 'top 82%',
+              once: true,
+            },
+            defaults: { ease: 'power3.out', force3D: true },
+          });
+
+          textTimeline
+            .fromTo(
+              kicker,
+              { x: -26, opacity: 0 },
+              { x: 0, opacity: 1, duration: 0.5, clearProps: 'willChange' },
+            )
+            .fromTo(
+              heading,
+              { y: 42, opacity: 0, rotateX: -10 },
+              { y: 0, opacity: 1, rotateX: 0, duration: 0.72, clearProps: 'willChange,transform' },
+              '-=0.16',
+            );
+
+          if (paragraph) {
+            textTimeline.fromTo(
+              paragraph,
+              { x: -38, y: 16, opacity: 0 },
+              { x: 0, y: 0, opacity: 1, duration: 0.58, clearProps: 'willChange,transform' },
+              '-=0.44',
+            );
+          }
+
+          if (button) {
+            textTimeline.fromTo(
+              button,
+              { x: -26, opacity: 0, scale: 0.96 },
+              { x: 0, opacity: 1, scale: 1, duration: 0.48, clearProps: 'willChange,transform' },
+              '-=0.28',
+            );
+          }
+        });
+
+        ScrollTrigger.batch(cardElements, {
+          start: 'top 86%',
+          once: true,
+          onEnter: (batch) => {
+            gsap.fromTo(
+              batch,
+              { y: 24, opacity: 0, scale: 0.985 },
+              { y: 0, opacity: 1, scale: 1, duration: 0.56, stagger: 0.07, ease: 'power3.out', force3D: true, clearProps: 'willChange,transform' },
+            );
+          },
+        });
+
+        gsap.to(`.${styles.proofStrip} span`, {
+          y: -3,
+          duration: 1.8,
+          ease: 'sine.inOut',
+          yoyo: true,
+          repeat: -1,
+          stagger: 0.18,
+          force3D: true,
+        });
+      }, containerRef);
+      cleanupGsap = () => {
+        ctx.revert();
+        ScrollTrigger.getAll().forEach(trigger => {
+          if (trigger.trigger && containerRef.current?.contains(trigger.trigger as Node)) {
+            trigger.kill();
+          }
+        });
+      };
+
+      if (disposed) cleanupGsap();
+    })();
+
     return () => {
-      ctx.revert();
-      ScrollTrigger.getAll().forEach(trigger => {
-        if (trigger.trigger && containerRef.current?.contains(trigger.trigger as Node)) {
-          trigger.kill();
-        }
-      });
+      disposed = true;
+      cleanupGsap?.();
     };
   }, []);
 
@@ -202,6 +220,18 @@ export default function ReservasLanding({ initialModalOpen = false }: ReservasLa
     <div ref={containerRef} className={styles.pageContainer}>
       <Header />
       <main className={styles.hero}>
+        <div className={styles.heroMedia} aria-hidden="true">
+          <Image
+            src={reservaHero}
+            alt=""
+            fill
+            priority
+            placeholder="blur"
+            quality={72}
+            sizes="100vw"
+            className={styles.heroImage}
+          />
+        </div>
         <div ref={contentRef} className={styles.heroContent}>
           <div className={styles.eyebrow}>
             <Sparkles size={16} strokeWidth={1.8} />

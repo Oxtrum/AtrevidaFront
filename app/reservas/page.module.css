@@ -10,22 +10,40 @@
   position: relative;
   min-height: 100svh;
   isolation: isolate;
+  overflow: hidden;
   display: grid;
   align-items: center;
   padding: clamp(5.7rem, 9vh, 7.2rem) clamp(1rem, 4vw, 4.5rem) clamp(1rem, 4vh, 2.6rem);
-  background-image:
-    linear-gradient(90deg, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0.66) 36%, rgba(0, 0, 0, 0.22) 68%, rgba(0, 0, 0, 0.55) 100%),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.78)),
-    url('/reserva.jpg');
-  background-size: cover;
-  background-position: center right;
+  background: #050505;
+}
+
+.heroMedia {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.heroMedia::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.66) 36%, rgba(0, 0, 0, 0.22) 68%, rgba(0, 0, 0, 0.55) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.78));
+  pointer-events: none;
+}
+
+.heroImage {
+  object-fit: cover;
+  object-position: center right;
+  transform: translateZ(0);
 }
 
 .hero::before {
   content: '';
   position: absolute;
   inset: 0;
-  z-index: -1;
+  z-index: 1;
   background:
     linear-gradient(115deg, rgba(255, 230, 0, 0.12), transparent 31%),
     linear-gradient(310deg, rgba(236, 0, 140, 0.18), transparent 34%);
@@ -42,9 +60,12 @@
   background: linear-gradient(90deg, rgba(255, 230, 0, 0.85), rgba(236, 0, 140, 0.65), transparent);
   opacity: 0.8;
   pointer-events: none;
+  z-index: 2;
 }
 
 .heroContent {
+  position: relative;
+  z-index: 2;
   width: min(690px, 100%);
   padding-bottom: 0;
 }
@@ -494,7 +515,10 @@
     min-height: 100svh;
     align-items: center;
     padding: 5.8rem 1rem 1rem;
-    background-position: 62% center;
+  }
+
+  .heroImage {
+    object-position: 62% center;
   }
 
   .heroContent {

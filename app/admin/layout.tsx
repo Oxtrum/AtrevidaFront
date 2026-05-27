@@ -4,6 +4,10 @@ import "./admin.css";
 export const metadata: Metadata = {
   title: "Panel Administrativo - AtrevidaFit",
   description: "Panel de administración para AtrevidaFit",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function AdminLayout({
