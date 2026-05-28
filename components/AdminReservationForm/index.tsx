@@ -188,7 +188,7 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
             // Usar push a una ruta conocida en lugar de router.back() para
             // forzar un desmontado consistente (evita problemas con BFCache
             // y restauraciones que no desmontan el componente).
-            onClick={() => router.push(initialData?.isAdmin ? '/admin/reservas' : '/reservas')}
+            onClick={() => router.push(initialData?.isAdmin ? '/atrevida-gestion/reservas' : '/reservas')}
             className={styles.cancelButton}
             disabled={loading}
           >

@@ -258,7 +258,7 @@ export default function ReservationForm({ initialData, onSuccess, onCancel }: Re
                 onCancel();
                 return;
               }
-              router.push(initialData?.isAdmin ? '/admin/reservas' : '/reservas');
+              router.push(initialData?.isAdmin ? '/atrevida-gestion/reservas' : '/reservas');
             }}
             className={styles.cancelButton}
             disabled={loading}

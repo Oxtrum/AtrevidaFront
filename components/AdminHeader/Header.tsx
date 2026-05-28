@@ -23,31 +23,31 @@ const NAV_LINKS = [
   {
     label: 'Dashboard',
     detail: 'Pulso operativo',
-    href: '/admin/dashboard',
+    href: '/atrevida-gestion/dashboard',
     icon: LayoutDashboard,
   },
   {
     label: 'Reservas',
     detail: 'Agenda y clientes',
-    href: '/admin/reservas',
+    href: '/atrevida-gestion/reservas',
     icon: CalendarDays,
   },
   {
     label: 'Aprobaciones',
     detail: 'Solicitudes pendientes',
-    href: '/admin/reservas/aprobacion',
+    href: '/atrevida-gestion/reservas/aprobacion',
     icon: ShieldCheck,
   },
   {
     label: 'Citas próximas',
     detail: 'Recordatorios de hoy',
-    href: '/admin/reservas/proximas',
+    href: '/atrevida-gestion/reservas/proximas',
     icon: Clock3,
   },
   {
     label: 'Configuración',
     detail: 'Locales y servicios',
-    href: '/admin/configuracion',
+    href: '/atrevida-gestion/configuracion',
     icon: Settings,
   },
 ];
@@ -91,7 +91,7 @@ export default function Header() {
       ease: 'power2.in',
       onComplete: () => {
         localStorage.removeItem('adminToken');
-        router.push('/admin/login');
+        router.push('/atrevida-gestion/login');
       },
     });
   };
@@ -99,7 +99,7 @@ export default function Header() {
   return (
     <>
       <div className={styles.mobileBar}>
-        <Link href="/admin/dashboard" className={styles.mobileBrand} aria-label="Ir al dashboard">
+        <Link href="/atrevida-gestion/dashboard" className={styles.mobileBrand} aria-label="Ir al dashboard">
           <Image
             src="/estrella.png"
             alt=""
@@ -135,7 +135,7 @@ export default function Header() {
         className={`${styles.sidebar} admin-sidebar-shell ${mobileOpen ? styles.sidebarOpen : ''}`}
       >
         <div className={styles.brandBlock}>
-          <Link href="/admin/dashboard" className={styles.brand} aria-label="AtrevidaFit Admin">
+          <Link href="/atrevida-gestion/dashboard" className={styles.brand} aria-label="AtrevidaFit Admin">
             <span className={styles.logoShell}>
               <Image
                 src="/estrella.png"
@@ -160,8 +160,8 @@ export default function Header() {
         <nav className={styles.nav} aria-label="Navegación administrativa">
           {NAV_LINKS.map((link) => {
             const Icon = link.icon;
-            const active = link.href === '/admin/reservas'
-              ? pathname === link.href || pathname.startsWith('/admin/reservas/crear') || pathname.startsWith('/admin/reservas/editar')
+            const active = link.href === '/atrevida-gestion/reservas'
+              ? pathname === link.href || pathname.startsWith('/atrevida-gestion/reservas/crear') || pathname.startsWith('/atrevida-gestion/reservas/editar')
               : pathname === link.href || pathname.startsWith(`${link.href}/`);
 
             return (

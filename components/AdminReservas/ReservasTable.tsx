@@ -175,7 +175,7 @@ export function ReservasTable({
                 <div className={styles.cell} data-label="Acciones">
                   <div className={styles.actionGroup}>
                     <a
-                      href={`/admin/reservas/editar/${reserva.id}`}
+                      href={`/atrevida-gestion/reservas/editar/${reserva.id}`}
                       className={styles.editButton}
                       title="Editar reserva"
                       aria-label={`Editar reserva de ${reserva.cliente || reserva.id}`}

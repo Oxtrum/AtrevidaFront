@@ -6,7 +6,7 @@ import styles from './WhatsappFab.module.css';
 const PHONE = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '59177411855';
 const DEFAULT_MESSAGE = 'Hola Atrevida Fit, quisiera más información sobre sus servicios.';
 
-const HIDDEN_PREFIXES = ['/admin'];
+const HIDDEN_PREFIXES = ['/atrevida-gestion'];
 
 interface WhatsappFabProps {
   /** Override phone number (international format, no `+`). */

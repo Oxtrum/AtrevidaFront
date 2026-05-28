@@ -502,7 +502,7 @@ export function useReservationForm(
         if (onSuccess) {
           onSuccess();
         } else {
-          router.push(initialData?.isAdmin ? '/admin/reservas' : '/reservas');
+          router.push(initialData?.isAdmin ? '/atrevida-gestion/reservas' : '/reservas');
         }
         router.refresh();
       } catch (err: unknown) {
