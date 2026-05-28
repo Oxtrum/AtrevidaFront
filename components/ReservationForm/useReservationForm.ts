@@ -287,6 +287,22 @@ export function useReservationForm(
     return map;
   }, [fecha, reservasData, sucursal, tipo, locales]);
 
+  useEffect(() => {
+    if (!horaDesde || !fecha) return;
+
+    const fechaDia = new Date(`${fecha}T00:00:00`);
+    const selectedStatus = hoursAvailability.get(horaDesde);
+    const isOutsideHours = horaHasta
+      ? isSlotOutsideBusinessHours(sucursal, fechaDia, horaDesde, horaHasta)
+      : selectedStatus === 'closed';
+
+    if (selectedStatus === 'closed' || isOutsideHours) {
+      setHoraDesde('');
+      setHoraHasta('');
+      setSlotWarning('Ese horario no está disponible en la sucursal seleccionada. Elige otro horario.');
+    }
+  }, [fecha, horaDesde, horaHasta, hoursAvailability, sucursal]);
+
 
   // ── Limpiar servicio si cambia sucursal y no aplica ───────────
   useEffect(() => {

@@ -4,7 +4,7 @@
  */
 
 import type { DiaSemana, EstadoReserva } from '@/types/reserva';
-import { getSaturdayClosingTime, isSlotOutsideBusinessHours, timeToMinutes } from '@/lib/constants/reservationForm';
+import { getBusinessClosingTime, getSaturdayClosingTime, isSlotOutsideBusinessHours, timeToMinutes } from '@/lib/constants/reservationForm';
 
 export function normalizeBolivianPhone(raw: string): string {
   const digits = raw.replace(/\D/g, '');
@@ -62,9 +62,16 @@ export function getReservationSlotRestriction(
         return 'No se pueden hacer reservas los domingos.';
     }
 
-    if (day === 6 && horaDesde && horaHasta) {
+    if (horaDesde && horaHasta) {
         if (isSlotOutsideBusinessHours(sucursal, date, horaDesde, horaHasta)) {
-            return `Los sábados en ${sucursal} solo se puede reservar hasta las ${getSaturdayClosingTime(sucursal)}.`;
+            if (day === 6) {
+                return `Los sábados en ${sucursal} solo se puede reservar hasta las ${getSaturdayClosingTime(sucursal)}.`;
+            }
+
+            const closingTime = getBusinessClosingTime(sucursal, date);
+            return closingTime
+                ? `Solo se puede reservar hasta las ${closingTime}.`
+                : 'Ese horario está fuera de atención.';
         }
     }
 

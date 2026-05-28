@@ -2,9 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // Configure allowed image quality values so next/image warnings are resolved.
-  // The app uses quality={100} in some Image components, so include 100 and 75.
+  // The app uses explicit Image quality values, so keep them in the allowlist.
   images: {
-    qualities: [100, 75],
+    qualities: [100, 75, 72],
   },
 };
 

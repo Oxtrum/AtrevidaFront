@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, Fragment } from 'react';
 import { DiaSemana, ApiResponse, FechaDia, ReservaPorHora, type ReservaDetalle } from '@/types/reserva';
-import { HORAS } from '@/lib/constants/reservationForm';
+import { HORAS, HORAS_INICIO } from '@/lib/constants/reservationForm';
 import TimeSlotPublico from './TimeSlotPublico';
 import TimeSlotAdmin from './TimeSlotAdminAdmin';
 import styles from './CalendarAdmin.module.css';
@@ -35,7 +35,7 @@ interface CalendarGridProps {
 function obtenerHorasFijas(data: ApiResponse | null): ReservaPorHora[] {
   // Crear el esqueleto basado en HORAS (que ahora son de hora en hora)
   const grid: ReservaPorHora[] = [];
-  for (let i = 0; i < HORAS.length; i++) {
+  for (let i = 0; i < HORAS_INICIO.length; i++) {
     const start = HORAS[i];
     let end = HORAS[i + 1];
 

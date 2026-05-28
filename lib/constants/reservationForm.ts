@@ -10,6 +10,8 @@ export const HORAS: string[] = [
     '14:00', '15:00', '16:00', '17:00', '18:00', '19:00',
 ];
 
+export const HORAS_INICIO: string[] = HORAS.slice(0, -1);
+
 export const DIAS_SEMANA: readonly { value: DiaSemana; label: string }[] = [
     { value: 'LUNES', label: 'Lun' },
     { value: 'MARTES', label: 'Mar' },
@@ -40,7 +42,7 @@ export function getSaturdayClosingTime(local: string): string {
 export function getBusinessClosingTime(local: string, date: Date): string | null {
     if (date.getDay() === 0) return null;
     if (date.getDay() === 6) return getSaturdayClosingTime(local);
-    return '20:00';
+    return '19:00';
 }
 
 export function isSlotOutsideBusinessHours(local: string, date: Date, horaDesde: string, horaHasta?: string): boolean {

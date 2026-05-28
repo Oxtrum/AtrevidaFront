@@ -2,7 +2,7 @@
 
 import { Clock3 } from 'lucide-react';
 import { SlotStatus } from '@/lib/utils/hoursAvailability';
-import { HORAS } from '@/lib/constants/reservationForm';
+import { HORAS, HORAS_INICIO } from '@/lib/constants/reservationForm';
 import styles from './ReservationForm.module.css';
 
 interface TimeSlotPickerProps {
@@ -78,7 +78,7 @@ export function TimeSlotPicker({
 
       {/* Grid */}
       <div className={styles.timeSlotGrid}>
-        {HORAS.map((hora) => {
+        {HORAS_INICIO.map((hora) => {
           const status = getStatus(hora);
           const inRange = isInRange(hora);
           const isStart = hora === horaDesde;

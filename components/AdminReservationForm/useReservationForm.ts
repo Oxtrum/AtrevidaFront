@@ -248,6 +248,22 @@ export function useReservationForm(
     return map;
   }, [dia, fechasSemana, reservasData, sucursal, tipo, locales]);
 
+  useEffect(() => {
+    const fechaDia = fechasSemana?.get(dia)?.fecha ?? null;
+    if (!horaDesde || !fechaDia) return;
+
+    const selectedStatus = hoursAvailability.get(horaDesde);
+    const isOutsideHours = horaHasta
+      ? isSlotOutsideBusinessHours(sucursal, fechaDia, horaDesde, horaHasta)
+      : selectedStatus === 'closed';
+
+    if (selectedStatus === 'closed' || isOutsideHours) {
+      setHoraDesde('');
+      setHoraHasta('');
+      setSlotWarning('Ese horario no está disponible en la sucursal seleccionada. Elige otro horario.');
+    }
+  }, [dia, fechasSemana, horaDesde, horaHasta, hoursAvailability, sucursal]);
+
 
   // ── Fetch servicios desde API cuando cambia sucursal ───────────
   useEffect(() => {
