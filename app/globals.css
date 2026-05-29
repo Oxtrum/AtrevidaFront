@@ -97,14 +97,19 @@ select,
 }
 
 html {
+  min-height: 100%;
+  background: #030303;
   scroll-behavior: smooth;
+  overscroll-behavior-y: none;
 }
 
 body {
-  background: var(--af-bg);
+  min-block-size: 100dvh;
+  background: #030303;
   color: var(--af-text);
   font-family: var(--font-geist), sans-serif;
   overflow-x: hidden;
+  overscroll-behavior-y: none;
 }
 
 ::selection {
