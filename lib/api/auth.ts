@@ -1,0 +1,49 @@
+import { apiClient } from './client';
+import type { ApiResponse } from '@/types/reserva';
+
+export interface UsuarioResumen {
+  username: string;
+  activo: boolean;
+  fecha_registro: string;
+}
+
+export interface LoginResponse {
+  expires_in: number;
+  token: string;
+  token_type: string;
+  username: string;
+}
+
+export interface UsuariosListResponse {
+  total: number;
+  usuarios: UsuarioResumen[];
+}
+
+export async function loginAuth(
+  username: string,
+  password: string,
+): Promise<ApiResponse<LoginResponse>> {
+  return apiClient.post<ApiResponse<LoginResponse>>('/auth/login', { username, password });
+}
+
+export async function registrarUsuario(
+  username: string,
+  password: string,
+): Promise<ApiResponse<{ id: number }>> {
+  return apiClient.post<ApiResponse<{ id: number }>>('/auth/register', { username, password });
+}
+
+export async function getUsuarios(): Promise<ApiResponse<UsuariosListResponse>> {
+  return apiClient.get<ApiResponse<UsuariosListResponse>>('/auth/usuarios');
+}
+
+export async function cambiarPassword(password: string): Promise<ApiResponse<{ mensaje: string }>> {
+  return apiClient.patch<ApiResponse<{ mensaje: string }>>('/auth/change-password', { password });
+}
+
+export async function toggleUsuarioActivo(
+  username: string,
+  activo: boolean,
+): Promise<ApiResponse<{ mensaje: string }>> {
+  return apiClient.patch<ApiResponse<{ mensaje: string }>>('/auth/deactivate', { username, activo });
+}
