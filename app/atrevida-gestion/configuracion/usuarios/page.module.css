@@ -1,0 +1,117 @@
+.pageContainer {
+  min-height: 100vh;
+  background: var(--admin-grad-subtle), var(--admin-bg);
+  color: var(--admin-foreground);
+  font-family: var(--admin-font-family);
+  position: relative;
+  overflow-x: hidden;
+}
+
+.main {
+  position: relative;
+  z-index: 1;
+  margin: 0 auto;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* ── Badges ── */
+.badgeActive {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: rgba(20, 174, 100, 0.12);
+  color: #14ae60;
+}
+
+.badgeInactive {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: rgba(255, 77, 109, 0.1);
+  color: var(--admin-accent-danger);
+}
+
+/* ── Form stack ── */
+.formStack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ── Field ── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.field label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--admin-foreground);
+}
+
+.field input {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-input-bg);
+  color: var(--admin-foreground);
+  font-size: 0.875rem;
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.field input:focus {
+  outline: none;
+  border-color: var(--admin-accent-primary);
+  box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.16);
+}
+
+.inputError {
+  border-color: var(--admin-accent-danger) !important;
+  box-shadow: 0 0 0 3px rgba(255, 77, 109, 0.12) !important;
+}
+
+.fieldError {
+  font-size: 0.75rem;
+  color: var(--admin-accent-danger);
+}
+
+.submitError {
+  margin-top: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--admin-radius-md);
+  border: 1px solid rgba(255, 77, 109, 0.25);
+  background: rgba(255, 77, 109, 0.08);
+  color: var(--admin-accent-danger);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .main {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .headerActions {
+    gap: 0.5rem;
+  }
+}
