@@ -32,7 +32,9 @@ Always use `apiClient` / `lib/api/reservas.ts` functions in new code. Never raw 
 
 ## Auth
 
-Admin-only. Token stored in `localStorage` as `adminToken`. `apiClient` reads it automatically and injects `Authorization: Bearer <token>`. Login via `POST /api/admin/login` → on success, stores token, redirects to `/admin/dashboard`.
+Admin-only. Token stored in `localStorage` as `adminToken`. `apiClient` reads it automatically and injects `Authorization: Bearer <token>`. Login via `POST /api/atrevida-gestion/login` → on success, stores token, redirects to `/atrevida-gestion/dashboard`.
+
+**Current state**: login route is a local mock with hardcoded credentials (no backend call). Admin panel lives at `/atrevida-gestion/` (renamed from `/admin/` for security).
 
 No middleware guards routes — each admin page must handle redirect on missing token.
 
@@ -47,6 +49,7 @@ Key domain quirks:
 - **Estado**: `PENDIENTE | AGENDADO | RECHAZADO | COMPLETADO`
 - **Sucursales**: `PASEO ARANJUEZ` and `SAN MARTIN`. `CENTRO` is hidden (commented out in `SUCURSALES`). SAN MARTIN maps to CENTRO for service filtering — `getServiciosPorSucursal()` normalizes this.
 - **Legacy Sheets API** (`/reservas` endpoints): deprecated. All new code uses `/bd/reservas`.
+- **Soft deletes**: DELETE on reservas, servicios, and locales sets `activo=false` — nothing is hard-deleted.
 - Public booking flow only shows services where `requiere_evaluacion: false` — see `SERVICIOS_DISPONIBLES` vs `SERVICIOS_ADMIN_DISPONIBLES` in `types/reserva.ts`.
 
 ## Key Files
@@ -55,10 +58,13 @@ Key domain quirks:
 |------|---------|
 | `lib/api/client.ts` | Base fetch client — single source of truth for all HTTP calls |
 | `lib/api/reservas.ts` | All `/bd/reservas` service functions |
+| `lib/api/servicios.ts` | `/bd/servicios`, `/bd/combos`, `/bd/locales`, `/bd/categorias` service functions |
 | `types/reserva.ts` | All reservation types, service catalog, helper functions |
 | `lib/constants/reservationForm.ts` | Hour slots and day-of-week constants |
 | `lib/hooks/` | React hooks for reservation data fetching |
+| `lib/utils/` | Calendar helpers, hours availability, reservation validation |
 | `app/api/bd/` | Next.js proxy routes to backend |
+| `app/atrevida-gestion/configuracion/` | Admin CRUD pages for locales, servicios, categorias, combos |
 
 ## Component Conventions
 
