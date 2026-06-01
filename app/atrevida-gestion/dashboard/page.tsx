@@ -17,6 +17,7 @@ import {
 
 import Header from '@/components/AdminHeader/Header';
 import { getReservasResumenDB, type ReservasResumenData } from '@/lib/api/reservas';
+import { getClientesDB } from '@/lib/api/clientes';
 import styles from './page.module.css';
 
 type KpiCard = {
@@ -48,7 +49,7 @@ const getTodayISO = () => {
   return new Date(now.getTime() - offset * 60_000).toISOString().slice(0, 10);
 };
 
-const KPI_PRIMARY: KpiCard[] = [
+const makeKpiPrimary = (clientesTotal: number | null): KpiCard[] => [
   {
     label: 'Reservas del día',
     trend: 'Hoy',
@@ -73,9 +74,9 @@ const KPI_PRIMARY: KpiCard[] = [
     icon: <Users size={16} strokeWidth={1.5} />,
     color: '#14AEEF',
     colorRgb: '20, 174, 239',
-    getValue: () => '—',
-    getSub: () => 'Disponible próximamente',
-  }
+    getValue: (_r, isLoading) => (isLoading || clientesTotal === null) ? '—' : String(clientesTotal),
+    getSub: () => clientesTotal === null ? 'Cargando...' : 'Total en el directorio',
+  },
 ];
 
 const KPI_SECONDARY: KpiCard[] = [
@@ -138,6 +139,7 @@ export default function AdminDashboardPage() {
   const [resumen, setResumen] = useState<ReservasResumenData>(EMPTY_RESUMEN);
   const [resumenLoading, setResumenLoading] = useState(true);
   const [resumenError, setResumenError] = useState<string | null>(null);
+  const [clientesTotal, setClientesTotal] = useState<number | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
@@ -156,15 +158,23 @@ export default function AdminDashboardPage() {
       setResumenLoading(true);
       setResumenError(null);
 
-      try {
-        const response = await getReservasResumenDB(resumenFecha);
-        setResumen(response.data ?? EMPTY_RESUMEN);
-      } catch (loadError) {
+      const [resumenResult, clientesResult] = await Promise.allSettled([
+        getReservasResumenDB(resumenFecha),
+        getClientesDB({}),
+      ]);
+
+      if (resumenResult.status === 'fulfilled') {
+        setResumen(resumenResult.value.data ?? EMPTY_RESUMEN);
+      } else {
         setResumen(EMPTY_RESUMEN);
-        setResumenError(loadError instanceof Error ? loadError.message : 'No se pudo cargar el resumen');
-      } finally {
-        setResumenLoading(false);
+        setResumenError(resumenResult.reason instanceof Error ? resumenResult.reason.message : 'No se pudo cargar el resumen');
       }
+
+      if (clientesResult.status === 'fulfilled') {
+        setClientesTotal(clientesResult.value.data?.total ?? 0);
+      }
+
+      setResumenLoading(false);
     };
 
     void loadResumen();
@@ -266,7 +276,7 @@ export default function AdminDashboardPage() {
 
           {/* ── KPIs — fila principal ── */}
           <div className={styles.kpiGridPrimary}>
-            {KPI_PRIMARY.map((kpi, i) => (
+            {makeKpiPrimary(clientesTotal).map((kpi, i) => (
               <div
                 key={i}
                 className={`kpi-card ${styles.kpiCard}`}
