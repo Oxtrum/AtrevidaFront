@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Tags, Building2, Scissors, Package2 } from 'lucide-react';
+import { Tags, Building2, Scissors, Package2, ShieldCheck } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
 import styles from './page.module.css';
 
@@ -37,6 +37,14 @@ const OPTIONS = [
     href: '/atrevida-gestion/configuracion/combos',
     color: '#10b981',
     colorRgb: '16, 185, 129',
+  },
+  {
+    title: 'Usuarios',
+    description: 'Gestionar usuarios del sistema',
+    icon: <ShieldCheck size={24} strokeWidth={1.5} />,
+    href: '/atrevida-gestion/configuracion/usuarios',
+    color: '#f59e0b',
+    colorRgb: '245, 158, 11',
   },
 ];
 

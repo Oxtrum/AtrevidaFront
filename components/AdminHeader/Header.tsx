@@ -14,6 +14,7 @@ import {
   PanelLeftClose,
   Settings,
   ShieldCheck,
+  Users,
   X,
 } from 'lucide-react';
 import styles from './Header.module.css';
@@ -43,6 +44,12 @@ const NAV_LINKS = [
     detail: 'Recordatorios de hoy',
     href: '/atrevida-gestion/reservas/proximas',
     icon: Clock3,
+  },
+  {
+    label: 'Clientes',
+    detail: 'Directorio de clientes',
+    href: '/atrevida-gestion/clientes',
+    icon: Users,
   },
   {
     label: 'Configuración',
