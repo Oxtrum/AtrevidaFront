@@ -124,9 +124,15 @@
   color: rgba(245, 245, 245, 0.75);
   cursor: pointer;
   transition: all 0.18s ease;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.selectOptionSubtitle {
+  font-size: 0.75rem;
+  color: rgba(245, 245, 245, 0.42);
+  font-weight: 400;
 }
 
 .selectOption:hover {

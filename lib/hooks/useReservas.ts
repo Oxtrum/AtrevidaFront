@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { getReservasDB } from '@/lib/api/reservas';
 import type { ReservasBDApiResponse } from '@/types/reserva';
 
 interface UseReservasParams {
@@ -39,13 +38,19 @@ export function useReservas(): UseReservasReturn {
         setError(null);
 
         try {
-            const result = await getReservasDB({
-                local: params.local,
-                fecha: params.fecha,
-                fecha_desde: params.fecha_desde,
-                fecha_hasta: params.fecha_hasta,
+            const token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
+            const searchParams = new URLSearchParams();
+            if (params.local) searchParams.set('local', params.local);
+            if (params.fecha) searchParams.set('fecha', params.fecha);
+            if (params.fecha_desde) searchParams.set('fecha_desde', params.fecha_desde);
+            if (params.fecha_hasta) searchParams.set('fecha_hasta', params.fecha_hasta);
+            const res = await fetch(`/api/bd/reservas?${searchParams.toString()}`, {
+                headers: {
+                    ...(token && { Authorization: `Bearer ${token}` }),
+                },
             });
-            
+            const result = await res.json() as ReservasBDApiResponse;
+
             setData(result);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Error desconocido');

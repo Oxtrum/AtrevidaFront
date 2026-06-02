@@ -6,10 +6,14 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const queryString = searchParams.toString();
   const url = `${BACKEND_URL}/bd/reservas${queryString ? `?${queryString}` : ""}`;
+  const auth = request.headers.get("Authorization");
 
   const res = await fetch(url, {
     method: "GET",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(auth && { Authorization: auth }),
+    },
   });
 
   const data = await res.json();

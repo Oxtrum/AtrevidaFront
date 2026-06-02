@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { getLocalesDB } from '@/lib/api/servicios';
 
 interface Local {
   id: number;
@@ -33,9 +32,15 @@ export function useLocales(): UseLocalesReturn {
   const fetchLocales = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
-      const response = await getLocalesDB() as LocalesResponse;
+      const token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
+      const res = await fetch('/api/bd/locales', {
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      });
+      const response = await res.json() as LocalesResponse;
       const data = response.data?.locales ?? [];
       setLocales(data.filter((l: Local) => l.activo));
     } catch (err) {

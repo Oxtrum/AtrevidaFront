@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   DiaSemana, SERVICIOS_DISPONIBLES, SUCURSALES,
   SERVICIOS_ESPECIALIZADOS_DISPONIBLES,
-  getServiciosPorSucursal, getServiciosPorCategoria, getTipoFromServicio, getTipoBackendFromServicio,
+  getTipoFromServicio, getTipoBackendFromServicio,
   getServiciosAdminPorCategoria,
   generarSemanas, getFechasDeSemana, esFechaPasada,
   type ReservaBD,
@@ -13,6 +13,7 @@ import {
 import { useCrearReserva } from '@/lib/hooks/useCrearReserva';
 import { useReservas } from '@/lib/hooks/useReservas';
 import { useLocales } from '@/lib/hooks/useLocales';
+import { useServiciosPublicos } from '@/lib/hooks/useServiciosPublicos';
 import { toast } from '../Shared/Toast';
 import {
   getReservationDateRestriction,
@@ -98,6 +99,7 @@ export function useReservationForm(
     return hora; // fallback
   };
   const [sucursal, setSucursal] = useState(initialData?.local || SUCURSALES[0]?.value || 'SAN MARTIN');
+  const { servicios, loading: loadingServicios } = useServiciosPublicos(sucursal);
   const [dia, setDia] = useState<DiaSemana>(initialData?.dia || 'LUNES');
   const [fecha, setFecha] = useState(initialData?.fecha || getTodayISO());
   const [horaDesde, setHoraDesde] = useState(normalizarHora(initialData?.hora_desde || ''));
@@ -157,7 +159,11 @@ export function useReservationForm(
     [semanaActual],
   );
 
-  const tipo = useMemo(() => getTipoFromServicio(servicio), [servicio]);
+  const tipo = useMemo(() => {
+    const found = servicios.find(s => s.value === servicio);
+    if (found) return found.tipoEspacio.toLowerCase() === 'bicicleta' ? 'B' : 'M';
+    return getTipoFromServicio(servicio);
+  }, [servicio, servicios]);
 
   // Auto-select first non-past day on mount (default 'LUNES' may be in the past mid-week)
   useEffect(() => {
@@ -170,8 +176,8 @@ export function useReservationForm(
   }, [fechasSemana]);
 
   const servicioSeleccionado = useMemo(
-    () => SERVICIOS_DISPONIBLES.find(s => s.value === servicio),
-    [servicio],
+    () => servicios.find(s => s.value === servicio) ?? SERVICIOS_DISPONIBLES.find(s => s.value === servicio),
+    [servicio, servicios],
   );
   const esTratamientoEspecializado = servicio === 'tratamiento_especializado';
   const requiereAprobacion = servicioSeleccionado?.requiere_evaluacion ?? true;
@@ -307,7 +313,7 @@ export function useReservationForm(
   // ── Limpiar servicio si cambia sucursal y no aplica ───────────
   useEffect(() => {
     if (sucursal && servicio) {
-      const info = SERVICIOS_DISPONIBLES.find(s => s.value === servicio);
+      const info = servicios.find(s => s.value === servicio) ?? SERVICIOS_DISPONIBLES.find(s => s.value === servicio);
       if (info) {
         const normalizedSucursal = sucursal === 'SAN MARTIN' ? 'CENTRO' : sucursal;
         if (info.sucursal !== 'ambos' && info.sucursal !== normalizedSucursal) {
@@ -321,7 +327,7 @@ export function useReservationForm(
         }
       }
     }
-  }, [sucursal, servicio]);
+  }, [sucursal, servicio, servicios]);
 
   // ── Días disponibles ───────────────────────────────────
   const diasDisponibles = useMemo(
@@ -338,11 +344,15 @@ export function useReservationForm(
   );
 
   // ── Servicios filtrados por sucursal ───────────────────────────
-  const serviciosFiltrados = getServiciosPorSucursal(sucursal);
-  const serviciosPorCategoria = getServiciosPorCategoria(serviciosFiltrados);
-  const categoriasDisponibles = CATEGORIAS_ORDEN.filter(
-    c => serviciosPorCategoria[c]?.length > 0,
-  );
+  const serviciosPorCategoria = useMemo(() => {
+    const map: Record<string, typeof servicios> = {};
+    for (const s of servicios) {
+      if (!map[s.categoria]) map[s.categoria] = [];
+      map[s.categoria]!.push(s);
+    }
+    return map;
+  }, [servicios]);
+
   const serviciosEspecializadosFiltrados = SERVICIOS_ESPECIALIZADOS_DISPONIBLES.filter((s) => {
     const normalizedSucursal = sucursal === 'SAN MARTIN' ? 'CENTRO' : sucursal;
     return s.sucursal === 'ambos' || s.sucursal === normalizedSucursal;
@@ -357,13 +367,21 @@ export function useReservationForm(
     value: String(idx),
     label: s.titulo,
   }));
-  const servicioGroups = categoriasDisponibles.map(cat => ({
-    label: cat,
-    options: serviciosPorCategoria[cat].map(s => ({
-      value: s.value,
-      label: s.label,
-    })),
-  }));
+  const servicioGroups = useMemo(() => {
+    const ordered = CATEGORIAS_ORDEN.filter(c => serviciosPorCategoria[c]?.length > 0);
+    const rest = Object.keys(serviciosPorCategoria).filter(
+      c => !(CATEGORIAS_ORDEN as readonly string[]).includes(c) && serviciosPorCategoria[c]!.length > 0,
+    );
+    return [...ordered, ...rest].map(cat => ({
+      label: cat,
+      options: (serviciosPorCategoria[cat] ?? []).map(s => ({
+        value: s.value,
+        label: s.label,
+        subtitle: [s.duracion, s.costo, s.sesiones > 1 ? `${s.sesiones} sesiones` : '']
+          .filter(Boolean).join(' • '),
+      })),
+    }));
+  }, [serviciosPorCategoria]);
   const servicioSolicitadoGroups = categoriasEspecializadasDisponibles.map(cat => ({
     label: cat,
     options: serviciosEspecializadosPorCategoria[cat].map(s => ({
@@ -463,11 +481,12 @@ export function useReservationForm(
     if (!validate()) return;
 
     setError(null);
-    const tipoBackend = getTipoBackendFromServicio(servicio);
+    const selectedService = servicios.find(s => s.value === servicio);
+    const tipoBackend: 'M' | 'B' = selectedService?.tipoEspacio === 'bicicleta' ? 'B' : getTipoBackendFromServicio(servicio);
     const horaDesdeNorm = normalizarHora(horaDesde);
     const horaHastaNorm = normalizarHora(horaHasta);
 
-    const servicioInfo = SERVICIOS_DISPONIBLES.find(s => s.value === servicio);
+    const servicioInfo = selectedService ?? SERVICIOS_DISPONIBLES.find(s => s.value === servicio);
     const reservaRequiereAprobacion = servicioInfo?.requiere_evaluacion ?? true;
     const servicioSolicitadoInfo = esTratamientoEspecializado
       ? SERVICIOS_ESPECIALIZADOS_DISPONIBLES.find(s => s.value === servicioSolicitado)
@@ -524,7 +543,7 @@ export function useReservationForm(
     error, errors,
     slotWarning,
     scheduleWarning,
-    loading: loading || loadingLocales,
+    loading: loading || loadingLocales || loadingServicios,
     // Derived
     hoursAvailability,
     diasDisponibles,

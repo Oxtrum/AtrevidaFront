@@ -34,9 +34,9 @@ Always use `apiClient` / `lib/api/reservas.ts` functions in new code. Never raw 
 
 Admin-only. Token stored in `localStorage` as `adminToken`. `apiClient` reads it automatically and injects `Authorization: Bearer <token>`. Login via `POST /api/atrevida-gestion/login` → on success, stores token, redirects to `/atrevida-gestion/dashboard`.
 
-**Current state**: login route is a local mock with hardcoded credentials (no backend call). Admin panel lives at `/atrevida-gestion/` (renamed from `/admin/` for security).
+**Two-layer auth**: `lib/api/auth.ts` has real backend calls (`loginAuth`, `registrarUsuario`, `cambiarPassword`, `getUsuarios`, `toggleUsuarioActivo`) hitting `/auth/*`. The Next.js proxy at `app/api/atrevida-gestion/login/route.ts` is still a local mock with hardcoded credentials — it does not call the backend. Admin panel lives at `/atrevida-gestion/` (renamed from `/admin/` for security).
 
-No middleware guards routes — each admin page must handle redirect on missing token.
+No middleware guards routes — each admin page must handle redirect on missing token. Standard pattern: `useEffect` checks `localStorage.getItem('adminToken')`, calls `router.replace('/atrevida-gestion/login')` if absent.
 
 ## Reservation System
 
@@ -59,6 +59,8 @@ Key domain quirks:
 | `lib/api/client.ts` | Base fetch client — single source of truth for all HTTP calls |
 | `lib/api/reservas.ts` | All `/bd/reservas` service functions |
 | `lib/api/servicios.ts` | `/bd/servicios`, `/bd/combos`, `/bd/locales`, `/bd/categorias` service functions |
+| `lib/api/auth.ts` | Real backend auth calls (`/auth/*`) — login, register, password change, user management |
+| `lib/api/clientes.ts` | `/bd/clientes` service functions |
 | `types/reserva.ts` | All reservation types, service catalog, helper functions |
 | `lib/constants/reservationForm.ts` | Hour slots and day-of-week constants |
 | `lib/hooks/` | React hooks for reservation data fetching |
@@ -66,12 +68,42 @@ Key domain quirks:
 | `app/api/bd/` | Next.js proxy routes to backend |
 | `app/atrevida-gestion/configuracion/` | Admin CRUD pages for locales, servicios, categorias, combos |
 
+## API Response Shape
+
+All backend responses are wrapped in `ApiResponse<T>` from `types/reserva.ts`:
+```ts
+{ code: number; data: T; error: boolean; message: string | null; status: string }
+```
+Access `.data` for the actual payload. `ApiError` (from `lib/api/client.ts`) is thrown on non-2xx.
+
+## AdminConfig Component Kit
+
+Reusable admin UI primitives in `components/AdminConfig/` — use these for all admin CRUD pages:
+
+| Component | Purpose |
+|-----------|---------|
+| `AdminPanel` | Page wrapper with consistent padding/surface |
+| `PageHeader` | Title + subtitle + optional action button |
+| `DataTable` | Sortable table with loading/empty states |
+| `FormModal` | Controlled modal for create/edit forms |
+| `StatCard` | KPI card with icon, value, trend |
+| `RowActionsMenu` | Dropdown menu for table row actions (edit/delete) |
+
 ## Component Conventions
 
 - Components live in `components/<ComponentName>/<ComponentName>.tsx` with co-located CSS modules
 - Admin components: `components/Admin*`
 - GSAP animations use `gsap.context()` with cleanup via `ctx.revert()` in `useEffect` cleanup
 - Tailwind CSS 4 — use `@tailwindcss/postcss` plugin; no `tailwind.config.js` needed for most things
+
+## Admin Theming
+
+Admin panel scopes all styles under `[data-admin="true"]` (set on layout root). CSS variables live in `app/atrevida-gestion/atrevida-gestion.css` — use them instead of hardcoding colors:
+
+- Backgrounds: `--admin-bg`, `--admin-bg-secondary`, `--admin-surface-1` … `--admin-surface-4`
+- Accents: `--admin-accent-primary` (#ec008c), `--admin-accent-secondary` (#92278f), `--admin-accent-tertiary` (#14aeef)
+- Text: `--admin-foreground`, `--admin-text-muted`, `--admin-text-dim`
+- Status: `--admin-accent-success`, `--admin-accent-warning`, `--admin-accent-danger`
 
 ## Workflow for Claude Instances
 

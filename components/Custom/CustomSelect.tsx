@@ -8,6 +8,7 @@ import { useEffect, useId, useRef, useState } from "react";
 interface SelectOption {
   value: string;
   label: string;
+  subtitle?: string;
   disabled?: boolean;
 }
 
@@ -122,7 +123,10 @@ export function CustomSelect({
       role="option"
       aria-selected={opt.value === value}
     >
-      {opt.label}
+      <span>{opt.label}</span>
+      {opt.subtitle && (
+        <span className={styles.selectOptionSubtitle}>{opt.subtitle}</span>
+      )}
     </div>
   );
 

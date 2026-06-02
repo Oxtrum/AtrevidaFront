@@ -131,6 +131,11 @@ export default function ReservationForm({ initialData, onSuccess, onCancel }: Re
             {notaServicio && (
               <p className={styles.serviceNote}>{notaServicio}</p>
             )}
+            {servicioSeleccionado?.requiere_evaluacion && !esTratamientoEspecializado && (
+              <p className={styles.serviceNote}>
+                Este servicio requiere evaluación previa. Tu reserva quedará <strong>pendiente de aprobación</strong> hasta que el equipo confirme.
+              </p>
+            )}
             {errors.servicio && <span className={styles.errorText}>{errors.servicio}</span>}
           </div>
 

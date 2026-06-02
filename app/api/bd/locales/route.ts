@@ -2,12 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 
 const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:8080";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const url = `${BACKEND_URL}/bd/locales`;
+  const auth = request.headers.get("Authorization");
 
   const res = await fetch(url, {
     method: "GET",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(auth && { Authorization: auth }),
+    },
   });
 
   const data = await res.json();

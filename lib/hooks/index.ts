@@ -16,3 +16,5 @@
 export { useReservas } from './useReservas';
 export { useCrearReserva } from './useCrearReserva';
 export { useLocales } from './useLocales';
+export { useServiciosPublicos } from './useServiciosPublicos';
+export type { ServicioPublico } from './useServiciosPublicos';
