@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 
 import Header from '@/components/AdminHeader/Header';
+import { PageHeader, StatGrid, StatCard, SectionLabel } from '@/components/AdminConfig';
 import { CATEGORIAS_ORDEN } from '@/components/AdminReservationForm/constants';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { actualizarEstadoReservaDB, actualizarReservaDB, actualizarReservaNotificadoDB, getReservasDB } from '@/lib/api/reservas';
@@ -595,60 +596,63 @@ export default function AdminReservasAprobacionPage() {
         <div className="admin-mesh" />
 
         <div className={styles.container}>
-          <div ref={headerRef} className={styles.pageHeader}>
-            <div>
-              <span className={styles.kicker}>
-                <ShieldCheck size={15} strokeWidth={1.8} />
-                Gestión de reservas
-              </span>
-              <h1 className={styles.title}>Aprobación de reservas</h1>
-              <p className={styles.subtitle}>
-                Administra las solicitudes que llegan desde la web. Agenda una cita cuando esté validada o recházala con una causa para mantener trazabilidad.
-              </p>
-            </div>
-
-            <div className={styles.headerActions}>
-              <Link href="/atrevida-gestion/reservas/proximas" className={styles.secondaryNavButton}>
-                <Clock size={16} strokeWidth={1.8} />
-                Citas próximas
-              </Link>
-              <button
-                type="button"
-                className={styles.refreshButton}
-                onClick={() => preserveScrollPosition(() => { void fetchReservas(); })}
-                disabled={initialLoading || isFetching}
-              >
-                <RefreshCw size={16} strokeWidth={1.8} className={isFetching ? styles.spinIcon : ''} />
-                {isFetching ? 'Actualizando' : 'Actualizar'}
-              </button>
-            </div>
+          <div ref={headerRef}>
+            <PageHeader
+              kicker="Gestión de reservas"
+              kickerIcon={<ShieldCheck size={14} strokeWidth={2} />}
+              title="Aprobación de Reservas"
+              accentWord="Aprobación"
+              subtitle="Administra las solicitudes que llegan desde la web. Agenda una cita cuando esté validada o recházala con una causa para mantener trazabilidad."
+              actions={
+                <div className={styles.headerActions}>
+                  <Link href="/atrevida-gestion/reservas/proximas" className={styles.secondaryNavButton}>
+                    <Clock size={16} strokeWidth={1.8} />
+                    Citas próximas
+                  </Link>
+                  <button
+                    type="button"
+                    className={styles.refreshButton}
+                    onClick={() => preserveScrollPosition(() => { void fetchReservas(); })}
+                    disabled={initialLoading || isFetching}
+                  >
+                    <RefreshCw size={16} strokeWidth={1.8} className={isFetching ? styles.spinIcon : ''} />
+                    {isFetching ? 'Actualizando' : 'Actualizar'}
+                  </button>
+                </div>
+              }
+            />
           </div>
 
           <div ref={boardRef} className={styles.board}>
-            <div className={styles.summaryGrid}>
-              <div className={styles.summaryCard}>
-                <span>{reservasPendientes.length}</span>
-                <strong>Pendientes</strong>
-                <small>Necesitan revisión</small>
-              </div>
-              <div className={styles.summaryCard}>
-                <span>{reservasAgendadas.length}</span>
-                <strong>Agendadas</strong>
-                <small>Ya confirmadas</small>
-              </div>
-              <div className={styles.summaryCard}>
-                <span>{reservasRechazadas.length}</span>
-                <strong>Rechazadas</strong>
-                <small>Con causa registrada</small>
-              </div>
-            </div>
+            <StatGrid>
+              <StatCard
+                value={reservasPendientes.length}
+                label="Pendientes"
+                sublabel="Necesitan revisión"
+                accentColor="var(--admin-accent-yellow)"
+                loading={initialLoading}
+              />
+              <StatCard
+                value={reservasAgendadas.length}
+                label="Agendadas"
+                sublabel="Ya confirmadas"
+                accentColor="var(--admin-accent-tertiary)"
+                loading={initialLoading}
+              />
+              <StatCard
+                value={reservasRechazadas.length}
+                label="Rechazadas"
+                sublabel="Con causa registrada"
+                accentColor="var(--admin-accent-danger)"
+                loading={initialLoading}
+              />
+            </StatGrid>
 
             <div className={styles.boardHeader}>
               <div>
-                <span className={styles.boardLabel}>
-                  <Filter size={14} strokeWidth={1.8} />
+                <SectionLabel icon={<Filter size={12} strokeWidth={2} />}>
                   Búsqueda y filtros
-                </span>
+                </SectionLabel>
                 <h2>{estadoFiltro === 'TODOS' ? 'Todas las solicitudes' : `Reservas ${ESTADO_OPTIONS.find((option) => option.value === estadoFiltro)?.label.toLowerCase()}`}</h2>
               </div>
               <span className={styles.countPill}>{reservasVisibles.length} resultado{reservasVisibles.length === 1 ? '' : 's'}</span>
