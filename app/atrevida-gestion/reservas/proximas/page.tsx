@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 
 import Header from '@/components/AdminHeader/Header';
+import { PageHeader, StatGrid, StatCard } from '@/components/AdminConfig';
 import { getReservasDB } from '@/lib/api/reservas';
 import type { ReservaBD, EstadoReserva } from '@/types/reserva';
 import styles from './page.module.css';
@@ -247,49 +248,35 @@ export default function AdminReservasProximasPage() {
         <div className="admin-mesh" />
 
         <div className={styles.container}>
-          <header ref={headerRef} className={styles.pageHeader}>
-            <div>
-              <span className={styles.kicker}>
-                <ShieldCheck size={15} strokeWidth={1.8} />
-                Recordatorios operativos
-              </span>
-              <h1>Citas próximas</h1>
-              <p>
-                Una vista limpia para contactar a las clientas de hoy y mañana sin tener que bajar hasta el final de aprobaciones.
-              </p>
-            </div>
-
-            <div className={styles.headerActions}>
-              <Link href="/atrevida-gestion/reservas/aprobacion" className={styles.backButton}>
-                <ArrowLeft size={16} strokeWidth={1.8} />
-                Aprobaciones
-              </Link>
-              <button type="button" className={styles.refreshButton} onClick={() => void fetchReservas(true)} disabled={loading || refreshing}>
-                <RefreshCw size={16} strokeWidth={1.8} className={refreshing ? styles.spinIcon : ''} />
-                {refreshing ? 'Actualizando' : 'Actualizar'}
-              </button>
-            </div>
-          </header>
+          <div ref={headerRef}>
+            <PageHeader
+              kicker="Recordatorios operativos"
+              kickerIcon={<ShieldCheck size={14} strokeWidth={2} />}
+              title="Citas Próximas"
+              accentWord="Próximas"
+              subtitle="Vista limpia para contactar a las clientas de hoy y mañana."
+              actions={
+                <div className={styles.headerActions}>
+                  <Link href="/atrevida-gestion/reservas/aprobacion" className={styles.backButton}>
+                    <ArrowLeft size={16} strokeWidth={1.8} />
+                    Aprobaciones
+                  </Link>
+                  <button type="button" className={styles.refreshButton} onClick={() => void fetchReservas(true)} disabled={loading || refreshing}>
+                    <RefreshCw size={16} strokeWidth={1.8} className={refreshing ? styles.spinIcon : ''} />
+                    {refreshing ? 'Actualizando' : 'Actualizar'}
+                  </button>
+                </div>
+              }
+            />
+          </div>
 
           <section ref={boardRef} className={styles.board}>
-            <div className={styles.summaryStrip}>
-              <div>
-                <span>Total por recordar</span>
-                <strong>{loading ? '—' : total}</strong>
-              </div>
-              <div>
-                <span>Hoy</span>
-                <strong>{loading ? '—' : reservasHoy.length}</strong>
-              </div>
-              <div>
-                <span>Mañana</span>
-                <strong>{loading ? '—' : reservasManana.length}</strong>
-              </div>
-              <div>
-                <span>Próxima cita</span>
-                <strong>{loading ? '—' : nextReserva?.hora_desde ?? 'Sin citas'}</strong>
-              </div>
-            </div>
+            <StatGrid>
+              <StatCard value={loading ? '—' : total} label="Total" sublabel="Por recordar" loading={loading} />
+              <StatCard value={loading ? '—' : reservasHoy.length} label="Hoy" accentColor="var(--admin-accent-primary)" loading={loading} />
+              <StatCard value={loading ? '—' : reservasManana.length} label="Mañana" accentColor="var(--admin-accent-tertiary)" loading={loading} />
+              <StatCard value={loading ? '—' : (nextReserva?.hora_desde ?? 'Sin citas')} label="Próxima cita" loading={loading} />
+            </StatGrid>
 
             {loading && (
               <div className={styles.loadingGrid}>
