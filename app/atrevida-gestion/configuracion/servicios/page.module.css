@@ -15,9 +15,15 @@
 .main {
   position: relative;
   z-index: 1;
+  min-height: 100vh;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.container {
+  position: relative;
+  z-index: 1;
   max-width: 1440px;
   margin: 0 auto;
-  padding: 2rem 1.5rem 4rem;
 }
 
 /* Stack vertical con gap uniforme */
@@ -27,25 +33,6 @@
   gap: 1rem;
 }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   FILTER CARD
-══════════════════════════════════════════════════════════════════════════ */
-
-.filterCard {
-  background: var(--admin-panel-bg);
-  border-radius: var(--admin-radius-xl);
-  border: 1px solid var(--admin-border-subtle);
-  box-shadow: var(--admin-shadow-sm);
-
-}
-
-/* Franja superior de color */
-.filterCard::before {
-  content: '';
-  display: block;
-  height: 3px;
-  background: linear-gradient(90deg, #EC008C, #92278F, #14AEEF);
-}
 
 .filterCardInner {
   padding: 1.25rem 1.5rem;

@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
-import { Filter, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
+import { Filter, Pencil, Plus, Scissors, Search, Trash2, X } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
-import { PageHeader, DataTable, FormModal, RowActionsMenu } from '@/components/AdminConfig';
+import { PageHeader, DataTable, FormModal, RowActionsMenu, AdminPanel } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
@@ -36,8 +36,8 @@ interface ServicioRow extends Record<string, unknown> {
 }
 
 interface CategoriaOption {
-  ID: number;
-  Nombre: string;
+  id: number;
+  nombre: string;
 }
 
 interface LocalOption {
@@ -442,8 +442,12 @@ export default function ServiciosPage() {
       <div className="admin-mesh" />
       <Header />
       <main className={styles.main}>
-        <PageHeader
-          title="Servicios"
+        <div className={styles.container}>
+          <PageHeader
+          kicker="Configuración"
+          kickerIcon={<Scissors size={14} strokeWidth={2} />}
+          title="Servicios del Centro"
+          accentWord="Servicios"
           subtitle="Configura los servicios ofrecidos por local"
           backHref="/atrevida-gestion/configuracion"
           actions={
@@ -457,7 +461,7 @@ export default function ServiciosPage() {
         <div ref={contentRef} className={styles.contentStack}>
 
           {/* ── Filter card ── */}
-          <div className={styles.filterCard}>
+          <AdminPanel accentStripe>
             <div className={styles.filterCardInner}>
               <div className={styles.filterSectionLabel}>
                 <Filter size={12} />
@@ -510,7 +514,7 @@ export default function ServiciosPage() {
                     onChange={setFiltroCategoria}
                     options={[
                       { value: '', label: 'Todas' },
-                      ...categorias.map((c) => ({ value: c.Nombre, label: c.Nombre })),
+                      ...categorias.map((c) => ({ value: c.nombre, label: c.nombre })),
                     ]}
                   />
                 </div>
@@ -566,7 +570,7 @@ export default function ServiciosPage() {
                 </div>
               </div>
             </div>
-          </div>
+          </AdminPanel>
 
           {/* ── Hint ── */}
           {!hasFilter && (
@@ -599,6 +603,7 @@ export default function ServiciosPage() {
               />
             </>
           )}
+        </div>
         </div>
       </main>
 
@@ -650,7 +655,7 @@ export default function ServiciosPage() {
               }}
               options={[
                 { value: '', label: 'Seleccionar' },
-                ...categorias.map((c) => ({ value: c.Nombre, label: c.Nombre })),
+                ...categorias.map((c) => ({ value: c.nombre, label: c.nombre })),
               ]}
               hasError={!!formErrors.categoria}
             />
