@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 
 import Header from '@/components/AdminHeader/Header';
+import { PageHeader } from '@/components/AdminConfig';
 import { getReservasResumenDB, type ReservasResumenData } from '@/lib/api/reservas';
 import { getClientesDB } from '@/lib/api/clientes';
 import styles from './page.module.css';
@@ -245,33 +246,20 @@ export default function AdminDashboardPage() {
       <main className={styles.main}>
         <div className={styles.container}>
           {/* Page header */}
-          <div ref={headerRef} className={styles.pageHeader}>
-            <div className={styles.titleBlock}>
-              <span className={styles.badge}>
-                <span className={styles.badgeDot} />
-                Panel Administrativo
-              </span>
-
-              <h1 className={styles.title}>
-                {greeting},{' '}
-                <span className={styles.titleAccent}>{adminName}</span>
-              </h1>
-
-              <p className={styles.subtitle}>
-                Gestiona reservas, servicios y operaciones de AtrevidaFit
-              </p>
-            </div>
-
-            <div className={styles.headerActions}>
-              <div className={styles.dateBadge}>
-                <Calendar
-                  size={14}
-                  strokeWidth={1.5}
-                  className={styles.dateIcon}
-                />
-                {dateString}
-              </div>
-            </div>
+          <div ref={headerRef}>
+            <PageHeader
+              kicker="Panel de control"
+              kickerIcon={<BarChart2 size={14} strokeWidth={2} />}
+              title={`${greeting}, ${adminName}`}
+              accentWord={adminName}
+              subtitle="Gestiona reservas, servicios y operaciones de AtrevidaFit"
+              actions={
+                <div className={styles.dateBadge}>
+                  <Calendar size={14} strokeWidth={1.5} className={styles.dateIcon} />
+                  {dateString}
+                </div>
+              }
+            />
           </div>
 
           {/* ── KPIs — fila principal ── */}
