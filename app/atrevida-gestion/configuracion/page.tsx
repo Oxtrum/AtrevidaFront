@@ -53,6 +53,7 @@ export default function ConfiguracionPage() {
 
   return (
     <div className={styles.pageContainer}>
+      <div className="admin-mesh" />
       <Header />
       <main className={styles.main}>
         <div className={styles.container}>

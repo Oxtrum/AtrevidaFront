@@ -592,7 +592,7 @@ export default function AdminReservasAprobacionPage() {
       <Header />
 
       <main className={styles.main}>
-        <div className={styles.bgMesh} />
+        <div className="admin-mesh" />
 
         <div className={styles.container}>
           <div ref={headerRef} className={styles.pageHeader}>

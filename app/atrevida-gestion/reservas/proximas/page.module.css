@@ -1,6 +1,5 @@
 .pageContainer {
   min-height: 100vh;
-  background: var(--admin-bg);
   color: var(--admin-foreground);
   font-family: var(--admin-font-family);
   position: relative;
@@ -13,18 +12,6 @@
   z-index: 1;
   min-height: 100vh;
   padding: 2rem 1.5rem 4rem;
-}
-
-.bgMesh {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(900px 640px at 8% -8%, rgba(236, 0, 140, 0.13), transparent 68%),
-    radial-gradient(860px 680px at 102% 18%, rgba(20, 174, 239, 0.12), transparent 68%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 42%);
-  transform: translateZ(0);
 }
 
 .container {

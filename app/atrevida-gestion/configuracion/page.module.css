@@ -2,7 +2,6 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--admin-grad-subtle), var(--admin-bg);
   position: relative;
   overflow-x: hidden;
 }
@@ -15,7 +14,7 @@
 }
 
 .container {
-  max-width: 1400px;
+  max-width: 1440px;
   margin: 0 auto;
 }
 

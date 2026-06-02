@@ -738,7 +738,7 @@
       "source_file": "app/layout.tsx",
       "source_location": "L1",
       "id": "app_layout_tsx",
-      "community": 6,
+      "community": 61,
       "norm_label": "layout.tsx"
     },
     {
@@ -747,7 +747,7 @@
       "source_file": "app/layout.tsx",
       "source_location": "L6",
       "id": "app_layout_geist",
-      "community": 6,
+      "community": 61,
       "norm_label": "geist"
     },
     {
@@ -756,7 +756,7 @@
       "source_file": "app/layout.tsx",
       "source_location": "L12",
       "id": "app_layout_geistmono",
-      "community": 6,
+      "community": 61,
       "norm_label": "geistmono"
     },
     {
@@ -765,7 +765,7 @@
       "source_file": "app/layout.tsx",
       "source_location": "L18",
       "id": "app_layout_metadata",
-      "community": 6,
+      "community": 61,
       "norm_label": "metadata"
     },
     {
@@ -774,7 +774,7 @@
       "source_file": "app/layout.tsx",
       "source_location": "L86",
       "id": "app_layout_rootlayout",
-      "community": 6,
+      "community": 61,
       "norm_label": "rootlayout()"
     },
     {
@@ -801,7 +801,7 @@
       "source_file": "app/sitemap.ts",
       "source_location": "L1",
       "id": "app_sitemap_ts",
-      "community": 6,
+      "community": 19,
       "norm_label": "sitemap.ts"
     },
     {
@@ -810,7 +810,7 @@
       "source_file": "app/sitemap.ts",
       "source_location": "L4",
       "id": "app_sitemap_routes",
-      "community": 6,
+      "community": 19,
       "norm_label": "routes"
     },
     {
@@ -819,7 +819,7 @@
       "source_file": "app/sitemap.ts",
       "source_location": "L10",
       "id": "app_sitemap_sitemap",
-      "community": 6,
+      "community": 19,
       "norm_label": "sitemap()"
     },
     {
@@ -828,7 +828,7 @@
       "source_file": "app/robots.ts",
       "source_location": "L1",
       "id": "app_robots_ts",
-      "community": 6,
+      "community": 19,
       "norm_label": "robots.ts"
     },
     {
@@ -837,7 +837,7 @@
       "source_file": "app/robots.ts",
       "source_location": "L4",
       "id": "app_robots_robots",
-      "community": 6,
+      "community": 19,
       "norm_label": "robots()"
     },
     {
@@ -1206,7 +1206,7 @@
       "source_file": "app/reservas/ReservasLanding.tsx",
       "source_location": "L1",
       "id": "app_reservas_reservaslanding_tsx",
-      "community": 6,
+      "community": 62,
       "norm_label": "reservaslanding.tsx"
     },
     {
@@ -1215,7 +1215,7 @@
       "source_file": "app/reservas/ReservasLanding.tsx",
       "source_location": "L22",
       "id": "reservas_reservaslanding_reservaslandingprops",
-      "community": 6,
+      "community": 62,
       "norm_label": "reservaslandingprops"
     },
     {
@@ -1224,7 +1224,7 @@
       "source_file": "app/reservas/ReservasLanding.tsx",
       "source_location": "L26",
       "id": "reservas_reservaslanding_reservaslanding",
-      "community": 6,
+      "community": 62,
       "norm_label": "reservaslanding()"
     },
     {
@@ -1233,7 +1233,7 @@
       "source_file": "app/reservas/page.tsx",
       "source_location": "L1",
       "id": "app_reservas_page_tsx",
-      "community": 6,
+      "community": 19,
       "norm_label": "page.tsx"
     },
     {
@@ -1242,7 +1242,7 @@
       "source_file": "app/reservas/page.tsx",
       "source_location": "L5",
       "id": "reservas_page_metadata",
-      "community": 6,
+      "community": 19,
       "norm_label": "metadata"
     },
     {
@@ -1251,7 +1251,7 @@
       "source_file": "app/reservas/page.tsx",
       "source_location": "L35",
       "id": "reservas_page_reservaspage",
-      "community": 6,
+      "community": 19,
       "norm_label": "reservaspage()"
     },
     {
@@ -1260,7 +1260,7 @@
       "source_file": "app/reservas/crear/page.tsx",
       "source_location": "L1",
       "id": "app_reservas_crear_page_tsx",
-      "community": 6,
+      "community": 62,
       "norm_label": "page.tsx"
     },
     {
@@ -1269,7 +1269,7 @@
       "source_file": "app/reservas/crear/page.tsx",
       "source_location": "L5",
       "id": "crear_page_metadata",
-      "community": 6,
+      "community": 62,
       "norm_label": "metadata"
     },
     {
@@ -1278,7 +1278,7 @@
       "source_file": "app/reservas/crear/page.tsx",
       "source_location": "L28",
       "id": "app_reservas_crear_page_tsx_crear_page_crearreservapage",
-      "community": 6,
+      "community": 62,
       "norm_label": "crearreservapage()"
     },
     {
@@ -1314,7 +1314,7 @@
       "source_file": "app/atrevida-gestion/configuracion/page.tsx",
       "source_location": "L1",
       "id": "app_atrevida_gestion_configuracion_page_tsx",
-      "community": 23,
+      "community": 63,
       "norm_label": "page.tsx"
     },
     {
@@ -1323,7 +1323,7 @@
       "source_file": "app/atrevida-gestion/configuracion/page.tsx",
       "source_location": "L8",
       "id": "configuracion_page_options",
-      "community": 23,
+      "community": 63,
       "norm_label": "options"
     },
     {
@@ -1332,7 +1332,7 @@
       "source_file": "app/atrevida-gestion/configuracion/page.tsx",
       "source_location": "L51",
       "id": "configuracion_page_configuracionpage",
-      "community": 23,
+      "community": 63,
       "norm_label": "configuracionpage()"
     },
     {
@@ -1341,7 +1341,7 @@
       "source_file": "app/atrevida-gestion/configuracion/categorias/page.tsx",
       "source_location": "L1",
       "id": "app_atrevida_gestion_configuracion_categorias_page_tsx",
-      "community": 14,
+      "community": 27,
       "norm_label": "page.tsx"
     },
     {
@@ -1350,7 +1350,7 @@
       "source_file": "app/atrevida-gestion/configuracion/categorias/page.tsx",
       "source_location": "L14",
       "id": "categorias_page_categoria",
-      "community": 14,
+      "community": 27,
       "norm_label": "categoria"
     },
     {
@@ -1359,7 +1359,7 @@
       "source_file": "app/atrevida-gestion/configuracion/categorias/page.tsx",
       "source_location": "L19",
       "id": "categorias_page_formerrors",
-      "community": 14,
+      "community": 27,
       "norm_label": "formerrors"
     },
     {
@@ -1368,7 +1368,7 @@
       "source_file": "app/atrevida-gestion/configuracion/categorias/page.tsx",
       "source_location": "L24",
       "id": "categorias_page_categoriaspage",
-      "community": 14,
+      "community": 27,
       "norm_label": "categoriaspage()"
     },
     {
@@ -1809,7 +1809,7 @@
       "source_file": "app/atrevida-gestion/reservas/page.tsx",
       "source_location": "L1",
       "id": "app_atrevida_gestion_reservas_page_tsx",
-      "community": 1,
+      "community": 14,
       "norm_label": "page.tsx"
     },
     {
@@ -1818,7 +1818,7 @@
       "source_file": "app/atrevida-gestion/reservas/page.tsx",
       "source_location": "L21",
       "id": "reservas_page_reservarow",
-      "community": 1,
+      "community": 14,
       "norm_label": "reservarow"
     },
     {
@@ -1827,7 +1827,7 @@
       "source_file": "app/atrevida-gestion/reservas/page.tsx",
       "source_location": "L41",
       "id": "reservas_page_adminreservaspage",
-      "community": 1,
+      "community": 14,
       "norm_label": "adminreservaspage()"
     },
     {
@@ -2277,7 +2277,7 @@
       "source_file": "components/AdminConfig/FormModal.tsx",
       "source_location": "L1",
       "id": "components_adminconfig_formmodal_tsx",
-      "community": 14,
+      "community": 23,
       "norm_label": "formmodal.tsx"
     },
     {
@@ -2286,7 +2286,7 @@
       "source_file": "components/AdminConfig/FormModal.tsx",
       "source_location": "L6",
       "id": "adminconfig_formmodal_formmodalprops",
-      "community": 14,
+      "community": 23,
       "norm_label": "formmodalprops"
     },
     {
@@ -2295,7 +2295,7 @@
       "source_file": "components/AdminConfig/FormModal.tsx",
       "source_location": "L16",
       "id": "adminconfig_formmodal_formmodal",
-      "community": 14,
+      "community": 23,
       "norm_label": "formmodal()"
     },
     {
@@ -2304,7 +2304,7 @@
       "source_file": "components/AdminConfig/PageHeader.tsx",
       "source_location": "L1",
       "id": "components_adminconfig_pageheader_tsx",
-      "community": 17,
+      "community": 27,
       "norm_label": "pageheader.tsx"
     },
     {
@@ -2313,7 +2313,7 @@
       "source_file": "components/AdminConfig/PageHeader.tsx",
       "source_location": "L7",
       "id": "adminconfig_pageheader_pageheaderprops",
-      "community": 17,
+      "community": 27,
       "norm_label": "pageheaderprops"
     },
     {
@@ -2322,7 +2322,7 @@
       "source_file": "components/AdminConfig/PageHeader.tsx",
       "source_location": "L14",
       "id": "adminconfig_pageheader_pageheader",
-      "community": 17,
+      "community": 27,
       "norm_label": "pageheader()"
     },
     {
@@ -2421,7 +2421,7 @@
       "source_file": "components/AdminHeader/Header.tsx",
       "source_location": "L1",
       "id": "components_adminheader_header_tsx",
-      "community": 23,
+      "community": 63,
       "norm_label": "header.tsx"
     },
     {
@@ -2430,7 +2430,7 @@
       "source_file": "components/AdminHeader/Header.tsx",
       "source_location": "L23",
       "id": "adminheader_header_nav_links",
-      "community": 23,
+      "community": 63,
       "norm_label": "nav_links"
     },
     {
@@ -2439,7 +2439,7 @@
       "source_file": "components/AdminHeader/Header.tsx",
       "source_location": "L62",
       "id": "adminheader_header_header",
-      "community": 23,
+      "community": 63,
       "norm_label": "header()"
     },
     {
@@ -2529,7 +2529,7 @@
       "source_file": "components/AdminReservationForm/DaySelector.tsx",
       "source_location": "L1",
       "id": "components_adminreservationform_dayselector_tsx",
-      "community": 30,
+      "community": 26,
       "norm_label": "dayselector.tsx"
     },
     {
@@ -2538,7 +2538,7 @@
       "source_file": "components/AdminReservationForm/DaySelector.tsx",
       "source_location": "L6",
       "id": "adminreservationform_dayselector_dayinfo",
-      "community": 30,
+      "community": 15,
       "norm_label": "dayinfo"
     },
     {
@@ -2547,7 +2547,7 @@
       "source_file": "components/AdminReservationForm/DaySelector.tsx",
       "source_location": "L13",
       "id": "adminreservationform_dayselector_dayselectorprops",
-      "community": 30,
+      "community": 15,
       "norm_label": "dayselectorprops"
     },
     {
@@ -2556,7 +2556,7 @@
       "source_file": "components/AdminReservationForm/DaySelector.tsx",
       "source_location": "L19",
       "id": "adminreservationform_dayselector_dayselector",
-      "community": 30,
+      "community": 26,
       "norm_label": "dayselector()"
     },
     {
@@ -2565,7 +2565,7 @@
       "source_file": "components/AdminReservationForm/ServiceSelect.tsx",
       "source_location": "L1",
       "id": "components_adminreservationform_serviceselect_tsx",
-      "community": 16,
+      "community": 26,
       "norm_label": "serviceselect.tsx"
     },
     {
@@ -2574,7 +2574,7 @@
       "source_file": "components/AdminReservationForm/ServiceSelect.tsx",
       "source_location": "L6",
       "id": "adminreservationform_serviceselect_servicegroup",
-      "community": 16,
+      "community": 26,
       "norm_label": "servicegroup"
     },
     {
@@ -2583,7 +2583,7 @@
       "source_file": "components/AdminReservationForm/ServiceSelect.tsx",
       "source_location": "L11",
       "id": "adminreservationform_serviceselect_serviceselectprops",
-      "community": 16,
+      "community": 26,
       "norm_label": "serviceselectprops"
     },
     {
@@ -2646,7 +2646,7 @@
       "source_file": "components/AdminReservationForm/index.tsx",
       "source_location": "L1",
       "id": "components_adminreservationform_index_tsx",
-      "community": 30,
+      "community": 26,
       "norm_label": "index.tsx"
     },
     {
@@ -2664,7 +2664,7 @@
       "source_file": "components/AdminReservationForm/index.tsx",
       "source_location": "L18",
       "id": "adminreservationform_index_adminreservationform",
-      "community": 30,
+      "community": 26,
       "norm_label": "adminreservationform()"
     },
     {
@@ -2772,7 +2772,7 @@
       "source_file": "components/Calendar/CalendarAdmin.tsx",
       "source_location": "L12",
       "id": "calendar_calendaradmin_calendaradminprops",
-      "community": 27,
+      "community": 15,
       "norm_label": "calendaradminprops"
     },
     {
@@ -2790,7 +2790,7 @@
       "source_file": "components/Calendar/ReservationCard.tsx",
       "source_location": "L1",
       "id": "components_calendar_reservationcard_tsx",
-      "community": 27,
+      "community": 15,
       "norm_label": "reservationcard.tsx"
     },
     {
@@ -2799,7 +2799,7 @@
       "source_file": "components/Calendar/ReservationCard.tsx",
       "source_location": "L6",
       "id": "calendar_reservationcard_reservationcardprops",
-      "community": 27,
+      "community": 15,
       "norm_label": "reservationcardprops"
     },
     {
@@ -2808,7 +2808,7 @@
       "source_file": "components/Calendar/ReservationCard.tsx",
       "source_location": "L11",
       "id": "calendar_reservationcard_reservationcard",
-      "community": 27,
+      "community": 15,
       "norm_label": "reservationcard()"
     },
     {
@@ -2844,7 +2844,7 @@
       "source_file": "components/Calendar/TimeSlot.tsx",
       "source_location": "L1",
       "id": "components_calendar_timeslot_tsx",
-      "community": 19,
+      "community": 15,
       "norm_label": "timeslot.tsx"
     },
     {
@@ -2853,7 +2853,7 @@
       "source_file": "components/Calendar/TimeSlot.tsx",
       "source_location": "L6",
       "id": "calendar_timeslot_timeslotprops",
-      "community": 19,
+      "community": 15,
       "norm_label": "timeslotprops"
     },
     {
@@ -2862,7 +2862,7 @@
       "source_file": "components/Calendar/TimeSlot.tsx",
       "source_location": "L14",
       "id": "calendar_timeslot_agruparreservas",
-      "community": 19,
+      "community": 15,
       "norm_label": "agruparreservas()"
     },
     {
@@ -2871,7 +2871,7 @@
       "source_file": "components/Calendar/TimeSlot.tsx",
       "source_location": "L42",
       "id": "calendar_timeslot_timeslot",
-      "community": 19,
+      "community": 15,
       "norm_label": "timeslot()"
     },
     {
@@ -2889,7 +2889,7 @@
       "source_file": "components/Calendar/TimeSlotAdminAdmin.tsx",
       "source_location": "L8",
       "id": "calendar_timeslotadminadmin_timeslotadminprops",
-      "community": 27,
+      "community": 15,
       "norm_label": "timeslotadminprops"
     },
     {
@@ -2907,7 +2907,7 @@
       "source_file": "components/Calendar/index.ts",
       "source_location": "L1",
       "id": "components_calendar_index_ts",
-      "community": 26,
+      "community": 15,
       "norm_label": "index.ts"
     },
     {
@@ -2925,7 +2925,7 @@
       "source_file": "components/Calendar/Calendar.tsx",
       "source_location": "L13",
       "id": "calendar_calendar_calendarprops",
-      "community": 27,
+      "community": 26,
       "norm_label": "calendarprops"
     },
     {
@@ -2943,7 +2943,7 @@
       "source_file": "components/Calendar/CalendarGrid.tsx",
       "source_location": "L1",
       "id": "components_calendar_calendargrid_tsx",
-      "community": 34,
+      "community": 15,
       "norm_label": "calendargrid.tsx"
     },
     {
@@ -2952,7 +2952,7 @@
       "source_file": "components/Calendar/CalendarGrid.tsx",
       "source_location": "L10",
       "id": "calendar_calendargrid_dias",
-      "community": 34,
+      "community": 15,
       "norm_label": "dias"
     },
     {
@@ -2961,7 +2961,7 @@
       "source_file": "components/Calendar/CalendarGrid.tsx",
       "source_location": "L12",
       "id": "calendar_calendargrid_dia_corto",
-      "community": 34,
+      "community": 15,
       "norm_label": "dia_corto"
     },
     {
@@ -2970,7 +2970,7 @@
       "source_file": "components/Calendar/CalendarGrid.tsx",
       "source_location": "L21",
       "id": "calendar_calendargrid_calendargridprops",
-      "community": 27,
+      "community": 15,
       "norm_label": "calendargridprops"
     },
     {
@@ -2979,7 +2979,7 @@
       "source_file": "components/Calendar/CalendarGrid.tsx",
       "source_location": "L35",
       "id": "calendar_calendargrid_obtenerhorasfijas",
-      "community": 34,
+      "community": 15,
       "norm_label": "obtenerhorasfijas()"
     },
     {
@@ -2988,7 +2988,7 @@
       "source_file": "components/Calendar/CalendarGrid.tsx",
       "source_location": "L86",
       "id": "calendar_calendargrid_calendargrid",
-      "community": 34,
+      "community": 15,
       "norm_label": "calendargrid()"
     },
     {
@@ -2997,7 +2997,7 @@
       "source_file": "components/Calendar/CalendarGridAdmin.tsx",
       "source_location": "L1",
       "id": "components_calendar_calendargridadmin_tsx",
-      "community": 34,
+      "community": 15,
       "norm_label": "calendargridadmin.tsx"
     },
     {
@@ -3006,7 +3006,7 @@
       "source_file": "components/Calendar/CalendarGridAdmin.tsx",
       "source_location": "L10",
       "id": "calendar_calendargridadmin_dias",
-      "community": 34,
+      "community": 15,
       "norm_label": "dias"
     },
     {
@@ -3015,7 +3015,7 @@
       "source_file": "components/Calendar/CalendarGridAdmin.tsx",
       "source_location": "L12",
       "id": "calendar_calendargridadmin_dia_corto",
-      "community": 34,
+      "community": 15,
       "norm_label": "dia_corto"
     },
     {
@@ -3024,7 +3024,7 @@
       "source_file": "components/Calendar/CalendarGridAdmin.tsx",
       "source_location": "L21",
       "id": "calendar_calendargridadmin_calendargridprops",
-      "community": 27,
+      "community": 15,
       "norm_label": "calendargridprops"
     },
     {
@@ -3033,7 +3033,7 @@
       "source_file": "components/Calendar/CalendarGridAdmin.tsx",
       "source_location": "L35",
       "id": "calendar_calendargridadmin_obtenerhorasfijas",
-      "community": 34,
+      "community": 15,
       "norm_label": "obtenerhorasfijas()"
     },
     {
@@ -3042,7 +3042,7 @@
       "source_file": "components/Calendar/CalendarGridAdmin.tsx",
       "source_location": "L86",
       "id": "calendar_calendargridadmin_calendargrid",
-      "community": 34,
+      "community": 15,
       "norm_label": "calendargrid()"
     },
     {
@@ -3060,7 +3060,7 @@
       "source_file": "components/Calendar/CalendarPublico.tsx",
       "source_location": "L12",
       "id": "calendar_calendarpublico_calendarpublicoprops",
-      "community": 27,
+      "community": 15,
       "norm_label": "calendarpublicoprops"
     },
     {
@@ -3087,7 +3087,7 @@
       "source_file": "components/Calendar/TimeSlotAdmin.tsx",
       "source_location": "L8",
       "id": "calendar_timeslotadmin_timeslotadminprops",
-      "community": 27,
+      "community": 15,
       "norm_label": "timeslotadminprops"
     },
     {
@@ -3114,7 +3114,7 @@
       "source_file": "components/Calendar/TimeSlotPublico.tsx",
       "source_location": "L11",
       "id": "calendar_timeslotpublico_timeslotpublicoprops",
-      "community": 27,
+      "community": 15,
       "norm_label": "timeslotpublicoprops"
     },
     {
@@ -3132,7 +3132,7 @@
       "source_file": "components/Contacto/Contacto.tsx",
       "source_location": "L1",
       "id": "components_contacto_contacto_tsx",
-      "community": 6,
+      "community": 64,
       "norm_label": "contacto.tsx"
     },
     {
@@ -3141,7 +3141,7 @@
       "source_file": "components/Contacto/Contacto.tsx",
       "source_location": "L10",
       "id": "contacto_contacto_info_items",
-      "community": 6,
+      "community": 64,
       "norm_label": "info_items"
     },
     {
@@ -3150,7 +3150,7 @@
       "source_file": "components/Contacto/Contacto.tsx",
       "source_location": "L48",
       "id": "contacto_contacto_locations",
-      "community": 6,
+      "community": 64,
       "norm_label": "locations"
     },
     {
@@ -3159,7 +3159,7 @@
       "source_file": "components/Contacto/Contacto.tsx",
       "source_location": "L61",
       "id": "contacto_contacto_contacto",
-      "community": 6,
+      "community": 64,
       "norm_label": "contacto()"
     },
     {
@@ -3222,7 +3222,7 @@
       "source_file": "components/Custom/CustomSelectAdmin.tsx",
       "source_location": "L1",
       "id": "components_custom_customselectadmin_tsx",
-      "community": 16,
+      "community": 26,
       "norm_label": "customselectadmin.tsx"
     },
     {
@@ -3231,7 +3231,7 @@
       "source_file": "components/Custom/CustomSelectAdmin.tsx",
       "source_location": "L8",
       "id": "custom_customselectadmin_selectoption",
-      "community": 16,
+      "community": 26,
       "norm_label": "selectoption"
     },
     {
@@ -3240,7 +3240,7 @@
       "source_file": "components/Custom/CustomSelectAdmin.tsx",
       "source_location": "L14",
       "id": "custom_customselectadmin_customselectprops",
-      "community": 16,
+      "community": 26,
       "norm_label": "customselectprops"
     },
     {
@@ -3249,7 +3249,7 @@
       "source_file": "components/Custom/CustomSelectAdmin.tsx",
       "source_location": "L25",
       "id": "custom_customselectadmin_customselect",
-      "community": 16,
+      "community": 26,
       "norm_label": "customselect()"
     },
     {
@@ -3258,7 +3258,7 @@
       "source_file": "components/Footer/Footer.tsx",
       "source_location": "L1",
       "id": "components_footer_footer_tsx",
-      "community": 6,
+      "community": 65,
       "norm_label": "footer.tsx"
     },
     {
@@ -3267,7 +3267,7 @@
       "source_file": "components/Footer/Footer.tsx",
       "source_location": "L5",
       "id": "footer_footer_links_servicios",
-      "community": 6,
+      "community": 65,
       "norm_label": "links_servicios"
     },
     {
@@ -3276,7 +3276,7 @@
       "source_file": "components/Footer/Footer.tsx",
       "source_location": "L14",
       "id": "footer_footer_links_nav",
-      "community": 6,
+      "community": 65,
       "norm_label": "links_nav"
     },
     {
@@ -3285,7 +3285,7 @@
       "source_file": "components/Footer/Footer.tsx",
       "source_location": "L22",
       "id": "footer_footer_footer",
-      "community": 6,
+      "community": 65,
       "norm_label": "footer()"
     },
     {
@@ -3294,7 +3294,7 @@
       "source_file": "components/Header/Header.tsx",
       "source_location": "L1",
       "id": "components_header_header_tsx",
-      "community": 6,
+      "community": 62,
       "norm_label": "header.tsx"
     },
     {
@@ -3303,7 +3303,7 @@
       "source_file": "components/Header/Header.tsx",
       "source_location": "L10",
       "id": "header_header_nav_links",
-      "community": 6,
+      "community": 62,
       "norm_label": "nav_links"
     },
     {
@@ -3312,7 +3312,7 @@
       "source_file": "components/Header/Header.tsx",
       "source_location": "L18",
       "id": "header_header_header",
-      "community": 6,
+      "community": 62,
       "norm_label": "header()"
     },
     {
@@ -3375,7 +3375,7 @@
       "source_file": "components/ReservationForm/DaySelector.tsx",
       "source_location": "L1",
       "id": "components_reservationform_dayselector_tsx",
-      "community": 27,
+      "community": 15,
       "norm_label": "dayselector.tsx"
     },
     {
@@ -3384,7 +3384,7 @@
       "source_file": "components/ReservationForm/DaySelector.tsx",
       "source_location": "L6",
       "id": "reservationform_dayselector_dayinfo",
-      "community": 27,
+      "community": 15,
       "norm_label": "dayinfo"
     },
     {
@@ -3393,7 +3393,7 @@
       "source_file": "components/ReservationForm/DaySelector.tsx",
       "source_location": "L13",
       "id": "reservationform_dayselector_dayselectorprops",
-      "community": 27,
+      "community": 15,
       "norm_label": "dayselectorprops"
     },
     {
@@ -3402,7 +3402,7 @@
       "source_file": "components/ReservationForm/DaySelector.tsx",
       "source_location": "L19",
       "id": "reservationform_dayselector_dayselector",
-      "community": 27,
+      "community": 15,
       "norm_label": "dayselector()"
     },
     {
@@ -3591,7 +3591,7 @@
       "source_file": "components/Shared/Button.tsx",
       "source_location": "L1",
       "id": "components_shared_button_tsx",
-      "community": 1,
+      "community": 14,
       "norm_label": "button.tsx"
     },
     {
@@ -3600,7 +3600,7 @@
       "source_file": "components/Shared/Button.tsx",
       "source_location": "L5",
       "id": "shared_button_buttonprops",
-      "community": 1,
+      "community": 14,
       "norm_label": "buttonprops"
     },
     {
@@ -3609,7 +3609,7 @@
       "source_file": "components/Shared/Button.tsx",
       "source_location": "L16",
       "id": "shared_button_button",
-      "community": 1,
+      "community": 14,
       "norm_label": "button()"
     },
     {
@@ -3618,7 +3618,7 @@
       "source_file": "components/Shared/Input.tsx",
       "source_location": "L1",
       "id": "components_shared_input_tsx",
-      "community": 1,
+      "community": 14,
       "norm_label": "input.tsx"
     },
     {
@@ -3627,7 +3627,7 @@
       "source_file": "components/Shared/Input.tsx",
       "source_location": "L3",
       "id": "shared_input_inputprops",
-      "community": 1,
+      "community": 14,
       "norm_label": "inputprops"
     },
     {
@@ -3636,7 +3636,7 @@
       "source_file": "components/Shared/Input.tsx",
       "source_location": "L10",
       "id": "shared_input_input",
-      "community": 1,
+      "community": 14,
       "norm_label": "input()"
     },
     {
@@ -3645,7 +3645,7 @@
       "source_file": "components/Shared/index.ts",
       "source_location": "L1",
       "id": "components_shared_index_ts",
-      "community": 1,
+      "community": 14,
       "norm_label": "index.ts"
     },
     {
@@ -3726,7 +3726,7 @@
       "source_file": "components/WhatsappFab/WhatsappFab.tsx",
       "source_location": "L1",
       "id": "components_whatsappfab_whatsappfab_tsx",
-      "community": 6,
+      "community": 61,
       "norm_label": "whatsappfab.tsx"
     },
     {
@@ -3735,7 +3735,7 @@
       "source_file": "components/WhatsappFab/WhatsappFab.tsx",
       "source_location": "L9",
       "id": "whatsappfab_whatsappfab_hidden_prefixes",
-      "community": 6,
+      "community": 61,
       "norm_label": "hidden_prefixes"
     },
     {
@@ -3744,7 +3744,7 @@
       "source_file": "components/WhatsappFab/WhatsappFab.tsx",
       "source_location": "L11",
       "id": "whatsappfab_whatsappfab_whatsappfabprops",
-      "community": 6,
+      "community": 61,
       "norm_label": "whatsappfabprops"
     },
     {
@@ -3753,7 +3753,7 @@
       "source_file": "components/WhatsappFab/WhatsappFab.tsx",
       "source_location": "L20",
       "id": "whatsappfab_whatsappfab_whatsappfab",
-      "community": 6,
+      "community": 61,
       "norm_label": "whatsappfab()"
     },
     {
@@ -3762,7 +3762,7 @@
       "source_file": "lib/seo.ts",
       "source_location": "L1",
       "id": "lib_seo_ts",
-      "community": 6,
+      "community": 19,
       "norm_label": "seo.ts"
     },
     {
@@ -3771,7 +3771,7 @@
       "source_file": "lib/seo.ts",
       "source_location": "L1",
       "id": "lib_seo_siteurl",
-      "community": 6,
+      "community": 19,
       "norm_label": "siteurl"
     },
     {
@@ -3780,7 +3780,7 @@
       "source_file": "lib/seo.ts",
       "source_location": "L13",
       "id": "lib_seo_absoluteurl",
-      "community": 6,
+      "community": 19,
       "norm_label": "absoluteurl()"
     },
     {
@@ -3870,7 +3870,7 @@
       "source_file": "lib/api/reservas.ts",
       "source_location": "L24",
       "id": "api_reservas_reservatipobackend",
-      "community": 1,
+      "community": 14,
       "norm_label": "reservatipobackend"
     },
     {
@@ -3996,7 +3996,7 @@
       "source_file": "lib/api/reservas.ts",
       "source_location": "L165",
       "id": "api_reservas_getreservascalendario",
-      "community": 1,
+      "community": 15,
       "norm_label": "getreservascalendario()"
     },
     {
@@ -4032,7 +4032,7 @@
       "source_file": "lib/api/reservas.ts",
       "source_location": "L197",
       "id": "api_reservas_eliminarreservadb",
-      "community": 1,
+      "community": 14,
       "norm_label": "eliminarreservadb()"
     },
     {
@@ -4158,7 +4158,7 @@
       "source_file": "lib/api/servicios.ts",
       "source_location": "L68",
       "id": "api_servicios_getcategoriasdb",
-      "community": 14,
+      "community": 27,
       "norm_label": "getcategoriasdb()"
     },
     {
@@ -4167,7 +4167,7 @@
       "source_file": "lib/api/servicios.ts",
       "source_location": "L73",
       "id": "api_servicios_crearcategoriadb",
-      "community": 14,
+      "community": 27,
       "norm_label": "crearcategoriadb()"
     },
     {
@@ -4176,7 +4176,7 @@
       "source_file": "lib/api/servicios.ts",
       "source_location": "L80",
       "id": "api_servicios_getserviciosdb",
-      "community": 26,
+      "community": 16,
       "norm_label": "getserviciosdb()"
     },
     {
@@ -4275,7 +4275,7 @@
       "source_file": "lib/api/servicios.ts",
       "source_location": "L166",
       "id": "api_servicios_actualizarcomboservicio",
-      "community": 33,
+      "community": 8,
       "norm_label": "actualizarcomboservicio()"
     },
     {
@@ -4545,7 +4545,7 @@
       "source_file": "lib/constants/reservationForm.ts",
       "source_location": "L13",
       "id": "constants_reservationform_horas_inicio",
-      "community": 26,
+      "community": 15,
       "norm_label": "horas_inicio"
     },
     {
@@ -4617,7 +4617,7 @@
       "source_file": "lib/hooks/useReservas.ts",
       "source_location": "L1",
       "id": "lib_hooks_usereservas_ts",
-      "community": 26,
+      "community": 1,
       "norm_label": "usereservas.ts"
     },
     {
@@ -4626,7 +4626,7 @@
       "source_file": "lib/hooks/useReservas.ts",
       "source_location": "L7",
       "id": "hooks_usereservas_usereservasparams",
-      "community": 26,
+      "community": 1,
       "norm_label": "usereservasparams"
     },
     {
@@ -4653,7 +4653,7 @@
       "source_file": "lib/hooks/useReservasCalendario.ts",
       "source_location": "L1",
       "id": "lib_hooks_usereservascalendario_ts",
-      "community": 26,
+      "community": 15,
       "norm_label": "usereservascalendario.ts"
     },
     {
@@ -4662,7 +4662,7 @@
       "source_file": "lib/hooks/useReservasCalendario.ts",
       "source_location": "L6",
       "id": "hooks_usereservascalendario_usereservascalendarioparams",
-      "community": 26,
+      "community": 15,
       "norm_label": "usereservascalendarioparams"
     },
     {
@@ -4671,7 +4671,7 @@
       "source_file": "lib/hooks/useReservasCalendario.ts",
       "source_location": "L12",
       "id": "hooks_usereservascalendario_usereservascalendarioreturn",
-      "community": 34,
+      "community": 15,
       "norm_label": "usereservascalendarioreturn"
     },
     {
@@ -4707,7 +4707,7 @@
       "source_file": "lib/hooks/useReservasFiltradas.ts",
       "source_location": "L16",
       "id": "hooks_usereservasfiltradas_usereservasfiltradas",
-      "community": 1,
+      "community": 14,
       "norm_label": "usereservasfiltradas()"
     },
     {
@@ -5022,7 +5022,7 @@
       "source_file": "types/reserva.ts",
       "source_location": "L1",
       "id": "types_reserva_ts",
-      "community": 19,
+      "community": 15,
       "norm_label": "reserva.ts"
     },
     {
@@ -5031,7 +5031,7 @@
       "source_file": "types/reserva.ts",
       "source_location": "L1",
       "id": "types_reserva_diasemana",
-      "community": 27,
+      "community": 15,
       "norm_label": "diasemana"
     },
     {
@@ -5040,7 +5040,7 @@
       "source_file": "types/reserva.ts",
       "source_location": "L3",
       "id": "types_reserva_tiporeserva",
-      "community": 19,
+      "community": 15,
       "norm_label": "tiporeserva"
     },
     {
@@ -5058,7 +5058,7 @@
       "source_file": "types/reserva.ts",
       "source_location": "L6",
       "id": "types_reserva_fechadia",
-      "community": 27,
+      "community": 15,
       "norm_label": "fechadia"
     },
     {
@@ -5076,7 +5076,7 @@
       "source_file": "types/reserva.ts",
       "source_location": "L20",
       "id": "types_reserva_servicio_evaluacion_gratuita",
-      "community": 19,
+      "community": 15,
       "norm_label": "servicio_evaluacion_gratuita"
     },
     {
@@ -5085,7 +5085,7 @@
       "source_file": "types/reserva.ts",
       "source_location": "L31",
       "id": "types_reserva_servicio_tratamiento_especializado",
-      "community": 19,
+      "community": 15,
       "norm_label": "servicio_tratamiento_especializado"
     },
     {
@@ -5103,7 +5103,7 @@
       "source_file": "types/reserva.ts",
       "source_location": "L72",
       "id": "types_reserva_servicios_disponibles",
-      "community": 19,
+      "community": 26,
       "norm_label": "servicios_disponibles"
     },
     {
@@ -5112,7 +5112,7 @@
       "source_file": "types/reserva.ts",
       "source_location": "L80",
       "id": "types_reserva_servicios_especializados_disponibles",
-      "community": 19,
+      "community": 26,
       "norm_label": "servicios_especializados_disponibles"
     },
     {
@@ -5121,7 +5121,7 @@
       "source_file": "types/reserva.ts",
       "source_location": "L84",
       "id": "types_reserva_serviciovalue",
-      "community": 19,
+      "community": 15,
       "norm_label": "serviciovalue"
     },
     {
@@ -5139,7 +5139,7 @@
       "source_file": "types/reserva.ts",
       "source_location": "L104",
       "id": "types_reserva_reservadetalle",
-      "community": 27,
+      "community": 15,
       "norm_label": "reservadetalle"
     },
     {
@@ -5148,7 +5148,7 @@
       "source_file": "types/reserva.ts",
       "source_location": "L111",
       "id": "types_reserva_reservaporhora",
-      "community": 34,
+      "community": 15,
       "norm_label": "reservaporhora"
     },
     {
@@ -5157,7 +5157,7 @@
       "source_file": "types/reserva.ts",
       "source_location": "L116",
       "id": "types_reserva_semanadata",
-      "community": 19,
+      "community": 15,
       "norm_label": "semanadata"
     },
     {
@@ -5166,7 +5166,7 @@
       "source_file": "types/reserva.ts",
       "source_location": "L121",
       "id": "types_reserva_localdata",
-      "community": 19,
+      "community": 15,
       "norm_label": "localdata"
     },
     {
@@ -5175,7 +5175,7 @@
       "source_file": "types/reserva.ts",
       "source_location": "L126",
       "id": "types_reserva_filtrosreserva",
-      "community": 19,
+      "community": 15,
       "norm_label": "filtrosreserva"
     },
     {
@@ -5184,7 +5184,7 @@
       "source_file": "types/reserva.ts",
       "source_location": "L135",
       "id": "types_reserva_reservasdata",
-      "community": 19,
+      "community": 15,
       "norm_label": "reservasdata"
     },
     {
@@ -5193,7 +5193,7 @@
       "source_file": "types/reserva.ts",
       "source_location": "L141",
       "id": "types_reserva_apiresponse",
-      "community": 34,
+      "community": 15,
       "norm_label": "apiresponse"
     },
     {
@@ -5202,7 +5202,7 @@
       "source_file": "types/reserva.ts",
       "source_location": "L149",
       "id": "types_reserva_reservasresponse",
-      "community": 19,
+      "community": 15,
       "norm_label": "reservasresponse"
     },
     {
@@ -5211,7 +5211,7 @@
       "source_file": "types/reserva.ts",
       "source_location": "L155",
       "id": "types_reserva_timeslotinfo",
-      "community": 19,
+      "community": 15,
       "norm_label": "timeslotinfo"
     },
     {
@@ -5229,7 +5229,7 @@
       "source_file": "types/reserva.ts",
       "source_location": "L171",
       "id": "types_reserva_sucursalvalue",
-      "community": 19,
+      "community": 15,
       "norm_label": "sucursalvalue"
     },
     {
@@ -5247,7 +5247,7 @@
       "source_file": "types/reserva.ts",
       "source_location": "L181",
       "id": "types_reserva_servicioinfo",
-      "community": 19,
+      "community": 15,
       "norm_label": "servicioinfo"
     },
     {
@@ -5256,7 +5256,7 @@
       "source_file": "types/reserva.ts",
       "source_location": "L182",
       "id": "types_reserva_servicioadmininfo",
-      "community": 19,
+      "community": 15,
       "norm_label": "servicioadmininfo"
     },
     {
@@ -5274,7 +5274,7 @@
       "source_file": "types/reserva.ts",
       "source_location": "L195",
       "id": "types_reserva_getserviciosadminporsucursal",
-      "community": 0,
+      "community": 26,
       "norm_label": "getserviciosadminporsucursal()"
     },
     {
@@ -5328,7 +5328,7 @@
       "source_file": "types/reserva.ts",
       "source_location": "L271",
       "id": "types_reserva_gettipolabel",
-      "community": 19,
+      "community": 15,
       "norm_label": "gettipolabel()"
     },
     {
@@ -5337,7 +5337,7 @@
       "source_file": "types/reserva.ts",
       "source_location": "L280",
       "id": "types_reserva_normalizetipo",
-      "community": 19,
+      "community": 15,
       "norm_label": "normalizetipo()"
     },
     {
@@ -5346,7 +5346,7 @@
       "source_file": "types/reserva.ts",
       "source_location": "L289",
       "id": "types_reserva_getfechamanana",
-      "community": 19,
+      "community": 15,
       "norm_label": "getfechamanana()"
     },
     {
@@ -5391,7 +5391,7 @@
       "source_file": "types/reserva.ts",
       "source_location": "L404",
       "id": "types_reserva_reservasbdresponse",
-      "community": 19,
+      "community": 15,
       "norm_label": "reservasbdresponse"
     },
     {
@@ -7897,6 +7897,96 @@
       "norm_label": "self-review"
     },
     {
+      "label": "2026-06-01-admin-layout-unificacion-design.md",
+      "file_type": "document",
+      "source_file": "docs/superpowers/specs/2026-06-01-admin-layout-unificacion-design.md",
+      "source_location": "L1",
+      "id": "docs_superpowers_specs_2026_06_01_admin_layout_unificacion_design_md",
+      "community": 34,
+      "norm_label": "2026-06-01-admin-layout-unificacion-design.md"
+    },
+    {
+      "label": "Spec: Unificaci\u00f3n de layout del panel admin (atrevida-gestion)",
+      "file_type": "document",
+      "source_file": "docs/superpowers/specs/2026-06-01-admin-layout-unificacion-design.md",
+      "source_location": "L1",
+      "id": "specs_2026_06_01_admin_layout_unificacion_design_spec_unificaci\u00f3n_de_layout_del_panel_admin_atrevida_gestion",
+      "community": 34,
+      "norm_label": "spec: unificacion de layout del panel admin (atrevida-gestion)"
+    },
+    {
+      "label": "Contexto",
+      "file_type": "document",
+      "source_file": "docs/superpowers/specs/2026-06-01-admin-layout-unificacion-design.md",
+      "source_location": "L3",
+      "id": "specs_2026_06_01_admin_layout_unificacion_design_contexto",
+      "community": 34,
+      "norm_label": "contexto"
+    },
+    {
+      "label": "Decisiones tomadas",
+      "file_type": "document",
+      "source_file": "docs/superpowers/specs/2026-06-01-admin-layout-unificacion-design.md",
+      "source_location": "L13",
+      "id": "specs_2026_06_01_admin_layout_unificacion_design_decisiones_tomadas",
+      "community": 34,
+      "norm_label": "decisiones tomadas"
+    },
+    {
+      "label": "Dise\u00f1o",
+      "file_type": "document",
+      "source_file": "docs/superpowers/specs/2026-06-01-admin-layout-unificacion-design.md",
+      "source_location": "L19",
+      "id": "specs_2026_06_01_admin_layout_unificacion_design_dise\u00f1o",
+      "community": 34,
+      "norm_label": "diseno"
+    },
+    {
+      "label": "Clases globales compartidas (en `app/atrevida-gestion/atrevida-gestion.css`)",
+      "file_type": "document",
+      "source_file": "docs/superpowers/specs/2026-06-01-admin-layout-unificacion-design.md",
+      "source_location": "L21",
+      "id": "specs_2026_06_01_admin_layout_unificacion_design_clases_globales_compartidas_en_app_atrevida_gestion_atrevida_gestion_css",
+      "community": 34,
+      "norm_label": "clases globales compartidas (en `app/atrevida-gestion/atrevida-gestion.css`)"
+    },
+    {
+      "label": "code:css ([data-admin=\"true\"] .admin-shell {)",
+      "file_type": "document",
+      "source_file": "docs/superpowers/specs/2026-06-01-admin-layout-unificacion-design.md",
+      "source_location": "L25",
+      "id": "specs_2026_06_01_admin_layout_unificacion_design_codeblock_1",
+      "community": 34,
+      "norm_label": "code:css ([data-admin=\"true\"] .admin-shell {)"
+    },
+    {
+      "label": "Aplicaci\u00f3n por p\u00e1gina",
+      "file_type": "document",
+      "source_file": "docs/superpowers/specs/2026-06-01-admin-layout-unificacion-design.md",
+      "source_location": "L63",
+      "id": "specs_2026_06_01_admin_layout_unificacion_design_aplicaci\u00f3n_por_p\u00e1gina",
+      "community": 34,
+      "norm_label": "aplicacion por pagina"
+    },
+    {
+      "label": "Notas de implementaci\u00f3n",
+      "file_type": "document",
+      "source_file": "docs/superpowers/specs/2026-06-01-admin-layout-unificacion-design.md",
+      "source_location": "L76",
+      "id": "specs_2026_06_01_admin_layout_unificacion_design_notas_de_implementaci\u00f3n",
+      "community": 34,
+      "norm_label": "notas de implementacion"
+    },
+    {
+      "label": "Verificaci\u00f3n",
+      "file_type": "document",
+      "source_file": "docs/superpowers/specs/2026-06-01-admin-layout-unificacion-design.md",
+      "source_location": "L82",
+      "id": "specs_2026_06_01_admin_layout_unificacion_design_verificaci\u00f3n",
+      "community": 34,
+      "norm_label": "verificacion"
+    },
+    {
       "label": "KPI_PRIMARY",
       "file_type": "code",
       "source_file": "app/atrevida-gestion/dashboard/page.tsx",
@@ -8009,7 +8099,7 @@
       "file_type": "code",
       "source_file": "app/admin/configuracion/page.tsx",
       "source_location": "L1",
-      "community": 23,
+      "community": 63,
       "norm_label": "page.tsx",
       "id": "app_admin_configuracion_page_tsx"
     },
@@ -8018,7 +8108,7 @@
       "file_type": "code",
       "source_file": "app/admin/configuracion/categorias/page.tsx",
       "source_location": "L1",
-      "community": 14,
+      "community": 27,
       "norm_label": "page.tsx",
       "id": "app_admin_configuracion_categorias_page_tsx"
     },
@@ -8081,7 +8171,7 @@
       "file_type": "code",
       "source_file": "app/admin/reservas/page.tsx",
       "source_location": "L1",
-      "community": 1,
+      "community": 14,
       "norm_label": "page.tsx",
       "id": "app_admin_reservas_page_tsx"
     },
@@ -11133,9 +11223,9 @@
       "source_file": "app/atrevida-gestion/configuracion/usuarios/page.tsx",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_configuracion_usuarios_page_tsx",
-      "target": "components_adminheader_header_tsx",
-      "confidence_score": 1.0
+      "target": "components_adminheader_header_tsx"
     },
     {
       "relation": "imports_from",
@@ -11144,9 +11234,9 @@
       "source_file": "app/atrevida-gestion/configuracion/usuarios/page.tsx",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_configuracion_usuarios_page_tsx",
-      "target": "components_adminconfig_index_ts",
-      "confidence_score": 1.0
+      "target": "components_adminconfig_index_ts"
     },
     {
       "relation": "imports_from",
@@ -11155,9 +11245,9 @@
       "source_file": "app/atrevida-gestion/configuracion/usuarios/page.tsx",
       "source_location": "L10",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_configuracion_usuarios_page_tsx",
-      "target": "components_shared_toast_tsx",
-      "confidence_score": 1.0
+      "target": "components_shared_toast_tsx"
     },
     {
       "relation": "imports",
@@ -11166,9 +11256,9 @@
       "source_file": "app/atrevida-gestion/configuracion/usuarios/page.tsx",
       "source_location": "L10",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_configuracion_usuarios_page_tsx",
-      "target": "shared_toast_toast",
-      "confidence_score": 1.0
+      "target": "shared_toast_toast"
     },
     {
       "relation": "imports_from",
@@ -11177,9 +11267,9 @@
       "source_file": "app/atrevida-gestion/configuracion/usuarios/page.tsx",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_configuracion_usuarios_page_tsx",
-      "target": "lib_api_client_ts",
-      "confidence_score": 1.0
+      "target": "lib_api_client_ts"
     },
     {
       "relation": "imports",
@@ -11188,9 +11278,9 @@
       "source_file": "app/atrevida-gestion/configuracion/usuarios/page.tsx",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_configuracion_usuarios_page_tsx",
-      "target": "api_client_apierror",
-      "confidence_score": 1.0
+      "target": "api_client_apierror"
     },
     {
       "relation": "imports_from",
@@ -11199,9 +11289,9 @@
       "source_file": "app/atrevida-gestion/configuracion/usuarios/page.tsx",
       "source_location": "L18",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_configuracion_usuarios_page_tsx",
-      "target": "lib_api_auth_ts",
-      "confidence_score": 1.0
+      "target": "lib_api_auth_ts"
     },
     {
       "relation": "imports",
@@ -11210,9 +11300,9 @@
       "source_file": "app/atrevida-gestion/configuracion/usuarios/page.tsx",
       "source_location": "L12",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_configuracion_usuarios_page_tsx",
-      "target": "api_auth_getusuarios",
-      "confidence_score": 1.0
+      "target": "api_auth_getusuarios"
     },
     {
       "relation": "imports",
@@ -11221,9 +11311,9 @@
       "source_file": "app/atrevida-gestion/configuracion/usuarios/page.tsx",
       "source_location": "L12",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_configuracion_usuarios_page_tsx",
-      "target": "api_auth_registrarusuario",
-      "confidence_score": 1.0
+      "target": "api_auth_registrarusuario"
     },
     {
       "relation": "imports",
@@ -11232,9 +11322,9 @@
       "source_file": "app/atrevida-gestion/configuracion/usuarios/page.tsx",
       "source_location": "L12",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_configuracion_usuarios_page_tsx",
-      "target": "api_auth_cambiarpassword",
-      "confidence_score": 1.0
+      "target": "api_auth_cambiarpassword"
     },
     {
       "relation": "imports",
@@ -11243,9 +11333,9 @@
       "source_file": "app/atrevida-gestion/configuracion/usuarios/page.tsx",
       "source_location": "L12",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_configuracion_usuarios_page_tsx",
-      "target": "api_auth_toggleusuarioactivo",
-      "confidence_score": 1.0
+      "target": "api_auth_toggleusuarioactivo"
     },
     {
       "relation": "imports",
@@ -11254,9 +11344,9 @@
       "source_file": "app/atrevida-gestion/configuracion/usuarios/page.tsx",
       "source_location": "L18",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_configuracion_usuarios_page_tsx",
-      "target": "api_auth_usuarioresumen",
-      "confidence_score": 1.0
+      "target": "api_auth_usuarioresumen"
     },
     {
       "relation": "contains",
@@ -11264,9 +11354,9 @@
       "source_file": "app/atrevida-gestion/configuracion/usuarios/page.tsx",
       "source_location": "L21",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_configuracion_usuarios_page_tsx",
-      "target": "usuarios_page_usuariorow",
-      "confidence_score": 1.0
+      "target": "usuarios_page_usuariorow"
     },
     {
       "relation": "contains",
@@ -11274,9 +11364,9 @@
       "source_file": "app/atrevida-gestion/configuracion/usuarios/page.tsx",
       "source_location": "L27",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_configuracion_usuarios_page_tsx",
-      "target": "usuarios_page_newuserform",
-      "confidence_score": 1.0
+      "target": "usuarios_page_newuserform"
     },
     {
       "relation": "contains",
@@ -11284,9 +11374,9 @@
       "source_file": "app/atrevida-gestion/configuracion/usuarios/page.tsx",
       "source_location": "L32",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_configuracion_usuarios_page_tsx",
-      "target": "usuarios_page_newusererrors",
-      "confidence_score": 1.0
+      "target": "usuarios_page_newusererrors"
     },
     {
       "relation": "contains",
@@ -11294,9 +11384,9 @@
       "source_file": "app/atrevida-gestion/configuracion/usuarios/page.tsx",
       "source_location": "L38",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_configuracion_usuarios_page_tsx",
-      "target": "usuarios_page_pwerrors",
-      "confidence_score": 1.0
+      "target": "usuarios_page_pwerrors"
     },
     {
       "relation": "contains",
@@ -11304,9 +11394,9 @@
       "source_file": "app/atrevida-gestion/configuracion/usuarios/page.tsx",
       "source_location": "L43",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_configuracion_usuarios_page_tsx",
-      "target": "usuarios_page_confirmstate",
-      "confidence_score": 1.0
+      "target": "usuarios_page_confirmstate"
     },
     {
       "relation": "contains",
@@ -11314,9 +11404,9 @@
       "source_file": "app/atrevida-gestion/configuracion/usuarios/page.tsx",
       "source_location": "L48",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_configuracion_usuarios_page_tsx",
-      "target": "usuarios_page_usuariospage",
-      "confidence_score": 1.0
+      "target": "usuarios_page_usuariospage"
     },
     {
       "relation": "imports",
@@ -11325,9 +11415,9 @@
       "source_file": "app/atrevida-gestion/configuracion/usuarios/page.tsx",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_configuracion_usuarios_page_tsx",
-      "target": "adminconfig_pageheader_pageheader",
-      "confidence_score": 1.0
+      "target": "adminconfig_pageheader_pageheader"
     },
     {
       "relation": "imports",
@@ -11336,9 +11426,9 @@
       "source_file": "app/atrevida-gestion/configuracion/usuarios/page.tsx",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_configuracion_usuarios_page_tsx",
-      "target": "adminconfig_datatable_datatable",
-      "confidence_score": 1.0
+      "target": "adminconfig_datatable_datatable"
     },
     {
       "relation": "imports",
@@ -11347,9 +11437,9 @@
       "source_file": "app/atrevida-gestion/configuracion/usuarios/page.tsx",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_configuracion_usuarios_page_tsx",
-      "target": "adminconfig_formmodal_formmodal",
-      "confidence_score": 1.0
+      "target": "adminconfig_formmodal_formmodal"
     },
     {
       "relation": "imports",
@@ -11358,9 +11448,9 @@
       "source_file": "app/atrevida-gestion/configuracion/usuarios/page.tsx",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_configuracion_usuarios_page_tsx",
-      "target": "adminconfig_rowactionsmenu_rowactionsmenu",
-      "confidence_score": 1.0
+      "target": "adminconfig_rowactionsmenu_rowactionsmenu"
     },
     {
       "relation": "imports",
@@ -11369,9 +11459,9 @@
       "source_file": "app/atrevida-gestion/configuracion/usuarios/page.tsx",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_configuracion_usuarios_page_tsx",
-      "target": "adminconfig_datatable_column",
-      "confidence_score": 1.0
+      "target": "adminconfig_datatable_column"
     },
     {
       "relation": "imports_from",
@@ -11424,9 +11514,9 @@
       "source_file": "app/atrevida-gestion/dashboard/page.tsx",
       "source_location": "L20",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_dashboard_page_tsx",
-      "target": "lib_api_clientes_ts",
-      "confidence_score": 1.0
+      "target": "lib_api_clientes_ts"
     },
     {
       "relation": "imports",
@@ -11435,9 +11525,9 @@
       "source_file": "app/atrevida-gestion/dashboard/page.tsx",
       "source_location": "L20",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_dashboard_page_tsx",
-      "target": "api_clientes_getclientesdb",
-      "confidence_score": 1.0
+      "target": "api_clientes_getclientesdb"
     },
     {
       "relation": "contains",
@@ -11475,9 +11565,9 @@
       "source_file": "app/atrevida-gestion/dashboard/page.tsx",
       "source_location": "L52",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_dashboard_page_tsx",
-      "target": "dashboard_page_makekpiprimary",
-      "confidence_score": 1.0
+      "target": "dashboard_page_makekpiprimary"
     },
     {
       "relation": "contains",
@@ -11556,9 +11646,9 @@
       "source_file": "app/atrevida-gestion/dashboard/page.tsx",
       "source_location": "L279",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "dashboard_page_admindashboardpage",
-      "target": "dashboard_page_makekpiprimary",
-      "confidence_score": 1.0
+      "target": "dashboard_page_makekpiprimary"
     },
     {
       "relation": "contains",
@@ -13583,9 +13673,9 @@
       "source_file": "app/atrevida-gestion/clientes/page.tsx",
       "source_location": "L7",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_clientes_page_tsx",
-      "target": "components_adminheader_header_tsx",
-      "confidence_score": 1.0
+      "target": "components_adminheader_header_tsx"
     },
     {
       "relation": "imports_from",
@@ -13594,9 +13684,9 @@
       "source_file": "app/atrevida-gestion/clientes/page.tsx",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_clientes_page_tsx",
-      "target": "components_adminconfig_index_ts",
-      "confidence_score": 1.0
+      "target": "components_adminconfig_index_ts"
     },
     {
       "relation": "imports_from",
@@ -13605,9 +13695,9 @@
       "source_file": "app/atrevida-gestion/clientes/page.tsx",
       "source_location": "L10",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_clientes_page_tsx",
-      "target": "components_shared_toast_tsx",
-      "confidence_score": 1.0
+      "target": "components_shared_toast_tsx"
     },
     {
       "relation": "imports",
@@ -13616,9 +13706,9 @@
       "source_file": "app/atrevida-gestion/clientes/page.tsx",
       "source_location": "L10",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_clientes_page_tsx",
-      "target": "shared_toast_toast",
-      "confidence_score": 1.0
+      "target": "shared_toast_toast"
     },
     {
       "relation": "imports_from",
@@ -13627,9 +13717,9 @@
       "source_file": "app/atrevida-gestion/clientes/page.tsx",
       "source_location": "L17",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_clientes_page_tsx",
-      "target": "lib_api_clientes_ts",
-      "confidence_score": 1.0
+      "target": "lib_api_clientes_ts"
     },
     {
       "relation": "imports",
@@ -13638,9 +13728,9 @@
       "source_file": "app/atrevida-gestion/clientes/page.tsx",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_clientes_page_tsx",
-      "target": "api_clientes_getclientesdb",
-      "confidence_score": 1.0
+      "target": "api_clientes_getclientesdb"
     },
     {
       "relation": "imports",
@@ -13649,9 +13739,9 @@
       "source_file": "app/atrevida-gestion/clientes/page.tsx",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_clientes_page_tsx",
-      "target": "api_clientes_crearclientedb",
-      "confidence_score": 1.0
+      "target": "api_clientes_crearclientedb"
     },
     {
       "relation": "imports",
@@ -13660,9 +13750,9 @@
       "source_file": "app/atrevida-gestion/clientes/page.tsx",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_clientes_page_tsx",
-      "target": "api_clientes_actualizarclientedb",
-      "confidence_score": 1.0
+      "target": "api_clientes_actualizarclientedb"
     },
     {
       "relation": "imports",
@@ -13671,9 +13761,9 @@
       "source_file": "app/atrevida-gestion/clientes/page.tsx",
       "source_location": "L11",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_clientes_page_tsx",
-      "target": "api_clientes_eliminarclientedb",
-      "confidence_score": 1.0
+      "target": "api_clientes_eliminarclientedb"
     },
     {
       "relation": "imports",
@@ -13682,9 +13772,9 @@
       "source_file": "app/atrevida-gestion/clientes/page.tsx",
       "source_location": "L17",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_clientes_page_tsx",
-      "target": "api_clientes_clientepg",
-      "confidence_score": 1.0
+      "target": "api_clientes_clientepg"
     },
     {
       "relation": "contains",
@@ -13692,9 +13782,9 @@
       "source_file": "app/atrevida-gestion/clientes/page.tsx",
       "source_location": "L20",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_clientes_page_tsx",
-      "target": "clientes_page_clienterow",
-      "confidence_score": 1.0
+      "target": "clientes_page_clienterow"
     },
     {
       "relation": "contains",
@@ -13702,9 +13792,9 @@
       "source_file": "app/atrevida-gestion/clientes/page.tsx",
       "source_location": "L27",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_clientes_page_tsx",
-      "target": "clientes_page_formstate",
-      "confidence_score": 1.0
+      "target": "clientes_page_formstate"
     },
     {
       "relation": "contains",
@@ -13712,9 +13802,9 @@
       "source_file": "app/atrevida-gestion/clientes/page.tsx",
       "source_location": "L33",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_clientes_page_tsx",
-      "target": "clientes_page_formerrors",
-      "confidence_score": 1.0
+      "target": "clientes_page_formerrors"
     },
     {
       "relation": "contains",
@@ -13722,9 +13812,9 @@
       "source_file": "app/atrevida-gestion/clientes/page.tsx",
       "source_location": "L40",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_clientes_page_tsx",
-      "target": "clientes_page_confirmstate",
-      "confidence_score": 1.0
+      "target": "clientes_page_confirmstate"
     },
     {
       "relation": "contains",
@@ -13732,9 +13822,9 @@
       "source_file": "app/atrevida-gestion/clientes/page.tsx",
       "source_location": "L45",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_clientes_page_tsx",
-      "target": "clientes_page_form_initial",
-      "confidence_score": 1.0
+      "target": "clientes_page_form_initial"
     },
     {
       "relation": "contains",
@@ -13742,9 +13832,9 @@
       "source_file": "app/atrevida-gestion/clientes/page.tsx",
       "source_location": "L47",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_clientes_page_tsx",
-      "target": "clientes_page_clientespage",
-      "confidence_score": 1.0
+      "target": "clientes_page_clientespage"
     },
     {
       "relation": "imports",
@@ -13753,9 +13843,9 @@
       "source_file": "app/atrevida-gestion/clientes/page.tsx",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_clientes_page_tsx",
-      "target": "adminconfig_pageheader_pageheader",
-      "confidence_score": 1.0
+      "target": "adminconfig_pageheader_pageheader"
     },
     {
       "relation": "imports",
@@ -13764,9 +13854,9 @@
       "source_file": "app/atrevida-gestion/clientes/page.tsx",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_clientes_page_tsx",
-      "target": "adminconfig_datatable_datatable",
-      "confidence_score": 1.0
+      "target": "adminconfig_datatable_datatable"
     },
     {
       "relation": "imports",
@@ -13775,9 +13865,9 @@
       "source_file": "app/atrevida-gestion/clientes/page.tsx",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_clientes_page_tsx",
-      "target": "adminconfig_formmodal_formmodal",
-      "confidence_score": 1.0
+      "target": "adminconfig_formmodal_formmodal"
     },
     {
       "relation": "imports",
@@ -13786,9 +13876,9 @@
       "source_file": "app/atrevida-gestion/clientes/page.tsx",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_clientes_page_tsx",
-      "target": "adminconfig_rowactionsmenu_rowactionsmenu",
-      "confidence_score": 1.0
+      "target": "adminconfig_rowactionsmenu_rowactionsmenu"
     },
     {
       "relation": "imports",
@@ -13797,9 +13887,9 @@
       "source_file": "app/atrevida-gestion/clientes/page.tsx",
       "source_location": "L9",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "app_atrevida_gestion_clientes_page_tsx",
-      "target": "adminconfig_datatable_column",
-      "confidence_score": 1.0
+      "target": "adminconfig_datatable_column"
     },
     {
       "relation": "contains",
@@ -20826,9 +20916,9 @@
       "source_file": "lib/api/index.ts",
       "source_location": "L4",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_api_index_ts",
-      "target": "lib_api_clientes_ts",
-      "confidence_score": 1.0
+      "target": "lib_api_clientes_ts"
     },
     {
       "relation": "imports_from",
@@ -20939,9 +21029,9 @@
       "source_file": "lib/api/index.ts",
       "source_location": "L5",
       "weight": 1.0,
+      "confidence_score": 1.0,
       "source": "lib_api_index_ts",
-      "target": "lib_api_auth_ts",
-      "confidence_score": 1.0
+      "target": "lib_api_auth_ts"
     },
     {
       "relation": "imports_from",
@@ -25542,6 +25632,96 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "docs/superpowers/specs/2026-06-01-admin-layout-unificacion-design.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "docs_superpowers_specs_2026_06_01_admin_layout_unificacion_design_md",
+      "target": "specs_2026_06_01_admin_layout_unificacion_design_spec_unificaci\u00f3n_de_layout_del_panel_admin_atrevida_gestion",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/superpowers/specs/2026-06-01-admin-layout-unificacion-design.md",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "specs_2026_06_01_admin_layout_unificacion_design_spec_unificaci\u00f3n_de_layout_del_panel_admin_atrevida_gestion",
+      "target": "specs_2026_06_01_admin_layout_unificacion_design_contexto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/superpowers/specs/2026-06-01-admin-layout-unificacion-design.md",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "specs_2026_06_01_admin_layout_unificacion_design_spec_unificaci\u00f3n_de_layout_del_panel_admin_atrevida_gestion",
+      "target": "specs_2026_06_01_admin_layout_unificacion_design_decisiones_tomadas",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/superpowers/specs/2026-06-01-admin-layout-unificacion-design.md",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "specs_2026_06_01_admin_layout_unificacion_design_spec_unificaci\u00f3n_de_layout_del_panel_admin_atrevida_gestion",
+      "target": "specs_2026_06_01_admin_layout_unificacion_design_dise\u00f1o",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/superpowers/specs/2026-06-01-admin-layout-unificacion-design.md",
+      "source_location": "L82",
+      "weight": 1.0,
+      "source": "specs_2026_06_01_admin_layout_unificacion_design_spec_unificaci\u00f3n_de_layout_del_panel_admin_atrevida_gestion",
+      "target": "specs_2026_06_01_admin_layout_unificacion_design_verificaci\u00f3n",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/superpowers/specs/2026-06-01-admin-layout-unificacion-design.md",
+      "source_location": "L21",
+      "weight": 1.0,
+      "source": "specs_2026_06_01_admin_layout_unificacion_design_dise\u00f1o",
+      "target": "specs_2026_06_01_admin_layout_unificacion_design_clases_globales_compartidas_en_app_atrevida_gestion_atrevida_gestion_css",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/superpowers/specs/2026-06-01-admin-layout-unificacion-design.md",
+      "source_location": "L63",
+      "weight": 1.0,
+      "source": "specs_2026_06_01_admin_layout_unificacion_design_dise\u00f1o",
+      "target": "specs_2026_06_01_admin_layout_unificacion_design_aplicaci\u00f3n_por_p\u00e1gina",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/superpowers/specs/2026-06-01-admin-layout-unificacion-design.md",
+      "source_location": "L76",
+      "weight": 1.0,
+      "source": "specs_2026_06_01_admin_layout_unificacion_design_dise\u00f1o",
+      "target": "specs_2026_06_01_admin_layout_unificacion_design_notas_de_implementaci\u00f3n",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/superpowers/specs/2026-06-01-admin-layout-unificacion-design.md",
+      "source_location": "L25",
+      "weight": 1.0,
+      "source": "specs_2026_06_01_admin_layout_unificacion_design_clases_globales_compartidas_en_app_atrevida_gestion_atrevida_gestion_css",
+      "target": "specs_2026_06_01_admin_layout_unificacion_design_codeblock_1",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "app/admin/dashboard/page.tsx",
       "source_location": "L51",
       "weight": 1.0,
@@ -25601,5 +25781,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "7e3d8686c7a7cc4c404ff5fbcaee85cee1726f3e"
+  "built_at_commit": "b5003aaf140c2294aceb0e2f046743ca3c071718"
 }

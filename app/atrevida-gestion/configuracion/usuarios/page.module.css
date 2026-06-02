@@ -1,6 +1,5 @@
 .pageContainer {
   min-height: 100vh;
-  background: var(--admin-grad-subtle), var(--admin-bg);
   color: var(--admin-foreground);
   font-family: var(--admin-font-family);
   position: relative;
@@ -10,8 +9,9 @@
 .main {
   position: relative;
   z-index: 1;
+  max-width: 1440px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 2rem 1.5rem 4rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;

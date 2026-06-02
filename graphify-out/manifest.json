@@ -150,8 +150,8 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/configuracion/page.tsx": {
-    "mtime": 1780356068.8494744,
-    "ast_hash": "959a2e1db35c3dac15bf5ac89da81c87",
+    "mtime": 1780358434.564271,
+    "ast_hash": "d81049c6ea88e889b3073628982eb711",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/configuracion/categorias/page.tsx": {
@@ -190,13 +190,13 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/reservas/page.tsx": {
-    "mtime": 1779988995.2123034,
-    "ast_hash": "d87eb3cd6c543b1bb40297b6033d3edd",
+    "mtime": 1780358433.5543082,
+    "ast_hash": "7953230a138c11ae661359403e9f799f",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/reservas/aprobacion/page.tsx": {
-    "mtime": 1779988995.2103035,
-    "ast_hash": "dae4b2e5bf9a0077c7e517ee03e220fb",
+    "mtime": 1780358420.025806,
+    "ast_hash": "6f3334a16c381256128ba7a4ab71778d",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/reservas/crear/page.tsx": {
@@ -210,8 +210,8 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/reservas/proximas/page.tsx": {
-    "mtime": 1779988995.2133033,
-    "ast_hash": "76c547f62ddc2f2749a05849ad52fd62",
+    "mtime": 1780358421.3957555,
+    "ast_hash": "8ae255f1e75a1c3a9a9e67d03628b73d",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/components/AdminConfig/FormModal.tsx": {
@@ -750,13 +750,18 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/configuracion/usuarios/page.tsx": {
-    "mtime": 1780356206.2403753,
-    "ast_hash": "6d6130f80a219eac9825f4664846588a",
+    "mtime": 1780358432.1600482,
+    "ast_hash": "e66fa45e6b137ffc0f7ab17cf58d6611",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/clientes/page.tsx": {
-    "mtime": 1780356148.3175251,
-    "ast_hash": "07865d2f833e4ef75661f58cea3bacf8",
+    "mtime": 1780358423.2716866,
+    "ast_hash": "8695ec36c632088fb65dec61f9827c19",
+    "semantic_hash": ""
+  },
+  "/home/jhunior/Documents/Projects/AtrevidaFront/docs/superpowers/specs/2026-06-01-admin-layout-unificacion-design.md": {
+    "mtime": 1780358070.9076552,
+    "ast_hash": "080a969ea90bcb232137ff3fb2482ed0",
     "semantic_hash": ""
   }
 }

@@ -244,7 +244,7 @@ export default function AdminReservasProximasPage() {
       <Header />
 
       <main className={styles.main}>
-        <div className={styles.bgMesh} />
+        <div className="admin-mesh" />
 
         <div className={styles.container}>
           <header ref={headerRef} className={styles.pageHeader}>

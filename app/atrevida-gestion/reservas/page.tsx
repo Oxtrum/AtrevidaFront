@@ -287,6 +287,7 @@ export default function AdminReservasPage() {
 
   return (
     <div ref={containerRef} className={styles.pageContainer}>
+      <div className="admin-mesh" />
       <Header />
       <main className={styles.main}>
         <div ref={headerRef} className={styles.header}>
