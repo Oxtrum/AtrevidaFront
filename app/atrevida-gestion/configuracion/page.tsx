@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { Tags, Building2, Scissors, Package2, ShieldCheck } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
+import { PageHeader, SectionLabel } from '@/components/AdminConfig';
 import styles from './page.module.css';
 
 const OPTIONS = [
@@ -57,26 +58,14 @@ export default function ConfiguracionPage() {
       <Header />
       <main className={styles.main}>
         <div className={styles.container}>
-          <div className={styles.pageHeader}>
-            <div className={styles.titleBlock}>
-              <span className={styles.badge}>
-                <span className={styles.badgeDot} />
-                Configuración
-              </span>
-              <h1 className={styles.title}>
-                Ajustes del{' '}
-                <span className={styles.titleAccent}>Sistema</span>
-              </h1>
-              <p className={styles.subtitle}>
-                Administra categorías, locales y servicios del centro
-              </p>
-            </div>
-          </div>
+          <PageHeader
+            kicker="Panel de control"
+            title="Ajustes del Sistema"
+            accentWord="Sistema"
+            subtitle="Administra categorías, locales, servicios y usuarios del centro"
+          />
 
-          <div className={styles.gridLabel}>
-            <span className={styles.gridLabelText}>Módulos</span>
-            <span className={styles.gridLabelLine} />
-          </div>
+          <SectionLabel withLine>Módulos</SectionLabel>
 
           <div className={styles.grid}>
             {OPTIONS.map((opt) => (
