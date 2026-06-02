@@ -5,8 +5,24 @@
   gap: 1.5rem;
   margin-bottom: 2rem;
   padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--admin-border-subtle);
+  position: relative;
   flex-wrap: wrap;
+}
+
+.header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(236, 0, 140, 0.45) 0%,
+    rgba(146, 39, 143, 0.3) 40%,
+    rgba(20, 174, 239, 0.2) 70%,
+    transparent 100%
+  );
 }
 
 .left {
@@ -40,15 +56,38 @@
 .titleGroup {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.35rem;
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--admin-text-dim);
+}
+
+.kicker svg {
+  color: var(--admin-accent-primary);
 }
 
 .title {
-  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
   font-weight: 700;
   letter-spacing: -0.5px;
   color: var(--admin-foreground);
-  line-height: 1.2;
+  line-height: 1.15;
+}
+
+.accent {
+  background: var(--admin-grad-primary);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
 .subtitle {
