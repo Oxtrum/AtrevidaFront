@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
 import { Filter, Package2, ChevronRight, ChevronDown, Plus, Pencil, Trash2 } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
-import { PageHeader, FormModal, RowActionsMenu } from '@/components/AdminConfig';
+import { PageHeader, FormModal, RowActionsMenu, AdminPanel } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
 import {
@@ -424,8 +424,12 @@ export default function CombosPage() {
       <div className="admin-mesh" />
       <Header />
       <main className={styles.main}>
-        <PageHeader
-          title="Combos"
+        <div className={styles.container}>
+          <PageHeader
+          kicker="Configuración"
+          kickerIcon={<Package2 size={14} strokeWidth={2} />}
+          title="Combos de Servicios"
+          accentWord="Combos"
           subtitle="Visualiza combos y gestiona sus servicios incluidos"
           backHref="/atrevida-gestion/configuracion"
         />
@@ -433,7 +437,7 @@ export default function CombosPage() {
         <div ref={contentRef} className={styles.contentStack}>
 
           {/* ── Filter card ── */}
-          <div className={styles.filterCard}>
+          <AdminPanel accentStripe>
             <div className={styles.filterCardInner}>
               <div className={styles.filterSectionLabel}>
                 <Filter size={12} />
@@ -494,7 +498,7 @@ export default function CombosPage() {
                 </div>
               </div>
             </div>
-          </div>
+          </AdminPanel>
 
           {/* ── Hint ── */}
           {!hasFilter && (
@@ -634,6 +638,7 @@ export default function CombosPage() {
             </>
           )}
 
+        </div>
         </div>
       </main>
 
