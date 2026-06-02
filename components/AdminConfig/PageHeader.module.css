@@ -16,13 +16,11 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(
-    90deg,
-    rgba(236, 0, 140, 0.45) 0%,
-    rgba(146, 39, 143, 0.3) 40%,
-    rgba(20, 174, 239, 0.2) 70%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg,
+      rgba(236, 0, 140, 0.45) 0%,
+      rgba(146, 39, 143, 0.3) 40%,
+      rgba(20, 174, 239, 0.2) 70%,
+      transparent 100%);
 }
 
 .left {
