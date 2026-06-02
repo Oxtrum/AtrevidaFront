@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
-import { Plus } from 'lucide-react';
+import { Plus, Tags } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
 import { PageHeader, DataTable, FormModal } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
@@ -12,8 +12,8 @@ import { getCategoriasDB, crearCategoriaDB } from '@/lib/api/servicios';
 import styles from './page.module.css';
 
 interface Categoria extends Record<string, unknown> {
-  ID: number;
-  Nombre: string;
+  id: number;
+  nombre: string;
 }
 
 interface FormErrors {
@@ -92,8 +92,8 @@ export default function CategoriasPage() {
   };
 
   const columns: Column<Categoria>[] = [
-    { key: 'ID', label: 'ID', searchable: false },
-    { key: 'Nombre', label: 'Nombre' },
+    { key: 'id', label: 'ID', searchable: false },
+    { key: 'nombre', label: 'Nombre' },
   ];
 
   return (
@@ -101,8 +101,12 @@ export default function CategoriasPage() {
       <div className="admin-mesh" />
       <Header />
       <main className={styles.main}>
-        <PageHeader
-          title="Categorías"
+        <div className={styles.container}>
+          <PageHeader
+          kicker="Configuración"
+          kickerIcon={<Tags size={14} strokeWidth={2} />}
+          title="Categorías de Servicios"
+          accentWord="Categorías"
           subtitle="Administra las categorías de servicios"
           backHref="/atrevida-gestion/configuracion"
           actions={
@@ -128,6 +132,7 @@ export default function CategoriasPage() {
             searchPlaceholder="Buscar por nombre..."
             emptyMessage="No hay categorías registradas"
           />
+        </div>
         </div>
       </main>
 

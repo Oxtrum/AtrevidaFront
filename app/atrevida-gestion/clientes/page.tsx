@@ -196,8 +196,12 @@ export default function ClientesPage() {
       <div className="admin-mesh" />
       <Header />
       <main className={styles.main}>
-        <PageHeader
+        <div className={styles.container}>
+          <PageHeader
+          kicker="Directorio"
+          kickerIcon={<Users size={14} strokeWidth={2} />}
           title="Clientes"
+          accentWord="Clientes"
           subtitle="Directorio de clientes del centro"
           backHref="/atrevida-gestion/dashboard"
           actions={
@@ -238,6 +242,7 @@ export default function ClientesPage() {
             searchPlaceholder=""
             emptyMessage="No se encontraron clientes"
           />
+        </div>
         </div>
       </main>
 

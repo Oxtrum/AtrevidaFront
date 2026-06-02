@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
-import { KeyRound, Plus, UserX, UserCheck } from 'lucide-react';
+import { KeyRound, Plus, ShieldCheck, UserX, UserCheck } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
 import { PageHeader, DataTable, FormModal, RowActionsMenu } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
@@ -210,8 +210,12 @@ export default function UsuariosPage() {
       <div className="admin-mesh" />
       <Header />
       <main className={styles.main}>
-        <PageHeader
-          title="Usuarios"
+        <div className={styles.container}>
+          <PageHeader
+          kicker="Administración"
+          kickerIcon={<ShieldCheck size={14} strokeWidth={2} />}
+          title="Usuarios del Sistema"
+          accentWord="Usuarios"
           subtitle="Gestiona los usuarios del sistema administrativo"
           backHref="/atrevida-gestion/configuracion"
           actions={
@@ -245,6 +249,7 @@ export default function UsuariosPage() {
             searchPlaceholder="Buscar usuario..."
             emptyMessage="No hay usuarios registrados"
           />
+        </div>
         </div>
       </main>
 

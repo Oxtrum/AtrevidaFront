@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
-import { Plus } from 'lucide-react';
+import { Building2, Plus } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
 import { PageHeader, DataTable, FormModal } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
@@ -155,8 +155,12 @@ export default function LocalesPage() {
       <div className="admin-mesh" />
       <Header />
       <main className={styles.main}>
-        <PageHeader
-          title="Locales"
+        <div className={styles.container}>
+          <PageHeader
+          kicker="Configuración"
+          kickerIcon={<Building2 size={14} strokeWidth={2} />}
+          title="Locales y Sucursales"
+          accentWord="Locales"
           subtitle="Gestiona las sucursales y sus espacios disponibles"
           backHref="/atrevida-gestion/configuracion"
           actions={
@@ -183,6 +187,7 @@ export default function LocalesPage() {
             searchPlaceholder="Buscar por nombre..."
             emptyMessage="No hay locales registrados"
           />
+        </div>
         </div>
       </main>
 
