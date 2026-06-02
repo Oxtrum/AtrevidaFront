@@ -439,6 +439,7 @@ export default function ServiciosPage() {
 
   return (
     <div ref={containerRef} className={styles.pageContainer}>
+      <div className="admin-mesh" />
       <Header />
       <main className={styles.main}>
         <PageHeader
