@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
 import { Filter, Package2, ChevronRight, ChevronDown, Plus, Pencil, Trash2 } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
-import { PageHeader, FormModal, RowActionsMenu, AdminPanel } from '@/components/AdminConfig';
+import { PageHeader, FormModal, RowActionsMenu } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
 import {
@@ -437,7 +437,7 @@ export default function CombosPage() {
         <div ref={contentRef} className={styles.contentStack}>
 
           {/* ── Filter card ── */}
-          <AdminPanel accentStripe>
+          <div className={styles.filterCard}>
             <div className={styles.filterCardInner}>
               <div className={styles.filterSectionLabel}>
                 <Filter size={12} />
@@ -498,36 +498,37 @@ export default function CombosPage() {
                 </div>
               </div>
             </div>
-          </AdminPanel>
+          </div>
 
-          {/* ── Hint ── */}
-          {!hasFilter && (
-            <div className={styles.hint}>
-              <div className={styles.hintIcon}>
-                <Package2 size={20} strokeWidth={1.5} />
+          <div className={styles.resultsCard}>
+            {/* ── Hint ── */}
+            {!hasFilter && (
+              <div className={styles.hint}>
+                <div className={styles.hintIcon}>
+                  <Package2 size={20} strokeWidth={1.5} />
+                </div>
+                <p className={styles.hintText}>Selecciona un <strong>local</strong> para ver los combos</p>
+                <p className={styles.hintSub}>Los combos disponibles para el local seleccionado aparecerán aquí.</p>
               </div>
-              <p className={styles.hintText}>Selecciona un <strong>local</strong> para ver los combos</p>
-              <p className={styles.hintSub}>Los combos disponibles para el local seleccionado aparecerán aquí.</p>
-            </div>
-          )}
+            )}
 
-          {/* ── Combo list ── */}
-          {hasFilter && (
-            <>
-              {loading && <p className={styles.totalLabel}>Cargando…</p>}
-              {error && (
-                <p style={{ color: 'var(--admin-accent-danger)', fontSize: '0.82rem' }}>{error}</p>
-              )}
-              {!loading && !error && total > 0 && (
-                <p className={styles.totalLabel}>
-                  <strong>{total}</strong> combo{total !== 1 ? 's' : ''} encontrado{total !== 1 ? 's' : ''}
-                </p>
-              )}
-              {!loading && !error && combos.length === 0 && (
-                <p className={styles.totalLabel}>No se encontraron combos con los filtros actuales.</p>
-              )}
+            {/* ── Combo list ── */}
+            {hasFilter && (
+              <>
+                {loading && <p className={styles.totalLabel}>Cargando…</p>}
+                {error && (
+                  <p style={{ color: 'var(--admin-accent-danger)', fontSize: '0.82rem' }}>{error}</p>
+                )}
+                {!loading && !error && total > 0 && (
+                  <p className={styles.totalLabel}>
+                    <strong>{total}</strong> combo{total !== 1 ? 's' : ''} encontrado{total !== 1 ? 's' : ''}
+                  </p>
+                )}
+                {!loading && !error && combos.length === 0 && (
+                  <p className={styles.totalLabel}>No se encontraron combos con los filtros actuales.</p>
+                )}
 
-              <div className={styles.comboList}>
+                <div className={styles.comboList}>
                 {combos.map((combo) => {
                   const key = combo.nombre;
                   const isExpanded = expandedComboKey === key;
@@ -637,6 +638,7 @@ export default function CombosPage() {
               </div>
             </>
           )}
+          </div>
 
         </div>
         </div>

@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 
 import Header from '@/components/AdminHeader/Header';
-import { PageHeader, StatGrid, StatCard } from '@/components/AdminConfig';
+import { PageHeader, StatGrid, StatCard, AdminPanel } from '@/components/AdminConfig';
 import { getReservasDB } from '@/lib/api/reservas';
 import type { ReservaBD, EstadoReserva } from '@/types/reserva';
 import styles from './page.module.css';
@@ -270,7 +270,7 @@ export default function AdminReservasProximasPage() {
             />
           </div>
 
-          <section ref={boardRef} className={styles.board}>
+          <AdminPanel ref={boardRef} >
             <StatGrid>
               <StatCard value={loading ? '—' : total} label="Total" sublabel="Por recordar" loading={loading} />
               <StatCard value={loading ? '—' : reservasHoy.length} label="Hoy" accentColor="var(--admin-accent-primary)" loading={loading} />
@@ -300,7 +300,7 @@ export default function AdminReservasProximasPage() {
                 {renderColumn('Reservas de mañana', tomorrowISO, 'MANANA', reservasManana)}
               </div>
             )}
-          </section>
+          </AdminPanel>
         </div>
       </main>
     </div>

@@ -4,9 +4,12 @@
   justify-content: space-between;
   gap: 1.5rem;
   margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
+  padding: 1.5rem;
   position: relative;
   flex-wrap: wrap;
+  background: var(--admin-surface-1);
+  border-radius: var(--admin-radius-xl);
+  border: 1px solid var(--admin-border-subtle);
 }
 
 .header::after {

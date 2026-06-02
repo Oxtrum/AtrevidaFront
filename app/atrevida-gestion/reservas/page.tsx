@@ -187,14 +187,14 @@ export default function AdminReservasPage() {
   ];
 
   const ESTADO_COLORS: Record<string, { bg: string; color: string }> = {
-    AGENDADO:   { bg: 'rgba(20,174,239,0.12)',  color: '#14AEEF' },
-    COMPLETADO: { bg: 'rgba(34,197,94,0.12)',   color: '#22C55E' },
-    RECHAZADO:  { bg: 'rgba(239,68,68,0.12)',   color: '#EF4444' },
-    PENDIENTE:  { bg: 'rgba(250,204,21,0.12)',  color: '#FACC15' },
+    AGENDADO: { bg: 'rgba(20,174,239,0.12)', color: '#14AEEF' },
+    COMPLETADO: { bg: 'rgba(34,197,94,0.12)', color: '#22C55E' },
+    RECHAZADO: { bg: 'rgba(239,68,68,0.12)', color: '#EF4444' },
+    PENDIENTE: { bg: 'rgba(250,204,21,0.12)', color: '#FACC15' },
   };
 
   const TIPO_COLORS: Record<string, { bg: string; color: string }> = {
-    mesa:      { bg: 'rgba(236,0,140,0.12)', color: '#EC008C' },
+    mesa: { bg: 'rgba(236,0,140,0.12)', color: '#EC008C' },
     bicicleta: { bg: 'rgba(146,39,143,0.12)', color: '#92278F' },
   };
 
@@ -272,10 +272,10 @@ export default function AdminReservasPage() {
       searchable: false,
       render: (_v, row) => (
         <div onClick={e => e.stopPropagation()}>
-        <RowActionsMenu actions={[
-          { label: 'Editar', icon: <Pencil size={12} strokeWidth={2} />, onClick: () => router.push(`/atrevida-gestion/reservas/editar/${row.id}`) },
-          { label: 'Eliminar', icon: <Trash2 size={12} strokeWidth={2} />, onClick: () => handleDeleteReserva(row as unknown as ReservaBD), variant: 'danger', disabled: deletingId === (row.id as number) },
-        ]} />
+          <RowActionsMenu actions={[
+            { label: 'Editar', icon: <Pencil size={12} strokeWidth={2} />, onClick: () => router.push(`/atrevida-gestion/reservas/editar/${row.id}`) },
+            { label: 'Eliminar', icon: <Trash2 size={12} strokeWidth={2} />, onClick: () => handleDeleteReserva(row as unknown as ReservaBD), variant: 'danger', disabled: deletingId === (row.id as number) },
+          ]} />
         </div>
       ),
     },
@@ -292,124 +292,124 @@ export default function AdminReservasPage() {
       <main className={styles.main}>
         <div className={styles.container}>
           <div ref={headerRef}>
-          <PageHeader
-            kicker="Operación diaria"
-            kickerIcon={<CalendarRange size={14} strokeWidth={2} />}
-            title="Gestión de Reservas"
-            accentWord="Reservas"
-            subtitle="Vista detallada de reservas. Filtra por local, fecha, estado y tipo."
-            actions={
-              <>
-                <button
-                  className={styles.createButton}
-                  onClick={() => {
-                    const params = new URLSearchParams({
-                      local: sucursalActiva,
-                      semana: semanaActiva,
-                    });
-                    router.push(`/atrevida-gestion/reservas/crear?${params.toString()}`);
-                  }}
-                >
-                  <span>+</span>
-                  <span>Nueva Reserva</span>
-                </button>
-                <div className={styles.vistaToggle}>
+            <PageHeader
+              kicker="Operación diaria"
+              kickerIcon={<CalendarRange size={14} strokeWidth={2} />}
+              title="Gestión de Reservas"
+              accentWord="Reservas"
+              subtitle="Vista detallada de reservas. Filtra por local, fecha, estado y tipo."
+              actions={
+                <>
                   <button
-                    className={`${styles.vistaButton} ${vistaActiva === 'calendario' ? styles.vistaActive : ''}`}
-                    onClick={() => setVistaActiva('calendario')}
+                    className={styles.createButton}
+                    onClick={() => {
+                      const params = new URLSearchParams({
+                        local: sucursalActiva,
+                        semana: semanaActiva,
+                      });
+                      router.push(`/atrevida-gestion/reservas/crear?${params.toString()}`);
+                    }}
                   >
-                    Calendario
+                    <span>+</span>
+                    <span>Nueva Reserva</span>
                   </button>
-                  <button
-                    className={`${styles.vistaButton} ${vistaActiva === 'lista' ? styles.vistaActive : ''}`}
-                    onClick={() => setVistaActiva('lista')}
-                  >
-                    Lista
-                  </button>
+                  <div className={styles.vistaToggle}>
+                    <button
+                      className={`${styles.vistaButton} ${vistaActiva === 'calendario' ? styles.vistaActive : ''}`}
+                      onClick={() => setVistaActiva('calendario')}
+                    >
+                      Calendario
+                    </button>
+                    <button
+                      className={`${styles.vistaButton} ${vistaActiva === 'lista' ? styles.vistaActive : ''}`}
+                      onClick={() => setVistaActiva('lista')}
+                    >
+                      Lista
+                    </button>
+                  </div>
+                </>
+              }
+            />
+          </div>
+
+          {vistaActiva === 'lista' && (
+            <AdminPanel>
+              <div className={styles.controls}>
+                <div className={styles.filtrosRow}>
+                  <div className={styles.filtroGroup}>
+                    <label>Local</label>
+                    <CustomSelect
+                      value={filtroLocal}
+                      onChange={setFiltroLocal}
+                      options={localesOptions}
+                    />
+                  </div>
+                  <div className={styles.filtroGroup}>
+                    <label>Fecha desde</label>
+                    <Input
+                      type="date"
+                      value={filtroFechaDesde}
+                      onChange={(e) => setFiltroFechaDesde(e.target.value)}
+                    />
+                  </div>
+                  <div className={styles.filtroGroup}>
+                    <label>Fecha hasta</label>
+                    <Input
+                      type="date"
+                      value={filtroFechaHasta}
+                      onChange={(e) => setFiltroFechaHasta(e.target.value)}
+                    />
+                  </div>
+                  <div className={styles.filtroGroup}>
+                    <label>Tipo</label>
+                    <CustomSelect
+                      value={filtroTipo}
+                      onChange={handleTipoFiltroChange}
+                      options={tipoOptions}
+                    />
+                  </div>
+                  <div className={styles.filtroGroup}>
+                    <label>Estado</label>
+                    <CustomSelect
+                      value={filtroEstado}
+                      onChange={(v) => setFiltroEstado(v as EstadoReserva | '')}
+                      options={estadoOptions}
+                    />
+                  </div>
                 </div>
-              </>
-            }
-          />
-        </div>
 
-        {vistaActiva === 'lista' && (
-          <>
-          <AdminPanel accentStripe>
-            <div className={styles.filtrosRow}>
-              <div className={styles.filtroGroup}>
-                <label>Local</label>
-                <CustomSelect
-                  value={filtroLocal}
-                  onChange={setFiltroLocal}
-                  options={localesOptions}
-                />
               </div>
-              <div className={styles.filtroGroup}>
-                <label>Fecha desde</label>
-                <Input
-                  type="date"
-                  value={filtroFechaDesde}
-                  onChange={(e) => setFiltroFechaDesde(e.target.value)}
-                />
-              </div>
-              <div className={styles.filtroGroup}>
-                <label>Fecha hasta</label>
-                <Input
-                  type="date"
-                  value={filtroFechaHasta}
-                  onChange={(e) => setFiltroFechaHasta(e.target.value)}
-                />
-              </div>
-              <div className={styles.filtroGroup}>
-                <label>Tipo</label>
-                <CustomSelect
-                  value={filtroTipo}
-                  onChange={handleTipoFiltroChange}
-                  options={tipoOptions}
-                />
-              </div>
-              <div className={styles.filtroGroup}>
-                <label>Estado</label>
-                <CustomSelect
-                  value={filtroEstado}
-                  onChange={(v) => setFiltroEstado(v as EstadoReserva | '')}
-                  options={estadoOptions}
-                />
-              </div>
-            </div>
-
-          </AdminPanel>
-            <DataTable<ReservaRow>
-              columns={columns}
-              data={reservas as unknown as ReservaRow[]}
-              loading={loading}
-              error={error}
-              getRowKey={(r) => r.id as number}
-              searchPlaceholder="Buscar cliente, servicio..."
-              emptyMessage="No se encontraron reservas"
-              onRowClick={(row) => setSelectedReserva(row as unknown as ReservaBD)}
+              <DataTable<ReservaRow>
+                columns={columns}
+                data={reservas as unknown as ReservaRow[]}
+                loading={loading}
+                error={error}
+                getRowKey={(r) => r.id as number}
+                searchPlaceholder="Buscar cliente, servicio..."
+                emptyMessage="No se encontraron reservas"
+                onRowClick={(row) => setSelectedReserva(row as unknown as ReservaBD)}
               />
-              </>
-        )}
+            </AdminPanel>
+          )}
 
-        {selectedReserva && (
-          <ReservaDetailModal
-            reserva={selectedReserva}
-            onClose={() => setSelectedReserva(null)}
-            onEdit={(r) => {
-              setSelectedReserva(null);
-              router.push(`/atrevida-gestion/reservas/editar/${r.id}`);
-            }}
-            onDelete={(r) => {
-              setSelectedReserva(null);
-              handleDeleteReserva(r);
-            }}
-            deleting={deletingId === selectedReserva.id}
-          />
-        )}
+          {selectedReserva && (
+            <ReservaDetailModal
+              reserva={selectedReserva}
+              onClose={() => setSelectedReserva(null)}
+              onEdit={(r) => {
+                setSelectedReserva(null);
+                router.push(`/atrevida-gestion/reservas/editar/${r.id}`);
+              }}
+              onDelete={(r) => {
+                setSelectedReserva(null);
+                handleDeleteReserva(r);
+              }}
+              deleting={deletingId === selectedReserva.id}
+            />
+          )}
 
-        {vistaActiva === 'calendario' && (
-          <AdminPanel>
+          {vistaActiva === 'calendario' && (
+
             <CalendarAdmin
               key={pathname}
               localInicial="SAN MARTIN"
@@ -417,8 +417,7 @@ export default function AdminReservasPage() {
               onSucursalChange={handleSucursalChange}
               onSemanaChange={handleSemanaChange}
             />
-          </AdminPanel>
-        )}
+          )}
         </div>
       </main>
     </div>

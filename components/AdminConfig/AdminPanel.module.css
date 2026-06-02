@@ -1,10 +1,7 @@
 .panel {
-  background: var(--admin-panel-bg);
-  border-radius: var(--admin-radius-xl);
-  border: 1px solid var(--admin-border-subtle);
-  box-shadow: var(--admin-shadow-sm);
-  backdrop-filter: blur(18px);
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
 .stripe::before {

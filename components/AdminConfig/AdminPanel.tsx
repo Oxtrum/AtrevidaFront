@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import styles from './AdminPanel.module.css';
 
 interface AdminPanelProps {
@@ -6,10 +7,14 @@ interface AdminPanelProps {
   className?: string;
 }
 
-export function AdminPanel({ children, accentStripe, className }: AdminPanelProps) {
-  return (
-    <div className={`${styles.panel} ${accentStripe ? styles.stripe : ''} ${className ?? ''}`}>
-      {children}
-    </div>
-  );
-}
+export const AdminPanel = forwardRef<HTMLDivElement, AdminPanelProps>(
+  ({ children, accentStripe, className }, ref) => {
+    return (
+      <div ref={ref} className={`${styles.panel} ${accentStripe ? styles.stripe : ''} ${className ?? ''}`}>
+        {children}
+      </div>
+    );
+  }
+);
+
+AdminPanel.displayName = 'AdminPanel';

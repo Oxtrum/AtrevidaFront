@@ -29,8 +29,16 @@
 }
 
 
+.filterCard {
+  background: var(--admin-panel-bg);
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-xl);
+  box-shadow: var(--admin-shadow-sm);
+  position: relative;
+}
+
 .filterCardInner {
-  padding: 1.25rem 1.5rem;
+  padding: 1.5rem;
 }
 
 .filterSectionLabel {
@@ -48,8 +56,18 @@
 }
 
 .filterSectionLabel svg {
-  color: #10b981;
+  color: #EC008C;
   flex-shrink: 0;
+}
+
+/* ── Results card ──────────────────────────────────────────────── */
+
+.resultsCard {
+  background: var(--admin-panel-bg);
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-xl);
+  box-shadow: var(--admin-shadow-sm);
+  padding: 1.5rem;
 }
 
 .filterBar {
@@ -120,8 +138,11 @@
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-  padding: 3rem 1rem;
+  padding: 1.5rem;
   text-align: center;
+  border-radius: var(--admin-radius-xl);
+  border: 1px dashed rgba(236, 0, 140, 0.2);
+  background: rgba(236, 0, 140, 0.03);
 }
 
 .hintIcon {
@@ -130,10 +151,10 @@
   justify-content: center;
   width: 48px;
   height: 48px;
-  border-radius: 50%;
-  background: rgba(16, 185, 129, 0.08);
-  border: 1px solid rgba(16, 185, 129, 0.2);
-  color: #10b981;
+  border-radius: 14px;
+  background: rgba(236, 0, 140, 0.08);
+  border: 1px solid rgba(236, 0, 140, 0.2);
+  color: #EC008C;
   margin-bottom: 0.25rem;
 }
 
@@ -175,11 +196,11 @@
 }
 
 .comboRow:hover {
-  border-color: rgba(16, 185, 129, 0.25);
+  border-color: rgba(236, 0, 140, 0.25);
 }
 
 .comboRowExpanded {
-  border-color: rgba(16, 185, 129, 0.35);
+  border-color: rgba(236, 0, 140, 0.35);
 }
 
 .comboRowHeader {
@@ -187,13 +208,13 @@
   grid-template-columns: 2fr 1.2fr 1fr auto auto;
   align-items: center;
   gap: 1rem;
-  padding: 1rem 1.25rem;
+  padding: 1rem 1.5rem;
   cursor: pointer;
   user-select: none;
 }
 
 .comboRowHeader:hover .comboName {
-  color: #10b981;
+  color: #EC008C;
 }
 
 .comboName {
@@ -216,9 +237,9 @@
   font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.5px;
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  color: #10b981;
+  background: rgba(236, 0, 140, 0.1);
+  border: 1px solid rgba(236, 0, 140, 0.25);
+  color: #EC008C;
 }
 
 .comboCosto {
@@ -243,22 +264,22 @@
 }
 
 .expandToggle:hover {
-  background: rgba(16, 185, 129, 0.08);
-  border-color: rgba(16, 185, 129, 0.3);
-  color: #10b981;
+  background: rgba(236, 0, 140, 0.08);
+  border-color: rgba(236, 0, 140, 0.3);
+  color: #EC008C;
 }
 
 .expandToggleOpen {
-  background: rgba(16, 185, 129, 0.1);
-  border-color: rgba(16, 185, 129, 0.3);
-  color: #10b981;
+  background: rgba(236, 0, 140, 0.1);
+  border-color: rgba(236, 0, 140, 0.3);
+  color: #EC008C;
 }
 
 /* ── Expanded servicios section ───────────────────────────────── */
 
 .serviciosSection {
   border-top: 1px solid var(--admin-border-subtle);
-  padding: 1rem 1.25rem 1.25rem;
+  padding: 1rem 1.5rem 1.25rem;
 }
 
 .serviciosSectionHeader {
@@ -438,7 +459,7 @@
 }
 
 .btnSm:hover {
-  background: rgba(16, 185, 129, 0.08);
-  border-color: rgba(16, 185, 129, 0.3);
-  color: #10b981;
+  background: rgba(236, 0, 140, 0.08);
+  border-color: rgba(236, 0, 140, 0.3);
+  color: #EC008C;
 }

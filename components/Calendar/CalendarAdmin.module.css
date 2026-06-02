@@ -4,7 +4,6 @@
   flex-direction: column;
   gap: 1.5rem;
   position: relative;
-  background: transparent;
   color: var(--admin-foreground);
 }
 

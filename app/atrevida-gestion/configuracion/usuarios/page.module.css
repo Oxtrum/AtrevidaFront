@@ -9,12 +9,8 @@
 .main {
   position: relative;
   z-index: 1;
-  max-width: 1440px;
-  margin: 0 auto;
+  min-height: 100vh;
   padding: 2rem 1.5rem 4rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
 }
 
 .headerActions {
@@ -108,10 +104,16 @@
 @media (max-width: 768px) {
   .main {
     padding: 1rem;
-    gap: 1rem;
   }
 
-  .headerActions {
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.headerActions {
     gap: 0.5rem;
   }
 }

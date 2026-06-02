@@ -121,9 +121,7 @@
   padding: clamp(0.9rem, 2.5vw, 1.15rem);
   border: 1px solid var(--admin-border-subtle);
   border-radius: var(--admin-radius-xl);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012) 18%, rgba(255, 255, 255, 0.012)),
-    var(--admin-panel-bg);
+  background: var(--admin-panel-bg);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.06),
     var(--admin-shadow-sm);
@@ -145,9 +143,6 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  margin: 1.2rem 0 0.9rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--admin-border-subtle);
 }
 
 
@@ -171,13 +166,10 @@
   flex-wrap: wrap;
   gap: 0.45rem;
   width: 100%;
-  margin: 0 0 1rem;
   padding: 0.35rem;
   border: 1px solid var(--admin-border-subtle);
   border-radius: var(--admin-radius-lg);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent),
-    var(--admin-pill-bg);
+  background: var(--admin-pill-bg);
 }
 
 .filterButton {
@@ -219,13 +211,11 @@
   grid-template-columns: minmax(260px, 1.35fr) minmax(160px, 0.65fr) minmax(140px, 0.52fr) minmax(150px, 0.56fr) auto;
   align-items: end;
   gap: 0.8rem;
-  margin: 0 0 0.9rem;
   padding: 0.92rem;
   border: 1px solid var(--admin-border-subtle);
   border-radius: var(--admin-radius-lg);
   background:
     radial-gradient(ellipse 72% 120% at 0% 0%, rgba(20, 174, 239, 0.075), transparent 62%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent),
     var(--admin-surface-1);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.06),
@@ -252,9 +242,7 @@
   border: 1px solid var(--admin-border-subtle);
   border-radius: var(--admin-radius-md);
   color: var(--admin-foreground);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent),
-    var(--admin-input-bg);
+  background: var(--admin-input-bg);
   color-scheme: var(--admin-color-scheme);
 }
 
@@ -438,9 +426,7 @@
   padding: clamp(0.7rem, 1.8vw, 0.95rem);
   border: 1px solid var(--admin-border-subtle);
   border-radius: var(--admin-radius-lg);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.034), rgba(255, 255, 255, 0.018) 42%, rgba(255, 255, 255, 0.018)),
-    var(--admin-surface-1);
+  background: var(--admin-surface-1);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.038),
     inset 0 -1px 0 rgba(255, 255, 255, 0.018);
@@ -464,9 +450,7 @@
   padding: 0;
   border: 1px solid var(--admin-border-subtle);
   border-radius: 18px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.052), transparent 54%),
-    var(--admin-surface-1);
+  background: var(--admin-surface-1);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
     0 12px 32px rgba(0, 0, 0, 0.075);
@@ -682,9 +666,7 @@
   border: 1px solid var(--admin-border-subtle);
   border-radius: var(--admin-radius-md);
   color: var(--admin-text-light);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent),
-    rgba(255, 255, 255, 0.022);
+  background: rgba(255, 255, 255, 0.022);
   font-size: 0.8rem;
   font-weight: 760;
   line-height: 1.35;
@@ -745,9 +727,7 @@
   gap: 0.62rem;
   padding: clamp(1rem, 2vw, 1.2rem);
   border-left: 1px solid var(--admin-border-subtle);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 58%),
-    rgba(255, 255, 255, 0.018);
+  background: rgba(255, 255, 255, 0.018);
   position: relative;
   z-index: 1;
 }

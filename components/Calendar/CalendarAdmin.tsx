@@ -116,11 +116,11 @@ export default function CalendarAdmin({
 
   return (
     <div ref={wrapperRef} className={styles.calendarWrapper}>
-      <div className={styles.orbContainer}>
+      {/* <div className={styles.orbContainer}>
         <div className={`${styles.orb} ${styles.orb1} calendarOrb`} />
         <div className={`${styles.orb} ${styles.orb2} calendarOrb`} />
         <div className={`${styles.orb} ${styles.orb3} calendarOrb`} />
-      </div>
+      </div> */}
 
       <div ref={controlsRef} className={styles.controls}>
         <div className={styles.controlGroup}>

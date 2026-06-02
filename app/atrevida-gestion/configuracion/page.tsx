@@ -65,7 +65,6 @@ export default function ConfiguracionPage() {
             subtitle="Administra categorías, locales, servicios y usuarios del centro"
           />
 
-          <SectionLabel withLine>Módulos</SectionLabel>
 
           <div className={styles.grid}>
             {OPTIONS.map((opt) => (

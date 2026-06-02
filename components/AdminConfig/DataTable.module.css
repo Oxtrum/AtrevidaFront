@@ -10,7 +10,6 @@
   border-radius: var(--admin-radius-xl);
   border: 1px solid var(--admin-border-subtle);
   box-shadow: var(--admin-shadow-sm);
-  overflow: hidden;
   position: relative;
 }
 
@@ -30,9 +29,10 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.875rem 1.25rem;
+  padding: 0.875rem 1.5rem;
   border-bottom: 1px solid var(--admin-border-subtle);
   background: var(--admin-surface-2);
+  border-radius: var(--admin-radius-xl) var(--admin-radius-xl) 0 0;
 }
 
 .searchBox {
@@ -209,7 +209,7 @@
 }
 
 .table th {
-  padding: 0.8rem 1.25rem;
+  padding: 0.8rem 1.5rem;
   text-align: left;
   font-weight: 700;
   font-size: 0.62rem;
@@ -226,7 +226,7 @@
 
 /* ── Body ── */
 .table td {
-  padding: 0.825rem 1.25rem;
+  padding: 0.825rem 1.5rem;
   border-bottom: 1px solid var(--admin-border-subtle);
   color: var(--admin-foreground);
   font-size: 0.845rem;

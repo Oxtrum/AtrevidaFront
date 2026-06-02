@@ -91,7 +91,9 @@ export default function EditarLocalPage() {
       <div ref={containerRef} className={styles.pageContainer}>
         <Header />
         <main className={styles.main}>
-          <p style={{ textAlign: 'center', color: 'var(--admin-text-dim)', padding: '3rem 0' }}>Cargando...</p>
+          <div className={styles.container}>
+            <p style={{ textAlign: 'center', color: 'var(--admin-text-dim)', padding: '3rem 0' }}>Cargando...</p>
+          </div>
         </main>
       </div>
     );
@@ -101,7 +103,8 @@ export default function EditarLocalPage() {
     <div ref={containerRef} className={styles.pageContainer}>
       <Header />
       <main className={styles.main}>
-        <PageHeader title="Editar Local" subtitle={nombre} backHref="/atrevida-gestion/configuracion/locales" />
+        <div className={styles.container}>
+          <PageHeader title="Editar Local" subtitle={nombre} backHref="/atrevida-gestion/configuracion/locales" />
         <div ref={formRef} className={styles.form}>
           <div className={styles.field}>
             <label htmlFor="edit-nombre">Nombre del local</label>
@@ -141,6 +144,7 @@ export default function EditarLocalPage() {
               {saving ? 'Guardando...' : 'Guardar Cambios'}
             </button>
           </div>
+        </div>
         </div>
       </main>
     </div>

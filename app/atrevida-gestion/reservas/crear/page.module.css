@@ -10,16 +10,14 @@
 .main {
   position: relative;
   z-index: 1;
-  max-width: 1400px;
-  margin: 0 auto;
+  min-height: 100vh;
   padding: 2rem;
-  display: flex;
-  justify-content: center;
 }
 
 .content {
   width: 100%;
   max-width: 750px;
+  margin: 0 auto;
 }
 
 .loading {

@@ -10,7 +10,6 @@ import {
   CalendarCheck,
   Check,
   Clock,
-  Filter,
   MapPin,
   MessageCircle,
   Phone,
@@ -22,7 +21,7 @@ import {
 } from 'lucide-react';
 
 import Header from '@/components/AdminHeader/Header';
-import { PageHeader, StatGrid, StatCard, SectionLabel } from '@/components/AdminConfig';
+import { PageHeader, StatGrid, StatCard, AdminPanel } from '@/components/AdminConfig';
 import { CATEGORIAS_ORDEN } from '@/components/AdminReservationForm/constants';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { actualizarEstadoReservaDB, actualizarReservaDB, actualizarReservaNotificadoDB, getReservasDB } from '@/lib/api/reservas';
@@ -623,7 +622,7 @@ export default function AdminReservasAprobacionPage() {
             />
           </div>
 
-          <div ref={boardRef} className={styles.board}>
+          <AdminPanel>
             <StatGrid>
               <StatCard
                 value={reservasPendientes.length}
@@ -650,9 +649,6 @@ export default function AdminReservasAprobacionPage() {
 
             <div className={styles.boardHeader}>
               <div>
-                <SectionLabel icon={<Filter size={12} strokeWidth={2} />}>
-                  Búsqueda y filtros
-                </SectionLabel>
                 <h2>{estadoFiltro === 'TODOS' ? 'Todas las solicitudes' : `Reservas ${ESTADO_OPTIONS.find((option) => option.value === estadoFiltro)?.label.toLowerCase()}`}</h2>
               </div>
               <span className={styles.countPill}>{reservasVisibles.length} resultado{reservasVisibles.length === 1 ? '' : 's'}</span>
@@ -915,7 +911,7 @@ export default function AdminReservasAprobacionPage() {
                 </div>
               )}
             </div>
-          </div>
+          </AdminPanel>
 
         </div>
       </main>

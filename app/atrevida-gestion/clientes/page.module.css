@@ -9,12 +9,15 @@
 .main {
   position: relative;
   z-index: 1;
+  min-height: 100vh;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.container {
+  position: relative;
+  z-index: 1;
   max-width: 1440px;
   margin: 0 auto;
-  padding: 2rem 1.5rem 4rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
 }
 
 .contentStack {
@@ -28,6 +31,11 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+  background: var(--admin-panel-bg);
+  border-radius: var(--admin-radius-xl);
+  border: 1px solid var(--admin-border-subtle);
+  box-shadow: var(--admin-shadow-sm);
+  padding: 0.875rem 1.25rem;
 }
 
 .searchBar {
@@ -143,7 +151,6 @@
 @media (max-width: 768px) {
   .main {
     padding: 1rem;
-    gap: 1rem;
   }
 
   .formGrid {

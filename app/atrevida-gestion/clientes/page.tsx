@@ -203,7 +203,7 @@ export default function ClientesPage() {
           title="Clientes"
           accentWord="Clientes"
           subtitle="Directorio de clientes del centro"
-          backHref="/atrevida-gestion/dashboard"
+        
           actions={
             <button className="admin-button admin-button-primary" onClick={openCreate}>
               <Plus size={16} strokeWidth={2.2} />
@@ -213,25 +213,7 @@ export default function ClientesPage() {
         />
 
         <div ref={contentRef} className={styles.contentStack}>
-          <div className={styles.searchRow}>
-            <div className={styles.searchBar}>
-              <Search size={15} strokeWidth={1.8} className={styles.searchIcon} />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Buscar por nombre..."
-                aria-label="Buscar clientes"
-              />
-            </div>
-            {total > 0 && (
-              <span className={styles.totalLabel}>
-                <Users size={13} strokeWidth={1.7} />
-                <strong>{total}</strong> cliente{total !== 1 ? 's' : ''}
-              </span>
-            )}
-          </div>
-
+         
           <DataTable<ClienteRow>
             columns={columns}
             data={clientes}
@@ -239,7 +221,7 @@ export default function ClientesPage() {
             error={error}
             onRefresh={fetchData}
             getRowKey={(c) => c.id}
-            searchPlaceholder=""
+            searchPlaceholder="Buscar por nombre..."
             emptyMessage="No se encontraron clientes"
           />
         </div>

@@ -26,7 +26,7 @@
   --admin-surface-solid-2: #1a1a24;
   --admin-surface-solid-3: #222230;
 
-  --admin-panel-bg: linear-gradient(180deg, rgba(24, 24, 34, 0.82), rgba(15, 15, 22, 0.82));
+  --admin-panel-bg: linear-gradient(180deg, rgba(24, 24, 34, 0.82), rgba(24, 24, 34, 0.82));
   --admin-panel-elevated: linear-gradient(180deg, rgba(18, 18, 26, 0.96), rgba(10, 10, 14, 0.96));
   --admin-input-bg: rgba(9, 9, 11, 0.38);
   --admin-input-bg-hover: rgba(236, 0, 140, 0.04);

@@ -706,9 +706,7 @@
   gap: 1rem;
   min-height: 68px;
   padding: 1rem;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent),
-    var(--admin-surface-1);
+  background: var(--admin-surface-1);
 }
 
 .activitySummary span {

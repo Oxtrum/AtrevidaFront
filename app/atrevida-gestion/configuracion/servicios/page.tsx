@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
 import { Filter, Pencil, Plus, Scissors, Search, Trash2, X } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
-import { PageHeader, DataTable, FormModal, RowActionsMenu, AdminPanel } from '@/components/AdminConfig';
+import { PageHeader, DataTable, FormModal, RowActionsMenu } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
@@ -461,7 +461,7 @@ export default function ServiciosPage() {
         <div ref={contentRef} className={styles.contentStack}>
 
           {/* ── Filter card ── */}
-          <AdminPanel accentStripe>
+          <div className={styles.filterCard}>
             <div className={styles.filterCardInner}>
               <div className={styles.filterSectionLabel}>
                 <Filter size={12} />
@@ -570,7 +570,7 @@ export default function ServiciosPage() {
                 </div>
               </div>
             </div>
-          </AdminPanel>
+          </div>
 
           {/* ── Hint ── */}
           {!hasFilter && (

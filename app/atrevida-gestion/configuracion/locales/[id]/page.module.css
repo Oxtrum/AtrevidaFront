@@ -10,8 +10,7 @@
 .main {
   position: relative;
   z-index: 1;
-  max-width: 800px;
-  margin: 0 auto;
+  min-height: 100vh;
   padding: 2rem;
 }
 
@@ -91,7 +90,14 @@
     padding: 1rem;
   }
 
-  .form {
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.form {
     padding: 1.25rem;
   }
 }
