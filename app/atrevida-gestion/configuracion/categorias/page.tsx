@@ -128,7 +128,7 @@ export default function CategoriasPage() {
             loading={loading}
             error={error}
             onRefresh={fetchData}
-            getRowKey={(c) => c.ID}
+            getRowKey={(c) => c.id}
             searchPlaceholder="Buscar por nombre..."
             emptyMessage="No hay categorías registradas"
           />
