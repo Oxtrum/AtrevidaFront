@@ -3,13 +3,13 @@
 import { useRef, useEffect, useState, useMemo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import gsap from 'gsap';
-import { Pencil, Trash2 } from 'lucide-react';
+import { CalendarRange, Pencil, Trash2 } from 'lucide-react';
 import { DiaSemana, EstadoReserva, ReservaBD } from '@/types/reserva';
 import { CalendarAdmin } from '@/components/Calendar';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { useReservasFiltradas } from '@/lib/hooks/useReservasFiltradas';
 import type { ReservaTipoBackend } from '@/lib/api/reservas';
-import { DataTable, Column, RowActionsMenu } from '@/components/AdminConfig';
+import { DataTable, Column, RowActionsMenu, PageHeader, AdminPanel } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { Input } from '@/components/Shared';
 import Header from '@/components/AdminHeader/Header';
@@ -290,48 +290,51 @@ export default function AdminReservasPage() {
       <div className="admin-mesh" />
       <Header />
       <main className={styles.main}>
-        <div ref={headerRef} className={styles.header}>
-          <div>
-            <h1 className={styles.title}>Gestión de Reservas</h1>
-            <p className={styles.subtitle}>
-              Vista detallada de reservas. Filtra por local, fecha, estado y tipo.
-            </p>
-          </div>
-
-          <div className={styles.headerActions}>
-            <button
-              className={styles.createButton}
-              onClick={() => {
-                const params = new URLSearchParams({
-                  local: sucursalActiva,
-                  semana: semanaActiva,
-                });
-                router.push(`/atrevida-gestion/reservas/crear?${params.toString()}`);
-              }}
-            >
-              <span>+</span>
-              <span>Nueva Reserva</span>
-            </button>
-            <div className={styles.vistaToggle}>
-              <button
-                className={`${styles.vistaButton} ${vistaActiva === 'calendario' ? styles.vistaActive : ''}`}
-                onClick={() => setVistaActiva('calendario')}
-              >
-                Calendario
-              </button>
-              <button
-                className={`${styles.vistaButton} ${vistaActiva === 'lista' ? styles.vistaActive : ''}`}
-                onClick={() => setVistaActiva('lista')}
-              >
-                Lista
-              </button>
-            </div>
-          </div>
+        <div className={styles.container}>
+          <div ref={headerRef}>
+          <PageHeader
+            kicker="Operación diaria"
+            kickerIcon={<CalendarRange size={14} strokeWidth={2} />}
+            title="Gestión de Reservas"
+            accentWord="Reservas"
+            subtitle="Vista detallada de reservas. Filtra por local, fecha, estado y tipo."
+            actions={
+              <>
+                <button
+                  className={styles.createButton}
+                  onClick={() => {
+                    const params = new URLSearchParams({
+                      local: sucursalActiva,
+                      semana: semanaActiva,
+                    });
+                    router.push(`/atrevida-gestion/reservas/crear?${params.toString()}`);
+                  }}
+                >
+                  <span>+</span>
+                  <span>Nueva Reserva</span>
+                </button>
+                <div className={styles.vistaToggle}>
+                  <button
+                    className={`${styles.vistaButton} ${vistaActiva === 'calendario' ? styles.vistaActive : ''}`}
+                    onClick={() => setVistaActiva('calendario')}
+                  >
+                    Calendario
+                  </button>
+                  <button
+                    className={`${styles.vistaButton} ${vistaActiva === 'lista' ? styles.vistaActive : ''}`}
+                    onClick={() => setVistaActiva('lista')}
+                  >
+                    Lista
+                  </button>
+                </div>
+              </>
+            }
+          />
         </div>
 
         {vistaActiva === 'lista' && (
           <>
-          <div className={styles.filtrosSection}>
+          <AdminPanel accentStripe>
             <div className={styles.filtrosRow}>
               <div className={styles.filtroGroup}>
                 <label>Local</label>
@@ -375,7 +378,7 @@ export default function AdminReservasPage() {
               </div>
             </div>
 
-          </div>
+          </AdminPanel>
             <DataTable<ReservaRow>
               columns={columns}
               data={reservas as unknown as ReservaRow[]}
@@ -406,6 +409,7 @@ export default function AdminReservasPage() {
         )}
 
         {vistaActiva === 'calendario' && (
+          <AdminPanel>
             <CalendarAdmin
               key={pathname}
               localInicial="SAN MARTIN"
@@ -413,7 +417,9 @@ export default function AdminReservasPage() {
               onSucursalChange={handleSucursalChange}
               onSemanaChange={handleSemanaChange}
             />
+          </AdminPanel>
         )}
+        </div>
       </main>
     </div>
   );
