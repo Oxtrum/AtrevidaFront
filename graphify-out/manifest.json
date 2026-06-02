@@ -80,8 +80,8 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/api/bd/locales/route.ts": {
-    "mtime": 1779748596.4910495,
-    "ast_hash": "1093057a5ffff5da1c61b2f09dad8b50",
+    "mtime": 1780426654.8411028,
+    "ast_hash": "402670dd443ac9e681662d383433ff0f",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/api/bd/locales/[id]/route.ts": {
@@ -90,8 +90,8 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/api/bd/reservas/route.ts": {
-    "mtime": 1779748596.4911332,
-    "ast_hash": "bfcfa61bfb7d16ebbc4a4f0ba8404f07",
+    "mtime": 1780426660.6208825,
+    "ast_hash": "c6766ca2f1b79497b388f1820d3b37be",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/api/bd/reservas/calendario/route.ts": {
@@ -150,8 +150,8 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/configuracion/page.tsx": {
-    "mtime": 1780361305.8062487,
-    "ast_hash": "d100ee69321f89ab47ca50ff92f45370",
+    "mtime": 1780364136.5085537,
+    "ast_hash": "387d43048ebf8a072bb7410b6ba4f4f3",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/configuracion/categorias/page.tsx": {
@@ -160,8 +160,8 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/configuracion/combos/page.tsx": {
-    "mtime": 1780361140.2769957,
-    "ast_hash": "d7ef57074619ac9d8e6ce5368840a449",
+    "mtime": 1780366697.1019855,
+    "ast_hash": "6e28652a59be4126d03967fe06f49608",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/configuracion/locales/page.tsx": {
@@ -175,8 +175,8 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/configuracion/servicios/page.tsx": {
-    "mtime": 1780361232.892692,
-    "ast_hash": "ef99aba4d267bcbfb1bec73227a61248",
+    "mtime": 1780366421.1192496,
+    "ast_hash": "ea5b11c68092589a616bdabd0c610cd6",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/dashboard/page.tsx": {
@@ -190,13 +190,13 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/reservas/page.tsx": {
-    "mtime": 1780360966.804183,
-    "ast_hash": "9811f197324b41cc86b57b553793d57d",
+    "mtime": 1780363243.8321126,
+    "ast_hash": "88172f552f5166149d0da1932743b61b",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/reservas/aprobacion/page.tsx": {
-    "mtime": 1780361578.5183644,
-    "ast_hash": "e8520d0f31c299d01bc40c2a8d4b5338",
+    "mtime": 1780365406.5087523,
+    "ast_hash": "08985572a47c1ddca23b60366a92ac1d",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/reservas/crear/page.tsx": {
@@ -210,8 +210,8 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/reservas/proximas/page.tsx": {
-    "mtime": 1780361741.5635488,
-    "ast_hash": "af1e014924121e81ed456fb1a12ed01d",
+    "mtime": 1780363848.5140495,
+    "ast_hash": "b448d6c231041de94b1d94b18cad391c",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/components/AdminConfig/FormModal.tsx": {
@@ -295,8 +295,8 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/components/Calendar/CalendarAdmin.tsx": {
-    "mtime": 1779762899.6189392,
-    "ast_hash": "5c03a0037ec02a048db36787b52afb61",
+    "mtime": 1780362830.2377126,
+    "ast_hash": "1315a7218541ccc9dc1db5802d2f0d56",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/components/Calendar/ReservationCard.tsx": {
@@ -365,8 +365,8 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/components/Custom/CustomSelect.tsx": {
-    "mtime": 1779988995.2183032,
-    "ast_hash": "357901ef15e40ceb6deb86c46baadd21",
+    "mtime": 1780428207.9522939,
+    "ast_hash": "f9be54fe83692ab487d500e8bef27d39",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/components/Custom/CustomSelectAdmin.tsx": {
@@ -415,13 +415,13 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/components/ReservationForm/index.tsx": {
-    "mtime": 1779988995.2213032,
-    "ast_hash": "d97430ddc510bd1b213676121c254d08",
+    "mtime": 1780428090.177622,
+    "ast_hash": "111221dc34f94099a09f0301a1fe038b",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/components/ReservationForm/useReservationForm.ts": {
-    "mtime": 1779988995.2213032,
-    "ast_hash": "feaa601708067853fd25be9a5bcdcf54",
+    "mtime": 1780428232.7853832,
+    "ast_hash": "2eb0f2a2f263104e6e5d5a391166777d",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/components/Servicios/Servicios.tsx": {
@@ -490,13 +490,13 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/lib/hooks/index.ts": {
-    "mtime": 1779748596.5018506,
-    "ast_hash": "61f9962eb18618b8f2f873b48f3ea18d",
+    "mtime": 1780427447.8387759,
+    "ast_hash": "ef3c285aac024a584f21d962c02d86c3",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/lib/hooks/useReservas.ts": {
-    "mtime": 1779748596.5021863,
-    "ast_hash": "73c9ca59caececda1e61a7f1dfc5d4e4",
+    "mtime": 1780426685.6659262,
+    "ast_hash": "762c964bcfe87e8e7a1dec5e600ca25e",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/lib/hooks/useReservasCalendario.ts": {
@@ -515,8 +515,8 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/lib/hooks/useLocales.ts": {
-    "mtime": 1779988995.2443025,
-    "ast_hash": "f136493b9e2d56784c951c6f21ef66f5",
+    "mtime": 1780426672.6482608,
+    "ast_hash": "7e7a9b27a84231f6b723221bc58d1f03",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/lib/utils/calendarHelpers.ts": {
@@ -585,8 +585,8 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/CLAUDE.md": {
-    "mtime": 1780354139.956686,
-    "ast_hash": "70b5d7f82b53c9181ba93df56e74b581",
+    "mtime": 1780426319.863731,
+    "ast_hash": "2fe2ff90ed2b9c8defb997192110c339",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/.agents/skills/design-taste-frontend/SKILL.md": {
@@ -755,8 +755,8 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/clientes/page.tsx": {
-    "mtime": 1780361620.4858675,
-    "ast_hash": "63be96f70ba890a5c6e08390aff15711",
+    "mtime": 1780366166.7009265,
+    "ast_hash": "6705a900d9665caea282939b97eab0c2",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/.opencode/package.json": {
@@ -770,23 +770,18 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/components/AdminConfig/AdminPanel.tsx": {
-    "mtime": 1780360722.7958863,
-    "ast_hash": "f0b446d7110c8f2e4445c0105d92e120",
+    "mtime": 1780366738.599513,
+    "ast_hash": "58e444411df69193f7de4450263b619f",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/components/AdminConfig/StatCard.tsx": {
-    "mtime": 1780360728.2536917,
-    "ast_hash": "ac20d220098190e76e1fc9147e8f07e2",
+    "mtime": 1780365378.6163003,
+    "ast_hash": "eaa94d397be85209d9ce35b9036199f7",
     "semantic_hash": ""
   },
-  "/home/jhunior/Documents/Projects/AtrevidaFront/docs/superpowers/plans/2026-06-01-admin-design-system.md": {
-    "mtime": 1780360624.203403,
-    "ast_hash": "b881f8fca0181fa1ef46a356185a0685",
-    "semantic_hash": ""
-  },
-  "/home/jhunior/Documents/Projects/AtrevidaFront/docs/superpowers/specs/2026-06-01-admin-design-system-design.md": {
-    "mtime": 1780360263.8900921,
-    "ast_hash": "b6c9e72f01a996528db8abcc52ae9500",
+  "/home/jhunior/Documents/Projects/AtrevidaFront/lib/hooks/useServiciosPublicos.ts": {
+    "mtime": 1780428189.5529687,
+    "ast_hash": "034b92055a0b921dd3788f95b37da2d2",
     "semantic_hash": ""
   }
 }
