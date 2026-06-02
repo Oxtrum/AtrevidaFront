@@ -1,0 +1,27 @@
+.root {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--admin-accent-primary);
+}
+
+.label {
+  font-size: var(--admin-fs-section, 0.7rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--admin-text-dim);
+  white-space: nowrap;
+}
+
+.line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--admin-border-subtle), transparent);
+  min-width: 2rem;
+}

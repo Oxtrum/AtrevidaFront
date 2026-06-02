@@ -1,0 +1,51 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+}
+
+.card {
+  position: relative;
+  background: var(--admin-surface-1);
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-lg);
+  padding: 1.1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  overflow: hidden;
+}
+
+.accentBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--stat-accent, var(--admin-accent-primary));
+  border-radius: var(--admin-radius-sm) 0 0 var(--admin-radius-sm);
+}
+
+.value {
+  font-size: var(--admin-fs-stat, clamp(1.5rem, 3vw, 2rem));
+  font-weight: 700;
+  color: var(--admin-foreground);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  padding-left: 0.25rem;
+}
+
+.label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--admin-text-dim);
+  padding-left: 0.25rem;
+}
+
+.sublabel {
+  font-size: 0.78rem;
+  color: var(--admin-text-dim);
+  padding-left: 0.25rem;
+}

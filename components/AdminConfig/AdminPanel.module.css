@@ -1,0 +1,15 @@
+.panel {
+  background: var(--admin-panel-bg);
+  border-radius: var(--admin-radius-xl);
+  border: 1px solid var(--admin-border-subtle);
+  box-shadow: var(--admin-shadow-sm);
+  backdrop-filter: blur(18px);
+  overflow: hidden;
+}
+
+.stripe::before {
+  content: '';
+  display: block;
+  height: 3px;
+  background: var(--admin-grad-primary);
+}
