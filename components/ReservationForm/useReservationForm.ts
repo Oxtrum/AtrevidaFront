@@ -316,7 +316,7 @@ export function useReservationForm(
       const info = servicios.find(s => s.value === servicio) ?? SERVICIOS_DISPONIBLES.find(s => s.value === servicio);
       if (info) {
         const normalizedSucursal = sucursal === 'SAN MARTIN' ? 'CENTRO' : sucursal;
-        if (info.sucursal !== 'ambos' && info.sucursal !== normalizedSucursal) {
+        if (info.sucursal !== 'ambos' && info.sucursal !== sucursal && info.sucursal !== normalizedSucursal) {
           const timeoutId = window.setTimeout(() => {
             setServicio('');
             setHoraDesde('');
