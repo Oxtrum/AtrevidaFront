@@ -69,23 +69,28 @@ export default function CalendarAdmin({
 
   useEffect(() => {
     const ctx = gsap.context(() => {
-      gsap.fromTo(
-        controlsRef.current,
-        { opacity: 0, y: -30 },
-        { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }
-      );
+      if (controlsRef.current) {
+        gsap.fromTo(
+          controlsRef.current,
+          { opacity: 0, y: -30 },
+          { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' },
+        );
+      }
 
-      gsap.to('.calendarOrb', {
-        y: '+=25',
-        duration: 3.5,
-        ease: 'sine.inOut',
-        yoyo: true,
-        repeat: -1,
-        stagger: { each: 0.8 },
-      });
+      const orbs = gsap.utils.toArray<HTMLElement>('.calendarOrb');
+      if (orbs.length > 0) {
+        gsap.to(orbs, {
+          y: '+=25',
+          duration: 3.5,
+          ease: 'sine.inOut',
+          yoyo: true,
+          repeat: -1,
+          stagger: { each: 0.8 },
+        });
+      }
     }, wrapperRef);
 
-    return () => ctx.kill();
+    return () => ctx.revert();
   }, []);
 
   useEffect(() => {

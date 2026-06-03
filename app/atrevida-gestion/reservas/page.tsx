@@ -97,12 +97,17 @@ export default function AdminReservasPage() {
   // Animaciones GSAP
   useEffect(() => {
     const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-      tl.fromTo(headerRef.current, { y: -30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6 })
-        .fromTo(calendarRef.current, { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6 }, '-=0.2');
+      const targets = [headerRef.current, calendarRef.current].filter(Boolean);
+      if (targets.length === 0) return;
+
+      gsap.fromTo(
+        targets,
+        { y: 24, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.6, stagger: 0.12, ease: 'power3.out' },
+      );
     }, containerRef);
 
-    return () => ctx.kill();
+    return () => ctx.revert();
   }, []);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
