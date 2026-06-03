@@ -7,6 +7,7 @@
   flex-direction: column;
   gap: 1.25rem;
   padding: 1.1rem;
+  overflow: hidden;
   background:
     var(--admin-sidebar-glow),
     var(--admin-panel-elevated);
@@ -126,9 +127,27 @@
 }
 
 .nav {
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 0.36rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--admin-scroll-thumb) transparent;
+}
+
+.nav::-webkit-scrollbar {
+  width: 4px;
+}
+
+.nav::-webkit-scrollbar-thumb {
+  background: var(--admin-scroll-thumb);
+  border-radius: 99px;
+}
+
+.nav::-webkit-scrollbar-thumb:hover {
+  background: var(--admin-scroll-thumb-hover);
 }
 
 .navLink {
@@ -223,7 +242,7 @@
 }
 
 .sidePanel {
-  margin-top: auto;
+  flex-shrink: 0;
   padding: 1rem;
   border: 1px solid var(--admin-border-subtle);
   border-radius: var(--admin-radius-lg);
@@ -262,6 +281,7 @@
 }
 
 .footer {
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
