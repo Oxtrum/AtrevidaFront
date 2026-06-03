@@ -27,7 +27,7 @@ export function useReservas(): UseReservasReturn {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const fetch = useCallback(async (params: UseReservasParams) => {
+    const loadReservas = useCallback(async (params: UseReservasParams) => {
         if (!params.local) {
             setData(null);
             setLoading(false);
@@ -60,5 +60,5 @@ export function useReservas(): UseReservasReturn {
         }
     }, []);
 
-    return { data, loading, error, fetch };
+    return { data, loading, error, fetch: loadReservas };
 }
