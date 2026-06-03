@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import styles from './Header.module.css';
 import { AdminThemeToggle } from '@/components/AdminThemeToggle/AdminThemeToggle';
+import { NotificationBell } from './NotificationBell';
 
 const NAV_LINKS = [
   {
@@ -64,6 +65,7 @@ export default function Header() {
   const pathname = usePathname();
   const shellRef = useRef<HTMLElement>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -90,6 +92,16 @@ export default function Header() {
     };
   }, [mobileOpen]);
 
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 900px)');
+    const syncViewport = () => setIsMobileViewport(mediaQuery.matches);
+
+    syncViewport();
+    mediaQuery.addEventListener('change', syncViewport);
+
+    return () => mediaQuery.removeEventListener('change', syncViewport);
+  }, []);
+
   const handleLogout = () => {
     gsap.to(shellRef.current, {
       opacity: 0,
@@ -98,6 +110,7 @@ export default function Header() {
       ease: 'power2.in',
       onComplete: () => {
         localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminUser');
         router.push('/atrevida-gestion/login');
       },
     });
@@ -117,15 +130,22 @@ export default function Header() {
           />
           <span>AtrevidaFit Admin</span>
         </Link>
-        <button
-          type="button"
-          className={styles.mobileMenuButton}
-          onClick={() => setMobileOpen((open) => !open)}
-          aria-label={mobileOpen ? 'Cerrar navegación' : 'Abrir navegación'}
-          aria-expanded={mobileOpen}
-        >
-          {mobileOpen ? <X size={19} strokeWidth={1.8} /> : <Menu size={19} strokeWidth={1.8} />}
-        </button>
+        <div className={styles.mobileActions}>
+          {isMobileViewport && <NotificationBell />}
+          <button
+            type="button"
+            className={styles.mobileMenuButton}
+            onClick={() => setMobileOpen((open) => !open)}
+            aria-label={mobileOpen ? 'Cerrar navegación' : 'Abrir navegación'}
+            aria-expanded={mobileOpen}
+          >
+            {mobileOpen ? <X size={19} strokeWidth={1.8} /> : <Menu size={19} strokeWidth={1.8} />}
+          </button>
+        </div>
+      </div>
+
+      <div className={styles.desktopActions}>
+        {!isMobileViewport && <NotificationBell />}
       </div>
 
       {mobileOpen && (

@@ -45,6 +45,17 @@
   color: var(--admin-foreground);
 }
 
+[data-admin="true"][data-admin-theme="light"] .themeToggle {
+  background: #fbfcff;
+  border-color: rgba(108, 84, 130, 0.13);
+  color: rgba(26, 20, 32, 0.72);
+}
+
+[data-admin="true"][data-admin-theme="light"] .themeToggle:hover {
+  background: rgba(20, 174, 239, 0.07);
+  border-color: rgba(20, 174, 239, 0.22);
+}
+
 .toggleText {
   white-space: nowrap;
 }

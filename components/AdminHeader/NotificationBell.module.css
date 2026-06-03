@@ -1,0 +1,526 @@
+.actions {
+  position: fixed;
+  top: 1rem;
+  right: 1.15rem;
+  z-index: 65;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.bellWrap {
+  position: relative;
+}
+
+.iconButton,
+.userButton,
+.refreshButton,
+.markAllButton,
+.markButton {
+  border: 1px solid var(--admin-border-subtle);
+  background: var(--admin-panel-elevated);
+  color: var(--admin-foreground);
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    transform var(--admin-t-normal) var(--admin-ease),
+    border-color var(--admin-t-normal) var(--admin-ease),
+    background var(--admin-t-normal) var(--admin-ease);
+}
+
+.iconButton {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--admin-radius-full);
+  box-shadow: var(--admin-shadow-sm);
+  backdrop-filter: blur(16px);
+}
+
+.iconButton:hover,
+.userButton:hover,
+.refreshButton:hover,
+.markAllButton:hover,
+.markButton:hover {
+  border-color: rgba(236, 0, 140, 0.30);
+  background: var(--admin-surface-2);
+}
+
+.iconButton:active,
+.userButton:active,
+.refreshButton:active,
+.markAllButton:active,
+.markButton:active {
+  transform: scale(0.98);
+}
+
+.iconButtonActive {
+  border-color: rgba(20, 174, 239, 0.38);
+  background: rgba(20, 174, 239, 0.12);
+}
+
+.badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 19px;
+  height: 19px;
+  display: grid;
+  place-items: center;
+  padding: 0 0.28rem;
+  border: 2px solid var(--admin-bg);
+  border-radius: var(--admin-radius-full);
+  background: var(--admin-accent-danger);
+  color: #ffffff;
+  font-size: 0.66rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.userButton {
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.36rem 0.78rem 0.36rem 0.38rem;
+  border-radius: var(--admin-radius-full);
+  box-shadow: var(--admin-shadow-sm);
+  backdrop-filter: blur(16px);
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--admin-radius-full);
+  background: var(--admin-grad-primary);
+  color: #ffffff;
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.userCopy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.02rem;
+  line-height: 1;
+}
+
+.userName {
+  max-width: 10rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.userRole {
+  color: var(--admin-text-dim);
+  font-family: var(--admin-font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.panel {
+  position: absolute;
+  top: calc(100% + 0.7rem);
+  right: 0;
+  width: min(390px, calc(100vw - 1.5rem));
+  max-height: min(680px, calc(100dvh - 5.5rem));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-xl);
+  background: color-mix(in srgb, var(--admin-surface-solid-1) 94%, transparent);
+  box-shadow: var(--admin-shadow-2xl);
+  backdrop-filter: blur(22px);
+  transform-origin: top right;
+  animation: panelIn 180ms var(--admin-ease) both;
+}
+
+@keyframes panelIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -8px, 0) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.panelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1rem 0.8rem;
+  border-bottom: 1px solid var(--admin-border-subtle);
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: 1.08rem;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.panelMeta {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--admin-text-dim);
+  font-size: 0.75rem;
+}
+
+.headerTools {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.refreshButton {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--admin-radius-md);
+}
+
+.refreshButton:disabled,
+.markAllButton:disabled,
+.markButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.markAllButton {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  padding: 0.45rem 0.62rem;
+  border-radius: var(--admin-radius-md);
+  color: var(--admin-text-light);
+  font-size: 0.72rem;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.spinning {
+  animation: spin 900ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.content {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.notice {
+  margin: 0.5rem;
+  padding: 0.72rem 0.8rem;
+  border: 1px solid rgba(255, 77, 109, 0.22);
+  border-radius: var(--admin-radius-md);
+  background: rgba(255, 77, 109, 0.08);
+  color: var(--admin-text-light);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.empty {
+  display: grid;
+  justify-items: center;
+  gap: 0.55rem;
+  padding: 2.1rem 1rem;
+  text-align: center;
+}
+
+.emptyIcon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-full);
+  background: var(--admin-pill-bg);
+  color: var(--admin-accent-tertiary);
+}
+
+.empty strong {
+  font-size: 0.92rem;
+}
+
+.empty span {
+  max-width: 18rem;
+  color: var(--admin-text-dim);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.skeletonList {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.skeletonItem {
+  height: 94px;
+  border-radius: var(--admin-radius-lg);
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent),
+    var(--admin-pill-bg);
+  background-size: 220% 100%, 100% 100%;
+  animation: shimmer 1.3s var(--admin-ease) infinite;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 180% 0, 0 0;
+  }
+
+  to {
+    background-position: -40% 0, 0 0;
+  }
+}
+
+.list {
+  display: grid;
+  gap: 0.36rem;
+}
+
+.selectionBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.28rem 0.32rem 0.48rem;
+  color: var(--admin-text-dim);
+  font-size: 0.72rem;
+}
+
+.selectionButton,
+.selectButton {
+  border: 0;
+  background: transparent;
+  color: var(--admin-text-muted);
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    transform var(--admin-t-normal) var(--admin-ease),
+    color var(--admin-t-normal) var(--admin-ease);
+}
+
+.selectionButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  padding: 0.24rem 0;
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
+.selectionButton:hover,
+.selectButton:hover {
+  color: var(--admin-foreground);
+}
+
+.selectionButton:disabled,
+.selectButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.selectionButton:active,
+.selectButton:active {
+  transform: scale(0.98);
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 24px 38px minmax(0, 1fr);
+  gap: 0.64rem;
+  padding: 0.72rem;
+  border: 1px solid transparent;
+  border-radius: var(--admin-radius-lg);
+  color: var(--admin-foreground);
+  text-decoration: none;
+  transition:
+    transform var(--admin-t-normal) var(--admin-ease),
+    border-color var(--admin-t-normal) var(--admin-ease),
+    background var(--admin-t-normal) var(--admin-ease);
+}
+
+.item:hover {
+  transform: translateY(-1px);
+  border-color: var(--admin-border-subtle);
+  background: var(--admin-pill-bg);
+}
+
+.itemSelected {
+  border-color: rgba(20, 174, 239, 0.26);
+  background: rgba(20, 174, 239, 0.08);
+}
+
+.selectButton {
+  width: 24px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  color: var(--admin-accent-tertiary);
+}
+
+.itemIcon {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--admin-radius-full);
+  background: rgba(236, 0, 140, 0.12);
+  color: var(--admin-accent-primary);
+}
+
+.itemBody {
+  min-width: 0;
+  display: grid;
+  gap: 0.42rem;
+}
+
+.itemTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
+.itemTitle {
+  min-width: 0;
+  display: grid;
+  gap: 0.12rem;
+}
+
+.client {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.88rem;
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.service {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--admin-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.25;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.createdAt {
+  color: var(--admin-accent-tertiary);
+  font-family: var(--admin-font-mono);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  margin-top: 0.25rem;
+  border-radius: var(--admin-radius-full);
+  background: var(--admin-accent-tertiary);
+  box-shadow: 0 0 0 5px rgba(20, 174, 239, 0.12);
+}
+
+.itemMeta {
+  display: grid;
+  gap: 0.24rem;
+  color: var(--admin-text-dim);
+  font-size: 0.74rem;
+  line-height: 1.25;
+}
+
+.metaLine {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.36rem;
+}
+
+.metaLine span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.markButton {
+  width: fit-content;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  padding: 0.45rem 0.62rem;
+  border-radius: var(--admin-radius-md);
+  color: var(--admin-text-light);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.panelFooter {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.72rem 1rem;
+  border-top: 1px solid var(--admin-border-subtle);
+  color: var(--admin-text-dim);
+  font-size: 0.7rem;
+}
+
+@media (max-width: 900px) {
+  .actions {
+    position: static;
+    gap: 0.48rem;
+  }
+
+  .userButton {
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .userCopy {
+    display: none;
+  }
+
+  .iconButton {
+    width: 42px;
+    height: 42px;
+  }
+
+  .panel {
+    position: fixed;
+    top: 66px;
+    right: 0.75rem;
+    width: min(390px, calc(100vw - 1.5rem));
+    max-height: calc(100dvh - 5.25rem);
+  }
+}

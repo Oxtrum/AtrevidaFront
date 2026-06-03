@@ -106,21 +106,21 @@
 }
 
 [data-admin="true"][data-admin-theme="light"] {
-  --admin-bg: #f8f6fa;
+  --admin-bg: #f6f7fb;
   --admin-bg-secondary: #ffffff;
-  --admin-bg-tertiary: #f0ebf6;
+  --admin-bg-tertiary: #eef1f6;
   --admin-foreground: #1a1420;
   --admin-text-muted: rgba(26, 20, 32, 0.72);
   --admin-text-dim: rgba(26, 20, 32, 0.50);
   --admin-text-light: rgba(26, 20, 32, 0.88);
 
   --admin-surface-1: #ffffff;
-  --admin-surface-2: #faf7fc;
-  --admin-surface-3: #f5f0f9;
-  --admin-surface-4: #f0ebf6;
+  --admin-surface-2: #f8f9fc;
+  --admin-surface-3: #f1f3f8;
+  --admin-surface-4: #e9edf4;
   --admin-surface-solid-1: #ffffff;
-  --admin-surface-solid-2: #f9f6fb;
-  --admin-surface-solid-3: #f3ecf7;
+  --admin-surface-solid-2: #f8f9fc;
+  --admin-surface-solid-3: #eef1f6;
 
   --admin-border-subtle: rgba(108, 84, 130, 0.10);
   --admin-border: rgba(108, 84, 130, 0.14);
@@ -135,19 +135,19 @@
   --admin-shadow-xl: 0 12px 32px rgba(26, 20, 32, 0.12);
   --admin-shadow-2xl: 0 16px 48px rgba(26, 20, 32, 0.14);
 
-  --admin-panel-bg: linear-gradient(180deg, #ffffff 0%, #f9f6fb 100%);
-  --admin-panel-elevated: linear-gradient(180deg, #ffffff 0%, #f7f3fb 100%);
+  --admin-panel-bg: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+  --admin-panel-elevated: linear-gradient(180deg, #ffffff 0%, #f8f9fc 100%);
   --admin-input-bg: #ffffff;
   --admin-input-bg-hover: #f9f6fb;
   --admin-input-bg-focus: #ffffff;
-  --admin-pill-bg: rgba(236, 0, 140, 0.06);
+  --admin-pill-bg: rgba(255, 255, 255, 0.78);
   --admin-overlay-bg: rgba(26, 20, 32, 0.12);
   --admin-scroll-thumb: rgba(108, 84, 130, 0.26);
   --admin-scroll-thumb-hover: rgba(236, 0, 140, 0.40);
   --admin-option-active-fg: #1a1420;
-  --admin-sidebar-glow: radial-gradient(circle at 18% 0%, rgba(236, 0, 140, 0.06), transparent 13rem);
-  --admin-page-glow-a: radial-gradient(circle at 0% 0%, rgba(236, 0, 140, 0.04), transparent 28rem);
-  --admin-page-glow-b: radial-gradient(circle at 100% 12%, rgba(20, 174, 239, 0.04), transparent 30rem);
+  --admin-sidebar-glow: none;
+  --admin-page-glow-a: radial-gradient(circle at 0% 0%, rgba(236, 0, 140, 0.025), transparent 28rem);
+  --admin-page-glow-b: radial-gradient(circle at 100% 12%, rgba(20, 174, 239, 0.03), transparent 30rem);
   --admin-color-scheme: light;
 
   --admin-grad-subtle:
