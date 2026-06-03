@@ -191,12 +191,7 @@ export default function Header() {
           })}
         </nav>
 
-        <div className={styles.sidePanel}>
-          <span className={styles.sidePanelLabel}>Hoy</span>
-          <strong>Operación limpia</strong>
-          <p>Reservas, locales y servicios listos para trabajar sin ruido visual.</p>
-        </div>
-
+     
         <div className={styles.footer}>
           <AdminThemeToggle />
           <Link href="/" className={styles.publicLink}>
