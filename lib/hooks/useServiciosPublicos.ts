@@ -78,7 +78,7 @@ function mapRow(row: ServicioDBRow): ServicioPublico {
   };
 }
 
-export function useServiciosPublicos(sucursal: string) {
+export function useServiciosPublicos(sucursal: string, pacienteNuevo?: boolean) {
   const [servicios, setServicios] = useState<ServicioPublico[]>(() => staticFallback(sucursal));
   const [loading, setLoading] = useState(false);
 
@@ -87,6 +87,7 @@ export function useServiciosPublicos(sucursal: string) {
     setLoading(true);
     try {
       const qs = new URLSearchParams({ local });
+      if (pacienteNuevo) qs.set('paciente_nuevo', 'true');
       const res = await fetch(`/api/bd/servicios?${qs.toString()}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json() as { data?: { servicios?: ServicioDBRow[] } };
@@ -108,7 +109,7 @@ export function useServiciosPublicos(sucursal: string) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [pacienteNuevo]);
 
   useEffect(() => {
     load(sucursal);
