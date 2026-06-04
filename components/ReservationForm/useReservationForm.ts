@@ -99,7 +99,7 @@ export function useReservationForm(
     return hora; // fallback
   };
   const [sucursal, setSucursal] = useState(initialData?.local || SUCURSALES[0]?.value || 'SAN MARTIN');
-  const { servicios, loading: loadingServicios } = useServiciosPublicos(sucursal);
+  const { servicios, loading: loadingServicios } = useServiciosPublicos(sucursal, true);
   const [dia, setDia] = useState<DiaSemana>(initialData?.dia || 'LUNES');
   const [fecha, setFecha] = useState(initialData?.fecha || getTodayISO());
   const [horaDesde, setHoraDesde] = useState(normalizarHora(initialData?.hora_desde || ''));
