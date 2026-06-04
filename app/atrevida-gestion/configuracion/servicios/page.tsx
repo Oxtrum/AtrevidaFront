@@ -88,6 +88,27 @@ const FORM_INITIAL: FormState = {
   visible_paciente_nuevo: false,
 };
 
+// ─── Tiempo helpers ───────────────────────────────────────────────────────────
+
+function minutosATexto(minutos: number): string {
+  const h = Math.floor(minutos / 60);
+  const m = minutos % 60;
+  if (h === 0) return `${m} min`;
+  if (m === 0) return h === 1 ? '1 hora' : `${h} horas`;
+  return h === 1 ? `1 hora y ${m} min` : `${h} horas y ${m} min`;
+}
+
+function textoAMinutos(texto: string): number {
+  const raw = Number(texto.trim());
+  if (!isNaN(raw) && raw > 0) return raw;
+  let total = 0;
+  const horasMatch = texto.match(/(\d+)\s*hora/);
+  const minsMatch = texto.match(/(\d+)\s*min/);
+  if (horasMatch) total += parseInt(horasMatch[1], 10) * 60;
+  if (minsMatch) total += parseInt(minsMatch[1], 10);
+  return total || 0;
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function ServiciosPage() {
@@ -225,7 +246,7 @@ export default function ServiciosPage() {
     setForm({
       nombre: row.nombre,
       categoria: row.categoria,
-      tiempo: String(row.tiempo ?? ''),
+      tiempo: String(textoAMinutos(String(row.tiempo ?? ''))),
       costo: String(row.costo ?? ''),
       sesiones: row.sesiones,
       tipo_espacio_requerido:
@@ -270,7 +291,7 @@ export default function ServiciosPage() {
 
     const sesiones = Math.max(1, Math.floor(form.sesiones));
     const costo = Number(form.costo);
-    const tiempo = form.tiempo.trim();
+    const tiempo = minutosATexto(Number(form.tiempo));
 
     try {
       if (isEdit && editingId !== null) {
