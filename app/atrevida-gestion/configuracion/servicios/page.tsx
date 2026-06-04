@@ -56,6 +56,7 @@ interface FormState {
   tipo_espacio_requerido: string;
   local: string;
   requiere_evaluacion: boolean;
+  visible_paciente_nuevo: boolean;
 }
 
 interface FormErrors {
@@ -84,6 +85,7 @@ const FORM_INITIAL: FormState = {
   tipo_espacio_requerido: 'M',
   local: '',
   requiere_evaluacion: false,
+  visible_paciente_nuevo: false,
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -232,6 +234,7 @@ export default function ServiciosPage() {
         : (row.tipoEspacio || 'M'),
       local: row.local,
       requiere_evaluacion: row.requiere_evaluacion ?? false,
+      visible_paciente_nuevo: row.visible_paciente_nuevo ?? false,
     });
     setModalOpen(true);
   };
@@ -280,6 +283,10 @@ export default function ServiciosPage() {
           tipo_espacio_requerido: form.tipo_espacio_requerido,
           requiere_evaluacion: form.requiere_evaluacion,
         });
+        const localForToggle = locales.find((l) => l.nombre === form.local);
+        if (localForToggle) {
+          await togglePacienteNuevo(editingId, localForToggle.id, form.visible_paciente_nuevo);
+        }
         toast.success('Servicio actualizado correctamente');
       } else {
         await crearServicioDB({
@@ -832,6 +839,24 @@ export default function ServiciosPage() {
               </span>
             </div>
           </label>
+
+          {/* Visible para pacientes nuevos */}
+          {isEdit && (
+            <label className={`${styles.checkboxCard} ${styles.colSpan2}`} htmlFor="srv-paciente-nuevo">
+              <input
+                id="srv-paciente-nuevo"
+                type="checkbox"
+                checked={form.visible_paciente_nuevo}
+                onChange={(e) => patchForm({ visible_paciente_nuevo: e.target.checked })}
+              />
+              <div className={styles.checkboxCardContent}>
+                <span className={styles.checkboxCardTitle}>Visible para pacientes nuevos</span>
+                <span className={styles.checkboxCardDesc}>
+                  Este servicio aparecerá en el formulario de reserva para clientes que se registran por primera vez.
+                </span>
+              </div>
+            </label>
+          )}
 
         </div>
 
