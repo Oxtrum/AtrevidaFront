@@ -17,6 +17,7 @@ import {
   actualizarServicio,
   eliminarServicioDB,
   activarServicioEnLocal,
+  togglePacienteNuevo,
 } from '@/lib/api/servicios';
 import styles from './page.module.css';
 
@@ -33,6 +34,7 @@ interface ServicioRow extends Record<string, unknown> {
   tipoEspacio: string;
   activo?: boolean;
   requiere_evaluacion?: boolean;
+  visible_paciente_nuevo?: boolean;
 }
 
 interface CategoriaOption {
@@ -325,6 +327,29 @@ export default function ServiciosPage() {
     });
   };
 
+  const handleTogglePacienteNuevo = (row: ServicioRow) => {
+    const local = locales.find((l) => l.nombre === row.local);
+    if (!local) {
+      toast.error('Local no encontrado');
+      return;
+    }
+    const next = !row.visible_paciente_nuevo;
+    const verb = next ? 'activar' : 'desactivar';
+    setConfirmState({
+      message: `¿Seguro que quieres ${verb} "${row.nombre}" para pacientes nuevos en ${row.local}?`,
+      onConfirm: async () => {
+        try {
+          await togglePacienteNuevo(row.id, local.id, next);
+          toast.success(next ? 'Visible para pacientes nuevos' : 'Oculto para pacientes nuevos');
+          await fetchServicios();
+        } catch (err) {
+          if (err instanceof Error) console.error('togglePacienteNuevo', err);
+          toast.error(`No se pudo ${verb} el servicio para pacientes nuevos.`);
+        }
+      },
+    });
+  };
+
   const handleDelete = (row: ServicioRow) => {
     setConfirmState({
       message: `¿Eliminar el servicio "${row.nombre}"? Se hará borrado lógico.`,
@@ -420,6 +445,22 @@ export default function ServiciosPage() {
           </button>
         );
       },
+    },
+    {
+      key: 'visible_paciente_nuevo',
+      label: 'Pac. Nuevo',
+      searchable: false,
+      render: (_val, row) => (
+        <button
+          type="button"
+          onClick={() => handleTogglePacienteNuevo(row)}
+          className={row.visible_paciente_nuevo ? styles.statusActive : styles.statusInactive}
+          aria-label={row.visible_paciente_nuevo ? 'Desactivar para pacientes nuevos' : 'Activar para pacientes nuevos'}
+          title={row.visible_paciente_nuevo ? 'Clic para desactivar para pacientes nuevos' : 'Clic para activar para pacientes nuevos'}
+        >
+          {row.visible_paciente_nuevo ? 'Visible' : 'Oculto'}
+        </button>
+      ),
     },
     {
       key: 'acciones',
