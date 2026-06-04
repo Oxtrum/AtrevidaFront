@@ -12,6 +12,7 @@ export interface GetServiciosParams {
   categoria?: string;
   sesiones?: number;
   requiere_evaluacion?: boolean;
+  paciente_nuevo?: boolean;
 }
 
 export interface GetCombosParams {
@@ -85,6 +86,7 @@ export async function getServiciosDB(params: GetServiciosParams) {
       categoria: params.categoria,
       sesiones: params.sesiones,
       requiere_evaluacion: params.requiere_evaluacion?.toString(),
+      paciente_nuevo: params.paciente_nuevo?.toString(),
     },
   });
 }
@@ -107,6 +109,18 @@ export async function actualizarServicio(id: number | string, data: ActualizarSe
 /** Borrado lógico de un servicio (DELETE /bd/servicios/{id} → activo=false). */
 export async function eliminarServicioDB(id: number | string) {
   return apiClient.delete(`/bd/servicios/${id}`);
+}
+
+/** PATCH /bd/servicios/{id}/local/{localId}/paciente-nuevo — toggle visibility for new patients. */
+export async function togglePacienteNuevo(
+  servicioId: number | string,
+  localId: number | string,
+  visible: boolean,
+) {
+  return apiClient.patch(
+    `/bd/servicios/${servicioId}/local/${localId}/paciente-nuevo`,
+    { visible_paciente_nuevo: visible },
+  );
 }
 
 /** Asocia (activa) un servicio existente a un local. */
