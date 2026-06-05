@@ -29,7 +29,7 @@
   align-items: center;
   width: fit-content;
   border-radius: var(--admin-radius-full);
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 900;
   letter-spacing: 0.9px;
   text-transform: uppercase;
@@ -227,7 +227,7 @@
   gap: 0.42rem;
   min-width: 0;
   color: var(--admin-text-muted);
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 900;
   letter-spacing: 0.8px;
   text-transform: uppercase;
@@ -929,7 +929,7 @@
   width: fit-content;
   margin-bottom: 0.45rem;
   color: var(--admin-accent-yellow);
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 900;
   letter-spacing: 0.9px;
   text-transform: uppercase;
