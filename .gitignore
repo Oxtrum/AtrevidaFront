@@ -45,3 +45,8 @@ graphify-out/cache/
 graphify-out/.graphify_*
 graphify-out/.needs_update
 graphify-out/cost.json
+
+# Claude Code / OpenCode local settings
+.claude/settings.local.json
+.opencode/
+.claude/skills/

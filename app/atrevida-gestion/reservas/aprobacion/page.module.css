@@ -81,30 +81,22 @@
   min-height: 38px;
   padding: 0.6rem 1rem;
   border-radius: var(--admin-radius-full);
-  color: var(--admin-accent-success);
-  background:
-    linear-gradient(180deg, rgba(20, 174, 239, 0.13), rgba(20, 174, 239, 0.07));
-  border: 1px solid rgba(20, 174, 239, 0.24);
+  color: var(--admin-foreground);
+  background: var(--admin-panel-bg);
+  border: 1px solid var(--admin-border-subtle);
   box-shadow: var(--admin-shadow-sm);
   text-decoration: none;
   white-space: nowrap;
 }
 
-.refreshButton:hover {
+.refreshButton:hover,
+.secondaryNavButton:hover {
   transform: translateY(-2px);
   border-color: var(--admin-border-hover);
   background: rgba(255, 255, 255, 0.05);
   box-shadow:
     var(--admin-shadow-sm),
     0 0 0 1px rgba(255, 255, 255, 0.08);
-}
-
-.secondaryNavButton:hover {
-  transform: translateY(-2px);
-  border-color: rgba(20, 174, 239, 0.45);
-  box-shadow:
-    var(--admin-shadow-sm),
-    0 4px 18px rgba(20, 174, 239, 0.18);
 }
 
 .approveButton:hover,
@@ -744,10 +736,12 @@
   align-content: center;
   justify-self: end;
   width: 100%;
-  gap: 0.62rem;
-  padding: clamp(1rem, 2vw, 1.2rem);
-  border-left: 1px solid var(--admin-border-subtle);
-  background: rgba(255, 255, 255, 0.018);
+  gap: 0.55rem;
+  padding: clamp(0.9rem, 2vw, 1.1rem);
+  border-left: 1px solid rgba(var(--card-accent-rgb), 0.14);
+  background:
+    radial-gradient(ellipse 120% 55% at 50% 0%, rgba(var(--card-accent-rgb), 0.07), transparent 68%),
+    rgba(255, 255, 255, 0.015);
   position: relative;
   z-index: 1;
 }
@@ -768,14 +762,29 @@
 .approveButton {
   color: #ffffff;
   background: var(--admin-grad-success);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(20, 174, 239, 0.35);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 4px 16px rgba(20, 174, 239, 0.18);
+}
+
+.approveButton:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 8px 28px rgba(20, 174, 239, 0.36);
 }
 
 .contactButton {
   color: var(--admin-accent-success);
   background:
-    linear-gradient(180deg, rgba(20, 174, 239, 0.13), rgba(20, 174, 239, 0.07));
-  border: 1px solid rgba(20, 174, 239, 0.22);
+    linear-gradient(180deg, rgba(20, 174, 239, 0.15), rgba(20, 174, 239, 0.07));
+  border: 1px solid rgba(20, 174, 239, 0.28);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.contactButton:hover {
+  border-color: rgba(20, 174, 239, 0.5);
+  background: linear-gradient(180deg, rgba(20, 174, 239, 0.22), rgba(20, 174, 239, 0.12));
 }
 
 .notifyButton {
@@ -783,6 +792,15 @@
   background:
     linear-gradient(135deg, rgba(20, 174, 239, 0.92), rgba(236, 0, 140, 0.88));
   border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 4px 16px rgba(20, 174, 239, 0.14);
+}
+
+.notifyButton:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 8px 24px rgba(20, 174, 239, 0.28);
 }
 
 .notifyButtonSent {
@@ -795,8 +813,15 @@
 .rejectButton {
   color: var(--admin-accent-danger);
   background:
-    linear-gradient(180deg, rgba(255, 77, 109, 0.13), rgba(255, 77, 109, 0.07));
-  border: 1px solid rgba(255, 77, 109, 0.22);
+    linear-gradient(180deg, rgba(255, 77, 109, 0.15), rgba(255, 77, 109, 0.07));
+  border: 1px solid rgba(255, 77, 109, 0.28);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.rejectButton:hover {
+  border-color: rgba(255, 77, 109, 0.5);
+  background: linear-gradient(180deg, rgba(255, 77, 109, 0.22), rgba(255, 77, 109, 0.12));
+  box-shadow: 0 6px 20px rgba(255, 77, 109, 0.2);
 }
 
 .approveButton:active,
