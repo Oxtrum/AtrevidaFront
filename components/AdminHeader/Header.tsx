@@ -8,6 +8,7 @@ import gsap from 'gsap';
 import {
   CalendarDays,
   Clock3,
+  CreditCard,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -45,6 +46,12 @@ const NAV_LINKS = [
     detail: 'Recordatorios de hoy',
     href: '/atrevida-gestion/reservas/proximas',
     icon: Clock3,
+  },
+  {
+    label: 'Pagos',
+    detail: 'Gestión de pagos',
+    href: '/atrevida-gestion/pagos',
+    icon: CreditCard,
   },
   {
     label: 'Clientes',

@@ -1,0 +1,378 @@
+.pageContainer {
+  min-height: 100vh;
+  color: var(--admin-foreground);
+  font-family: var(--admin-font-family);
+  position: relative;
+  overflow-x: hidden;
+}
+
+.main {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.contentStack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ── Search row ── */
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--admin-panel-bg);
+  border-radius: var(--admin-radius-xl);
+  border: 1px solid var(--admin-border-subtle);
+  box-shadow: var(--admin-shadow-sm);
+  padding: 0.875rem 1.25rem;
+  flex-wrap: wrap;
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-input-bg);
+  flex: 1;
+  min-width: 200px;
+  max-width: 28rem;
+  transition: border-color 0.2s ease;
+}
+
+.searchBar:focus-within {
+  border-color: var(--admin-accent-primary);
+}
+
+.searchIcon {
+  color: var(--admin-text-dim);
+  flex-shrink: 0;
+}
+
+.searchBar input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--admin-foreground);
+  font-size: 0.875rem;
+  font-family: inherit;
+}
+
+.searchBar input:focus {
+  outline: none;
+}
+
+.searchBar input::placeholder {
+  color: var(--admin-text-dim);
+}
+
+.filterField {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-input-bg);
+  transition: border-color 0.2s ease;
+}
+
+.filterField:focus-within {
+  border-color: var(--admin-accent-primary);
+}
+
+.filterField input,
+.filterField select {
+  border: none;
+  background: transparent;
+  color: var(--admin-foreground);
+  font-size: 0.875rem;
+  font-family: inherit;
+  flex: 1;
+}
+
+.filterField input:focus,
+.filterField select:focus {
+  outline: none;
+}
+
+.filterField input::placeholder,
+.filterField select {
+  color: var(--admin-text-dim);
+}
+
+.totalLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--admin-text-dim);
+  white-space: nowrap;
+}
+
+/* ── Form grid ── */
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.colSpan2 {
+  grid-column: span 2;
+}
+
+.colSpan1 {
+  grid-column: span 1;
+}
+
+/* ── Field ── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.field label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--admin-foreground);
+}
+
+.field input,
+.field select {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-input-bg);
+  color: var(--admin-foreground);
+  font-size: 0.875rem;
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.field input:focus,
+.field select:focus {
+  outline: none;
+  border-color: var(--admin-accent-primary);
+  box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.16);
+}
+
+.inputError {
+  border-color: var(--admin-accent-danger) !important;
+  box-shadow: 0 0 0 3px rgba(255, 77, 109, 0.12) !important;
+}
+
+.fieldError {
+  font-size: 0.75rem;
+  color: var(--admin-accent-danger);
+}
+
+.submitError {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--admin-radius-md);
+  border: 1px solid rgba(255, 77, 109, 0.25);
+  background: rgba(255, 77, 109, 0.08);
+  color: var(--admin-accent-danger);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+/* ── Detalles table ── */
+.detallesSection {
+  margin-top: 1.5rem;
+}
+
+.detallesHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.detallesHeader h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--admin-foreground);
+}
+
+.detallesTable {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  overflow: hidden;
+  background: var(--admin-input-bg);
+  font-size: 0.875rem;
+}
+
+.detallesTable thead {
+  background: var(--admin-panel-bg);
+  border-bottom: 1px solid var(--admin-border-subtle);
+}
+
+.detallesTable th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 500;
+  color: var(--admin-foreground);
+  font-size: 0.8rem;
+}
+
+.detallesTable td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--admin-border-subtle);
+  color: var(--admin-foreground);
+}
+
+.detallesTable tr:last-child td {
+  border-bottom: none;
+}
+
+.detallesTable input,
+.detallesTable select {
+  padding: 0.5rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-input-bg);
+  color: var(--admin-foreground);
+  font-size: 0.875rem;
+  font-family: inherit;
+}
+
+.detallesTable input:focus,
+.detallesTable select:focus {
+  outline: none;
+  border-color: var(--admin-accent-primary);
+  box-shadow: 0 0 0 2px rgba(236, 0, 140, 0.16);
+}
+
+.detallesActions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.detallesActions button {
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-accent-danger);
+  color: white;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.detallesActions button:hover {
+  background: var(--admin-accent-danger-hover);
+}
+
+.addDetalleButton {
+  padding: 0.625rem 1rem;
+  border: 1px dashed var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: transparent;
+  color: var(--admin-accent-primary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.addDetalleButton:hover {
+  border-color: var(--admin-accent-primary);
+  background: rgba(236, 0, 140, 0.08);
+}
+
+/* ── Resumen ── */
+.resumenSection {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-panel-bg);
+  border: 1px solid var(--admin-border-subtle);
+}
+
+.resumenRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.resumenRow:not(:last-child) {
+  border-bottom: 1px solid var(--admin-border-subtle);
+  margin-bottom: 0.5rem;
+}
+
+.resumenLabel {
+  color: var(--admin-text-dim);
+  font-weight: 500;
+}
+
+.resumenValue {
+  color: var(--admin-foreground);
+  font-weight: 600;
+}
+
+.totalFinal {
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
+  border-top: 2px solid var(--admin-accent-primary);
+  font-size: 1rem;
+  color: var(--admin-accent-primary);
+}
+
+@media (max-width: 768px) {
+  .main {
+    padding: 1rem;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .colSpan2,
+  .colSpan1 {
+    grid-column: span 1;
+  }
+
+  .searchRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .searchBar {
+    max-width: 100%;
+  }
+
+  .detallesTable {
+    font-size: 0.75rem;
+  }
+
+  .detallesTable th,
+  .detallesTable td {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .detallesActions {
+    flex-direction: column;
+  }
+}
