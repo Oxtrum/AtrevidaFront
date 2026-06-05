@@ -1,16 +1,16 @@
-# Graph Report - AtrevidaFront  (2026-06-02)
+# Graph Report - AtrevidaFront  (2026-06-05)
 
 ## Corpus Check
-- 132 files · ~2,982,384 words
+- 135 files · ~2,984,414 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1062 nodes · 1862 edges · 71 communities (58 shown, 13 thin omitted)
+- 1107 nodes · 1906 edges · 83 communities (71 shown, 12 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `3a937539`
+- Built from commit: `78482d0b`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -35,13 +35,19 @@
 - [[_COMMUNITY_Community 17|Community 17]]
 - [[_COMMUNITY_Community 18|Community 18]]
 - [[_COMMUNITY_Community 19|Community 19]]
+- [[_COMMUNITY_Community 20|Community 20]]
+- [[_COMMUNITY_Community 21|Community 21]]
 - [[_COMMUNITY_Community 22|Community 22]]
+- [[_COMMUNITY_Community 23|Community 23]]
 - [[_COMMUNITY_Community 24|Community 24]]
 - [[_COMMUNITY_Community 25|Community 25]]
 - [[_COMMUNITY_Community 26|Community 26]]
+- [[_COMMUNITY_Community 27|Community 27]]
 - [[_COMMUNITY_Community 29|Community 29]]
+- [[_COMMUNITY_Community 30|Community 30]]
 - [[_COMMUNITY_Community 31|Community 31]]
 - [[_COMMUNITY_Community 32|Community 32]]
+- [[_COMMUNITY_Community 33|Community 33]]
 - [[_COMMUNITY_Community 34|Community 34]]
 - [[_COMMUNITY_Community 35|Community 35]]
 - [[_COMMUNITY_Community 36|Community 36]]
@@ -61,8 +67,14 @@
 - [[_COMMUNITY_Community 57|Community 57]]
 - [[_COMMUNITY_Community 59|Community 59]]
 - [[_COMMUNITY_Community 60|Community 60]]
+- [[_COMMUNITY_Community 61|Community 61]]
+- [[_COMMUNITY_Community 62|Community 62]]
+- [[_COMMUNITY_Community 63|Community 63]]
+- [[_COMMUNITY_Community 64|Community 64]]
+- [[_COMMUNITY_Community 65|Community 65]]
 - [[_COMMUNITY_Community 66|Community 66]]
 - [[_COMMUNITY_Community 67|Community 67]]
+- [[_COMMUNITY_Community 68|Community 68]]
 - [[_COMMUNITY_Community 69|Community 69]]
 - [[_COMMUNITY_Community 71|Community 71]]
 - [[_COMMUNITY_Community 72|Community 72]]
@@ -88,29 +100,29 @@
 7. `toast` - 17 edges
 8. `compilerOptions` - 16 edges
 9. `CustomSelect()` - 14 edges
-10. `Column` - 12 edges
+10. `FormModal()` - 12 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `DaySelectorProps` --references--> `DiaSemana`  [EXTRACTED]
-  components/AdminReservationForm/DaySelector.tsx → types/reserva.ts
 - `Home()` --calls--> `absoluteUrl()`  [EXTRACTED]
   app/page.tsx → lib/seo.ts
 - `robots()` --calls--> `absoluteUrl()`  [EXTRACTED]
   app/robots.ts → lib/seo.ts
 - `ReservasPage()` --calls--> `absoluteUrl()`  [EXTRACTED]
   app/reservas/page.tsx → lib/seo.ts
+- `ReservaRow` --references--> `EstadoReserva`  [EXTRACTED]
+  app/atrevida-gestion/reservas/page.tsx → types/reserva.ts
 - `AdminReservasPage()` --calls--> `useLocales()`  [EXTRACTED]
   app/atrevida-gestion/reservas/page.tsx → lib/hooks/useLocales.ts
 
-## Communities (71 total, 13 thin omitted)
+## Communities (83 total, 12 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.07
 Nodes (29): Admin Design System Implementation Plan, code:css (/* Typography scale */), code:css (.panel {), code:bash (npm run lint), code:tsx (import styles from './StatCard.module.css';), code:css (.grid {), code:bash (npm run lint), code:ts (export { SectionLabel } from './SectionLabel';) (+21 more)
 
 ### Community 1 - "Community 1"
-Cohesion: 0.13
-Nodes (9): NAV_LINKS, NotificationBell(), getReservasNotificaciones(), marcarReservaNotificacionLeida(), marcarReservasNotificacionesLeidas(), MarcarReservasNotificacionesLeidasResponse, ReservaNotificacion, ReservasNotificacionesData (+1 more)
+Cohesion: 0.08
+Nodes (20): NotificationBell(), cambiarPassword(), getUsuarios(), LoginResponse, registrarUsuario(), toggleUsuarioActivo(), UsuarioResumen, UsuariosListResponse (+12 more)
 
 ### Community 2 - "Community 2"
 Cohesion: 0.14
@@ -130,15 +142,15 @@ Nodes (30): 10. FINAL PRE-FLIGHT CHECK, 1. ACTIVE BASELINE CONFIGURATION, 2. DEF
 
 ### Community 6 - "Community 6"
 Cohesion: 0.05
-Nodes (23): geist, geistMono, metadata, Home(), robots(), routes, INFO_ITEMS, LOCATIONS (+15 more)
+Nodes (24): geist, geistMono, metadata, Home(), robots(), routes, INFO_ITEMS, LOCATIONS (+16 more)
 
 ### Community 7 - "Community 7"
 Cohesion: 0.11
 Nodes (17): Admin Combos Management Implementation Plan, code:typescript (// ─── Combo Servicios ─────────────────────────────────────), code:bash (npm run lint), code:bash (npm run lint), code:typescript (import { Tags, Building2, Scissors } from 'lucide-react';), code:typescript (import { Tags, Building2, Scissors, Package2 } from 'lucide-), code:typescript ({), code:bash (npm run lint) (+9 more)
 
 ### Community 8 - "Community 8"
-Cohesion: 0.17
-Nodes (12): cambiarPassword(), getUsuarios(), LoginResponse, registrarUsuario(), toggleUsuarioActivo(), UsuarioResumen, UsuariosListResponse, ConfirmState (+4 more)
+Cohesion: 0.23
+Nodes (10): ReservaDetailModal(), eliminarReservaDB(), ReservaTipoBackend, useReservasFiltradas(), AdminReservasPage(), ReservaRow, Button(), ButtonProps (+2 more)
 
 ### Community 9 - "Community 9"
 Cohesion: 0.07
@@ -161,44 +173,64 @@ Cohesion: 0.17
 Nodes (12): code:css (--af-radius-pill: 9999px;), code:css (--af-ease: cubic-bezier(0.16, 1, 0.3, 1);), code:css (--af-glass: rgba(9, 9, 11, 0.80);), code:css (--color-background: #09090b;          /* Fondo oscuro casi n), code:css (--af-accent-primary: #dc2626;         /* Rojo profundo */), code:css (--af-muted: rgba(250, 250, 250, 0.65);    /* Texto semitrans), code:css (--af-surface-1: rgba(15, 15, 15, 0.50);   /* Vidrio suave */), code:css (--af-border: rgba(228, 228, 231, 0.10);       /* Borde sutil) (+4 more)
 
 ### Community 14 - "Community 14"
-Cohesion: 0.32
-Nodes (10): getReservasResumenDB(), ReservasResumenData, AdminDashboardPage(), EMPTY_RESUMEN, getTodayISO(), getWeekBars(), KPI_PRIMARY, KPI_SECONDARY (+2 more)
+Cohesion: 0.18
+Nodes (12): ESTADO_CLASS, formatTimestamp(), ReservaDetailModalProps, ReservasTable(), ReservasTableProps, actualizarReservaDB(), ActualizarReservaDBData, GetReservasDBParams (+4 more)
 
 ### Community 15 - "Community 15"
-Cohesion: 0.05
-Nodes (68): DaySelector(), DaySelectorProps, ReservationFormProps, ServiceGroup, ServiceSelect(), ServiceSelectProps, TimeSlotPicker(), TimeSlotPickerProps (+60 more)
+Cohesion: 0.19
+Nodes (16): DaySelector(), ServiceGroup, ServiceSelect(), ServiceSelectProps, TimeSlotPicker(), getReservaByID(), getServiciosDB(), DIAS_SEMANA (+8 more)
 
 ### Community 16 - "Community 16"
-Cohesion: 0.05
-Nodes (72): AdminPanel, AdminPanelProps, Column, DataTable(), DataTableProps, FormModal(), FormModalProps, PageHeader() (+64 more)
+Cohesion: 0.19
+Nodes (18): actualizarComboServicio(), crearComboServicio(), eliminarComboServicio(), getCombosDB(), getComboServiciosDB(), ComboItem, ComboServicioDetalle, ComboServicioForm (+10 more)
 
 ### Community 17 - "Community 17"
-Cohesion: 0.36
-Nodes (5): apiClient, ApiError, getAuthToken(), request(), RequestOptions
+Cohesion: 0.30
+Nodes (12): getReservasDB(), AdminReservasProximasPage(), formatDate(), getClientInitials(), getDateISOWithOffset(), getReminderWhatsappHref(), getReservaDateTimeMs(), getReservaEndMs() (+4 more)
 
 ### Community 18 - "Community 18"
 Cohesion: 0.15
 Nodes (12): computedHash, skillPath, source, sourceType, computedHash, skillPath, source, sourceType (+4 more)
 
 ### Community 19 - "Community 19"
+Cohesion: 0.16
+Nodes (25): CATEGORIAS_ORDEN, AdminReservasAprobacionPage(), ApprovalDraft, ESTADO_OPTIONS, EstadoFiltro, EstadoGestion, formatDate(), getClientInitials() (+17 more)
+
+### Community 20 - "Community 20"
+Cohesion: 0.29
+Nodes (9): TimeSlotPickerProps, HORAS, HORAS_INICIO, TimeSlotPickerProps, buildHoursAvailability(), calcPastStatus(), HoursAvailability, Params (+1 more)
+
+### Community 21 - "Community 21"
 Cohesion: 0.12
-Nodes (30): StatCard(), StatCardProps, StatGrid(), StatGridProps, CATEGORIAS_ORDEN, actualizarEstadoReservaDB(), actualizarReservaDB(), actualizarReservaNotificadoDB() (+22 more)
+Nodes (23): useReservationForm(), useCrearReserva(), useReservas(), UseReservasParams, ServicioDBRow, ServicioPublico, staticFallback(), TRATAMIENTO (+15 more)
 
 ### Community 22 - "Community 22"
 Cohesion: 0.17
 Nodes (11): Action Elements, Brand & Style, Colors, Components, Elevation & Depth, Glass Containers, Inputs & Interaction, Layout & Spacing (+3 more)
+
+### Community 23 - "Community 23"
+Cohesion: 0.25
+Nodes (12): Calendar(), CalendarProps, CalendarAdmin(), CalendarPublico(), CalendarPublicoProps, Local, LocalesResponse, useLocales() (+4 more)
 
 ### Community 25 - "Community 25"
 Cohesion: 0.25
 Nodes (7): graphify, Key Notes, Project Commands, Structure, Tech Stack, This is NOT the Next.js you know, UI/UX Guidance
 
 ### Community 26 - "Community 26"
-Cohesion: 0.06
-Nodes (51): RowActionsMenu(), ESTADO_CLASS, formatTimestamp(), ReservaDetailModal(), ReservaDetailModalProps, ReservasTable(), ReservasTableProps, ActualizarEstadoReservaDBData (+43 more)
+Cohesion: 0.12
+Nodes (17): actualizarEstadoReservaDB(), ActualizarEstadoReservaDBData, actualizarReservaNotificadoDB(), ActualizarReservaNotificadoDBData, crearReservaDB(), CrearReservaDBData, CrearReservaResult, GetReservasCalendarioParams (+9 more)
+
+### Community 27 - "Community 27"
+Cohesion: 0.12
+Nodes (14): AdminPanel, AdminPanelProps, FormModal(), FormModalProps, RowAction, RowActionsMenu(), RowActionsMenuProps, SectionLabel() (+6 more)
 
 ### Community 29 - "Community 29"
 Cohesion: 0.18
 Nodes (10): enabledPlugins, code-review@claude-plugins-official, code-simplifier@claude-plugins-official, frontend-design@claude-plugins-official, superpowers@claude-plugins-official, hooks, PostToolUse, PreToolUse (+2 more)
+
+### Community 30 - "Community 30"
+Cohesion: 0.15
+Nodes (14): ActivarServicioEnLocalData, ActualizarLocalData, ActualizarServicioData, ComboServicioCreateData, ComboServicioUpdateData, crearCategoriaDB(), CrearLocalData, CrearServicioData (+6 more)
 
 ### Community 31 - "Community 31"
 Cohesion: 0.22
@@ -207,6 +239,10 @@ Nodes (3): GET(), PATCH(), POST()
 ### Community 32 - "Community 32"
 Cohesion: 0.40
 Nodes (4): code:bash (npm run dev), Deploy on Vercel, Getting Started, Learn More
+
+### Community 33 - "Community 33"
+Cohesion: 0.18
+Nodes (12): Column, DataTable(), DataTableProps, crearLocalDB(), getLocalesDB(), Espacio, FormErrors, LocalesPage() (+4 more)
 
 ### Community 34 - "Community 34"
 Cohesion: 0.20
@@ -233,8 +269,8 @@ Cohesion: 0.40
 Nodes (5): 5. SISTEMA DE THEMING/TEMA ACTUAL, Análisis del Theming:, code:css (::-webkit-scrollbar-thumb {), code:css (::selection {), CONCLUSIÓN SOBRE THEMING:
 
 ### Community 50 - "Community 50"
-Cohesion: 0.14
-Nodes (13): Admin Theming, AdminConfig Component Kit, API Response Shape, Architecture, Auth, code:bash (npm run dev      # Dev server at http://localhost:3000), code:ts ({ code: number; data: T; error: boolean; message: string | n), Commands (+5 more)
+Cohesion: 0.12
+Nodes (15): Admin Theming, AdminConfig Component Kit, API Response Shape, Architecture, Auth, code:bash (npm run dev      # Dev server at http://localhost:3000), code:ts ({ code: number; data: T; error: boolean; message: string | n), Commands (+7 more)
 
 ### Community 59 - "Community 59"
 Cohesion: 0.50
@@ -244,13 +280,37 @@ Nodes (4): 7. ESTILOS CSS Y HERENCIA DEL TEMA OSCURO, Características CSS del A
 Cohesion: 0.50
 Nodes (4): 9. TECNOLOGÍAS Y LIBRERÍAS, Architecture Pattern:, Dependencies:, DevDependencies:
 
+### Community 61 - "Community 61"
+Cohesion: 0.20
+Nodes (13): activarServicioEnLocal(), actualizarServicio(), crearServicioDB(), eliminarServicioDB(), togglePacienteNuevo(), CategoriaOption, ConfirmState, FORM_INITIAL (+5 more)
+
+### Community 62 - "Community 62"
+Cohesion: 0.20
+Nodes (10): CustomSelect(), CustomSelectProps, SelectOption, ReservationFormProps, ServiceGroup, ServiceSelect(), ServiceSelectProps, TimeSlotPicker() (+2 more)
+
+### Community 63 - "Community 63"
+Cohesion: 0.44
+Nodes (8): DIAS_COMPLETO, getBusinessClosingTime(), getSaturdayClosingTime(), isSlotOutsideBusinessHours(), timeToMinutes(), getReservationSlotRestriction(), timeToMinutes(), validateReservationForm()
+
+### Community 64 - "Community 64"
+Cohesion: 0.40
+Nodes (4): StatCard(), StatCardProps, StatGrid(), StatGridProps
+
+### Community 65 - "Community 65"
+Cohesion: 0.08
+Nodes (23): code:ts (export interface GetServiciosParams {), code:bash (npm run lint), code:bash (npm run dev), code:bash (git add components/ReservationForm/useReservationForm.ts), code:ts (import {), code:ts (interface ServicioRow extends Record<string, unknown> {), code:ts (const handleTogglePacienteNuevo = (row: ServicioRow) => {), code:ts ({) (+15 more)
+
 ### Community 66 - "Community 66"
 Cohesion: 0.05
-Nodes (68): DayInfo, Calendar(), CalendarProps, CalendarAdmin(), CalendarAdminProps, CalendarGridProps, DIA_CORTO, DIAS (+60 more)
+Nodes (58): DayInfo, DaySelectorProps, ReservationFormProps, ReservationFormInitialData, getReservasCalendario(), CalendarAdminProps, CalendarGridProps, DIA_CORTO (+50 more)
 
 ### Community 67 - "Community 67"
-Cohesion: 0.14
-Nodes (14): ActualizarClienteData, actualizarClienteDB(), ClientePG, ClientesListResponse, CrearClienteData, crearClienteDB(), eliminarClienteDB(), getClientesDB() (+6 more)
+Cohesion: 0.10
+Nodes (24): ActualizarClienteData, actualizarClienteDB(), ClientePG, ClientesListResponse, CrearClienteData, crearClienteDB(), eliminarClienteDB(), getClientesDB() (+16 more)
+
+### Community 68 - "Community 68"
+Cohesion: 0.12
+Nodes (14): 1. `lib/api/servicios.ts`, 2. `lib/hooks/useServiciosPublicos.ts`, 3. `components/ReservationForm/useReservationForm.ts`, 4. `app/atrevida-gestion/configuracion/servicios/page.tsx`, Changes, code:ts (// before), code:ts (visible_paciente_nuevo?: boolean;), code:ts ({) (+6 more)
 
 ### Community 69 - "Community 69"
 Cohesion: 0.11
@@ -300,24 +360,28 @@ Nodes (4): code:tsx (import { Building2 } from 'lucide-react';), code:tsx (<Page
 Cohesion: 0.50
 Nodes (4): code:tsx (<PageHeader), code:tsx (<SectionLabel withLine>Módulos</SectionLabel>), code:bash (npm run lint), Task 1.8 — Configuración hub
 
+### Community 86 - "Community 86"
+Cohesion: 0.18
+Nodes (10): PageHeader(), PageHeaderProps, renderTitle(), NAV_LINKS, actualizarLocal(), getLocalByID(), ConfiguracionPage(), OPTIONS (+2 more)
+
 ## Knowledge Gaps
-- **436 isolated node(s):** `eslintConfig`, `config`, `target`, `lib`, `allowJs` (+431 more)
+- **464 isolated node(s):** `eslintConfig`, `name`, `version`, `private`, `dev` (+459 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **13 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **12 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `DiaSemana` connect `Community 66` to `Community 26`, `Community 15`?**
-  _High betweenness centrality (0.015) - this node is a cross-community bridge._
-- **Why does `EstadoReserva` connect `Community 26` to `Community 66`, `Community 19`, `Community 15`?**
+- **Why does `DiaSemana` connect `Community 66` to `Community 8`, `Community 15`, `Community 20`, `Community 21`, `Community 23`, `Community 26`, `Community 62`, `Community 63`?**
+  _High betweenness centrality (0.011) - this node is a cross-community bridge._
+- **Why does `ReservaBD` connect `Community 14` to `Community 66`, `Community 8`, `Community 15`, `Community 17`, `Community 19`, `Community 21`, `Community 26`?**
   _High betweenness centrality (0.007) - this node is a cross-community bridge._
-- **What connects `eslintConfig`, `config`, `target` to the rest of the system?**
-  _436 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **What connects `eslintConfig`, `name`, `version` to the rest of the system?**
+  _464 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
   _Cohesion score 0.06666666666666667 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
-  _Cohesion score 0.12631578947368421 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.0784313725490196 - nodes in this community are weakly interconnected._
 - **Should `Community 2` be split into smaller, more focused modules?**
   _Cohesion score 0.14285714285714285 - nodes in this community are weakly interconnected._
 - **Should `Community 3` be split into smaller, more focused modules?**
