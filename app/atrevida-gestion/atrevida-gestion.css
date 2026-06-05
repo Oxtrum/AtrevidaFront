@@ -80,9 +80,20 @@
   /* Typography scale */
   --admin-fs-title:    clamp(1.6rem, 3vw, 2.1rem);
   --admin-fs-stat:     clamp(1.5rem, 3vw, 2rem);
+  --admin-fs-body:     0.875rem;
+  --admin-fs-sm:       0.8125rem;
+  --admin-fs-xs:       0.75rem;
   --admin-fs-kicker:   0.72rem;
-  --admin-fs-section:  0.7rem;
+  --admin-fs-section:  0.72rem;
   --admin-fs-subtitle: 0.9rem;
+
+  /* Button / input size tokens */
+  --admin-btn-h:       38px;
+  --admin-btn-h-sm:    32px;
+  --admin-btn-pad:     0.6rem 1.25rem;
+  --admin-btn-pad-sm:  0.45rem 0.875rem;
+  --admin-input-h:     42px;
+  --admin-input-pad:   0.72rem 0.875rem;
 
   --admin-ease: cubic-bezier(0.16, 1, 0.3, 1);
   --admin-ease-spring: cubic-bezier(0.22, 1, 0.36, 1);

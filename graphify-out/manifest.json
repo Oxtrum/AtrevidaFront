@@ -35,8 +35,8 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/.claude/settings.local.json": {
-    "mtime": 1780531109.2178907,
-    "ast_hash": "d5a89fe09dd22289a01181ab9345e6b3",
+    "mtime": 1780683584.0250866,
+    "ast_hash": "69fc3e8287be2e23af4fcb04a19236ec",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/.opencode/package.json": {
@@ -60,8 +60,8 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/page.tsx": {
-    "mtime": 1779988962.12371,
-    "ast_hash": "b649824a56983cb7a68de7c7cd77f8a4",
+    "mtime": 1780682028.8954816,
+    "ast_hash": "4d383c2e50422170a866ec26f9a3909c",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/sitemap.ts": {
@@ -215,8 +215,8 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/reservas/aprobacion/page.tsx": {
-    "mtime": 1780448254.2870302,
-    "ast_hash": "08985572a47c1ddca23b60366a92ac1d",
+    "mtime": 1780683504.0229979,
+    "ast_hash": "620403da307520ef320746646ff065f2",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/reservas/crear/page.tsx": {
@@ -225,18 +225,18 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/reservas/editar/[id]/page.tsx": {
-    "mtime": 1779988995.2115455,
-    "ast_hash": "a6399bd9e47d7d26719a8b8467ee38d9",
+    "mtime": 1780682169.0764778,
+    "ast_hash": "cff843c7aa13a6c2fdf0e497ddce9fca",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/reservas/proximas/page.tsx": {
-    "mtime": 1780448254.2901049,
-    "ast_hash": "b448d6c231041de94b1d94b18cad391c",
+    "mtime": 1780683510.8857465,
+    "ast_hash": "caa65d6ff8dc107327698634f83384a2",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/clientes/page.tsx": {
-    "mtime": 1780448254.2786682,
-    "ast_hash": "6705a900d9665caea282939b97eab0c2",
+    "mtime": 1780682037.4519703,
+    "ast_hash": "e782821c074f3ba04a8ddb41407626a9",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/components/AdminConfig/FormModal.tsx": {
@@ -280,8 +280,8 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/components/AdminHeader/Header.tsx": {
-    "mtime": 1780525729.5990758,
-    "ast_hash": "854c9d4cd3b7f123e9443c9eb2123d83",
+    "mtime": 1780681995.2369633,
+    "ast_hash": "763d7093923eb04b26034a4a191b460e",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/components/AdminHeader/NotificationBell.tsx": {
@@ -330,8 +330,8 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/components/AdminReservationForm/useReservationForm.ts": {
-    "mtime": 1779988995.2163033,
-    "ast_hash": "c56806505b59053fbed174ad4ae5755d",
+    "mtime": 1780682198.6750278,
+    "ast_hash": "a9698b535ca07cff8f998c5aefcf0b6b",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/components/AdminThemeToggle/AdminThemeToggle.tsx": {
@@ -400,12 +400,12 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/components/Contacto/Contacto.tsx": {
-    "mtime": 1779748596.494736,
-    "ast_hash": "d3ba72603630a874f5bcffb9ded38892",
+    "mtime": 1780683492.9404037,
+    "ast_hash": "4f2299898fce45e1d923b8ac46f0a1c7",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/components/CtaBanner/CtaBanner.tsx": {
-    "mtime": 1779748596.4949222,
+    "mtime": 1780682233.0001292,
     "ast_hash": "fda13d0125a34e7149df0105e9e034d1",
     "semantic_hash": ""
   },
@@ -460,13 +460,13 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/components/ReservationForm/index.tsx": {
-    "mtime": 1780448254.2938306,
-    "ast_hash": "111221dc34f94099a09f0301a1fe038b",
+    "mtime": 1780682243.4934106,
+    "ast_hash": "3ec544067a4bde9c712d5b3aa50cedef",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/components/ReservationForm/useReservationForm.ts": {
-    "mtime": 1780598168.0314517,
-    "ast_hash": "173b1736b84d6c84532ac504b8428a91",
+    "mtime": 1780682248.5492074,
+    "ast_hash": "c30b71f7c57fb807c377aa5d2080f422",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/components/Servicios/Servicios.tsx": {
@@ -500,8 +500,8 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/components/WhatsappFab/WhatsappFab.tsx": {
-    "mtime": 1779988995.2213032,
-    "ast_hash": "848dddf384d701eafdf9e600fd53e836",
+    "mtime": 1780683254.5111597,
+    "ast_hash": "6f7b48d67d3de7fc2d21e568c7fe1d91",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/lib/seo.ts": {
@@ -595,8 +595,8 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/lib/utils/reservationValidation.ts": {
-    "mtime": 1779988995.2453027,
-    "ast_hash": "110b3fa7c80cfb43563cdd6aee7a1a8d",
+    "mtime": 1780682273.8727663,
+    "ast_hash": "2851199ead4c6b0eab22f542908523ad",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/types/reserva.ts": {
@@ -802,6 +802,56 @@
   "/home/jhunior/Documents/Projects/AtrevidaFront/docs/superpowers/specs/2026-06-04-paciente-nuevo-design.md": {
     "mtime": 1780597682.8391476,
     "ast_hash": "a84b831b5a7834218e6e6de00ce1ef8c",
+    "semantic_hash": ""
+  },
+  "/home/jhunior/Documents/Projects/AtrevidaFront/.claude/skills/ui-ux-pro-max/scripts/core.py": {
+    "mtime": 1780683041.566333,
+    "ast_hash": "3df4734a785963a8242a56c1b926adfd",
+    "semantic_hash": ""
+  },
+  "/home/jhunior/Documents/Projects/AtrevidaFront/.claude/skills/ui-ux-pro-max/scripts/design_system.py": {
+    "mtime": 1780683041.5668602,
+    "ast_hash": "08f84d04608a19049c90fc2b1ef314f9",
+    "semantic_hash": ""
+  },
+  "/home/jhunior/Documents/Projects/AtrevidaFront/.claude/skills/ui-ux-pro-max/scripts/search.py": {
+    "mtime": 1780683041.5673242,
+    "ast_hash": "8c7e35426fe8f6f3ed91e9dce0ed7af1",
+    "semantic_hash": ""
+  },
+  "/home/jhunior/Documents/Projects/AtrevidaFront/.opencode/skills/ui-ux-pro-max/scripts/core.py": {
+    "mtime": 1780683057.448102,
+    "ast_hash": "3df4734a785963a8242a56c1b926adfd",
+    "semantic_hash": ""
+  },
+  "/home/jhunior/Documents/Projects/AtrevidaFront/.opencode/skills/ui-ux-pro-max/scripts/design_system.py": {
+    "mtime": 1780683057.4484663,
+    "ast_hash": "08f84d04608a19049c90fc2b1ef314f9",
+    "semantic_hash": ""
+  },
+  "/home/jhunior/Documents/Projects/AtrevidaFront/.opencode/skills/ui-ux-pro-max/scripts/search.py": {
+    "mtime": 1780683057.44875,
+    "ast_hash": "8c7e35426fe8f6f3ed91e9dce0ed7af1",
+    "semantic_hash": ""
+  },
+  "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/pagos/page.tsx": {
+    "mtime": 1780681995.2366595,
+    "ast_hash": "81006ce4ab5044a2ac57f581b3a23c55",
+    "semantic_hash": ""
+  },
+  "/home/jhunior/Documents/Projects/AtrevidaFront/lib/api/pagos.ts": {
+    "mtime": 1780681995.237159,
+    "ast_hash": "ca9489dedb69b34b8a81ba6ca2a0cfad",
+    "semantic_hash": ""
+  },
+  "/home/jhunior/Documents/Projects/AtrevidaFront/.claude/skills/ui-ux-pro-max/SKILL.md": {
+    "mtime": 1780683041.5358152,
+    "ast_hash": "e092c3924799d4fc4194f994d8394cc3",
+    "semantic_hash": ""
+  },
+  "/home/jhunior/Documents/Projects/AtrevidaFront/.opencode/skills/ui-ux-pro-max/SKILL.md": {
+    "mtime": 1780683057.4282422,
+    "ast_hash": "e745b5a6c71379800b232a1ba32d16ec",
     "semantic_hash": ""
   }
 }

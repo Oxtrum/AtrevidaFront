@@ -72,7 +72,7 @@
 }
 
 .infoLabel {
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 1px;
   color: var(--admin-text-muted);
