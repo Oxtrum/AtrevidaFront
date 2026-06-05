@@ -47,7 +47,9 @@
   gap: 0.48rem;
   border: 0;
   font-family: var(--admin-font-family);
+  font-size: 0.8125rem;
   font-weight: 850;
+  letter-spacing: 0.3px;
   cursor: pointer;
   transition:
     transform var(--admin-t-normal) var(--admin-ease),
@@ -58,13 +60,14 @@
 }
 
 .refreshButton {
-  min-height: 42px;
-  padding: 0.72rem 0.95rem;
+  min-height: 38px;
+  padding: 0.6rem 1rem;
   border-radius: var(--admin-radius-full);
   color: var(--admin-foreground);
   background: var(--admin-panel-bg);
   border: 1px solid var(--admin-border-subtle);
   box-shadow: var(--admin-shadow-sm);
+  white-space: nowrap;
 }
 
 .headerActions {
@@ -75,8 +78,8 @@
 }
 
 .secondaryNavButton {
-  min-height: 42px;
-  padding: 0.72rem 0.95rem;
+  min-height: 38px;
+  padding: 0.6rem 1rem;
   border-radius: var(--admin-radius-full);
   color: var(--admin-accent-success);
   background:
@@ -87,8 +90,23 @@
   white-space: nowrap;
 }
 
-.refreshButton:hover,
-.secondaryNavButton:hover,
+.refreshButton:hover {
+  transform: translateY(-2px);
+  border-color: var(--admin-border-hover);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow:
+    var(--admin-shadow-sm),
+    0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.secondaryNavButton:hover {
+  transform: translateY(-2px);
+  border-color: rgba(20, 174, 239, 0.45);
+  box-shadow:
+    var(--admin-shadow-sm),
+    0 4px 18px rgba(20, 174, 239, 0.18);
+}
+
 .approveButton:hover,
 .contactButton:hover,
 .notifyButton:hover,
@@ -174,15 +192,16 @@
 
 .filterButton {
   flex: 1 1 130px;
-  min-height: 34px;
-  padding: 0.48rem 0.78rem;
+  min-height: 36px;
+  padding: 0.5rem 0.875rem;
   border: 0;
   border-radius: var(--admin-radius-md);
   color: var(--admin-text-muted);
   background: transparent;
   font-family: var(--admin-font-family);
-  font-size: 0.78rem;
+  font-size: 0.8125rem;
   font-weight: 850;
+  letter-spacing: 0.3px;
   cursor: pointer;
   transition:
     transform var(--admin-t-normal) var(--admin-ease),
@@ -327,8 +346,9 @@
   color: var(--admin-foreground);
   background: var(--admin-pill-bg);
   font-family: var(--admin-font-family);
-  font-size: 0.78rem;
+  font-size: 0.8125rem;
   font-weight: 900;
+  letter-spacing: 0.3px;
   cursor: pointer;
   transition:
     transform var(--admin-t-normal) var(--admin-ease),
@@ -736,10 +756,10 @@
 .contactButton,
 .notifyButton,
 .rejectButton {
-  min-height: 40px;
-  padding: 0.68rem 0.82rem;
+  min-height: 42px;
+  padding: 0.72rem 0.92rem;
   border-radius: 12px;
-  font-size: 0.8rem;
+  font-size: 0.8125rem;
   text-decoration: none;
   width: 100%;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
