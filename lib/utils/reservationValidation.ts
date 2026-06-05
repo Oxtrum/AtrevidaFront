@@ -8,7 +8,7 @@ import { getBusinessClosingTime, getSaturdayClosingTime, isSlotOutsideBusinessHo
 
 export function normalizeBolivianPhone(raw: string): string {
   const digits = raw.replace(/\D/g, '');
-  const local = digits.startsWith('591') ? digits.slice(3) : digits;
+  const local = digits;
   return local.slice(0, 8);
 }
 

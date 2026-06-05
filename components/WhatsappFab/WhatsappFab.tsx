@@ -25,7 +25,7 @@ export default function WhatsappFab({
   const pathname = usePathname() ?? '';
   if (HIDDEN_PREFIXES.some((p) => pathname.startsWith(p))) return null;
 
-  const href = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+  const href = `https://wa.me/591${phone}?text=${encodeURIComponent(message)}`;
 
   return (
     <a

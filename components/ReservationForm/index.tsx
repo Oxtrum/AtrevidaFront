@@ -225,7 +225,6 @@ export default function ReservationForm({ initialData, onSuccess, onCancel }: Re
           <div className={`${styles.formGroup} ${styles.fullWidth}`}>
             <label>Teléfono</label>
             <div className={styles.phoneInputWrap}>
-              <span className={styles.phonePrefix}>+591</span>
               <input
                 type="tel"
                 inputMode="numeric"

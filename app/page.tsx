@@ -16,7 +16,7 @@ export default function Home() {
     url: absoluteUrl("/"),
     image: absoluteUrl("/reserva.jpg"),
     logo: absoluteUrl("/Logo.PNG"),
-    telephone: "+59177411855",
+    telephone: "77411855",
     priceRange: "$$",
     address: {
       "@type": "PostalAddress",

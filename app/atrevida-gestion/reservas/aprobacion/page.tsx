@@ -79,7 +79,7 @@ const getWhatsappHref = (telefono?: string) => {
   const phoneDigits = telefono?.replace(/\D/g, '') ?? '';
   if (!phoneDigits) return null;
 
-  const phone = phoneDigits.startsWith('591') ? phoneDigits : `591${phoneDigits}`;
+  const phone = phoneDigits.startsWith('591') ? phoneDigits : '591' + phoneDigits;
   const message = 'Hola 👋 Acabamos de recibir tu reserva ✨ ¿Qué tratamiento deseas realizar? 💆‍♀️';
 
   return `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`;
@@ -95,7 +95,7 @@ const getConfirmationWhatsappHref = (reserva: ReservaBD) => {
   const phoneDigits = reserva.numero_telefono?.replace(/\D/g, '') ?? '';
   if (!phoneDigits) return null;
 
-  const phone = phoneDigits.startsWith('591') ? phoneDigits : `591${phoneDigits}`;
+  const phone = phoneDigits.startsWith('591') ? phoneDigits : '591' + phoneDigits;
   const tratamiento = reserva.servicio_confirmado || reserva.servicio_solicitado || reserva.servicio || 'Tratamiento confirmado';
   const comidaPrevia = getMealLabelByTime(reserva.hora_desde);
   const message = [
@@ -436,7 +436,7 @@ export default function AdminReservasAprobacionPage() {
     }
 
     const rawDigits = approvalDraft.telefono.replace(/\D/g, '');
-    const cleanPhone = rawDigits.startsWith('591') ? `+${rawDigits}` : `+591${rawDigits}`;
+    const cleanPhone = rawDigits;
     const updateData = {
       id: approvalReserva.id,
       local: approvalReserva.local,
@@ -814,7 +814,7 @@ export default function AdminReservasAprobacionPage() {
                         {reserva.numero_telefono && (
                           <span>
                             <Phone size={14} strokeWidth={1.6} />
-                            +591 {reserva.numero_telefono}
+                            {reserva.numero_telefono}
                           </span>
                         )}
                       </div>

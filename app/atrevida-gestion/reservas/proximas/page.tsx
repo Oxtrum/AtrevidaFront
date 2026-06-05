@@ -76,7 +76,7 @@ const getReminderWhatsappHref = (reserva: ReservaBD, relativeDay: RelativeDay) =
   const phoneDigits = reserva.numero_telefono?.replace(/\D/g, '') ?? '';
   if (!phoneDigits) return null;
 
-  const phone = phoneDigits.startsWith('591') ? phoneDigits : `591${phoneDigits}`;
+  const phone = phoneDigits.startsWith('591') ? phoneDigits : '591' + phoneDigits;
   const dayLabel = relativeDay === 'HOY' ? 'Hoy' : 'Mañana';
   const message = [
     'Hola buenas tardes🌙',

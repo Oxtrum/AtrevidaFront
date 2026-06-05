@@ -425,7 +425,7 @@ export function useReservationForm(
           hora_hasta: horaHastaNorm,
           tipo: tipoBody,
           cliente,
-          numero_telefono: '+591' + numeroTelefono.replace(/\D/g, ''),
+          numero_telefono: numeroTelefono.replace(/\D/g, ''),
           servicio,
           servicio_solicitado: servicio,
           servicio_confirmado: reqEval ? null : servicio,

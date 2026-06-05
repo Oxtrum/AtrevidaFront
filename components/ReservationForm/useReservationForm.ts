@@ -502,7 +502,7 @@ export function useReservationForm(
           hora_hasta: horaHastaNorm,
           tipo: tipoBackend,
           cliente,
-          numero_telefono: '+591' + phoneDigits,
+          numero_telefono: phoneDigits,
           servicio: servicioLabel,
           servicio_solicitado: servicioSolicitadoInfo?.label || servicioLabel,
           servicio_confirmado: reservaRequiereAprobacion ? null : servicioLabel,

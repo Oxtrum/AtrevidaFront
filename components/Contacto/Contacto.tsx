@@ -20,7 +20,7 @@ const INFO_ITEMS = [
   {
     icono: <MessageCircle strokeWidth={1.5} />,
     titulo: 'WhatsApp',
-    valor: '+591 77411855',
+    valor: '77411855',
     sub: 'Lun – Sáb, 8am – 7pm',
     color: '#14AEEF',
     rgb: '20, 174, 239',

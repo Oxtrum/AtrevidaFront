@@ -200,7 +200,7 @@ function EditarReservaContent() {
           setNuevoEstado(found.estado || 'PENDIENTE');
           setNuevasNotas(found.notas || '');
           setNuevoPrecio(found.precio != null ? String(found.precio) : '');
-          setNuevoTelefono(found.numero_telefono?.replace(/^\+591/, '') || '');
+          setNuevoTelefono(found.numero_telefono || '');
           setNuevoServicio(found.servicio || '');
 
           // Buscar en qué semana está la reserva
@@ -305,7 +305,7 @@ function EditarReservaContent() {
       const estadoChanged = nuevoEstado !== estadoActual;
       const notasChanged = nuevasNotas !== (reserva.notas || '');
       const precioChanged = nuevoPrecio !== (reserva.precio != null ? String(reserva.precio) : '');
-      const telefonoOriginal = reserva.numero_telefono?.replace(/^\+591/, '') || '';
+      const telefonoOriginal = reserva.numero_telefono|| '';
       const telefonoChanged = nuevoTelefono !== telefonoOriginal;
       const servicioChanged = nuevoServicio !== (reserva.servicio || '');
 
@@ -338,7 +338,7 @@ function EditarReservaContent() {
           ...(hastaChanged && { nueva_hora_hasta: nuevaHoraHasta }),
           ...(notasChanged && { nuevas_notas: nuevasNotas }),
           ...(precioChanged && nuevoPrecio !== '' && { nuevo_precio: Number(nuevoPrecio) }),
-          ...(telefonoChanged && nuevoTelefono && { nuevo_numero_telefono: '+591' + nuevoTelefono.replace(/\D/g, '') }),
+          ...(telefonoChanged && nuevoTelefono && { nuevo_numero_telefono: nuevoTelefono.replace(/\D/g, '') }),
           ...(servicioChanged && nuevoServicio && { nuevo_servicio: nuevoServicio }),
         });
       }
@@ -351,7 +351,7 @@ function EditarReservaContent() {
         ...(estadoChanged && { estado: nuevoEstado }),
         ...(notasChanged && { notas: nuevasNotas }),
         ...(precioChanged && nuevoPrecio !== '' && { precio: Number(nuevoPrecio) }),
-        ...(telefonoChanged && nuevoTelefono && { numero_telefono: '+591' + nuevoTelefono.replace(/\D/g, '') }),
+        ...(telefonoChanged && nuevoTelefono && { numero_telefono: nuevoTelefono.replace(/\D/g, '') }),
         ...(servicioChanged && nuevoServicio && { servicio: nuevoServicio }),
       } : prev);
       setMessage({ type: 'success', text: 'Reserva actualizada correctamente' });
@@ -494,7 +494,6 @@ function EditarReservaContent() {
           <div className={`${styles.formGroup} ${styles.fullWidth}`}>
             <label>Teléfono</label>
             <div className={styles.phoneWrapper}>
-              <span className={styles.phonePrefix}>+591</span>
               <input
                 type="tel"
                 value={nuevoTelefono}

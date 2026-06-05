@@ -274,7 +274,7 @@ export default function ClientesPage() {
               type="tel"
               value={form.numero_telefono}
               onChange={(e) => { patchForm({ numero_telefono: e.target.value }); if (formErrors.numero_telefono) setFormErrors((p) => ({ ...p, numero_telefono: undefined })); }}
-              placeholder="Ej: +59170011223"
+              placeholder="Ej: 70011223"
               aria-invalid={!!formErrors.numero_telefono}
               className={formErrors.numero_telefono ? styles.inputError : ''}
             />
