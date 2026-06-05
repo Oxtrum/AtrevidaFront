@@ -2,7 +2,20 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-@AGENTS.md
+## ⚠️ Important: Next.js 16.2.2 has breaking changes
+
+This project runs Next.js 16.2.2 with significant API and convention changes from earlier versions. Refer to `node_modules/next/dist/docs/` for current docs before writing code — training data may be out of date.
+
+## Tech Stack
+
+- **Next.js** 16.2.2 (App Router)
+- **React** 19.2.4
+- **Tailwind CSS** 4 (via `@tailwindcss/postcss`)
+- **GSAP** — animations
+- **Lucide React** — icons
+- **TypeScript** with strict mode
+- Path alias: `@/*` → root `./`
+- ESLint flat config (`eslint.config.mjs`)
 
 ## Commands
 
@@ -61,12 +74,14 @@ Key domain quirks:
 | `lib/api/servicios.ts` | `/bd/servicios`, `/bd/combos`, `/bd/locales`, `/bd/categorias` service functions |
 | `lib/api/auth.ts` | Real backend auth calls (`/auth/*`) — login, register, password change, user management |
 | `lib/api/clientes.ts` | `/bd/clientes` service functions |
+| `lib/api/notificaciones.ts` | Notification bell data — has 404 fallback: if `/bd/notificaciones/reservas` returns 404 it falls back to `/bd/reservas?estado=AGENDADO` filtering by `notificado=false` |
 | `types/reserva.ts` | All reservation types, service catalog, helper functions |
 | `lib/constants/reservationForm.ts` | Hour slots and day-of-week constants |
 | `lib/hooks/` | React hooks for reservation data fetching |
 | `lib/utils/` | Calendar helpers, hours availability, reservation validation |
 | `app/api/bd/` | Next.js proxy routes to backend |
-| `app/atrevida-gestion/configuracion/` | Admin CRUD pages for locales, servicios, categorias, combos |
+| `app/atrevida-gestion/configuracion/` | Hub page linking to sub-pages: categorias, combos, locales, servicios, usuarios |
+| `design.md` | Brand token source (colors, typography) for public-facing pages — not admin |
 
 ## API Response Shape
 
@@ -84,6 +99,7 @@ Reusable admin UI primitives in `components/AdminConfig/` — use these for all 
 |-----------|---------|
 | `AdminPanel` | Page wrapper with consistent padding/surface |
 | `PageHeader` | Title + subtitle + optional action button |
+| `SectionLabel` | Section divider label within a page |
 | `DataTable` | Sortable table with loading/empty states |
 | `FormModal` | Controlled modal for create/edit forms |
 | `StatCard` | KPI card with icon, value, trend |
