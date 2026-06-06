@@ -17,7 +17,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       token: data.data.token,
-      user: { username: data.data.username },
+      user: {
+        username: data.data.username,
+        rol_codigo: data.data.rol_codigo,
+      },
     });
   }
 

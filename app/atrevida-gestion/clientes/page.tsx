@@ -122,7 +122,7 @@ export default function ClientesPage() {
   const validate = (): boolean => {
     const errors: FormErrors = {};
     if (!form.nombre.trim()) errors.nombre = 'El nombre es obligatorio';
-    if (!form.apellido.trim()) errors.apellido = 'El apellido es obligatorio';
+    if (!form.apellido.trim()) errors.apellido = 'Los apellidos son obligatorios';
     if (!form.numero_telefono.trim()) errors.numero_telefono = 'El teléfono es obligatorio';
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -176,7 +176,7 @@ export default function ClientesPage() {
   const columns: Column<ClienteRow>[] = [
     { key: 'id', label: 'ID', searchable: false },
     { key: 'nombre', label: 'Nombre' },
-    { key: 'apellido', label: 'Apellido' },
+    { key: 'apellido', label: 'Apellidos' },
     { key: 'numero_telefono', label: 'Teléfono', searchable: false },
     {
       key: 'acciones',
@@ -254,7 +254,7 @@ export default function ClientesPage() {
           </div>
 
           <div className={styles.field}>
-            <label htmlFor="cli-apellido">Apellido</label>
+            <label htmlFor="cli-apellido">Apellidos</label>
             <input
               id="cli-apellido"
               type="text"

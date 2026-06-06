@@ -17,6 +17,7 @@ export interface CrearPagoData {
   cliente_nombre: string;
   descuento: number;
   estado: string;
+  tipo_pago: 'qr' | 'efectivo';
   activo: boolean;
   detalle: DetalleServicio[];
 }
@@ -31,6 +32,7 @@ export interface Pago {
   descuento: number;
   total_final: number;
   estado: string;
+  tipo_pago?: string;
   activo: boolean;
   fecha_creacion: string;
   fecha_modificacion: string;

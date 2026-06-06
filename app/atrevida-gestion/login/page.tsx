@@ -76,6 +76,7 @@ export default function AdminLoginPage() {
           scale: 1.02, opacity: 0.8, duration: 0.3, ease: 'power2.in', onComplete: () => {
             localStorage.setItem('adminToken', data.token);
             localStorage.setItem('adminUser', JSON.stringify(data.user ?? { username: credentials.username }));
+            if (data.user?.rol_codigo) localStorage.setItem('adminRole', data.user.rol_codigo);
             router.push('/atrevida-gestion/dashboard');
           }
         });

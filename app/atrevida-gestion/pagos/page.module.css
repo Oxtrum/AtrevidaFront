@@ -26,6 +26,74 @@
   gap: 1rem;
 }
 
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.metricBlock,
+.accessPanel {
+  background: var(--admin-panel-bg);
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-xl);
+  box-shadow: var(--admin-shadow-sm);
+  backdrop-filter: blur(18px);
+}
+
+.metricBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1rem 1.15rem;
+}
+
+.metricBlock span {
+  color: var(--admin-text-dim);
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.metricBlock strong {
+  color: var(--admin-foreground);
+  font-family: var(--admin-font-mono);
+  font-size: 1.35rem;
+}
+
+.accessPanel {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+}
+
+.accessIcon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-lg);
+  background: var(--admin-pill-bg);
+  color: var(--admin-accent-warning);
+  flex: 0 0 auto;
+}
+
+.accessPanel h2 {
+  margin: 0;
+  color: var(--admin-foreground);
+  font-size: 1rem;
+}
+
+.accessPanel p {
+  margin: 0.25rem 0 0;
+  color: var(--admin-text-muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
 /* ── Search row ── */
 .searchRow {
   display: flex;
@@ -112,6 +180,11 @@
 .filterField input::placeholder,
 .filterField select {
   color: var(--admin-text-dim);
+}
+
+.statusFilter {
+  flex: 0 0 210px;
+  min-width: 190px;
 }
 
 .totalLabel {
@@ -345,6 +418,10 @@
     padding: 1rem;
   }
 
+  .summaryGrid {
+    grid-template-columns: 1fr;
+  }
+
   .formGrid {
     grid-template-columns: 1fr;
   }
@@ -361,6 +438,12 @@
 
   .searchBar {
     max-width: 100%;
+  }
+
+  .statusFilter {
+    width: 100%;
+    min-width: 0;
+    flex-basis: auto;
   }
 
   .detallesTable {

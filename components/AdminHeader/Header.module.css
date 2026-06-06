@@ -144,6 +144,9 @@
   display: flex;
   flex-direction: column;
   gap: 0.36rem;
+  padding-right: 0.18rem;
+  margin-right: -0.18rem;
+  overflow-x: hidden;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--admin-scroll-thumb) transparent;

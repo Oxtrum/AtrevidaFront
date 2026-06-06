@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import gsap from 'gsap';
 import {
+  Banknote,
   CalendarDays,
   Clock3,
   CreditCard,
@@ -21,6 +22,7 @@ import {
 import styles from './Header.module.css';
 import { AdminThemeToggle } from '@/components/AdminThemeToggle/AdminThemeToggle';
 import { NotificationBell } from './NotificationBell';
+import { canViewAdminPayments } from '@/lib/auth/adminSession';
 
 const NAV_LINKS = [
   {
@@ -48,10 +50,17 @@ const NAV_LINKS = [
     icon: Clock3,
   },
   {
+    label: 'Caja',
+    detail: 'Registro local',
+    href: '/atrevida-gestion/caja',
+    icon: Banknote,
+  },
+  {
     label: 'Pagos',
-    detail: 'Gestión de pagos',
+    detail: 'Auditoría de pagos',
     href: '/atrevida-gestion/pagos',
     icon: CreditCard,
+    adminOnly: true,
   },
   {
     label: 'Clientes',
@@ -73,6 +82,14 @@ export default function Header() {
   const shellRef = useRef<HTMLElement>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(false);
+  const [showAdminPayments, setShowAdminPayments] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setShowAdminPayments(canViewAdminPayments());
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -192,7 +209,7 @@ export default function Header() {
         </div>
 
         <nav className={styles.nav} aria-label="Navegación administrativa">
-          {NAV_LINKS.map((link) => {
+          {NAV_LINKS.filter((link) => !link.adminOnly || showAdminPayments).map((link) => {
             const Icon = link.icon;
             const active = link.href === '/atrevida-gestion/reservas'
               ? pathname === link.href || pathname.startsWith('/atrevida-gestion/reservas/crear') || pathname.startsWith('/atrevida-gestion/reservas/editar')
