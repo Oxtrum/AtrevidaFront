@@ -7,6 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import gsap from 'gsap';
 import {
   Banknote,
+  BarChart2,
   CalendarDays,
   Clock3,
   CreditCard,
@@ -22,7 +23,7 @@ import {
 import styles from './Header.module.css';
 import { AdminThemeToggle } from '@/components/AdminThemeToggle/AdminThemeToggle';
 import { NotificationBell } from './NotificationBell';
-import { canViewAdminPayments } from '@/lib/auth/adminSession';
+import { canViewAdminPayments, canViewFinancialReports } from '@/lib/auth/adminSession';
 
 const NAV_LINKS = [
   {
@@ -63,6 +64,13 @@ const NAV_LINKS = [
     adminOnly: true,
   },
   {
+    label: 'Reportes',
+    detail: 'Finanzas y locales',
+    href: '/atrevida-gestion/reportes',
+    icon: BarChart2,
+    financialOnly: true,
+  },
+  {
     label: 'Clientes',
     detail: 'Directorio de clientes',
     href: '/atrevida-gestion/clientes',
@@ -83,10 +91,12 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(false);
   const [showAdminPayments, setShowAdminPayments] = useState(false);
+  const [showFinancialReports, setShowFinancialReports] = useState(false);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setShowAdminPayments(canViewAdminPayments());
+      setShowFinancialReports(canViewFinancialReports());
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
@@ -209,7 +219,10 @@ export default function Header() {
         </div>
 
         <nav className={styles.nav} aria-label="Navegación administrativa">
-          {NAV_LINKS.filter((link) => !link.adminOnly || showAdminPayments).map((link) => {
+          {NAV_LINKS.filter((link) => {
+            if ('financialOnly' in link && link.financialOnly) return showFinancialReports;
+            return !('adminOnly' in link && link.adminOnly) || showAdminPayments;
+          }).map((link) => {
             const Icon = link.icon;
             const active = link.href === '/atrevida-gestion/reservas'
               ? pathname === link.href || pathname.startsWith('/atrevida-gestion/reservas/crear') || pathname.startsWith('/atrevida-gestion/reservas/editar')

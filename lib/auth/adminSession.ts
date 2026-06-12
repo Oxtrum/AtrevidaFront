@@ -43,3 +43,7 @@ export function canViewAdminPayments(): boolean {
   const role = getStoredAdminRole();
   return role === 'admin_sys' || role === 'admin';
 }
+
+export function canViewFinancialReports(): boolean {
+  return getStoredAdminRole() === 'admin_sys';
+}
