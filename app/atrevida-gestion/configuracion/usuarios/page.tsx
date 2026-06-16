@@ -36,14 +36,28 @@ interface NewUserErrors {
 }
 
 interface PwErrors {
-  password?: string;
+  currentPassword?: string;
+  newPassword?: string;
+  confirmPassword?: string;
   submit?: string;
+}
+
+interface PwForm {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
 }
 
 interface ConfirmState {
   message: string;
   onConfirm: () => void;
 }
+
+const EMPTY_PW_FORM: PwForm = {
+  currentPassword: '',
+  newPassword: '',
+  confirmPassword: '',
+};
 
 export default function UsuariosPage() {
   const router = useRouter();
@@ -60,7 +74,7 @@ export default function UsuariosPage() {
   const [saving, setSaving] = useState(false);
 
   const [changePasswordModalOpen, setChangePasswordModalOpen] = useState(false);
-  const [newPassword, setNewPassword] = useState('');
+  const [pwForm, setPwForm] = useState<PwForm>(EMPTY_PW_FORM);
   const [pwErrors, setPwErrors] = useState<PwErrors>({});
   const [pwSaving, setPwSaving] = useState(false);
 
@@ -129,15 +143,48 @@ export default function UsuariosPage() {
 
   // ─── Cambiar contraseña ───────────────────────────────────────────────────
 
+  const resetPasswordForm = () => {
+    setPwForm(EMPTY_PW_FORM);
+    setPwErrors({});
+  };
+
+  const updatePasswordField = (field: keyof PwForm, value: string) => {
+    setPwForm((current) => ({ ...current, [field]: value }));
+    if (pwErrors[field] || pwErrors.submit) {
+      setPwErrors((current) => ({ ...current, [field]: undefined, submit: undefined }));
+    }
+  };
+
+  const validatePasswordForm = () => {
+    const errors: PwErrors = {};
+
+    if (!pwForm.currentPassword.trim()) errors.currentPassword = 'La contraseña actual es obligatoria';
+    if (!pwForm.newPassword.trim()) errors.newPassword = 'La nueva contraseña es obligatoria';
+    if (!pwForm.confirmPassword.trim()) {
+      errors.confirmPassword = 'Confirma la nueva contraseña';
+    } else if (pwForm.newPassword !== pwForm.confirmPassword) {
+      errors.confirmPassword = 'Las contraseñas no coinciden';
+    }
+    if (pwForm.currentPassword && pwForm.newPassword && pwForm.currentPassword === pwForm.newPassword) {
+      errors.newPassword = 'La nueva contraseña debe ser distinta a la actual';
+    }
+
+    setPwErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleChangePassword = async () => {
-    if (!newPassword.trim()) { setPwErrors({ password: 'La contraseña es obligatoria' }); return; }
+    if (!validatePasswordForm()) return;
     setPwSaving(true);
     setPwErrors({});
     try {
-      await cambiarPassword(newPassword);
+      await cambiarPassword({
+        password_actual: pwForm.currentPassword,
+        password_nueva: pwForm.newPassword,
+      });
       toast.success('Contraseña actualizada correctamente');
       setChangePasswordModalOpen(false);
-      setNewPassword('');
+      resetPasswordForm();
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Error al cambiar contraseña';
       setPwErrors({ submit: msg });
@@ -222,7 +269,7 @@ export default function UsuariosPage() {
             <div className={styles.headerActions}>
               <button
                 className="admin-button admin-button-secondary"
-                onClick={() => { setNewPassword(''); setPwErrors({}); setChangePasswordModalOpen(true); }}
+                onClick={() => { resetPasswordForm(); setChangePasswordModalOpen(true); }}
               >
                 <KeyRound size={15} strokeWidth={2} />
                 Cambiar mi contraseña
@@ -301,7 +348,7 @@ export default function UsuariosPage() {
       {/* Modal: Cambiar contraseña propia */}
       <FormModal
         isOpen={changePasswordModalOpen}
-        onClose={() => { setChangePasswordModalOpen(false); setNewPassword(''); setPwErrors({}); }}
+        onClose={() => { setChangePasswordModalOpen(false); resetPasswordForm(); }}
         title="Cambiar mi contraseña"
         onSubmit={handleChangePassword}
         loading={pwSaving}
@@ -309,19 +356,49 @@ export default function UsuariosPage() {
       >
         <div className={styles.formStack}>
           <div className={styles.field}>
+            <label htmlFor="pw-actual">Contraseña actual</label>
+            <input
+              id="pw-actual"
+              type="password"
+              value={pwForm.currentPassword}
+              onChange={(e) => updatePasswordField('currentPassword', e.target.value)}
+              placeholder="Contraseña actual"
+              autoFocus
+              autoComplete="current-password"
+              aria-invalid={!!pwErrors.currentPassword}
+              className={pwErrors.currentPassword ? styles.inputError : ''}
+            />
+            {pwErrors.currentPassword && <span className={styles.fieldError}>{pwErrors.currentPassword}</span>}
+          </div>
+
+          <div className={styles.field}>
             <label htmlFor="pw-nueva">Nueva contraseña</label>
             <input
               id="pw-nueva"
               type="password"
-              value={newPassword}
-              onChange={(e) => { setNewPassword(e.target.value); if (pwErrors.password) setPwErrors((p) => ({ ...p, password: undefined })); }}
+              value={pwForm.newPassword}
+              onChange={(e) => updatePasswordField('newPassword', e.target.value)}
               placeholder="Nueva contraseña"
-              autoFocus
               autoComplete="new-password"
-              aria-invalid={!!pwErrors.password}
-              className={pwErrors.password ? styles.inputError : ''}
+              aria-invalid={!!pwErrors.newPassword}
+              className={pwErrors.newPassword ? styles.inputError : ''}
             />
-            {pwErrors.password && <span className={styles.fieldError}>{pwErrors.password}</span>}
+            {pwErrors.newPassword && <span className={styles.fieldError}>{pwErrors.newPassword}</span>}
+          </div>
+
+          <div className={styles.field}>
+            <label htmlFor="pw-confirmar">Confirmar nueva contraseña</label>
+            <input
+              id="pw-confirmar"
+              type="password"
+              value={pwForm.confirmPassword}
+              onChange={(e) => updatePasswordField('confirmPassword', e.target.value)}
+              placeholder="Repite la nueva contraseña"
+              autoComplete="new-password"
+              aria-invalid={!!pwErrors.confirmPassword}
+              className={pwErrors.confirmPassword ? styles.inputError : ''}
+            />
+            {pwErrors.confirmPassword && <span className={styles.fieldError}>{pwErrors.confirmPassword}</span>}
           </div>
 
           {pwErrors.submit && <div className={styles.submitError}>{pwErrors.submit}</div>}
