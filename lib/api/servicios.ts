@@ -3,6 +3,7 @@
  */
 
 import { apiClient } from './client';
+import type { ApiResponse } from '@/types/reserva';
 
 // ─── Parámetros ───────────────────────────────────────────────────
 
@@ -188,9 +189,18 @@ export async function eliminarComboServicio(id: number | string) {
 
 // ─── Locales ──────────────────────────────────────────────────────
 
+/** Fila de local devuelta por /bd/locales. */
+export interface LocalRow {
+  [key: string]: unknown;
+  id: number;
+  nombre: string;
+  activo?: boolean;
+  espacios?: unknown[] | null;
+}
+
 /** Obtiene locales desde la base de datos. */
-export async function getLocalesDB() {
-  return apiClient.get('/bd/locales');
+export async function getLocalesDB(): Promise<ApiResponse<{ locales: LocalRow[] }>> {
+  return apiClient.get<ApiResponse<{ locales: LocalRow[] }>>('/bd/locales');
 }
 
 /** Obtiene un local por su ID. */

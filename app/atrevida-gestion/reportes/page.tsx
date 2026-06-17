@@ -144,7 +144,9 @@ function formatNumber(value: number | string | null | undefined) {
 
 function normalizePaymentType(value: string) {
   if (!value) return 'No definido';
-  return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+  const lower = value.trim().toLowerCase();
+  if (lower === 'qr') return 'QR';
+  return lower.charAt(0).toUpperCase() + lower.slice(1);
 }
 
 function buildFilters(mode: ReportMode, month: string, from: string, to: string, local: string): ActiveFilters {
@@ -197,8 +199,11 @@ function buildRangeFileName(filters: ActiveFilters) {
   return `REPORTE_ATREVIDA_${scope}_${filters.fecha_desde}_${filters.fecha_hasta}.xlsx`;
 }
 
+const MONEY_FMT = '"Bs" #,##0.00';
+const INT_FMT = '#,##0';
+
 function addTitle(worksheet: Worksheet, title: string, subtitle?: string) {
-  worksheet.mergeCells('A1:E1');
+  worksheet.mergeCells('A1:G1');
   const titleCell = worksheet.getCell('A1');
   titleCell.value = title;
   titleCell.font = { bold: true, size: 16, color: { argb: 'FFEC008C' } };
@@ -206,7 +211,7 @@ function addTitle(worksheet: Worksheet, title: string, subtitle?: string) {
   worksheet.getRow(1).height = 24;
 
   if (subtitle) {
-    worksheet.mergeCells('A2:E2');
+    worksheet.mergeCells('A2:G2');
     const subtitleCell = worksheet.getCell('A2');
     subtitleCell.value = subtitle;
     subtitleCell.font = { size: 11, color: { argb: 'FF666666' } };
@@ -215,25 +220,65 @@ function addTitle(worksheet: Worksheet, title: string, subtitle?: string) {
   worksheet.addRow([]);
 }
 
+const GRID_BORDER = { style: 'thin' as const, color: { argb: 'FFE5E7EB' } };
+const ALL_BORDERS = { top: GRID_BORDER, bottom: GRID_BORDER, left: GRID_BORDER, right: GRID_BORDER };
+const ZEBRA_FILL = 'FFFBF1F8';
+const TOTAL_FILL = 'FFF3E1EE';
+
 function styleHeader(row: ReturnType<Worksheet['addRow']>) {
+  row.height = 22;
   row.eachCell((cell) => {
-    cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    cell.font = { bold: true, size: 11, color: { argb: 'FFFFFFFF' } };
     cell.fill = {
       type: 'pattern',
       pattern: 'solid',
       fgColor: { argb: 'FF92278F' },
     };
-    cell.border = {
-      top: { style: 'thin', color: { argb: 'FFE9D5FF' } },
-      bottom: { style: 'thin', color: { argb: 'FFE9D5FF' } },
-    };
+    cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+    cell.border = ALL_BORDERS;
   });
 }
 
-function addTable(worksheet: Worksheet, headers: string[], rows: CellValue[][]) {
+function styleDataCell(
+  cell: ReturnType<ReturnType<Worksheet['addRow']>['getCell']>,
+  opts: { numeric: boolean; zebra: boolean; total: boolean },
+) {
+  cell.border = ALL_BORDERS;
+  cell.alignment = {
+    vertical: 'middle',
+    horizontal: opts.numeric ? 'right' : 'left',
+    wrapText: !opts.numeric,
+  };
+  if (opts.total) {
+    cell.font = { bold: true, color: { argb: 'FF92278F' } };
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: TOTAL_FILL } };
+  } else if (opts.zebra) {
+    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: ZEBRA_FILL } };
+  }
+}
+
+interface AddTableOptions {
+  formats?: (string | undefined)[];
+  boldLastRow?: boolean;
+}
+
+function addTable(worksheet: Worksheet, headers: string[], rows: CellValue[][], options?: AddTableOptions) {
   const headerRow = worksheet.addRow(headers);
   styleHeader(headerRow);
-  rows.forEach((row) => worksheet.addRow(row));
+  rows.forEach((row, rowIndex) => {
+    const isTotal = Boolean(options?.boldLastRow) && rowIndex === rows.length - 1;
+    const dataRow = worksheet.addRow(row);
+    headers.forEach((_, colIndex) => {
+      const cell = dataRow.getCell(colIndex + 1);
+      const fmt = options?.formats?.[colIndex];
+      if (fmt) cell.numFmt = fmt;
+      styleDataCell(cell, {
+        numeric: Boolean(fmt),
+        zebra: rowIndex % 2 === 1,
+        total: isTotal,
+      });
+    });
+  });
   worksheet.addRow([]);
 }
 
@@ -275,7 +320,7 @@ export default function ReportesFinancierosPage() {
   const loadLocales = useCallback(async () => {
     setLocalesLoading(true);
     try {
-      const res = await getLocalesDB() as { data?: { locales?: LocalOption[] } };
+      const res = await getLocalesDB();
       const activeLocales = (res?.data?.locales ?? []).filter((local) => local.activo !== false);
       setLocales(activeLocales);
     } catch (err) {
@@ -345,15 +390,13 @@ export default function ReportesFinancierosPage() {
 
   const comparisonData = useMemo(() => {
     const source = detailReports.length > 0 ? detailReports : [report];
-    return source
-      .filter((item) => item.total_periodo > 0 || item.cantidad_pagos > 0 || item.local || source.length === 1)
-      .map((item) => ({
-        local: item.local || 'General',
-        total: Number(item.total_periodo ?? 0),
-        pagos: Number(item.cantidad_pagos ?? 0),
-        servicios: Number(item.cantidad_servicios_vendidos ?? 0),
-        ticket: Number(item.ticket_promedio ?? 0),
-      }));
+    return source.map((item) => ({
+      local: item.local || 'General',
+      total: Number(item.total_periodo ?? 0),
+      pagos: Number(item.cantidad_pagos ?? 0),
+      servicios: Number(item.cantidad_servicios_vendidos ?? 0),
+      ticket: Number(item.ticket_promedio ?? 0),
+    }));
   }, [detailReports, report]);
 
   const paymentTypeData = useMemo(() => (
@@ -430,7 +473,7 @@ export default function ReportesFinancierosPage() {
       workbook.created = new Date();
 
       const subtitle = `${activeFilters.fecha_desde} al ${activeFilters.fecha_hasta}${activeFilters.local ? ` - ${activeFilters.local}` : ' - General'}`;
-      const resumen = workbook.addWorksheet('Resumen');
+      const resumen = workbook.addWorksheet('Resumen', { properties: { tabColor: { argb: 'FFEC008C' } } });
       addTitle(resumen, 'Reporte financiero Atrevida', subtitle);
       addTable(resumen, ['Metrica', 'Valor'], [
         ['Tipo de reporte', getReportTypeLabel(report.local || activeFilters.local)],
@@ -456,18 +499,36 @@ export default function ReportesFinancierosPage() {
           report.servicio_mas_dinero_genera?.cantidad ?? 0,
           report.servicio_mas_dinero_genera?.monto_total ?? 0,
         ],
-      ]);
+      ], { formats: [undefined, undefined, INT_FMT, MONEY_FMT] });
 
-      const detalle = workbook.addWorksheet('Detalle por local');
+      const detalle = workbook.addWorksheet('Detalle por local', { properties: { tabColor: { argb: 'FF92278F' } } });
       addTitle(detalle, 'Detalle por local', subtitle);
       const detailSource = detailReports.length > 0 ? detailReports : [report];
+      const detailRows: CellValue[][] = detailSource.map(reportToRow);
+      if (detailSource.length > 1) {
+        const totalPagos = detailSource.reduce((sum, item) => sum + (item.cantidad_pagos ?? 0), 0);
+        const totalPeriodo = detailSource.reduce((sum, item) => sum + (item.total_periodo ?? 0), 0);
+        detailRows.push([
+          'TOTAL',
+          totalPeriodo,
+          detailSource.reduce((sum, item) => sum + (item.subtotal ?? 0), 0),
+          detailSource.reduce((sum, item) => sum + (item.descuentos ?? 0), 0),
+          totalPagos,
+          detailSource.reduce((sum, item) => sum + (item.cantidad_servicios_vendidos ?? 0), 0),
+          totalPagos > 0 ? totalPeriodo / totalPagos : 0,
+        ]);
+      }
       addTable(
         detalle,
         ['Local', 'Total periodo', 'Subtotal', 'Descuentos', 'Pagos', 'Servicios vendidos', 'Ticket promedio'],
-        detailSource.map(reportToRow),
+        detailRows,
+        {
+          formats: [undefined, MONEY_FMT, MONEY_FMT, MONEY_FMT, INT_FMT, INT_FMT, MONEY_FMT],
+          boldLastRow: detailSource.length > 1,
+        },
       );
 
-      const tipos = workbook.addWorksheet('Tipos de pago');
+      const tipos = workbook.addWorksheet('Tipos de pago', { properties: { tabColor: { argb: 'FF14AEEF' } } });
       addTitle(tipos, 'Ventas por tipo de pago', subtitle);
       addTable(
         tipos,
@@ -477,16 +538,17 @@ export default function ReportesFinancierosPage() {
           item.cantidad_pagos,
           item.total,
         ]),
+        { formats: [undefined, INT_FMT, MONEY_FMT] },
       );
 
       workbook.worksheets.forEach((worksheet) => {
         worksheet.columns.forEach((column) => {
-          column.width = 22;
-        });
-        worksheet.eachRow((row) => {
-          row.eachCell((cell) => {
-            cell.alignment = { vertical: 'middle', wrapText: true };
+          let maxLength = 12;
+          column.eachCell?.({ includeEmpty: false }, (cell) => {
+            const length = cell.value == null ? 0 : String(cell.value).length;
+            if (length > maxLength) maxLength = length;
           });
+          column.width = Math.min(maxLength + 4, 42);
         });
       });
 
@@ -572,9 +634,11 @@ export default function ReportesFinancierosPage() {
                       </span>
                       <h2>Periodo y alcance</h2>
                     </div>
-                    <div className={styles.modeTabs} aria-label="Tipo de reporte">
+                    <div className={styles.modeTabs} role="tablist" aria-label="Tipo de reporte">
                       <button
                         type="button"
+                        role="tab"
+                        aria-selected={mode === 'monthly'}
                         className={`${styles.modeButton} ${mode === 'monthly' ? styles.modeButtonActive : ''}`}
                         onClick={() => setMode('monthly')}
                       >
@@ -582,6 +646,8 @@ export default function ReportesFinancierosPage() {
                       </button>
                       <button
                         type="button"
+                        role="tab"
+                        aria-selected={mode === 'range'}
                         className={`${styles.modeButton} ${mode === 'range' ? styles.modeButtonActive : ''}`}
                         onClick={() => setMode('range')}
                       >
