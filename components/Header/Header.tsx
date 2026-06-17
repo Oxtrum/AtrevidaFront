@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import gsap from 'gsap';
+import AdminAccessButton from '@/components/AdminAccessButton/AdminAccessButton';
 import styles from './Header.module.css';
 
 const NAV_LINKS = [
@@ -163,6 +164,7 @@ export default function Header() {
               {link.label}
             </Link>
           ))}
+          <AdminAccessButton variant="desktop" />
         </nav>
 
         {/* Hamburger */}
@@ -192,6 +194,7 @@ export default function Header() {
             {link.label}
           </Link>
         ))}
+        <AdminAccessButton variant="mobile" onNavigate={() => setMobileOpen(false)} />
       </div>
     </>
   );

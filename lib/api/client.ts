@@ -3,6 +3,8 @@
  * Centraliza: base URL, headers, manejo de errores y tipado.
  */
 
+import { expireAdminSessionAndRedirect } from '@/lib/auth/adminSession';
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 /**
@@ -73,6 +75,10 @@ async function request<T>(
   const json = await res.json().catch(() => null);
 
   if (!res.ok) {
+    // Token vencido/inválido en una sesión existente → cerrar y mandar a login.
+    if (res.status === 401 && typeof window !== 'undefined' && getAuthToken()) {
+      expireAdminSessionAndRedirect();
+    }
     throw new ApiError(
       json?.message ?? `HTTP ${res.status}`,
       res.status,

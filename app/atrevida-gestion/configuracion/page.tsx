@@ -5,10 +5,8 @@ import type { CSSProperties } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Building2,
-  Clock3,
   Eye,
   EyeOff,
-  Fingerprint,
   KeyRound,
   LockKeyhole,
   Package2,
@@ -26,10 +24,7 @@ import styles from './page.module.css';
 
 interface ProfileInfo {
   username: string;
-  roleCode: string;
   roleLabel: string;
-  userId: string;
-  expiresAt: string;
 }
 
 interface PasswordForm {
@@ -116,15 +111,6 @@ function getRoleLabel(roleCode: string) {
   return (ROLE_LABELS[roleCode] ?? roleCode) || 'Sin rol asignado';
 }
 
-function formatTokenDate(exp?: number) {
-  if (!exp) return 'No disponible';
-
-  return new Date(exp * 1000).toLocaleString('es-BO', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  });
-}
-
 function readProfileInfo(): ProfileInfo {
   const storedUser = getStoredAdminUser();
   const tokenClaims = getStoredAdminTokenClaims();
@@ -132,10 +118,7 @@ function readProfileInfo(): ProfileInfo {
 
   return {
     username: storedUser?.username ?? tokenClaims?.username ?? 'Usuario',
-    roleCode: roleCode || 'Sin rol',
     roleLabel: getRoleLabel(roleCode),
-    userId: tokenClaims?.sub ?? 'No disponible',
-    expiresAt: formatTokenDate(tokenClaims?.exp),
   };
 }
 
@@ -260,30 +243,6 @@ export default function ConfiguracionPage() {
                 <span className={styles.profileKicker}>Mi información</span>
                 <h2 id="profile-title">{profile?.username ?? 'Usuario'}</h2>
                 <p>{profile?.roleLabel ?? 'Cargando información de la sesión'}</p>
-              </div>
-            </div>
-
-            <div className={styles.profileMetaGrid}>
-              <div className={styles.profileMetaItem}>
-                <span>
-                  <ShieldCheck size={15} strokeWidth={1.8} />
-                  Rol
-                </span>
-                <strong>{profile?.roleCode ?? '...'}</strong>
-              </div>
-              <div className={styles.profileMetaItem}>
-                <span>
-                  <Fingerprint size={15} strokeWidth={1.8} />
-                  ID usuario
-                </span>
-                <strong>{profile?.userId ?? '...'}</strong>
-              </div>
-              <div className={styles.profileMetaItem}>
-                <span>
-                  <Clock3 size={15} strokeWidth={1.8} />
-                  Sesión vence
-                </span>
-                <strong>{profile?.expiresAt ?? '...'}</strong>
               </div>
             </div>
 
