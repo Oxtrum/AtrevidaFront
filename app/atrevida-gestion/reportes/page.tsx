@@ -366,8 +366,27 @@ export default function ReportesFinancierosPage() {
     }
 
     void loadLocales();
-    void fetchReport(buildFilters('monthly', getCurrentMonthValue(), initialRange.fecha_desde, initialRange.fecha_hasta, ''));
-  }, [router, fetchReport, loadLocales, initialRange.fecha_desde, initialRange.fecha_hasta]);
+  }, [router, loadLocales]);
+
+  // Auto-genera el reporte al cambiar mes, rango o local — sin botón.
+  useEffect(() => {
+    if (!authorized) return;
+    const filters = buildFilters(mode, selectedMonth, dateFrom, dateTo, selectedLocal);
+
+    if (!filters.fecha_desde || !filters.fecha_hasta) {
+      setError('Selecciona una fecha de inicio y una fecha final');
+      return;
+    }
+    if (filters.fecha_desde > filters.fecha_hasta) {
+      setError('La fecha inicial no puede ser mayor a la fecha final');
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      void fetchReport(filters);
+    }, 350);
+    return () => window.clearTimeout(timer);
+  }, [authorized, mode, selectedMonth, dateFrom, dateTo, selectedLocal, fetchReport]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -445,22 +464,6 @@ export default function ReportesFinancierosPage() {
       tone: 'cyan',
     },
   ], [activeFilters.local, report]);
-
-  const handleGenerate = () => {
-    const filters = buildFilters(mode, selectedMonth, dateFrom, dateTo, selectedLocal);
-
-    if (!filters.fecha_desde || !filters.fecha_hasta) {
-      setError('Selecciona una fecha de inicio y una fecha final');
-      return;
-    }
-
-    if (filters.fecha_desde > filters.fecha_hasta) {
-      setError('La fecha inicial no puede ser mayor a la fecha final');
-      return;
-    }
-
-    void fetchReport(filters);
-  };
 
   const handleExport = async () => {
     if (!reportData) return;
@@ -702,17 +705,14 @@ export default function ReportesFinancierosPage() {
                       />
                     </div>
 
-                    <div className={styles.generateCell}>
-                      <button
-                        type="button"
-                        className={styles.generateButton}
-                        onClick={handleGenerate}
-                        disabled={loading}
-                      >
-                        {loading ? <RefreshCw size={16} strokeWidth={1.8} className={styles.spinIcon} /> : <BarChart2 size={16} strokeWidth={1.8} />}
-                        Generar reporte
-                      </button>
-                    </div>
+                    {loading && (
+                      <div className={styles.generateCell}>
+                        <span className={styles.updatingTag}>
+                          <RefreshCw size={14} strokeWidth={1.8} className={styles.spinIcon} />
+                          Actualizando...
+                        </span>
+                      </div>
+                    )}
                   </div>
                   {error && <div className={styles.inlineError}>{error}</div>}
                 </section>

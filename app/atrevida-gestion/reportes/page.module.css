@@ -231,41 +231,18 @@
   align-items: end;
 }
 
-.generateButton {
-  min-height: 42px;
-  width: 100%;
+.updatingTag {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.55rem;
-  padding: 0.7rem 1rem;
-  border: 1px solid rgba(236, 0, 140, 0.32);
-  border-radius: var(--admin-radius-md);
-  background: var(--admin-grad-primary);
-  color: #ffffff;
-  font: inherit;
-  font-size: 0.85rem;
-  font-weight: 850;
-  cursor: pointer;
-  box-shadow: var(--admin-shadow-sm);
-  transition:
-    transform var(--admin-t-normal) var(--admin-ease),
-    filter var(--admin-t-normal) var(--admin-ease),
-    opacity var(--admin-t-normal) var(--admin-ease);
-}
-
-.generateButton:hover:not(:disabled) {
-  filter: brightness(1.06);
-  transform: translateY(-1px);
-}
-
-.generateButton:active:not(:disabled) {
-  transform: scale(0.98);
-}
-
-.generateButton:disabled {
-  cursor: not-allowed;
-  opacity: 0.65;
+  gap: 0.45rem;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid rgba(236, 0, 140, 0.28);
+  border-radius: 999px;
+  background: rgba(236, 0, 140, 0.08);
+  color: var(--admin-accent-primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .inlineError {
