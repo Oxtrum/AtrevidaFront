@@ -140,13 +140,13 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/layout.tsx": {
-    "mtime": 1779988995.2090504,
-    "ast_hash": "cc6e44eac305ba3259af5eac18b839ad",
+    "mtime": 1781658050.7254214,
+    "ast_hash": "02a80d0927dd1f39a213117e6c3d9bb8",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/configuracion/page.tsx": {
-    "mtime": 1781654176.4655666,
-    "ast_hash": "41753218275311df16d967381d31e6aa",
+    "mtime": 1781658108.8157792,
+    "ast_hash": "2f91264033b799c7a40d5d34c5326eb2",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/configuracion/categorias/page.tsx": {
@@ -230,8 +230,8 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/reportes/page.tsx": {
-    "mtime": 1781656499.837953,
-    "ast_hash": "10cdbd1b86194d1f34a06df7b32e86b4",
+    "mtime": 1781657365.702314,
+    "ast_hash": "6f5da18265a349f11debad5c9216143c",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/components/AdminConfig/FormModal.tsx": {
@@ -420,8 +420,8 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/components/Header/Header.tsx": {
-    "mtime": 1779988995.2203033,
-    "ast_hash": "1fab407357e40d6d293d5d38c30e9da4",
+    "mtime": 1781658966.7098083,
+    "ast_hash": "8a83a622d723f4c2ffffdb63f3601cdc",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/components/Hero/Hero.tsx": {
@@ -505,8 +505,8 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/lib/api/client.ts": {
-    "mtime": 1779748596.5017853,
-    "ast_hash": "d4329c510d63b6adbe944f239046b606",
+    "mtime": 1781658075.059442,
+    "ast_hash": "692c0c1661c722b42f8f931d29e97487",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/lib/api/reservas.ts": {
@@ -807,6 +807,16 @@
   "/home/jhunior/Documents/Projects/AtrevidaFront/public/window.svg": {
     "mtime": 1779748596.8111691,
     "ast_hash": "a2760511c65806022ad20adf74370ff3",
+    "semantic_hash": ""
+  },
+  "/home/jhunior/Documents/Projects/AtrevidaFront/components/AdminSessionGuard/AdminSessionGuard.tsx": {
+    "mtime": 1781658028.7266681,
+    "ast_hash": "ca2c0ab60fc216e334fe081330293ef7",
+    "semantic_hash": ""
+  },
+  "/home/jhunior/Documents/Projects/AtrevidaFront/components/AdminAccessButton/AdminAccessButton.tsx": {
+    "mtime": 1781659026.7736394,
+    "ast_hash": "6fcb7abf526c5ffee569ad12026e8f13",
     "semantic_hash": ""
   }
 }
