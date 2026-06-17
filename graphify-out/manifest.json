@@ -220,13 +220,13 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/pagos/page.tsx": {
-    "mtime": 1781654176.4660997,
-    "ast_hash": "020ca68d730cd51aaf373f671c0b0d8d",
+    "mtime": 1781656988.5245237,
+    "ast_hash": "cc8d48abbec3e4993916d523e209d57a",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/caja/page.tsx": {
-    "mtime": 1781654176.4652703,
-    "ast_hash": "7c8d7ee29bba06867f62f99ff20d5d92",
+    "mtime": 1781656980.0884192,
+    "ast_hash": "9bcd76aad2972d433853b56a564def96",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/app/atrevida-gestion/reportes/page.tsx": {
@@ -525,8 +525,8 @@
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/lib/api/servicios.ts": {
-    "mtime": 1781656155.6080265,
-    "ast_hash": "1057f6caaf96858874fee184740e9311",
+    "mtime": 1781657039.2607565,
+    "ast_hash": "d975869b86fd16f7eb73941e88cabc32",
     "semantic_hash": ""
   },
   "/home/jhunior/Documents/Projects/AtrevidaFront/lib/api/auth.ts": {
