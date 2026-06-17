@@ -435,6 +435,7 @@
   /* FIX: prevent content from expanding beyond cell */
   min-width: 0;
   overflow: hidden;
+  justify-content: center;
 }
 
 /* Free slot */

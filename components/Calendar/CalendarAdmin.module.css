@@ -188,6 +188,7 @@
   flex-direction: column;
   gap: 0.4rem;
   min-width: 0;
+  justify-content: center;
   overflow: hidden;
 }
 
