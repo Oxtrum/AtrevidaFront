@@ -79,8 +79,25 @@ export async function crearCategoriaDB(nombre: string) {
 // ─── Servicios ─────────────────────────────────────────────────────
 
 /** Obtiene servicios filtrados desde la base de datos. */
-export async function getServiciosDB(params: GetServiciosParams) {
-  return apiClient.get('/bd/servicios', {
+/** Fila de servicio devuelta por /bd/servicios. */
+export interface ServicioRow {
+  [key: string]: unknown;
+  id: number;
+  nombre: string;
+  costo: number | string;
+  categoria?: string;
+  activo?: boolean;
+  tiempo?: unknown;
+  sesiones?: unknown;
+  tipoEspacio?: unknown;
+  local?: unknown;
+  requiere_evaluacion?: unknown;
+}
+
+export async function getServiciosDB(
+  params: GetServiciosParams,
+): Promise<ApiResponse<{ servicios: ServicioRow[] }>> {
+  return apiClient.get<ApiResponse<{ servicios: ServicioRow[] }>>('/bd/servicios', {
     params: {
       local: params.local,
       nombre: params.nombre,

@@ -95,6 +95,17 @@ const splitClienteNombre = (fullName: string): Pick<NewClientForm, 'nombre' | 'a
   };
 };
 
+const restoreStoredLocal = (locales: LocalOption[]): LocalOption | null => {
+  try {
+    const stored = localStorage.getItem(CAJA_LOCAL_STORAGE_KEY);
+    if (!stored) return null;
+    const parsed = JSON.parse(stored) as { id?: number };
+    return locales.find((local) => local.id === parsed.id) ?? null;
+  } catch {
+    return null;
+  }
+};
+
 export default function CajaPage() {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -139,13 +150,11 @@ export default function CajaPage() {
     setLoadingLocales(true);
     setLocalesError(null);
     try {
-      const res = await getLocalesDB() as { data?: { locales?: LocalOption[] } };
+      const res = await getLocalesDB();
       const activeLocales = (res?.data?.locales ?? []).filter((local) => local.activo !== false);
       setLocales(activeLocales);
 
-      const stored = localStorage.getItem(CAJA_LOCAL_STORAGE_KEY);
-      const parsed = stored ? JSON.parse(stored) as LocalOption : null;
-      const restored = parsed ? activeLocales.find((local) => local.id === parsed.id) : null;
+      const restored = restoreStoredLocal(activeLocales);
       if (restored) setSelectedLocal(restored);
     } catch (err) {
       setLocalesError(err instanceof Error ? err.message : 'Error al cargar locales');
@@ -157,7 +166,7 @@ export default function CajaPage() {
   const fetchServicios = useCallback(async (local: LocalOption) => {
     setLoadingServicios(true);
     try {
-      const res = await getServiciosDB({ local: local.nombre }) as { data?: { servicios?: ServicioOption[] } };
+      const res = await getServiciosDB({ local: local.nombre });
       setServicios((res?.data?.servicios ?? []).filter((servicio) => servicio.activo !== false));
     } catch {
       setServicios([]);
@@ -177,8 +186,7 @@ export default function CajaPage() {
         estado: 'PAGADO',
         activo: true,
       });
-      const data = (res as { data?: { pagos?: Pago[] } }).data;
-      setPagos((data?.pagos ?? []) as PagoRow[]);
+      setPagos((res.data?.pagos ?? []) as PagoRow[]);
     } catch (err) {
       setPagosError(err instanceof Error ? err.message : 'Error al cargar pagos');
     } finally {
@@ -215,8 +223,7 @@ export default function CajaPage() {
       try {
         const res = await getClientesDB({ nombre: query });
         if (cancelled) return;
-        const data = (res as { data?: { clientes?: ClientePG[] } }).data;
-        setClientesSugeridos((data?.clientes ?? []) as ClienteOption[]);
+        setClientesSugeridos((res.data?.clientes ?? []) as ClienteOption[]);
         setClienteDropdownOpen(true);
       } catch {
         if (!cancelled) setClientesSugeridos([]);
@@ -451,17 +458,17 @@ export default function CajaPage() {
         numero_telefono: newClientForm.numero_telefono.trim(),
       };
       const res = await crearClienteDB(cleanClient);
-      const data = (res as { data?: { id?: number } }).data;
-      if (!data?.id) throw new Error('No se recibió el ID del cliente creado');
+      if (!res.data?.id) throw new Error('No se recibió el ID del cliente creado');
 
       const fullName = `${cleanClient.nombre} ${cleanClient.apellido}`.trim();
-      setSelectedClienteId(data.id);
+      const nuevoClienteId = res.data.id;
+      setSelectedClienteId(nuevoClienteId);
       setClienteNombre(fullName);
       setClienteDropdownOpen(false);
       setClientesSugeridos([]);
       setNewClientModalOpen(false);
       toast.success('Cliente creado correctamente');
-      await registerPayment(data.id);
+      await registerPayment(nuevoClienteId);
       resetNewClientModal();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al crear cliente';
