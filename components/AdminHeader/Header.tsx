@@ -102,12 +102,19 @@ export default function Header() {
   }, []);
 
   useEffect(() => {
+    // En móvil el sidebar se posiciona con transform (translateX) vía CSS; animar
+    // el shell con GSAP escribiría un transform inline que pisa ese CSS y rompe el
+    // abrir/cerrar. Solo animamos el shell en desktop y limpiamos el transform al
+    // terminar para que un resize a móvil no quede con el inline colgado.
+    const isMobile = window.matchMedia('(max-width: 900px)').matches;
     const ctx = gsap.context(() => {
-      gsap.fromTo(
-        shellRef.current,
-        { x: -18, opacity: 0 },
-        { x: 0, opacity: 1, duration: 0.46, ease: 'power3.out' }
-      );
+      if (!isMobile) {
+        gsap.fromTo(
+          shellRef.current,
+          { x: -18, opacity: 0 },
+          { x: 0, opacity: 1, duration: 0.46, ease: 'power3.out', clearProps: 'transform' }
+        );
+      }
 
       gsap.fromTo(
         '.adminNavItem',
