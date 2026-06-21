@@ -3,21 +3,37 @@
  * Centraliza: base URL, headers, manejo de errores y tipado.
  */
 
-import { expireAdminSessionAndRedirect, shouldRedirectToAdminLogin } from '@/lib/auth/adminSession';
+import {
+  clearExpiredAdminSession,
+  expireAdminSessionAndRedirect,
+  getActiveAdminToken,
+  isRedirectingToAdminLogin,
+  requireActiveAdminSession,
+  shouldRedirectToAdminLogin,
+  waitForAdminLoginRedirect,
+} from '@/lib/auth/adminSession';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
+type AuthMode = 'admin' | 'optional' | 'none';
+
 /**
- * Reads the admin token from localStorage on the client.
- * Returns null on the server or when the user is not authenticated.
+ * Protected admin endpoints require an active token. Public endpoints can still
+ * run without credentials, and stale admin credentials are ignored there.
  */
-function getAuthToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  try {
-    return window.localStorage.getItem('adminToken');
-  } catch {
-    return null;
-  }
+function resolveAuthMode(endpoint: string, explicitMode?: AuthMode): AuthMode {
+  if (explicitMode) return explicitMode;
+  if (endpoint.startsWith('/bd/')) return 'admin';
+  if (endpoint.startsWith('/auth/') && endpoint !== '/auth/login') return 'admin';
+  return 'optional';
+}
+
+function getAuthToken(authMode: AuthMode): string | null {
+  if (authMode === 'none') return null;
+  if (authMode === 'admin') return requireActiveAdminSession();
+
+  if (clearExpiredAdminSession()) return null;
+  return getActiveAdminToken();
 }
 
 // ─── Error tipado ──────────────────────────────────────────────────────────────
@@ -38,6 +54,7 @@ export class ApiError extends Error {
 type RequestOptions = Omit<RequestInit, 'body'> & {
   params?: Record<string, string | number | undefined>;
   body?: unknown;
+  auth?: AuthMode;
   /** Segundos de revalidación (solo server-side). 0 = sin caché. */
   revalidate?: number;
 };
@@ -46,7 +63,7 @@ type RequestOptions = Omit<RequestInit, 'body'> & {
 
 async function request<T>(
   endpoint: string,
-  { params, body, revalidate = 0, ...init }: RequestOptions = {},
+  { params, body, auth, revalidate = 0, ...init }: RequestOptions = {},
 ): Promise<T> {
   // Construir URL + query params
   const url = new URL(`${BASE_URL}${endpoint}`);
@@ -59,7 +76,13 @@ async function request<T>(
     });
   }
 
-  const token = getAuthToken();
+  const authMode = resolveAuthMode(endpoint, auth);
+  const token = getAuthToken(authMode);
+
+  if (authMode === 'admin' && !token && isRedirectingToAdminLogin()) {
+    return waitForAdminLoginRedirect<T>();
+  }
+
   const res = await fetch(url.toString(), {
     ...init,
     headers: {
@@ -75,9 +98,11 @@ async function request<T>(
   const json = await res.json().catch(() => null);
 
   if (!res.ok) {
-    if (shouldRedirectToAdminLogin(res.status, json)) {
+    if (authMode === 'admin' && shouldRedirectToAdminLogin(res.status, json)) {
       expireAdminSessionAndRedirect();
+      return waitForAdminLoginRedirect<T>();
     }
+
     throw new ApiError(
       json?.message ?? `HTTP ${res.status}`,
       res.status,

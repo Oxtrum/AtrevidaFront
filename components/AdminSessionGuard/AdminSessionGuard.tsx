@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import {
   expireAdminSessionAndRedirect,
   getStoredAdminTokenClaims,
-  isStoredAdminTokenExpired,
+  requireActiveAdminSession,
 } from '@/lib/auth/adminSession';
 
 const LOGIN_PATH = '/atrevida-gestion/login';
@@ -23,9 +23,8 @@ export default function AdminSessionGuard() {
   useEffect(() => {
     if (pathname === LOGIN_PATH) return;
 
-    const token = window.localStorage.getItem('adminToken');
-    if (!token || isStoredAdminTokenExpired()) {
-      expireAdminSessionAndRedirect();
+    const token = requireActiveAdminSession();
+    if (!token) {
       return;
     }
 
@@ -38,9 +37,7 @@ export default function AdminSessionGuard() {
     }
 
     const handleVisibility = () => {
-      if (document.visibilityState === 'visible' && isStoredAdminTokenExpired()) {
-        expireAdminSessionAndRedirect();
-      }
+      if (document.visibilityState === 'visible') requireActiveAdminSession();
     };
     document.addEventListener('visibilitychange', handleVisibility);
 

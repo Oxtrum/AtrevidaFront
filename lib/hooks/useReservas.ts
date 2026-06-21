@@ -2,7 +2,12 @@
 
 import { useState, useCallback } from 'react';
 import type { ReservasBDApiResponse } from '@/types/reserva';
-import { redirectToAdminLogin, shouldRedirectToAdminLogin } from '@/lib/auth/adminSession';
+import {
+    redirectToAdminLogin,
+    requireActiveAdminSession,
+    shouldRedirectToAdminLogin,
+    waitForAdminLoginRedirect,
+} from '@/lib/auth/adminSession';
 
 interface UseReservasParams {
     local: string;
@@ -39,7 +44,12 @@ export function useReservas(): UseReservasReturn {
         setError(null);
 
         try {
-            const token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
+            const token = requireActiveAdminSession();
+            if (!token) {
+                await waitForAdminLoginRedirect<void>();
+                return;
+            }
+
             const searchParams = new URLSearchParams();
             if (params.local) searchParams.set('local', params.local);
             if (params.fecha) searchParams.set('fecha', params.fecha);
@@ -55,6 +65,8 @@ export function useReservas(): UseReservasReturn {
             if (!res.ok) {
                 if (shouldRedirectToAdminLogin(res.status, result)) {
                     redirectToAdminLogin();
+                    await waitForAdminLoginRedirect<void>();
+                    return;
                 }
                 throw new Error(result.message || `HTTP ${res.status}`);
             }

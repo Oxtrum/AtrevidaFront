@@ -11,6 +11,16 @@ export interface AdminTokenClaims extends AdminUserSession {
   exp?: number;
 }
 
+export function getStoredAdminToken(): string | null {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    return window.localStorage.getItem('adminToken');
+  } catch {
+    return null;
+  }
+}
+
 export function getStoredAdminUser(): AdminUserSession | null {
   if (typeof window === 'undefined') return null;
 
@@ -26,7 +36,7 @@ export function getStoredAdminUser(): AdminUserSession | null {
 export function getStoredAdminTokenClaims(): AdminTokenClaims | null {
   if (typeof window === 'undefined') return null;
   try {
-    const token = window.localStorage.getItem('adminToken');
+    const token = getStoredAdminToken();
     const payload = token?.split('.')[1];
     if (!payload) return null;
 
@@ -44,6 +54,9 @@ function getRoleFromToken(): string | null {
 
 export function getStoredAdminRole(): string | null {
   if (typeof window === 'undefined') return null;
+
+  if (!hasActiveAdminSession()) return null;
+
   return getStoredAdminUser()?.rol_codigo
     ?? window.localStorage.getItem('adminRole')
     ?? getRoleFromToken();
@@ -73,6 +86,33 @@ export function isStoredAdminTokenExpired(bufferSeconds = 0): boolean {
   if (!claims?.exp) return false;
 
   return claims.exp <= Math.floor(Date.now() / 1000) + bufferSeconds;
+}
+
+export function hasActiveAdminSession(bufferSeconds = 0): boolean {
+  const token = getStoredAdminToken();
+  return Boolean(token) && !isStoredAdminTokenExpired(bufferSeconds);
+}
+
+export function getActiveAdminToken(bufferSeconds = 0): string | null {
+  const token = getStoredAdminToken();
+  if (!token || isStoredAdminTokenExpired(bufferSeconds)) return null;
+  return token;
+}
+
+export function clearExpiredAdminSession(bufferSeconds = 0): boolean {
+  if (!getStoredAdminToken() || !isStoredAdminTokenExpired(bufferSeconds)) return false;
+  clearStoredAdminSession();
+  return true;
+}
+
+export function requireActiveAdminSession(bufferSeconds = 0): string | null {
+  const token = getStoredAdminToken();
+  if (!token || isStoredAdminTokenExpired(bufferSeconds)) {
+    expireAdminSessionAndRedirect();
+    return null;
+  }
+
+  return token;
 }
 
 function normalizeText(value: string): string {
@@ -112,6 +152,14 @@ export function shouldRedirectToAdminLogin(status: number, data?: unknown): bool
 }
 
 let redirectingToLogin = false;
+
+export function isRedirectingToAdminLogin(): boolean {
+  return redirectingToLogin;
+}
+
+export function waitForAdminLoginRedirect<T = never>(): Promise<T> {
+  return new Promise<T>(() => {});
+}
 
 export function expireAdminSessionAndRedirect(): void {
   if (typeof window === 'undefined') return;

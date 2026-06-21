@@ -23,7 +23,7 @@ import {
 import styles from './Header.module.css';
 import { AdminThemeToggle } from '@/components/AdminThemeToggle/AdminThemeToggle';
 import { NotificationBell } from './NotificationBell';
-import { canViewAdminPayments, canViewFinancialReports } from '@/lib/auth/adminSession';
+import { canViewAdminPayments, canViewFinancialReports, clearStoredAdminSession } from '@/lib/auth/adminSession';
 
 const NAV_LINKS = [
   {
@@ -150,8 +150,7 @@ export default function Header() {
       duration: 0.22,
       ease: 'power2.in',
       onComplete: () => {
-        localStorage.removeItem('adminToken');
-        localStorage.removeItem('adminUser');
+        clearStoredAdminSession();
         router.push('/atrevida-gestion/login');
       },
     });
