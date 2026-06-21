@@ -3,6 +3,8 @@
  * Centraliza: base URL, headers, manejo de errores y tipado.
  */
 
+import { redirectToAdminLogin, shouldRedirectToAdminLogin } from '@/lib/auth/adminSession';
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 /**
@@ -73,6 +75,10 @@ async function request<T>(
   const json = await res.json().catch(() => null);
 
   if (!res.ok) {
+    if (shouldRedirectToAdminLogin(res.status, json)) {
+      redirectToAdminLogin();
+    }
+
     throw new ApiError(
       json?.message ?? `HTTP ${res.status}`,
       res.status,

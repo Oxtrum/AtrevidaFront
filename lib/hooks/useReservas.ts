@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import type { ReservasBDApiResponse } from '@/types/reserva';
+import { redirectToAdminLogin, shouldRedirectToAdminLogin } from '@/lib/auth/adminSession';
 
 interface UseReservasParams {
     local: string;
@@ -50,6 +51,13 @@ export function useReservas(): UseReservasReturn {
                 },
             });
             const result = await res.json() as ReservasBDApiResponse;
+
+            if (!res.ok) {
+                if (shouldRedirectToAdminLogin(res.status, result)) {
+                    redirectToAdminLogin();
+                }
+                throw new Error(result.message || `HTTP ${res.status}`);
+            }
 
             setData(result);
         } catch (err) {

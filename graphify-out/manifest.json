@@ -500,8 +500,8 @@
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/lib/api/client.ts": {
-    "mtime": 1779922834.0426812,
-    "ast_hash": "d4329c510d63b6adbe944f239046b606",
+    "mtime": 1781324917.747364,
+    "ast_hash": "9bd0d6ab8d011ad34b7d8c9e6e854673",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/lib/api/reservas.ts": {
@@ -565,13 +565,13 @@
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/lib/hooks/useLocales.ts": {
-    "mtime": 1780455497.4888122,
-    "ast_hash": "7e7a9b27a84231f6b723221bc58d1f03",
+    "mtime": 1781324917.748364,
+    "ast_hash": "65e2a69ad22711684ce1a5baab8ca1ea",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/lib/hooks/useReservas.ts": {
-    "mtime": 1780455500.6162374,
-    "ast_hash": "d6c3d322b2c83537730158b61e5495e3",
+    "mtime": 1781324917.747364,
+    "ast_hash": "61b2810954b38b3f1003a0e4a706a111",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/lib/hooks/useServiciosPublicos.ts": {
@@ -595,8 +595,8 @@
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/lib/auth/adminSession.ts": {
-    "mtime": 1780703828.5663812,
-    "ast_hash": "e55fc0410a8001f335c717ee3c667a8c",
+    "mtime": 1781324958.2441497,
+    "ast_hash": "f699bbe299bc7df569cec2eb6cd972e2",
     "semantic_hash": ""
   },
   "/home/skully/Progra/Atrevida/AtrevidaFront/types/reserva.ts": {

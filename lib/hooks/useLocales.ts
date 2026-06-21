@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { redirectToAdminLogin, shouldRedirectToAdminLogin } from '@/lib/auth/adminSession';
 
 interface Local {
   id: number;
@@ -41,6 +42,14 @@ export function useLocales(): UseLocalesReturn {
         },
       });
       const response = await res.json() as LocalesResponse;
+
+      if (!res.ok) {
+        if (shouldRedirectToAdminLogin(res.status, response)) {
+          redirectToAdminLogin();
+        }
+        throw new Error(`HTTP ${res.status}`);
+      }
+
       const data = response.data?.locales ?? [];
       setLocales(data.filter((l: Local) => l.activo));
     } catch (err) {
