@@ -19,6 +19,11 @@ export interface UsuariosListResponse {
   usuarios: UsuarioResumen[];
 }
 
+export interface CambiarPasswordPayload {
+  password_actual: string;
+  password_nueva: string;
+}
+
 export async function loginAuth(
   username: string,
   password: string,
@@ -37,8 +42,18 @@ export async function getUsuarios(): Promise<ApiResponse<UsuariosListResponse>> 
   return apiClient.get<ApiResponse<UsuariosListResponse>>('/auth/usuarios');
 }
 
-export async function cambiarPassword(password: string): Promise<ApiResponse<{ mensaje: string }>> {
-  return apiClient.patch<ApiResponse<{ mensaje: string }>>('/auth/change-password', { password });
+export async function cambiarPassword(
+  payload: CambiarPasswordPayload | string,
+): Promise<ApiResponse<{ mensaje: string }>> {
+  if (typeof payload === 'string') {
+    return apiClient.patch<ApiResponse<{ mensaje: string }>>('/auth/change-password', { password: payload });
+  }
+
+  return apiClient.patch<ApiResponse<{ mensaje: string }>>('/auth/change-password', {
+    password_actual: payload.password_actual,
+    password_nueva: payload.password_nueva,
+    password: payload.password_nueva,
+  });
 }
 
 export async function toggleUsuarioActivo(

@@ -5,6 +5,12 @@ export interface AdminUserSession {
 
 const ADMIN_LOGIN_PATH = '/atrevida-gestion/login';
 
+export interface AdminTokenClaims extends AdminUserSession {
+  sub?: string;
+  iat?: number;
+  exp?: number;
+}
+
 export function getStoredAdminUser(): AdminUserSession | null {
   if (typeof window === 'undefined') return null;
 
@@ -17,9 +23,8 @@ export function getStoredAdminUser(): AdminUserSession | null {
   }
 }
 
-function getRoleFromToken(): string | null {
+export function getStoredAdminTokenClaims(): AdminTokenClaims | null {
   if (typeof window === 'undefined') return null;
-
   try {
     const token = window.localStorage.getItem('adminToken');
     const payload = token?.split('.')[1];
@@ -27,11 +32,14 @@ function getRoleFromToken(): string | null {
 
     const normalizedPayload = payload.replace(/-/g, '+').replace(/_/g, '/');
     const decoded = window.atob(normalizedPayload.padEnd(Math.ceil(normalizedPayload.length / 4) * 4, '='));
-    const claims = JSON.parse(decoded) as { rol_codigo?: string };
-    return claims.rol_codigo ?? null;
+    return JSON.parse(decoded) as AdminTokenClaims;
   } catch {
     return null;
   }
+}
+
+function getRoleFromToken(): string | null {
+  return getStoredAdminTokenClaims()?.rol_codigo ?? null;
 }
 
 export function getStoredAdminRole(): string | null {
@@ -46,7 +54,7 @@ export function canViewAdminPayments(): boolean {
   return role === 'admin_sys' || role === 'admin';
 }
 
-export function clearAdminSession(): void {
+export function clearStoredAdminSession(): void {
   if (typeof window === 'undefined') return;
 
   try {
@@ -56,6 +64,15 @@ export function clearAdminSession(): void {
   } catch {
     // Ignore storage errors; the redirect is still the important recovery path.
   }
+}
+
+export const clearAdminSession = clearStoredAdminSession;
+
+export function isStoredAdminTokenExpired(bufferSeconds = 0): boolean {
+  const claims = getStoredAdminTokenClaims();
+  if (!claims?.exp) return false;
+
+  return claims.exp <= Math.floor(Date.now() / 1000) + bufferSeconds;
 }
 
 function normalizeText(value: string): string {
@@ -94,11 +111,21 @@ export function shouldRedirectToAdminLogin(status: number, data?: unknown): bool
     );
 }
 
-export function redirectToAdminLogin(): void {
+let redirectingToLogin = false;
+
+export function expireAdminSessionAndRedirect(): void {
   if (typeof window === 'undefined') return;
 
-  clearAdminSession();
+  clearStoredAdminSession();
 
-  if (window.location.pathname === ADMIN_LOGIN_PATH) return;
-  window.location.assign(ADMIN_LOGIN_PATH);
+  if (redirectingToLogin || window.location.pathname === ADMIN_LOGIN_PATH) return;
+
+  redirectingToLogin = true;
+  window.location.replace(ADMIN_LOGIN_PATH);
+}
+
+export const redirectToAdminLogin = expireAdminSessionAndRedirect;
+
+export function canViewFinancialReports(): boolean {
+  return getStoredAdminRole() === 'admin_sys';
 }

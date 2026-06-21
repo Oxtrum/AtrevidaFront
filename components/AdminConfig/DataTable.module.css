@@ -417,7 +417,7 @@
 }
 
 /* ── Status badges globales (via globals.css) ── */
-:global(.admin-status-active) {
+.wrapper :global(.admin-status-active) {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -432,7 +432,7 @@
   border: 1px solid rgba(20, 174, 239, 0.28);
 }
 
-:global(.admin-status-inactive) {
+.wrapper :global(.admin-status-inactive) {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;

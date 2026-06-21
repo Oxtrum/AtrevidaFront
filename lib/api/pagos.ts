@@ -60,6 +60,48 @@ export interface PagosListResponse {
   pagos: Pago[];
 }
 
+export interface PagosResumenParams {
+  fecha_desde: string;
+  fecha_hasta: string;
+  local?: string;
+}
+
+export interface ServicioResumenFinanciero {
+  servicio: string;
+  cantidad: number;
+  monto_total: number;
+}
+
+export interface VentaPorTipoPago {
+  tipo_pago: string;
+  cantidad_pagos: number;
+  total: number;
+}
+
+export interface ReporteFinanciero {
+  tipo_reporte: string;
+  local: string;
+  total_periodo: number;
+  subtotal: number;
+  descuentos: number;
+  cantidad_pagos: number;
+  cantidad_servicios_vendidos: number;
+  ticket_promedio: number;
+  servicio_mas_comprado: ServicioResumenFinanciero | null;
+  servicio_mas_dinero_genera: ServicioResumenFinanciero | null;
+  ventas_por_tipo_pago: VentaPorTipoPago[];
+}
+
+export interface PagosResumenResponse {
+  filtros: {
+    fecha_desde: string;
+    fecha_hasta: string;
+    local: string;
+  };
+  reporte: ReporteFinanciero;
+  detalle_reportes: ReporteFinanciero[];
+}
+
 export async function getPagosDB(params?: GetPagosParams): Promise<ApiResponse<PagosListResponse>> {
   return apiClient.get<ApiResponse<PagosListResponse>>('/bd/pagos', {
     params: {
@@ -79,4 +121,16 @@ export async function getPagoByID(codigo: string): Promise<ApiResponse<{ pago: P
 
 export async function crearPagoDB(data: CrearPagoData): Promise<ApiResponse<{ codigo_pago: string }>> {
   return apiClient.post<ApiResponse<{ codigo_pago: string }>>('/bd/pagos', data);
+}
+
+export async function getPagosResumenDB(
+  params: PagosResumenParams,
+): Promise<ApiResponse<PagosResumenResponse>> {
+  return apiClient.get<ApiResponse<PagosResumenResponse>>('/bd/pagos/resumen', {
+    params: {
+      fecha_desde: params.fecha_desde,
+      fecha_hasta: params.fecha_hasta,
+      local: params.local,
+    },
+  });
 }

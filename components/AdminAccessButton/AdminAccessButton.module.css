@@ -1,0 +1,60 @@
+.desktop {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(236, 0, 140, 0.55);
+  background: rgba(236, 0, 140, 0.1);
+  color: #f5f5f5;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.25s ease,
+    color 0.25s ease;
+}
+
+.desktop:hover {
+  background: linear-gradient(90deg, #ec008c, #14aeef);
+  border-color: transparent;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.desktop svg {
+  flex-shrink: 0;
+}
+
+.mobile {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 0.75rem;
+  padding: 0.7rem 1.4rem;
+  border-radius: 999px;
+  border: 1px solid rgba(236, 0, 140, 0.55);
+  background: rgba(236, 0, 140, 0.12);
+  color: #f5f5f5;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease;
+}
+
+.mobile:hover {
+  background: linear-gradient(90deg, #ec008c, #14aeef);
+  border-color: transparent;
+  color: #ffffff;
+}
+
+.mobile svg {
+  flex-shrink: 0;
+}

@@ -13,6 +13,8 @@ This project runs Next.js 16.2.2 with significant API and convention changes fro
 - **Tailwind CSS** 4 (via `@tailwindcss/postcss`)
 - **GSAP** — animations
 - **Lucide React** — icons
+- **Recharts** — charts (reportes financieros)
+- **ExcelJS** — xlsx export (reportes)
 - **TypeScript** with strict mode
 - Path alias: `@/*` → root `./`
 - ESLint flat config (`eslint.config.mjs`)
@@ -65,6 +67,19 @@ Key domain quirks:
 - **Soft deletes**: DELETE on reservas, servicios, and locales sets `activo=false` — nothing is hard-deleted.
 - Public booking flow only shows services where `requiere_evaluacion: false` — see `SERVICIOS_DISPONIBLES` vs `SERVICIOS_ADMIN_DISPONIBLES` in `types/reserva.ts`.
 
+## Payments & Cash Register (Caja)
+
+Admin-only point-of-sale flow, separate from reservations. Lives across three pages under `app/atrevida-gestion/`:
+
+- **`caja/`** — register a sale: pick a local, load its services, build a line-item `detalle` (`DetalleServicio[]`), attach/create a cliente, then `crearPagoDB`. Also lists recent pagos for the selected local via `getPagosDB`.
+- **`pagos/`** — browse/filter pagos (`getPagosDB` with `GetPagosParams`).
+- **`reportes/`** — financial reports via `getPagosResumenDB` (`/bd/pagos/resumen`); renders charts with **Recharts** and exports xlsx with **ExcelJS**.
+
+Domain notes:
+- **`tipo_pago`**: `'qr' | 'efectivo'` (note: differs from reservation `tipo` encoding).
+- A pago carries `subtotal`, `descuento`, `total_final`; report aggregates expose `ticket_promedio`, `servicio_mas_comprado`, `servicio_mas_dinero_genera`, `ventas_por_tipo_pago`.
+- All types live in `lib/api/pagos.ts` (no separate `types/` file like reservas).
+
 ## Key Files
 
 | Path | Purpose |
@@ -74,6 +89,7 @@ Key domain quirks:
 | `lib/api/servicios.ts` | `/bd/servicios`, `/bd/combos`, `/bd/locales`, `/bd/categorias` service functions |
 | `lib/api/auth.ts` | Real backend auth calls (`/auth/*`) — login, register, password change, user management |
 | `lib/api/clientes.ts` | `/bd/clientes` service functions |
+| `lib/api/pagos.ts` | `/bd/pagos` + `/bd/pagos/resumen` — payment creation, listing, financial report types |
 | `lib/api/notificaciones.ts` | Notification bell data — has 404 fallback: if `/bd/notificaciones/reservas` returns 404 it falls back to `/bd/reservas?estado=AGENDADO` filtering by `notificado=false` |
 | `types/reserva.ts` | All reservation types, service catalog, helper functions |
 | `lib/constants/reservationForm.ts` | Hour slots and day-of-week constants |

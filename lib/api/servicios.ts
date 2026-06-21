@@ -3,6 +3,7 @@
  */
 
 import { apiClient } from './client';
+import type { ApiResponse } from '@/types/reserva';
 
 // ─── Parámetros ───────────────────────────────────────────────────
 
@@ -78,8 +79,25 @@ export async function crearCategoriaDB(nombre: string) {
 // ─── Servicios ─────────────────────────────────────────────────────
 
 /** Obtiene servicios filtrados desde la base de datos. */
-export async function getServiciosDB(params: GetServiciosParams) {
-  return apiClient.get('/bd/servicios', {
+/** Fila de servicio devuelta por /bd/servicios. */
+export interface ServicioRow {
+  [key: string]: unknown;
+  id: number;
+  nombre: string;
+  costo: number | string;
+  categoria?: string;
+  activo?: boolean;
+  tiempo?: unknown;
+  sesiones?: unknown;
+  tipoEspacio?: unknown;
+  local?: unknown;
+  requiere_evaluacion?: unknown;
+}
+
+export async function getServiciosDB(
+  params: GetServiciosParams,
+): Promise<ApiResponse<{ servicios: ServicioRow[] }>> {
+  return apiClient.get<ApiResponse<{ servicios: ServicioRow[] }>>('/bd/servicios', {
     params: {
       local: params.local,
       nombre: params.nombre,
@@ -188,9 +206,18 @@ export async function eliminarComboServicio(id: number | string) {
 
 // ─── Locales ──────────────────────────────────────────────────────
 
+/** Fila de local devuelta por /bd/locales. */
+export interface LocalRow {
+  [key: string]: unknown;
+  id: number;
+  nombre: string;
+  activo?: boolean;
+  espacios?: unknown[] | null;
+}
+
 /** Obtiene locales desde la base de datos. */
-export async function getLocalesDB() {
-  return apiClient.get('/bd/locales');
+export async function getLocalesDB(): Promise<ApiResponse<{ locales: LocalRow[] }>> {
+  return apiClient.get<ApiResponse<{ locales: LocalRow[] }>>('/bd/locales');
 }
 
 /** Obtiene un local por su ID. */

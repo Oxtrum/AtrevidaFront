@@ -60,9 +60,8 @@ export default function PagosPage() {
         estado: filterEstado || undefined,
         activo: true,
       });
-      const data = (res as { data?: { pagos?: Pago[]; total?: number } }).data;
-      setPagos((data?.pagos ?? []) as PagoRow[]);
-      setTotal(data?.total ?? 0);
+      setPagos((res.data?.pagos ?? []) as PagoRow[]);
+      setTotal(res.data?.total ?? 0);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar pagos');
     } finally {
