@@ -72,7 +72,7 @@ const DEFAULT_NEW_USER_FORM: NewUserForm = {
 };
 
 const ROLE_OPTIONS = [
-  { value: 'gerencia', label: 'Gerencia' },
+  { value: 'gerencia', label: 'Recepción' },
   { value: 'admin_sys', label: 'Administrador de sistema' },
 ];
 
