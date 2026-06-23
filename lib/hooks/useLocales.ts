@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import {
+  getAdminTokenForCurrentRoute,
+  isAdminProtectedRoute,
+  isRedirectingToAdminLogin,
   redirectToAdminLogin,
-  requireActiveAdminSession,
   shouldRedirectToAdminLogin,
   waitForAdminLoginRedirect,
 } from '@/lib/auth/adminSession';
@@ -40,8 +42,8 @@ export function useLocales(): UseLocalesReturn {
     setError(null);
 
     try {
-      const token = requireActiveAdminSession();
-      if (!token) {
+      const token = getAdminTokenForCurrentRoute();
+      if (!token && isRedirectingToAdminLogin()) {
         await waitForAdminLoginRedirect<void>();
         return;
       }
@@ -54,10 +56,12 @@ export function useLocales(): UseLocalesReturn {
       const response = await res.json() as LocalesResponse;
 
       if (!res.ok) {
-        if (shouldRedirectToAdminLogin(res.status, response)) {
+        if (isAdminProtectedRoute() && shouldRedirectToAdminLogin(res.status, response)) {
           redirectToAdminLogin();
-          await waitForAdminLoginRedirect<void>();
-          return;
+          if (isRedirectingToAdminLogin()) {
+            await waitForAdminLoginRedirect<void>();
+            return;
+          }
         }
         throw new Error(`HTTP ${res.status}`);
       }

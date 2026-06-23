@@ -3,8 +3,10 @@
 import { useState, useCallback } from 'react';
 import type { ReservasBDApiResponse } from '@/types/reserva';
 import {
+    getAdminTokenForCurrentRoute,
+    isAdminProtectedRoute,
+    isRedirectingToAdminLogin,
     redirectToAdminLogin,
-    requireActiveAdminSession,
     shouldRedirectToAdminLogin,
     waitForAdminLoginRedirect,
 } from '@/lib/auth/adminSession';
@@ -44,8 +46,8 @@ export function useReservas(): UseReservasReturn {
         setError(null);
 
         try {
-            const token = requireActiveAdminSession();
-            if (!token) {
+            const token = getAdminTokenForCurrentRoute();
+            if (!token && isRedirectingToAdminLogin()) {
                 await waitForAdminLoginRedirect<void>();
                 return;
             }
@@ -63,10 +65,12 @@ export function useReservas(): UseReservasReturn {
             const result = await res.json() as ReservasBDApiResponse;
 
             if (!res.ok) {
-                if (shouldRedirectToAdminLogin(res.status, result)) {
+                if (isAdminProtectedRoute() && shouldRedirectToAdminLogin(res.status, result)) {
                     redirectToAdminLogin();
-                    await waitForAdminLoginRedirect<void>();
-                    return;
+                    if (isRedirectingToAdminLogin()) {
+                        await waitForAdminLoginRedirect<void>();
+                        return;
+                    }
                 }
                 throw new Error(result.message || `HTTP ${res.status}`);
             }

@@ -7,6 +7,7 @@ import {
   clearExpiredAdminSession,
   expireAdminSessionAndRedirect,
   getActiveAdminToken,
+  isAdminProtectedRoute,
   isRedirectingToAdminLogin,
   requireActiveAdminSession,
   shouldRedirectToAdminLogin,
@@ -23,6 +24,7 @@ type AuthMode = 'admin' | 'optional' | 'none';
  */
 function resolveAuthMode(endpoint: string, explicitMode?: AuthMode): AuthMode {
   if (explicitMode) return explicitMode;
+  if (!isAdminProtectedRoute()) return 'optional';
   if (endpoint.startsWith('/bd/')) return 'admin';
   if (endpoint.startsWith('/auth/') && endpoint !== '/auth/login') return 'admin';
   return 'optional';
@@ -100,7 +102,7 @@ async function request<T>(
   if (!res.ok) {
     if (authMode === 'admin' && shouldRedirectToAdminLogin(res.status, json)) {
       expireAdminSessionAndRedirect();
-      return waitForAdminLoginRedirect<T>();
+      if (isRedirectingToAdminLogin()) return waitForAdminLoginRedirect<T>();
     }
 
     throw new ApiError(

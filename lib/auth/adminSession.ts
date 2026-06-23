@@ -4,6 +4,7 @@ export interface AdminUserSession {
 }
 
 const ADMIN_LOGIN_PATH = '/atrevida-gestion/login';
+const ADMIN_BASE_PATH = '/atrevida-gestion';
 
 export interface AdminTokenClaims extends AdminUserSession {
   sub?: string;
@@ -105,6 +106,21 @@ export function clearExpiredAdminSession(bufferSeconds = 0): boolean {
   return true;
 }
 
+export function isAdminProtectedRoute(): boolean {
+  if (typeof window === 'undefined') return false;
+
+  const { pathname } = window.location;
+  return pathname !== ADMIN_LOGIN_PATH
+    && (pathname === ADMIN_BASE_PATH || pathname.startsWith(`${ADMIN_BASE_PATH}/`));
+}
+
+export function getAdminTokenForCurrentRoute(bufferSeconds = 0): string | null {
+  if (isAdminProtectedRoute()) return requireActiveAdminSession(bufferSeconds);
+
+  if (clearExpiredAdminSession(bufferSeconds)) return null;
+  return getActiveAdminToken(bufferSeconds);
+}
+
 export function requireActiveAdminSession(bufferSeconds = 0): string | null {
   const token = getStoredAdminToken();
   if (!token || isStoredAdminTokenExpired(bufferSeconds)) {
@@ -166,7 +182,7 @@ export function expireAdminSessionAndRedirect(): void {
 
   clearStoredAdminSession();
 
-  if (redirectingToLogin || window.location.pathname === ADMIN_LOGIN_PATH) return;
+  if (redirectingToLogin || !isAdminProtectedRoute()) return;
 
   redirectingToLogin = true;
   window.location.replace(ADMIN_LOGIN_PATH);
