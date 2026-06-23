@@ -488,6 +488,131 @@
   background: rgba(0, 0, 0, 0.78);
 }
 
+.successOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: grid;
+  place-items: center;
+  padding: clamp(1rem, 4vw, 2rem);
+  background: transparent;
+}
+
+.successDialog {
+  position: relative;
+  width: min(460px, 100%);
+  padding: clamp(1.5rem, 4vw, 2rem);
+  color: #F5F5F5;
+  text-align: center;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.045)),
+    rgba(8, 8, 10, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 26px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.10),
+    0 28px 86px rgba(0, 0, 0, 0.74);
+  animation: successRise 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.successDialogClosing {
+  animation: successExit 0.24s cubic-bezier(0.64, 0, 0.78, 0) forwards;
+}
+
+.successDialog::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255, 230, 0, 0.75), rgba(236, 0, 140, 0.38), rgba(20, 174, 239, 0.34));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.successIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 68px;
+  height: 68px;
+  margin-bottom: 1rem;
+  color: #050505;
+  background: #FFE600;
+  border-radius: 50%;
+  box-shadow:
+    0 18px 42px rgba(255, 230, 0, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.successKicker {
+  display: block;
+  margin-bottom: 0.55rem;
+  color: #FFE600;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+}
+
+.successTitle {
+  margin: 0;
+  color: #FFFFFF;
+  font-size: clamp(1.55rem, 4vw, 2.1rem);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+
+.successMessage {
+  margin: 0.9rem auto 0;
+  max-width: 34rem;
+  color: rgba(245, 245, 245, 0.74);
+  font-size: 0.98rem;
+  line-height: 1.62;
+}
+
+.successAcceptButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: min(260px, 100%);
+  min-height: 48px;
+  margin-top: 1.5rem;
+  padding: 0.82rem 1.3rem;
+  border: 0;
+  border-radius: 999px;
+  color: #050505;
+  background: #FFE600;
+  font-family: inherit;
+  font-size: 0.94rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow:
+    0 16px 38px rgba(255, 230, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.32);
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), background 0.22s ease, box-shadow 0.22s ease;
+}
+
+.successAcceptButton:hover,
+.successAcceptButton:focus-visible {
+  outline: none;
+  transform: translateY(-2px);
+  background: #FFF06A;
+  box-shadow:
+    0 20px 48px rgba(255, 230, 0, 0.3),
+    0 0 0 3px rgba(255, 230, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.34);
+}
+
+.successAcceptButton:active {
+  transform: translateY(0) scale(0.99);
+}
+
 @keyframes modalFade {
   from {
     opacity: 0;
@@ -507,6 +632,30 @@
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes successRise {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes successExit {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
   }
 }
 
@@ -620,6 +769,10 @@
   .modalPanel {
     border-radius: 22px;
     margin: 0;
+  }
+
+  .successDialog {
+    border-radius: 22px;
   }
 }
 

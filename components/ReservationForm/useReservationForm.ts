@@ -512,11 +512,13 @@ export function useReservationForm(
         };
 
         await crearReserva(payload);
-        toast.success(
-          reservaRequiereAprobacion
-            ? 'Reserva enviada. Quedará pendiente de aprobación.'
-            : 'Reserva agendada correctamente.',
-        );
+        if (initialData?.isAdmin) {
+          toast.success(
+            reservaRequiereAprobacion
+              ? 'Reserva enviada. Quedará pendiente de aprobación.'
+              : 'Reserva agendada correctamente.',
+          );
+        }
 
         if (onSuccess) {
           onSuccess();

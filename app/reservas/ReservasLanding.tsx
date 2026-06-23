@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import {
   ArrowRight,
@@ -23,12 +23,40 @@ interface ReservasLandingProps {
   initialModalOpen?: boolean;
 }
 
+const PUBLIC_RESERVATION_SUCCESS_MESSAGE =
+  'Se ha registrado tu reserva con éxito. Nuestro equipo se pondrá en contacto contigo en breve para cotejar los últimos detalles.';
+const SUCCESS_POPUP_EXIT_DURATION_MS = 240;
+
 export default function ReservasLanding({ initialModalOpen = false }: ReservasLandingProps) {
   const [modalOpen, setModalOpen] = useState(initialModalOpen);
+  const [successPopupOpen, setSuccessPopupOpen] = useState(false);
+  const [successPopupClosing, setSuccessPopupClosing] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const proofRef = useRef<HTMLDivElement>(null);
+  const successAcceptRef = useRef<HTMLButtonElement>(null);
+  const successCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const bodyScrollLockRef = useRef<{ overflow: string; paddingRight: string } | null>(null);
   const openModal = () => setModalOpen(true);
+  const scrollLocked = modalOpen || successPopupOpen;
+  const closeSuccessPopup = useCallback(() => {
+    if (successPopupClosing) return;
+    setSuccessPopupClosing(true);
+    successCloseTimeoutRef.current = setTimeout(() => {
+      setSuccessPopupOpen(false);
+      setSuccessPopupClosing(false);
+      successCloseTimeoutRef.current = null;
+    }, SUCCESS_POPUP_EXIT_DURATION_MS);
+  }, [successPopupClosing]);
+  const handleReservationSuccess = () => {
+    if (successCloseTimeoutRef.current) {
+      clearTimeout(successCloseTimeoutRef.current);
+      successCloseTimeoutRef.current = null;
+    }
+    setModalOpen(false);
+    setSuccessPopupClosing(false);
+    setSuccessPopupOpen(true);
+  };
 
   useEffect(() => {
     let cleanupGsap: (() => void) | undefined;
@@ -201,20 +229,58 @@ export default function ReservasLanding({ initialModalOpen = false }: ReservasLa
   }, []);
 
   useEffect(() => {
-    document.body.style.overflow = modalOpen ? 'hidden' : '';
     return () => {
-      document.body.style.overflow = '';
+      if (successCloseTimeoutRef.current) {
+        clearTimeout(successCloseTimeoutRef.current);
+      }
     };
-  }, [modalOpen]);
+  }, []);
+
+  useEffect(() => {
+    if (!scrollLocked) return;
+
+    const body = document.body;
+    const scrollbarWidth = Math.max(0, window.innerWidth - document.documentElement.clientWidth);
+    const currentPaddingRight = parseFloat(window.getComputedStyle(body).paddingRight) || 0;
+
+    bodyScrollLockRef.current = {
+      overflow: body.style.overflow,
+      paddingRight: body.style.paddingRight,
+    };
+
+    body.style.overflow = 'hidden';
+    if (scrollbarWidth > 0) {
+      body.style.paddingRight = `${currentPaddingRight + scrollbarWidth}px`;
+    }
+
+    return () => {
+      if (!bodyScrollLockRef.current) return;
+
+      body.style.overflow = bodyScrollLockRef.current.overflow;
+      body.style.paddingRight = bodyScrollLockRef.current.paddingRight;
+      bodyScrollLockRef.current = null;
+    };
+  }, [scrollLocked]);
+
+  useEffect(() => {
+    if (successPopupOpen && !successPopupClosing) {
+      successAcceptRef.current?.focus();
+    }
+  }, [successPopupOpen, successPopupClosing]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setModalOpen(false);
+      if (event.key !== 'Escape') return;
+      if (successPopupOpen) {
+        closeSuccessPopup();
+        return;
+      }
+      if (modalOpen) setModalOpen(false);
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [closeSuccessPopup, modalOpen, successPopupOpen]);
 
   return (
     <div ref={containerRef} className={styles.pageContainer}>
@@ -400,9 +466,41 @@ export default function ReservasLanding({ initialModalOpen = false }: ReservasLa
               <X size={20} strokeWidth={1.8} />
             </button>
             <ReservationForm
-              onSuccess={() => setModalOpen(false)}
+              onSuccess={handleReservationSuccess}
               onCancel={() => setModalOpen(false)}
             />
+          </div>
+        </div>
+      )}
+
+      {successPopupOpen && (
+        <div
+          className={styles.successOverlay}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="reservation-success-title"
+          aria-describedby="reservation-success-message"
+        >
+          <div className={`${styles.successDialog} ${successPopupClosing ? styles.successDialogClosing : ''}`}>
+            <div className={styles.successIcon} aria-hidden="true">
+              <CheckCircle2 size={34} strokeWidth={1.8} />
+            </div>
+            <span className={styles.successKicker}>Solicitud recibida</span>
+            <h2 id="reservation-success-title" className={styles.successTitle}>
+              Reserva registrada con éxito
+            </h2>
+            <p id="reservation-success-message" className={styles.successMessage}>
+              {PUBLIC_RESERVATION_SUCCESS_MESSAGE}
+            </p>
+            <button
+              ref={successAcceptRef}
+              type="button"
+              className={styles.successAcceptButton}
+              onClick={closeSuccessPopup}
+              disabled={successPopupClosing}
+            >
+              Aceptar
+            </button>
           </div>
         </div>
       )}
