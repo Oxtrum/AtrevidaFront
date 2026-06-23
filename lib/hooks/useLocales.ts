@@ -1,7 +1,12 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { redirectToAdminLogin, shouldRedirectToAdminLogin } from '@/lib/auth/adminSession';
+import {
+  redirectToAdminLogin,
+  requireActiveAdminSession,
+  shouldRedirectToAdminLogin,
+  waitForAdminLoginRedirect,
+} from '@/lib/auth/adminSession';
 
 interface Local {
   id: number;
@@ -35,7 +40,12 @@ export function useLocales(): UseLocalesReturn {
     setError(null);
 
     try {
-      const token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
+      const token = requireActiveAdminSession();
+      if (!token) {
+        await waitForAdminLoginRedirect<void>();
+        return;
+      }
+
       const res = await fetch('/api/bd/locales', {
         headers: {
           ...(token && { Authorization: `Bearer ${token}` }),
@@ -46,6 +56,8 @@ export function useLocales(): UseLocalesReturn {
       if (!res.ok) {
         if (shouldRedirectToAdminLogin(res.status, response)) {
           redirectToAdminLogin();
+          await waitForAdminLoginRedirect<void>();
+          return;
         }
         throw new Error(`HTTP ${res.status}`);
       }
