@@ -90,6 +90,18 @@
   color: var(--admin-accent-danger);
 }
 
+.fieldHint {
+  color: var(--admin-text-dim);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.roleCell {
+  color: var(--admin-foreground);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
 .submitError {
   margin-top: 0.5rem;
   padding: 0.75rem 1rem;

@@ -5,7 +5,11 @@ export interface UsuarioResumen {
   username: string;
   activo: boolean;
   fecha_registro: string;
+  rol_codigo: string;
+  rol_nombre: string;
 }
+
+export type RolCodigo = 'admin_sys' | 'gerencia';
 
 export interface LoginResponse {
   expires_in: number;
@@ -34,8 +38,13 @@ export async function loginAuth(
 export async function registrarUsuario(
   username: string,
   password: string,
+  rolCodigo: RolCodigo,
 ): Promise<ApiResponse<{ id: number }>> {
-  return apiClient.post<ApiResponse<{ id: number }>>('/auth/register', { username, password });
+  return apiClient.post<ApiResponse<{ id: number }>>('/auth/register', {
+    username,
+    password,
+    rol_codigo: rolCodigo,
+  });
 }
 
 export async function getUsuarios(): Promise<ApiResponse<UsuariosListResponse>> {

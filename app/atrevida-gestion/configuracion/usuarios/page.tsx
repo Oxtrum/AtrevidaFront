@@ -6,6 +6,7 @@ import gsap from 'gsap';
 import { KeyRound, Plus, ShieldCheck, UserX, UserCheck } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
 import { PageHeader, DataTable, FormModal, RowActionsMenu } from '@/components/AdminConfig';
+import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import type { Column } from '@/components/AdminConfig';
 import { toast } from '@/components/Shared/Toast';
 import { ApiError } from '@/lib/api/client';
@@ -16,22 +17,27 @@ import {
   toggleUsuarioActivo,
 } from '@/lib/api/auth';
 import type { UsuarioResumen } from '@/lib/api/auth';
+import type { RolCodigo } from '@/lib/api/auth';
 import styles from './page.module.css';
 
 interface UsuarioRow extends Record<string, unknown> {
   username: string;
   activo: boolean;
   fecha_registro: string;
+  rol_codigo: string;
+  rol_nombre: string;
 }
 
 interface NewUserForm {
   username: string;
   password: string;
+  rolCodigo: RolCodigo;
 }
 
 interface NewUserErrors {
   username?: string;
   password?: string;
+  rolCodigo?: string;
   submit?: string;
 }
 
@@ -59,6 +65,17 @@ const EMPTY_PW_FORM: PwForm = {
   confirmPassword: '',
 };
 
+const DEFAULT_NEW_USER_FORM: NewUserForm = {
+  username: '',
+  password: '',
+  rolCodigo: 'gerencia',
+};
+
+const ROLE_OPTIONS = [
+  { value: 'gerencia', label: 'Recepción' },
+  { value: 'admin_sys', label: 'Administrador de sistema' },
+];
+
 export default function UsuariosPage() {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -69,7 +86,7 @@ export default function UsuariosPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [newUserModalOpen, setNewUserModalOpen] = useState(false);
-  const [newUserForm, setNewUserForm] = useState<NewUserForm>({ username: '', password: '' });
+  const [newUserForm, setNewUserForm] = useState<NewUserForm>(DEFAULT_NEW_USER_FORM);
   const [newUserErrors, setNewUserErrors] = useState<NewUserErrors>({});
   const [saving, setSaving] = useState(false);
 
@@ -113,12 +130,16 @@ export default function UsuariosPage() {
 
   // ─── Crear usuario ────────────────────────────────────────────────────────
 
-  const resetNewUser = () => { setNewUserForm({ username: '', password: '' }); setNewUserErrors({}); };
+  const resetNewUser = () => {
+    setNewUserForm(DEFAULT_NEW_USER_FORM);
+    setNewUserErrors({});
+  };
 
   const validateNewUser = (): boolean => {
     const errors: NewUserErrors = {};
     if (!newUserForm.username.trim()) errors.username = 'El usuario es obligatorio';
     if (!newUserForm.password.trim()) errors.password = 'La contraseña es obligatoria';
+    if (!newUserForm.rolCodigo) errors.rolCodigo = 'Selecciona un rol';
     setNewUserErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -128,7 +149,11 @@ export default function UsuariosPage() {
     setSaving(true);
     setNewUserErrors({});
     try {
-      await registrarUsuario(newUserForm.username.trim(), newUserForm.password);
+      await registrarUsuario(
+        newUserForm.username.trim(),
+        newUserForm.password,
+        newUserForm.rolCodigo,
+      );
       toast.success('Usuario creado correctamente');
       setNewUserModalOpen(false);
       resetNewUser();
@@ -220,6 +245,15 @@ export default function UsuariosPage() {
 
   const columns: Column<UsuarioRow>[] = [
     { key: 'username', label: 'Usuario' },
+    {
+      key: 'rol_nombre',
+      label: 'Rol',
+      render: (value, row) => (
+        <span className={styles.roleCell}>
+          {String(value || row.rol_codigo)}
+        </span>
+      ),
+    },
     {
       key: 'activo',
       label: 'Estado',
@@ -339,6 +373,30 @@ export default function UsuariosPage() {
               className={newUserErrors.password ? styles.inputError : ''}
             />
             {newUserErrors.password && <span className={styles.fieldError}>{newUserErrors.password}</span>}
+          </div>
+
+          <div className={styles.field}>
+            <label id="usr-role-label" htmlFor="usr-role">Rol</label>
+            <CustomSelect
+              id="usr-role"
+              ariaLabelledBy="usr-role-label"
+              value={newUserForm.rolCodigo}
+              onChange={(value) => {
+                setNewUserForm((current) => ({
+                  ...current,
+                  rolCodigo: value as RolCodigo,
+                }));
+                if (newUserErrors.rolCodigo) {
+                  setNewUserErrors((current) => ({ ...current, rolCodigo: undefined }));
+                }
+              }}
+              options={ROLE_OPTIONS}
+              hasError={!!newUserErrors.rolCodigo}
+            />
+            <span className={styles.fieldHint}>
+              Gerencia no puede administrar usuarios ni consultar reportes financieros.
+            </span>
+            {newUserErrors.rolCodigo && <span className={styles.fieldError}>{newUserErrors.rolCodigo}</span>}
           </div>
 
           {newUserErrors.submit && <div className={styles.submitError}>{newUserErrors.submit}</div>}
