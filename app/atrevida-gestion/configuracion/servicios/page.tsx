@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
 import { Filter, Pencil, Plus, Scissors, Search, Trash2, X } from 'lucide-react';
@@ -40,6 +40,12 @@ interface ServicioRow extends Record<string, unknown> {
 interface CategoriaOption {
   id: number;
   nombre: string;
+}
+
+interface FormCategoriasState {
+  local: string;
+  categorias: CategoriaOption[];
+  error: string | null;
 }
 
 interface LocalOption {
@@ -146,6 +152,11 @@ export default function ServiciosPage() {
   // Options
   const [categorias, setCategorias] = useState<CategoriaOption[]>([]);
   const [locales, setLocales] = useState<LocalOption[]>([]);
+  const [formCategorias, setFormCategorias] = useState<FormCategoriasState>({
+    local: '',
+    categorias: [],
+    error: null,
+  });
 
   // Modal
   const [modalOpen, setModalOpen] = useState(false);
@@ -154,6 +165,31 @@ export default function ServiciosPage() {
   const [form, setForm] = useState<FormState>(FORM_INITIAL);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const isEdit = editingId !== null;
+  const formCategoriasLoading = modalOpen && !!form.local && formCategorias.local !== form.local;
+  const categoriaOptions = useMemo(() => {
+    const categoriasDisponibles = formCategorias.local === form.local ? formCategorias.categorias : [];
+
+    if (!form.local) {
+      return [{ value: '', label: 'Elige un local primero', disabled: true }];
+    }
+
+    if (formCategoriasLoading) {
+      return [{ value: '', label: 'Cargando categorías...', disabled: true }];
+    }
+
+    if (formCategorias.error && formCategorias.local === form.local) {
+      return [{ value: '', label: 'No se cargaron categorías', disabled: true }];
+    }
+
+    if (categoriasDisponibles.length === 0) {
+      return [{ value: '', label: 'Sin categorías para este local', disabled: true }];
+    }
+
+    return [
+      { value: '', label: 'Seleccionar' },
+      ...categoriasDisponibles.map((c) => ({ value: c.nombre, label: c.nombre })),
+    ];
+  }, [form.local, formCategorias.categorias, formCategorias.error, formCategorias.local, formCategoriasLoading]);
 
   // ─── Confirm dialog ───────────────────────────────────────────────────────
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
@@ -210,6 +246,35 @@ export default function ServiciosPage() {
   }, [router, fetchOptions]);
 
   useEffect(() => {
+    if (!modalOpen || !form.local) return;
+
+    let cancelled = false;
+
+    getCategoriasDB({ local: form.local })
+      .then((res) => {
+        if (cancelled) return;
+        const data = res as { data?: { categorias?: CategoriaOption[] } };
+        setFormCategorias({
+          local: form.local,
+          categorias: data.data?.categorias ?? [],
+          error: null,
+        });
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setFormCategorias({
+          local: form.local,
+          categorias: [],
+          error: err instanceof Error ? err.message : 'No se cargaron categorías',
+        });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [modalOpen, form.local]);
+
+  useEffect(() => {
     if (hasFilter) fetchServicios();
     else { setServicios([]); setTotal(0); }
   }, [fetchServicios, hasFilter]);
@@ -264,6 +329,13 @@ export default function ServiciosPage() {
     const errors: FormErrors = {};
     if (!form.nombre.trim()) errors.nombre = 'El nombre es obligatorio';
     if (!form.categoria) errors.categoria = 'Selecciona una categoría';
+    else if (
+      form.local
+      && formCategorias.local === form.local
+      && !formCategorias.categorias.some((categoria) => categoria.nombre === form.categoria)
+    ) {
+      errors.categoria = 'Selecciona una categoría disponible para este local';
+    }
     if (!isEdit && !form.local) errors.local = 'Selecciona un local';
 
     const costoNum = Number(form.costo);
@@ -711,26 +783,6 @@ export default function ServiciosPage() {
             {formErrors.nombre && <span className={styles.fieldError}>{formErrors.nombre}</span>}
           </div>
 
-          {/* Categoría */}
-          <div className={styles.field}>
-            <label id="lbl-srv-categoria" htmlFor="srv-categoria">Categoría</label>
-            <CustomSelect
-              id="srv-categoria"
-              ariaLabelledBy="lbl-srv-categoria"
-              value={form.categoria}
-              onChange={(v) => {
-                patchForm({ categoria: v });
-                if (formErrors.categoria) setFormErrors((p) => ({ ...p, categoria: undefined }));
-              }}
-              options={[
-                { value: '', label: 'Seleccionar' },
-                ...categorias.map((c) => ({ value: c.nombre, label: c.nombre })),
-              ]}
-              hasError={!!formErrors.categoria}
-            />
-            {formErrors.categoria && <span className={styles.fieldError}>{formErrors.categoria}</span>}
-          </div>
-
           {/* Local */}
           <div className={styles.field}>
             <label id="lbl-srv-local" htmlFor="srv-local">Local</label>
@@ -749,8 +801,10 @@ export default function ServiciosPage() {
                 ariaLabelledBy="lbl-srv-local"
                 value={form.local}
                 onChange={(v) => {
-                  patchForm({ local: v });
-                  if (formErrors.local) setFormErrors((p) => ({ ...p, local: undefined }));
+                  patchForm({ local: v, categoria: '' });
+                  if (formErrors.local || formErrors.categoria) {
+                    setFormErrors((p) => ({ ...p, local: undefined, categoria: undefined }));
+                  }
                 }}
                 options={[
                   { value: '', label: 'Seleccionar local' },
@@ -760,6 +814,29 @@ export default function ServiciosPage() {
               />
             )}
             {formErrors.local && <span className={styles.fieldError}>{formErrors.local}</span>}
+          </div>
+
+          {/* Categoría */}
+          <div className={styles.field}>
+            <label id="lbl-srv-categoria" htmlFor="srv-categoria">Categoría</label>
+            <CustomSelect
+              id="srv-categoria"
+              ariaLabelledBy="lbl-srv-categoria"
+              value={form.categoria}
+              onChange={(v) => {
+                patchForm({ categoria: v });
+                if (formErrors.categoria) setFormErrors((p) => ({ ...p, categoria: undefined }));
+              }}
+              options={categoriaOptions}
+              hasError={!!formErrors.categoria}
+            />
+            {!form.local && !isEdit && (
+              <p className={styles.localFirstHint}>Elige un local para ver sus categorias.</p>
+            )}
+            {form.local && formCategoriasLoading && (
+              <p className={styles.localFirstHint}>Cargando categorias de {form.local}...</p>
+            )}
+            {formErrors.categoria && <span className={styles.fieldError}>{formErrors.categoria}</span>}
           </div>
 
           {/* ── Sección: Detalles de sesión ── */}

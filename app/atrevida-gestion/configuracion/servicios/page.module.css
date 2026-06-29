@@ -653,3 +653,10 @@
     grid-template-columns: 1fr;
   }
 }
+
+.localFirstHint {
+  margin: 0.1rem 0 0;
+  color: var(--admin-text-dim);
+  font-size: 0.7rem;
+  line-height: 1.45;
+}

@@ -23,6 +23,11 @@ export interface GetCombosParams {
   sesiones?: number;
 }
 
+export interface GetCategoriasParams {
+  local?: string;
+  local_id?: number;
+}
+
 export interface CrearLocalData {
   nombre: string;
   espacios: Array<{ tipo_espacio: string; cantidad_espacios: number }>;
@@ -67,8 +72,13 @@ export interface ActivarServicioEnLocalData {
 // ─── Categorías ───────────────────────────────────────────────────
 
 /** Obtiene todas las categorías desde la base de datos. */
-export async function getCategoriasDB() {
-  return apiClient.get('/bd/categorias');
+export async function getCategoriasDB(params: GetCategoriasParams = {}) {
+  return apiClient.get('/bd/categorias', {
+    params: {
+      local: params.local,
+      local_id: params.local_id,
+    },
+  });
 }
 
 /** Crea una nueva categoría. */
