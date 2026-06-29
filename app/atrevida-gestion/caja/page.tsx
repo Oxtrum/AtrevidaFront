@@ -587,6 +587,29 @@ export default function CajaPage() {
                       {loadingServicios && <span className="admin-badge">Cargando</span>}
                     </div>
 
+                    <div className={styles.customService}>
+                      <span className={styles.kicker}>Servicio personalizado</span>
+                      <input
+                        type="text"
+                        value={customServicio}
+                        onChange={(e) => setCustomServicio(e.target.value)}
+                        placeholder="Nombre del servicio"
+                      />
+                      <div className={styles.inlineFields}>
+                        <input
+                          type="number"
+                          min={0}
+                          value={customPrecio}
+                          onChange={(e) => setCustomPrecio(e.target.value)}
+                          placeholder="Precio"
+                        />
+                        <button type="button" className="admin-button admin-button-secondary" onClick={addCustomDetalle}>
+                          <Plus size={16} strokeWidth={2} />
+                          Agregar
+                        </button>
+                      </div>
+                    </div>
+
                     <div className={styles.searchBox}>
                       <Search size={15} strokeWidth={1.8} />
                       <input
@@ -615,29 +638,6 @@ export default function CajaPage() {
                       {!loadingServicios && serviciosFiltrados.length === 0 && (
                         <p className={styles.mutedText}>No hay servicios para este filtro.</p>
                       )}
-                    </div>
-
-                    <div className={styles.customService}>
-                      <span className={styles.kicker}>Servicio personalizado</span>
-                      <input
-                        type="text"
-                        value={customServicio}
-                        onChange={(e) => setCustomServicio(e.target.value)}
-                        placeholder="Nombre del servicio"
-                      />
-                      <div className={styles.inlineFields}>
-                        <input
-                          type="number"
-                          min={0}
-                          value={customPrecio}
-                          onChange={(e) => setCustomPrecio(e.target.value)}
-                          placeholder="Precio"
-                        />
-                        <button type="button" className="admin-button admin-button-secondary" onClick={addCustomDetalle}>
-                          <Plus size={16} strokeWidth={2} />
-                          Agregar
-                        </button>
-                      </div>
                     </div>
                   </div>
 
