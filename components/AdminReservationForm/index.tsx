@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertTriangle, CalendarPlus } from 'lucide-react';
 import { CustomSelect } from '../Custom/CustomSelectAdmin';
@@ -7,6 +8,7 @@ import { TimeSlotPicker } from './TimeSlotPicker';
 import { DaySelector } from './DaySelector';
 import { ServiceSelect } from './ServiceSelect';
 import { useReservationForm, type ReservationFormInitialData } from './useReservationForm';
+import { getClientesDB, type ClientePG } from '@/lib/api/clientes';
 import { normalizeBolivianPhone } from '@/lib/utils/reservationValidation';
 import styles from './ReservationForm.module.css';
 
@@ -15,8 +17,24 @@ interface ReservationFormProps {
   onSuccess?: () => void;
 }
 
+const MIN_CLIENT_SEARCH_LENGTH = 2;
+const MAX_CLIENT_SUGGESTIONS = 7;
+
+const getClienteNombreCompleto = (cliente: ClientePG) => `${cliente.nombre} ${cliente.apellido}`.trim();
+
+const normalizeSearch = (value: string) => value.trim().toLowerCase();
+
+const normalizeClientPhone = (value: string) => {
+  const digits = value.replace(/\D/g, '');
+  return normalizeBolivianPhone(digits.length > 8 ? digits.slice(-8) : digits);
+};
+
 export default function AdminReservationForm({ initialData, onSuccess }: ReservationFormProps) {
   const router = useRouter();
+  const [clientesDirectorio, setClientesDirectorio] = useState<ClientePG[]>([]);
+  const [clientesLoading, setClientesLoading] = useState(() => Boolean(initialData?.isAdmin));
+  const [clientesError, setClientesError] = useState<string | null>(null);
+  const [clienteDropdownOpen, setClienteDropdownOpen] = useState(false);
   const {
     sucursal, setSucursal,
     semanaIndex,
@@ -40,6 +58,57 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
     handleSlotSelect,
     handleSubmit,
   } = useReservationForm(initialData, onSuccess);
+
+  useEffect(() => {
+    if (!initialData?.isAdmin) return;
+
+    let cancelled = false;
+
+    getClientesDB({})
+      .then((res) => {
+        if (cancelled) return;
+        setClientesDirectorio(res.data?.clientes ?? []);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setClientesDirectorio([]);
+        setClientesError(err instanceof Error ? err.message : 'No se pudo cargar el directorio de clientes');
+      })
+      .finally(() => {
+        if (!cancelled) setClientesLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [initialData?.isAdmin]);
+
+  const clienteQuery = normalizeSearch(cliente);
+  const clientesSugeridos = useMemo(() => {
+    if (!initialData?.isAdmin || clienteQuery.length < MIN_CLIENT_SEARCH_LENGTH) return [];
+
+    return clientesDirectorio
+      .filter((clienteItem) => {
+        const nombre = normalizeSearch(clienteItem.nombre);
+        const apellido = normalizeSearch(clienteItem.apellido);
+        const nombreCompleto = normalizeSearch(getClienteNombreCompleto(clienteItem));
+
+        return nombre.includes(clienteQuery)
+          || apellido.includes(clienteQuery)
+          || nombreCompleto.includes(clienteQuery);
+      })
+      .slice(0, MAX_CLIENT_SUGGESTIONS);
+  }, [clienteQuery, clientesDirectorio, initialData?.isAdmin]);
+
+  const showClienteDropdown = initialData?.isAdmin
+    && clienteDropdownOpen
+    && clienteQuery.length >= MIN_CLIENT_SEARCH_LENGTH;
+
+  const selectClienteSugerido = (clienteItem: ClientePG) => {
+    setCliente(getClienteNombreCompleto(clienteItem));
+    setNumeroTelefono(normalizeClientPhone(clienteItem.numero_telefono));
+    setClienteDropdownOpen(false);
+  };
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
@@ -144,15 +213,49 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
           <div className={styles.formDivider} />
 
           {/* Cliente */}
-          <div className={`${styles.formGroup} ${styles.fullWidth}`}>
+          <div className={`${styles.formGroup} ${styles.fullWidth} ${styles.clientAutocomplete}`}>
             <label>Cliente</label>
             <input
               type="text"
               value={cliente}
-              onChange={e => setCliente(e.target.value)}
+              onChange={(e) => {
+                setCliente(e.target.value);
+                setClienteDropdownOpen(true);
+              }}
+              onFocus={() => setClienteDropdownOpen(true)}
+              onBlur={() => window.setTimeout(() => setClienteDropdownOpen(false), 120)}
               placeholder="Nombre del cliente"
               className={errors.cliente ? styles.inputError : ''}
+              autoComplete="off"
             />
+            {showClienteDropdown && (
+              <div className={styles.clientDropdown} role="listbox" aria-label="Clientes registrados">
+                {clientesLoading ? (
+                  <div className={styles.clientDropdownStatus}>Cargando directorio...</div>
+                ) : clientesError ? (
+                  <div className={styles.clientDropdownStatus}>{clientesError}</div>
+                ) : clientesSugeridos.length > 0 ? (
+                  clientesSugeridos.map((clienteItem) => (
+                    <button
+                      key={clienteItem.id}
+                      type="button"
+                      className={styles.clientOption}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        selectClienteSugerido(clienteItem);
+                      }}
+                      role="option"
+                      aria-selected={false}
+                    >
+                      <strong>{getClienteNombreCompleto(clienteItem)}</strong>
+                      <span>{clienteItem.numero_telefono || 'Sin telefono registrado'}</span>
+                    </button>
+                  ))
+                ) : (
+                  <div className={styles.clientDropdownStatus}>Sin coincidencias registradas</div>
+                )}
+              </div>
+            )}
             {errors.cliente && <span className={styles.errorText}>{errors.cliente}</span>}
           </div>
 
