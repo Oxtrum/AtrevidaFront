@@ -416,7 +416,6 @@ export function useReservationForm(
 
       try {
         const servicioInfo = serviciosAPI.find(s => s.nombre === servicio);
-        const reqEval = servicioInfo?.requiere_evaluacion ?? true;
         const tipoBody = (servicioInfo?.tipoEspacio === 'B' ? 'B' : 'M') as 'M' | 'B';
         const payload = {
           local: sucursal,
@@ -428,10 +427,10 @@ export function useReservationForm(
           numero_telefono: numeroTelefono.replace(/\D/g, ''),
           servicio,
           servicio_solicitado: servicio,
-          servicio_confirmado: reqEval ? null : servicio,
+          servicio_confirmado: servicio,
           precio: servicioInfo ? Number(servicioInfo.costo) || 0 : 0,
           notas: notas || undefined,
-          estado: reqEval ? 'PENDIENTE' as const : 'AGENDADO' as const,
+          estado: 'AGENDADO' as const,
         };
 
         await crearReserva(payload);
