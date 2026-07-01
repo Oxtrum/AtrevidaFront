@@ -12,11 +12,13 @@ import {
   Clock,
   MapPin,
   MessageCircle,
+  MoreHorizontal,
   Phone,
   RefreshCw,
   Search,
   ShieldCheck,
   SlidersHorizontal,
+  Trash2,
   XCircle,
 } from 'lucide-react';
 
@@ -24,7 +26,7 @@ import Header from '@/components/AdminHeader/Header';
 import { PageHeader, StatGrid, StatCard, AdminPanel } from '@/components/AdminConfig';
 import { CATEGORIAS_ORDEN } from '@/components/AdminReservationForm/constants';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
-import { actualizarEstadoReservaDB, actualizarReservaDB, actualizarReservaNotificadoDB, getReservasDB } from '@/lib/api/reservas';
+import { actualizarEstadoReservaDB, actualizarReservaDB, actualizarReservaNotificadoDB, eliminarReservaDB, getReservasDB } from '@/lib/api/reservas';
 import {
   SERVICIOS_ADMIN_DISPONIBLES,
   getServiciosAdminPorCategoria,
@@ -36,6 +38,7 @@ import {
 import styles from './page.module.css';
 
 type EstadoGestion = Extract<EstadoReserva, 'PENDIENTE' | 'AGENDADO' | 'RECHAZADO'>;
+type EstadoNormalizado = EstadoGestion | 'COMPLETADO';
 type EstadoFiltro = EstadoGestion | 'TODOS';
 type ApprovalDraft = {
   fecha: string;
@@ -45,6 +48,12 @@ type ApprovalDraft = {
   notas: string;
   servicioConfirmado: string;
 };
+type CompletionReasonMode = 'DONE' | 'OTHER';
+type CompletionDraft = {
+  reserva: ReservaBD;
+  reasonMode: CompletionReasonMode;
+  otherReason: string;
+};
 
 const ESTADO_OPTIONS: Array<{ value: EstadoFiltro; label: string }> = [
   { value: 'PENDIENTE', label: 'Pendientes' },
@@ -52,14 +61,16 @@ const ESTADO_OPTIONS: Array<{ value: EstadoFiltro; label: string }> = [
   { value: 'RECHAZADO', label: 'Rechazadas' },
   { value: 'TODOS', label: 'Todas' },
 ];
+const COMPLETION_REASON_DONE = 'Ya se brindo el servicio';
 
 const TIPO_LABELS: Record<string, string> = {
   M: 'Tratamiento',
   B: 'Bicicleta',
 };
 
-const normalizeEstado = (estado?: EstadoReserva | string): EstadoGestion => {
-  if (estado === 'AGENDADO' || estado === 'COMPLETADO') return 'AGENDADO';
+const normalizeEstado = (estado?: EstadoReserva | string): EstadoNormalizado => {
+  if (estado === 'AGENDADO') return 'AGENDADO';
+  if (estado === 'COMPLETADO') return 'COMPLETADO';
   if (estado === 'RECHAZADO') return 'RECHAZADO';
   return 'PENDIENTE';
 };
@@ -118,6 +129,31 @@ const getDefaultConfirmedService = (reserva: ReservaBD) => {
   const requested = reserva.servicio_solicitado || reserva.servicio_confirmado || reserva.servicio;
   const match = SERVICIOS_ADMIN_DISPONIBLES.find((servicio) => servicio.label === requested);
   return match?.value || '';
+};
+
+const getReservaServiceSummary = (reserva: ReservaBD) => {
+  const seen = new Set<string>();
+  const services = [
+    reserva.servicio_confirmado,
+    reserva.servicio_solicitado,
+    reserva.servicio,
+  ]
+    .flatMap((value) => (value ?? '').split(/\s*(?:\n|,|;|\s\+\s)\s*/))
+    .map((value) => value.trim())
+    .filter((value) => {
+      if (!value) return false;
+      const key = normalizeSearchText(value);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+  const normalizedServices = services.length > 0 ? services : ['Servicio por definir'];
+
+  return {
+    visible: normalizedServices.slice(0, 3),
+    remaining: Math.max(normalizedServices.length - 3, 0),
+  };
 };
 
 const normalizeSearchText = (value?: string | number | null) =>
@@ -183,6 +219,10 @@ export default function AdminReservasAprobacionPage() {
   const [rejectCauses, setRejectCauses] = useState<Record<number, string>>({});
   const [approvalReserva, setApprovalReserva] = useState<ReservaBD | null>(null);
   const [approvalDraft, setApprovalDraft] = useState<ApprovalDraft | null>(null);
+  const [openActionMenuId, setOpenActionMenuId] = useState<number | null>(null);
+  const [completionDraft, setCompletionDraft] = useState<CompletionDraft | null>(null);
+  const [completionError, setCompletionError] = useState<string | null>(null);
+  const [deleteReserva, setDeleteReserva] = useState<ReservaBD | null>(null);
   const [notificationReserva, setNotificationReserva] = useState<ReservaBD | null>(null);
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [estadoFiltro, setEstadoFiltro] = useState<EstadoFiltro>('PENDIENTE');
@@ -282,6 +322,7 @@ export default function AdminReservasAprobacionPage() {
 
     const filteredReservas = reservas.filter((reserva) => {
       const estadoNormalizado = normalizeEstado(reserva.estado);
+      if (estadoNormalizado === 'COMPLETADO') return false;
       const isVisibleByStateWindow = estadoNormalizado !== 'PENDIENTE' || isReservaPendienteVigente(reserva);
       const matchesEstado = estadoFiltro === 'TODOS' || estadoNormalizado === estadoFiltro;
       const matchesLocal = localFiltro === 'TODOS' || reserva.local === localFiltro;
@@ -357,6 +398,15 @@ export default function AdminReservasAprobacionPage() {
       }));
   }, [approvalReserva]);
 
+  const completionServiceSummary = useMemo(
+    () => completionDraft ? getReservaServiceSummary(completionDraft.reserva) : { visible: [], remaining: 0 },
+    [completionDraft],
+  );
+  const deleteServiceSummary = useMemo(
+    () => deleteReserva ? getReservaServiceSummary(deleteReserva) : { visible: [], remaining: 0 },
+    [deleteReserva],
+  );
+
   const openApprovalModal = (reserva: ReservaBD) => {
     setApprovalReserva(reserva);
     setApprovalDraft({
@@ -375,6 +425,103 @@ export default function AdminReservasAprobacionPage() {
     setApprovalReserva(null);
     setApprovalDraft(null);
   }, [actionId]);
+
+  const openCompletionModal = (reserva: ReservaBD) => {
+    setOpenActionMenuId(null);
+    setCompletionDraft({
+      reserva,
+      reasonMode: 'DONE',
+      otherReason: '',
+    });
+    setCompletionError(null);
+    setStatusMessage(null);
+  };
+
+  const closeCompletionModal = useCallback(() => {
+    if (actionId) return;
+    setCompletionDraft(null);
+    setCompletionError(null);
+  }, [actionId]);
+
+  const openDeleteModal = (reserva: ReservaBD) => {
+    setOpenActionMenuId(null);
+    setDeleteReserva(reserva);
+    setStatusMessage(null);
+  };
+
+  const closeDeleteModal = useCallback(() => {
+    if (actionId) return;
+    setDeleteReserva(null);
+  }, [actionId]);
+
+  const deleteReservaFromModal = async () => {
+    if (!deleteReserva) return;
+
+    const reservaId = deleteReserva.id;
+    setActionId(reservaId);
+    setStatusMessage(null);
+
+    try {
+      await eliminarReservaDB(reservaId);
+      sortStampByReservaIdRef.current.delete(reservaId);
+      setReservas((current) => current.filter((item) => item.id !== reservaId));
+      setNotificationReserva((current) => current?.id === reservaId ? null : current);
+      setDeleteReserva(null);
+      setStatusMessage({ type: 'success', text: `Reserva #${reservaId} eliminada.` });
+      window.setTimeout(() => setStatusMessage(null), 3600);
+    } catch (deleteError) {
+      setStatusMessage({
+        type: 'error',
+        text: deleteError instanceof Error ? deleteError.message : 'No se pudo eliminar la reserva.',
+      });
+    } finally {
+      setActionId(null);
+    }
+  };
+
+  const markReservaCompleted = async () => {
+    if (!completionDraft) return;
+
+    const causa = completionDraft.reasonMode === 'OTHER'
+      ? completionDraft.otherReason.trim()
+      : COMPLETION_REASON_DONE;
+
+    if (!causa) {
+      setCompletionError('Ingresa el motivo para completar la reserva.');
+      return;
+    }
+
+    const reservaId = completionDraft.reserva.id;
+    setActionId(reservaId);
+    setCompletionError(null);
+    setStatusMessage(null);
+
+    try {
+      await actualizarEstadoReservaDB({
+        id: reservaId,
+        estado: 'COMPLETADO',
+        causa,
+      });
+
+      setReservas((current) =>
+        current.map((item) => item.id === reservaId ? {
+          ...item,
+          estado: 'COMPLETADO',
+        } : item),
+      );
+      setNotificationReserva((current) => current?.id === reservaId ? null : current);
+      setCompletionDraft(null);
+      setStatusMessage({ type: 'success', text: `Reserva #${reservaId} marcada como completada.` });
+      window.setTimeout(() => setStatusMessage(null), 3600);
+    } catch (updateError) {
+      setStatusMessage({
+        type: 'error',
+        text: updateError instanceof Error ? updateError.message : 'No se pudo completar la reserva.',
+      });
+    } finally {
+      setActionId(null);
+    }
+  };
 
   const updateReservaEstado = async (reserva: ReservaBD, estado: EstadoGestion) => {
     const causa = rejectCauses[reserva.id]?.trim() ?? '';
@@ -761,13 +908,55 @@ export default function AdminReservasAprobacionPage() {
                   const whatsappHref = getWhatsappHref(reserva.numero_telefono);
                   const confirmationWhatsappHref = getConfirmationWhatsappHref(reserva);
                   const confirmationSent = Boolean(reserva.notificado);
+                  const isCompleted = reserva.estado === 'COMPLETADO';
+                  const canShowCardMenu = estadoNormalizado === 'PENDIENTE' || estadoNormalizado === 'RECHAZADO' || (estadoNormalizado === 'AGENDADO' && !isCompleted);
+                  const canMarkCompleted = estadoNormalizado === 'AGENDADO' && !isCompleted && confirmationSent;
+                  const cardActionMenu = canShowCardMenu ? (
+                    <div className={styles.cardMenuWrapper}>
+                      <button
+                        type="button"
+                        className={styles.cardMenuButton}
+                        onClick={() => setOpenActionMenuId((current) => current === reserva.id ? null : reserva.id)}
+                        disabled={actionId === reserva.id}
+                        aria-label={`Acciones de reserva ${reserva.id}`}
+                        aria-haspopup="menu"
+                        aria-expanded={openActionMenuId === reserva.id}
+                      >
+                        <MoreHorizontal size={18} strokeWidth={2} />
+                      </button>
+                      {openActionMenuId === reserva.id && (
+                        <div className={styles.cardMenu} role="menu">
+                          {canMarkCompleted && (
+                            <button
+                              type="button"
+                              role="menuitem"
+                              onClick={() => openCompletionModal(reserva)}
+                              disabled={actionId === reserva.id}
+                            >
+                              Marcar como completada
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className={styles.cardMenuDanger}
+                            onClick={() => openDeleteModal(reserva)}
+                            disabled={actionId === reserva.id}
+                          >
+                            <Trash2 size={14} strokeWidth={1.8} />
+                            Eliminar reserva
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ) : null;
 
                   return (
                   <article key={reserva.id} className={`approval-card ${styles.pendingCard} ${styles[`card${estadoNormalizado}`]}`}>
                     <div className={styles.pendingContent}>
                       <div className={styles.pendingTop}>
-                        <span className={`${styles.pendingState} ${styles[`state${estadoNormalizado}`]}`}>
-                          {estadoNormalizado}
+                        <span className={`${styles.pendingState} ${styles[`state${isCompleted ? 'COMPLETADO' : estadoNormalizado}`]}`}>
+                          {isCompleted ? 'COMPLETADO' : estadoNormalizado}
                         </span>
                         <span className={styles.pendingId}>#{reserva.id}</span>
                       </div>
@@ -793,8 +982,8 @@ export default function AdminReservasAprobacionPage() {
                       )}
 
                       {estadoNormalizado === 'AGENDADO' && (
-                        <p className={`${styles.confirmationStatus} ${confirmationSent ? styles.confirmationSent : styles.confirmationPending}`}>
-                          {confirmationSent ? 'Confirmación enviada' : 'Confirmación pendiente'}
+                        <p className={`${styles.confirmationStatus} ${isCompleted ? styles.confirmationCompleted : confirmationSent ? styles.confirmationSent : styles.confirmationPending}`}>
+                          {isCompleted ? 'Servicio completado' : confirmationSent ? 'Confirmación enviada' : 'Confirmación pendiente'}
                         </p>
                       )}
 
@@ -878,9 +1067,10 @@ export default function AdminReservasAprobacionPage() {
                           <XCircle size={15} strokeWidth={1.8} />
                           {rejectingId === reserva.id ? 'Confirmar rechazo' : 'Rechazar'}
                         </button>
+                        {cardActionMenu}
                       </div>
                     )}
-                    {estadoNormalizado === 'AGENDADO' && (
+                    {estadoNormalizado === 'AGENDADO' && !isCompleted && (
                       <div className={`${styles.pendingActions} ${styles.notifyActions}`}>
                         {confirmationWhatsappHref ? (
                           <a
@@ -903,6 +1093,12 @@ export default function AdminReservasAprobacionPage() {
                             Sin teléfono
                           </button>
                         )}
+                        {cardActionMenu}
+                      </div>
+                    )}
+                    {estadoNormalizado === 'RECHAZADO' && (
+                      <div className={`${styles.pendingActions} ${styles.notifyActions}`}>
+                        {cardActionMenu}
                       </div>
                     )}
                   </article>
@@ -1057,6 +1253,213 @@ export default function AdminReservasAprobacionPage() {
               >
                 <Check size={16} strokeWidth={1.8} />
                 {actionId === approvalReserva.id ? 'Agendando...' : 'Aprobar y agendar'}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {completionDraft && (
+        <div
+          className={styles.approvalModalOverlay}
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeCompletionModal();
+          }}
+        >
+          <section
+            className={`${styles.approvalModal} ${styles.completionModal}`}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="completion-modal-title"
+          >
+            <div className={styles.modalTop}>
+              <div>
+                <h2 id="completion-modal-title">¿Esta reserva ya cumplió su proposito?</h2>
+                <p>
+                  Registra la causa de cierre de esta reserva para darla por completada.
+                </p>
+              </div>
+              <button
+                type="button"
+                className={styles.modalClose}
+                onClick={closeCompletionModal}
+                disabled={actionId === completionDraft.reserva.id}
+                aria-label="Cerrar modal de completado"
+              >
+                <XCircle size={20} strokeWidth={1.8} />
+              </button>
+            </div>
+
+            <div className={styles.modalSummary}>
+              <span>
+                Cliente: <strong>{completionDraft.reserva.cliente || 'Cliente sin nombre'}</strong>
+              </span>
+              <span>
+                Fecha: <strong>{formatDate(completionDraft.reserva.fecha)}</strong>
+              </span>
+              <span>
+                Horario: <strong>{completionDraft.reserva.hora_desde} - {completionDraft.reserva.hora_hasta}</strong>
+              </span>
+              <span>
+                Local: <strong>{completionDraft.reserva.local}</strong>
+              </span>
+            </div>
+
+            <div className={styles.completionBody}>
+              <div className={styles.completionServicesBlock}>
+                <span className={styles.completionSectionLabel}>Servicios</span>
+                <div className={styles.completionServicesList}>
+                  {completionServiceSummary.visible.map((service) => (
+                    <span key={service} className={styles.completionServicePill}>{service}</span>
+                  ))}
+                  {completionServiceSummary.remaining > 0 && (
+                    <span className={styles.serviceOverflowPill}>+{completionServiceSummary.remaining}</span>
+                  )}
+                </div>
+              </div>
+
+              <span className={styles.completionSectionLabel}>Causa/Motivo:</span>
+              <div className={styles.reasonOptions} role="radiogroup" aria-label="Causa de completado">
+                <label className={`${styles.reasonOption} ${completionDraft.reasonMode === 'DONE' ? styles.reasonOptionActive : ''}`}>
+                  <input
+                    type="radio"
+                    name="completion-reason"
+                    checked={completionDraft.reasonMode === 'DONE'}
+                    onChange={() => {
+                      setCompletionDraft((current) => current ? { ...current, reasonMode: 'DONE' } : current);
+                      setCompletionError(null);
+                    }}
+                  />
+                  <span>{COMPLETION_REASON_DONE}</span>
+                </label>
+                <label className={`${styles.reasonOption} ${completionDraft.reasonMode === 'OTHER' ? styles.reasonOptionActive : ''}`}>
+                  <input
+                    type="radio"
+                    name="completion-reason"
+                    checked={completionDraft.reasonMode === 'OTHER'}
+                    onChange={() => setCompletionDraft((current) => current ? { ...current, reasonMode: 'OTHER' } : current)}
+                  />
+                  <span>Otro</span>
+                </label>
+              </div>
+
+              {completionDraft.reasonMode === 'OTHER' && (
+                <label className={`${styles.modalField} ${styles.completionOtherField}`}>
+                  Detalle
+                  <textarea
+                    value={completionDraft.otherReason}
+                    onChange={(event) => {
+                      setCompletionDraft((current) => current ? { ...current, otherReason: event.target.value } : current);
+                      if (completionError) setCompletionError(null);
+                    }}
+                    placeholder="Describe el motivo de cierre..."
+                    autoFocus
+                  />
+                </label>
+              )}
+
+              {completionError && <p className={styles.completionError}>{completionError}</p>}
+            </div>
+
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                className={styles.modalGhost}
+                onClick={closeCompletionModal}
+                disabled={actionId === completionDraft.reserva.id}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className={styles.modalPrimary}
+                onClick={markReservaCompleted}
+                disabled={actionId === completionDraft.reserva.id}
+              >
+                <Check size={16} strokeWidth={1.8} />
+                {actionId === completionDraft.reserva.id ? 'Marcando...' : 'Marcar como completado'}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {deleteReserva && (
+        <div
+          className={styles.approvalModalOverlay}
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) closeDeleteModal();
+          }}
+        >
+          <section
+            className={`${styles.approvalModal} ${styles.completionModal}`}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-modal-title"
+          >
+            <div className={styles.modalTop}>
+              <div>
+                <h2 id="delete-modal-title">¿Estas segura de eliminar la reserva?</h2>
+              </div>
+              <button
+                type="button"
+                className={styles.modalClose}
+                onClick={closeDeleteModal}
+                disabled={actionId === deleteReserva.id}
+                aria-label="Cerrar modal de eliminación"
+              >
+                <XCircle size={20} strokeWidth={1.8} />
+              </button>
+            </div>
+
+            <div className={styles.modalSummary}>
+              <span>
+                Cliente: <strong>{deleteReserva.cliente || 'Cliente sin nombre'}</strong>
+              </span>
+              <span>
+                Fecha: <strong>{formatDate(deleteReserva.fecha)}</strong>
+              </span>
+              <span>
+                Horario: <strong>{deleteReserva.hora_desde} - {deleteReserva.hora_hasta}</strong>
+              </span>
+              <span>
+                Local: <strong>{deleteReserva.local}</strong>
+              </span>
+            </div>
+
+            <div className={styles.completionBody}>
+              <div className={styles.completionServicesBlock}>
+                <span className={styles.completionSectionLabel}>Servicios</span>
+                <div className={styles.completionServicesList}>
+                  {deleteServiceSummary.visible.map((service) => (
+                    <span key={service} className={styles.completionServicePill}>{service}</span>
+                  ))}
+                  {deleteServiceSummary.remaining > 0 && (
+                    <span className={styles.serviceOverflowPill}>+{deleteServiceSummary.remaining}</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                className={styles.modalGhost}
+                onClick={closeDeleteModal}
+                disabled={actionId === deleteReserva.id}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className={styles.modalDanger}
+                onClick={deleteReservaFromModal}
+                disabled={actionId === deleteReserva.id}
+              >
+                <Trash2 size={16} strokeWidth={1.8} />
+                {actionId === deleteReserva.id ? 'Borrando...' : 'Borrar'}
               </button>
             </div>
           </section>

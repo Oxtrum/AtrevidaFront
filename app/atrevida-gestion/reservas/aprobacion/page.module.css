@@ -547,6 +547,10 @@
   color: var(--admin-accent-tertiary);
 }
 
+.stateCOMPLETADO {
+  color: var(--admin-accent-success);
+}
+
 .stateRECHAZADO {
   color: var(--admin-accent-danger);
 }
@@ -660,6 +664,12 @@
   color: var(--admin-accent-success);
   background: rgba(20, 174, 239, 0.10);
   border: 1px solid rgba(20, 174, 239, 0.24);
+}
+
+.confirmationCompleted {
+  color: var(--admin-accent-success);
+  background: rgba(34, 197, 94, 0.10);
+  border: 1px solid rgba(34, 197, 94, 0.24);
 }
 
 .pendingMeta {
@@ -836,6 +846,111 @@
   align-content: center;
 }
 
+.cardMenuWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.cardMenuButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid rgba(var(--card-accent-rgb), 0.22);
+  border-radius: 12px;
+  color: var(--admin-text-muted);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.025));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  transition:
+    transform var(--admin-t-normal) var(--admin-ease),
+    color var(--admin-t-normal) var(--admin-ease),
+    border-color var(--admin-t-normal) var(--admin-ease),
+    background var(--admin-t-normal) var(--admin-ease);
+}
+
+.cardMenuButton:hover {
+  color: var(--admin-foreground);
+  border-color: rgba(var(--card-accent-rgb), 0.38);
+  background:
+    linear-gradient(180deg, rgba(var(--card-accent-rgb), 0.10), rgba(var(--card-accent-rgb), 0.045));
+}
+
+.cardMenuButton:active {
+  transform: scale(0.98);
+}
+
+.cardMenuButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+  transform: none;
+}
+
+.cardMenu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.5rem);
+  z-index: 6;
+  width: min(220px, calc(100vw - 2rem));
+  padding: 0.38rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-panel-elevated);
+  box-shadow: var(--admin-shadow-lg);
+  animation: menuIn 0.16s var(--admin-ease);
+}
+
+.cardMenu button {
+  display: flex;
+  align-items: center;
+  gap: 0.46rem;
+  width: 100%;
+  min-height: 38px;
+  padding: 0.62rem 0.7rem;
+  border: 0;
+  border-radius: 10px;
+  color: var(--admin-foreground);
+  background: transparent;
+  font-family: var(--admin-font-family);
+  font-size: 0.78rem;
+  font-weight: 850;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cardMenu button:hover {
+  background: rgba(34, 197, 94, 0.10);
+  color: var(--admin-accent-success);
+}
+
+.cardMenu button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.cardMenuDanger {
+  color: var(--admin-accent-danger) !important;
+}
+
+.cardMenuDanger:hover {
+  background: rgba(255, 77, 109, 0.12) !important;
+  color: var(--admin-accent-danger) !important;
+}
+
+@keyframes menuIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .confirmationPrompt {
   position: fixed;
   right: max(1rem, env(safe-area-inset-right));
@@ -959,6 +1074,10 @@
   box-shadow: var(--admin-shadow-lg);
   color: var(--admin-foreground);
   animation: modalIn 0.22s var(--admin-ease);
+}
+
+.completionModal {
+  width: min(620px, 100%);
 }
 
 .modalTop {
@@ -1109,6 +1228,116 @@
   box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.12);
 }
 
+.completionBody {
+  display: grid;
+  gap: 0.85rem;
+  padding: 1rem clamp(1rem, 3vw, 1.35rem) clamp(1rem, 3vw, 1.35rem);
+}
+
+.completionServicesBlock {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.8rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: rgba(255, 255, 255, 0.024);
+}
+
+.completionSectionLabel {
+  display: inline-flex;
+  width: fit-content;
+  color: var(--admin-text-dim);
+  font-size: 0.7rem;
+  font-weight: 950;
+  letter-spacing: 0;
+  line-height: 1.25;
+  text-transform: none;
+}
+
+.completionServicesList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.42rem;
+}
+
+.completionServicePill,
+.serviceOverflowPill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0.38rem 0.58rem;
+  border-radius: var(--admin-radius-full);
+  font-size: 0.76rem;
+  font-weight: 850;
+  line-height: 1.25;
+}
+
+.completionServicePill {
+  color: var(--admin-foreground);
+  border: 1px solid rgba(34, 197, 94, 0.18);
+  background: rgba(34, 197, 94, 0.075);
+}
+
+.serviceOverflowPill {
+  color: var(--admin-accent-tertiary);
+  border: 1px solid rgba(20, 174, 239, 0.28);
+  background: rgba(20, 174, 239, 0.105);
+}
+
+.reasonOptions {
+  display: grid;
+  gap: 0.58rem;
+}
+
+.reasonOption {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.72rem;
+  min-height: 48px;
+  padding: 0.72rem 0.82rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  color: var(--admin-text-muted);
+  background: rgba(255, 255, 255, 0.025);
+  cursor: pointer;
+  transition:
+    border-color var(--admin-t-normal) var(--admin-ease),
+    background var(--admin-t-normal) var(--admin-ease),
+    color var(--admin-t-normal) var(--admin-ease);
+}
+
+.reasonOption input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--admin-accent-success);
+}
+
+.reasonOption span {
+  color: inherit;
+  font-size: 0.86rem;
+  font-weight: 850;
+  line-height: 1.35;
+}
+
+.reasonOptionActive {
+  color: var(--admin-foreground);
+  border-color: rgba(34, 197, 94, 0.34);
+  background:
+    linear-gradient(180deg, rgba(34, 197, 94, 0.11), rgba(34, 197, 94, 0.045));
+}
+
+.completionOtherField textarea {
+  min-height: 92px;
+}
+
+.completionError {
+  margin: 0;
+  color: var(--admin-accent-danger);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
 .modalActions {
   display: flex;
   justify-content: flex-end;
@@ -1119,7 +1348,8 @@
 }
 
 .modalGhost,
-.modalPrimary {
+.modalPrimary,
+.modalDanger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1150,13 +1380,23 @@
   box-shadow: 0 12px 28px rgba(20, 174, 239, 0.2);
 }
 
+.modalDanger {
+  color: #ffffff;
+  border-color: rgba(255, 77, 109, 0.28);
+  background:
+    linear-gradient(135deg, rgba(255, 77, 109, 0.92), rgba(236, 0, 140, 0.82));
+  box-shadow: 0 12px 28px rgba(255, 77, 109, 0.18);
+}
+
 .modalGhost:hover,
-.modalPrimary:hover {
+.modalPrimary:hover,
+.modalDanger:hover {
   transform: translateY(-2px);
 }
 
 .modalGhost:disabled,
-.modalPrimary:disabled {
+.modalPrimary:disabled,
+.modalDanger:disabled {
   cursor: not-allowed;
   opacity: 0.62;
   transform: none;
@@ -1330,7 +1570,8 @@
   }
 
   .modalGhost,
-  .modalPrimary {
+  .modalPrimary,
+  .modalDanger {
     width: 100%;
   }
 
