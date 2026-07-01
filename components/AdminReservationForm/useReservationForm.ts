@@ -78,28 +78,18 @@ export function useReservationForm(
   const [servicio, setServicio] = useState(initialData?.servicio || '');
   const [notas, setNotas] = useState('');
   const [serviciosAPI, setServiciosAPI] = useState<Array<{ nombre: string; categoria: string; tipoEspacio: string; costo: string; tiempo: string; requiere_evaluacion: boolean }>>([]);
-  const [horaPreestablecida] = useState(!!initialData?.hora_desde); // Marca si hora vino del URL
 
-  // Calcular horaHasta cuando hora viene del URL y se selecciona servicio
-  useEffect(() => {
-    if (!horaPreestablecida || !horaDesde || !servicio) return;
-
-    const servicioInfo = serviciosAPI.find(s => s.nombre === servicio);
-    if (!servicioInfo) return;
+  const calcularHoraHasta = (desde: string, svc: string): string => {
+    const servicioInfo = serviciosAPI.find(s => s.nombre === svc);
+    if (!servicioInfo) return '';
 
     const [hh = 0, mm = 0] = (servicioInfo.tiempo || '01:00').split(':').map(Number);
-    const duracionMin = hh * 60 + mm;
-    const duracionSlots = Math.ceil(duracionMin / 60);
-
-    const idxInicio = HORAS.indexOf(horaDesde);
-    if (idxInicio !== -1) {
-      const idxFin = Math.min(idxInicio + duracionSlots, HORAS.length - 1);
-      const timeoutId = window.setTimeout(() => {
-        setHoraHasta(HORAS[idxFin]);
-      }, 0);
-      return () => window.clearTimeout(timeoutId);
-    }
-  }, [horaPreestablecida, horaDesde, servicio, serviciosAPI]);
+    const duracionSlots = Math.ceil((hh * 60 + mm) / 60);
+    const idxInicio = HORAS.indexOf(desde);
+    if (idxInicio === -1) return '';
+    const idxFin = Math.min(idxInicio + duracionSlots, HORAS.length - 1);
+    return HORAS[idxFin];
+  };
   // ── Locales dinámicos ─────────────────────────
   // Usar locales dinámicos, si no hay usar SUCURSALES estático
   const sucursalOptions = useMemo(
@@ -285,12 +275,7 @@ export function useReservationForm(
   useEffect(() => {
     if (sucursal && servicio && serviciosAPI.length > 0) {
       if (!serviciosAPI.some(s => s.nombre === servicio)) {
-        const timeoutId = window.setTimeout(() => {
-          setServicio('');
-          setHoraDesde('');
-          setHoraHasta('');
-        }, 0);
-        return () => window.clearTimeout(timeoutId);
+        setServicio('');
       }
     }
   }, [sucursal, servicio, serviciosAPI]);
@@ -342,38 +327,34 @@ export function useReservationForm(
 
   const handleServicioChange = (value: string) => {
     setServicio(value);
-    // Solo resetear hora si NO fue preestablecida desde el URL
-    if (!horaPreestablecida) {
-      setHoraDesde('');
-      setHoraHasta('');
+    if (horaDesde) {
+      const hasta = calcularHoraHasta(horaDesde, value);
+      if (hasta) setHoraHasta(hasta);
     }
     setSlotWarning(null);
   };
 
   const handleDiaChange = (value: DiaSemana) => {
     setDia(value);
-    // Solo resetear hora si NO fue preestablecida desde el URL
-    if (!horaPreestablecida) {
-      setHoraDesde('');
-      setHoraHasta('');
-    }
     setSlotWarning(null);
   };
 
   const handleSlotSelect = (desde: string) => {
     setHoraDesde(desde);
 
-    // Auto‑calcular hora fin como la siguiente hora disponible
-    const idxInicio = HORAS.indexOf(desde);
-    if (idxInicio !== -1 && idxInicio + 1 < HORAS.length) {
-        setHoraHasta(HORAS[idxInicio + 1]);
-    } else {
-        // Si no hay siguiente, usar el mismo valor (no cambia)
-        setHoraHasta(desde);
+    if (servicio) {
+      const hasta = calcularHoraHasta(desde, servicio);
+      if (hasta) {
+        setHoraHasta(hasta);
+        setSlotWarning(null);
+        return;
+      }
     }
 
+    const idxInicio = HORAS.indexOf(desde);
+    setHoraHasta(idxInicio !== -1 && idxInicio + 1 < HORAS.length ? HORAS[idxInicio + 1] : desde);
     setSlotWarning(null);
-};
+  };
 
   // ── Validación y submit ────────────────────────────────
   const validate = (): boolean => {

@@ -194,11 +194,9 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
               </div>
             )}
 
-            {!sucursal || !servicio ? (
+            {!sucursal ? (
               <div className={styles.pickerPlaceholder}>
-                {!sucursal
-                  ? 'Selecciona una sucursal para ver la disponibilidad'
-                  : 'Selecciona un servicio para ver los horarios disponibles'}
+                Selecciona una sucursal para ver la disponibilidad
               </div>
             ) : (
               <TimeSlotPicker

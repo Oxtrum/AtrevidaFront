@@ -26,6 +26,7 @@ export function TimeSlotPicker({
     const idx = HORAS.indexOf(hora);
     const siguiente = HORAS[idx + 1] || hora;
     onSelect(hora, siguiente);
+    onSelect(hora, siguiente);
   };
 
   const isInRange = (hora: string): boolean => {

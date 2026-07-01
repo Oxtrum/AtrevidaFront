@@ -8,6 +8,7 @@ import type { DiaSemana } from '@/types/reserva';
 export const HORAS: string[] = [
     '08:00', '09:00', '10:00', '11:00', '12:00', '13:00',
     '14:00', '15:00', '16:00', '17:00', '18:00', '19:00',
+    '20:00',
 ];
 
 export const HORAS_INICIO: string[] = HORAS.slice(0, -1);
@@ -42,7 +43,7 @@ export function getSaturdayClosingTime(local: string): string {
 export function getBusinessClosingTime(local: string, date: Date): string | null {
     if (date.getDay() === 0) return null;
     if (date.getDay() === 6) return getSaturdayClosingTime(local);
-    return '19:00';
+    return '20:00';
 }
 
 export function isSlotOutsideBusinessHours(local: string, date: Date, horaDesde: string, horaHasta?: string): boolean {
