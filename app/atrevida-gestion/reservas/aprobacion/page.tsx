@@ -38,6 +38,7 @@ import {
 import styles from './page.module.css';
 
 type EstadoGestion = Extract<EstadoReserva, 'PENDIENTE' | 'AGENDADO' | 'RECHAZADO'>;
+type EstadoNormalizado = EstadoGestion | 'COMPLETADO';
 type EstadoFiltro = EstadoGestion | 'TODOS';
 type ApprovalDraft = {
   fecha: string;
@@ -67,8 +68,9 @@ const TIPO_LABELS: Record<string, string> = {
   B: 'Bicicleta',
 };
 
-const normalizeEstado = (estado?: EstadoReserva | string): EstadoGestion => {
-  if (estado === 'AGENDADO' || estado === 'COMPLETADO') return 'AGENDADO';
+const normalizeEstado = (estado?: EstadoReserva | string): EstadoNormalizado => {
+  if (estado === 'AGENDADO') return 'AGENDADO';
+  if (estado === 'COMPLETADO') return 'COMPLETADO';
   if (estado === 'RECHAZADO') return 'RECHAZADO';
   return 'PENDIENTE';
 };
@@ -320,6 +322,7 @@ export default function AdminReservasAprobacionPage() {
 
     const filteredReservas = reservas.filter((reserva) => {
       const estadoNormalizado = normalizeEstado(reserva.estado);
+      if (estadoNormalizado === 'COMPLETADO') return false;
       const isVisibleByStateWindow = estadoNormalizado !== 'PENDIENTE' || isReservaPendienteVigente(reserva);
       const matchesEstado = estadoFiltro === 'TODOS' || estadoNormalizado === estadoFiltro;
       const matchesLocal = localFiltro === 'TODOS' || reserva.local === localFiltro;
@@ -906,8 +909,47 @@ export default function AdminReservasAprobacionPage() {
                   const confirmationWhatsappHref = getConfirmationWhatsappHref(reserva);
                   const confirmationSent = Boolean(reserva.notificado);
                   const isCompleted = reserva.estado === 'COMPLETADO';
-                  const canShowCardMenu = estadoNormalizado === 'PENDIENTE' || (estadoNormalizado === 'AGENDADO' && !isCompleted);
+                  const canShowCardMenu = estadoNormalizado === 'PENDIENTE' || estadoNormalizado === 'RECHAZADO' || (estadoNormalizado === 'AGENDADO' && !isCompleted);
                   const canMarkCompleted = estadoNormalizado === 'AGENDADO' && !isCompleted && confirmationSent;
+                  const cardActionMenu = canShowCardMenu ? (
+                    <div className={styles.cardMenuWrapper}>
+                      <button
+                        type="button"
+                        className={styles.cardMenuButton}
+                        onClick={() => setOpenActionMenuId((current) => current === reserva.id ? null : reserva.id)}
+                        disabled={actionId === reserva.id}
+                        aria-label={`Acciones de reserva ${reserva.id}`}
+                        aria-haspopup="menu"
+                        aria-expanded={openActionMenuId === reserva.id}
+                      >
+                        <MoreHorizontal size={18} strokeWidth={2} />
+                      </button>
+                      {openActionMenuId === reserva.id && (
+                        <div className={styles.cardMenu} role="menu">
+                          {canMarkCompleted && (
+                            <button
+                              type="button"
+                              role="menuitem"
+                              onClick={() => openCompletionModal(reserva)}
+                              disabled={actionId === reserva.id}
+                            >
+                              Marcar como completada
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className={styles.cardMenuDanger}
+                            onClick={() => openDeleteModal(reserva)}
+                            disabled={actionId === reserva.id}
+                          >
+                            <Trash2 size={14} strokeWidth={1.8} />
+                            Eliminar reserva
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ) : null;
 
                   return (
                   <article key={reserva.id} className={`approval-card ${styles.pendingCard} ${styles[`card${estadoNormalizado}`]}`}>
@@ -1025,45 +1067,7 @@ export default function AdminReservasAprobacionPage() {
                           <XCircle size={15} strokeWidth={1.8} />
                           {rejectingId === reserva.id ? 'Confirmar rechazo' : 'Rechazar'}
                         </button>
-                        {canShowCardMenu && (
-                          <div className={styles.cardMenuWrapper}>
-                            <button
-                              type="button"
-                              className={styles.cardMenuButton}
-                              onClick={() => setOpenActionMenuId((current) => current === reserva.id ? null : reserva.id)}
-                              disabled={actionId === reserva.id}
-                              aria-label={`Acciones de reserva ${reserva.id}`}
-                              aria-haspopup="menu"
-                              aria-expanded={openActionMenuId === reserva.id}
-                            >
-                              <MoreHorizontal size={18} strokeWidth={2} />
-                            </button>
-                            {openActionMenuId === reserva.id && (
-                              <div className={styles.cardMenu} role="menu">
-                                {canMarkCompleted && (
-                                  <button
-                                    type="button"
-                                    role="menuitem"
-                                    onClick={() => openCompletionModal(reserva)}
-                                    disabled={actionId === reserva.id}
-                                  >
-                                    Marcar como completada
-                                  </button>
-                                )}
-                                <button
-                                  type="button"
-                                  role="menuitem"
-                                  className={styles.cardMenuDanger}
-                                  onClick={() => openDeleteModal(reserva)}
-                                  disabled={actionId === reserva.id}
-                                >
-                                  <Trash2 size={14} strokeWidth={1.8} />
-                                  Eliminar reserva
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        )}
+                        {cardActionMenu}
                       </div>
                     )}
                     {estadoNormalizado === 'AGENDADO' && !isCompleted && (
@@ -1089,45 +1093,12 @@ export default function AdminReservasAprobacionPage() {
                             Sin teléfono
                           </button>
                         )}
-                        {canShowCardMenu && (
-                          <div className={styles.cardMenuWrapper}>
-                            <button
-                              type="button"
-                              className={styles.cardMenuButton}
-                              onClick={() => setOpenActionMenuId((current) => current === reserva.id ? null : reserva.id)}
-                              disabled={actionId === reserva.id}
-                              aria-label={`Acciones de reserva ${reserva.id}`}
-                              aria-haspopup="menu"
-                              aria-expanded={openActionMenuId === reserva.id}
-                            >
-                              <MoreHorizontal size={18} strokeWidth={2} />
-                            </button>
-                            {openActionMenuId === reserva.id && (
-                              <div className={styles.cardMenu} role="menu">
-                                {canMarkCompleted && (
-                                  <button
-                                    type="button"
-                                    role="menuitem"
-                                    onClick={() => openCompletionModal(reserva)}
-                                    disabled={actionId === reserva.id}
-                                  >
-                                    Marcar como completada
-                                  </button>
-                                )}
-                                <button
-                                  type="button"
-                                  role="menuitem"
-                                  className={styles.cardMenuDanger}
-                                  onClick={() => openDeleteModal(reserva)}
-                                  disabled={actionId === reserva.id}
-                                >
-                                  <Trash2 size={14} strokeWidth={1.8} />
-                                  Eliminar reserva
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        )}
+                        {cardActionMenu}
+                      </div>
+                    )}
+                    {estadoNormalizado === 'RECHAZADO' && (
+                      <div className={`${styles.pendingActions} ${styles.notifyActions}`}>
+                        {cardActionMenu}
                       </div>
                     )}
                   </article>
