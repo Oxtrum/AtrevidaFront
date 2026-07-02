@@ -81,9 +81,36 @@ export async function getCategoriasDB(params: GetCategoriasParams = {}) {
   });
 }
 
-/** Crea una nueva categoría. */
-export async function crearCategoriaDB(nombre: string) {
-  return apiClient.post('/bd/categorias', { nombre });
+/** Crea una nueva categoría, opcionalmente asociada a un local. */
+export async function crearCategoriaDB(nombre: string, localId?: number) {
+  return apiClient.post('/bd/categorias', { nombre, local_id: localId });
+}
+
+/** Actualiza el nombre de una categoría existente. */
+export async function actualizarCategoriaDB(id: number | string, nombre: string) {
+  return apiClient.put(`/bd/categorias/${id}`, { nombre });
+}
+
+/** Elimina una categoría (falla si está en uso por servicios o combos). */
+export async function eliminarCategoriaDB(id: number | string) {
+  return apiClient.delete(`/bd/categorias/${id}`);
+}
+
+/** Obtiene los locales asociados a una categoría. */
+export async function getLocalesDeCategoriaDB(id: number | string) {
+  return apiClient.get<ApiResponse<{ locales: LocalRow[] }>>(`/bd/categorias/${id}/locales`);
+}
+
+/** Asocia una categoría a un local. */
+export async function asociarCategoriaLocalDB(categoriaId: number, localId: number) {
+  return apiClient.post('/bd/categorias/locales', { categoria_id: categoriaId, local_id: localId });
+}
+
+/** Elimina la asociación entre una categoría y un local. */
+export async function desasociarCategoriaLocalDB(categoriaId: number, localId: number) {
+  return apiClient.delete('/bd/categorias/locales', {
+    body: { categoria_id: categoriaId, local_id: localId },
+  });
 }
 
 // ─── Servicios ─────────────────────────────────────────────────────
