@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
 import { Filter, Package2, ChevronRight, ChevronDown, Plus, Pencil, Trash2 } from 'lucide-react';
@@ -17,6 +17,7 @@ import {
   actualizarComboServicio,
   eliminarComboServicio,
 } from '@/lib/api/servicios';
+import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import styles from './page.module.css';
 
 // ─── Types ───────────────────────────────────────────────────────
@@ -103,6 +104,21 @@ const SERVICIO_FORM_INITIAL: ComboServicioForm = {
   orden: '',
 };
 
+function getScopedLocales(
+  locales: LocalOption[],
+  workplace: { local_id: number; nombre_local: string } | null,
+): LocalOption[] {
+  if (!workplace) return locales;
+
+  const scoped = locales.filter((local) =>
+    local.id === workplace.local_id || local.nombre === workplace.nombre_local
+  );
+
+  return scoped.length > 0
+    ? scoped
+    : [{ id: workplace.local_id, nombre: workplace.nombre_local }];
+}
+
 function minToHHMM(min: number): string {
   const h = Math.floor(min / 60);
   const m = min % 60;
@@ -137,7 +153,15 @@ export default function CombosPage() {
   const [filtroCategoria, setFiltroCategoria] = useState('');
   const [filtroSesiones, setFiltroSesiones] = useState('');
   const [filtroNombreDebounced, setFiltroNombreDebounced] = useState('');
-  const hasFilter = !!filtroLocal;
+  const adminLocalScope = useAdminLocalScopeState();
+  const scopedLocalName = adminLocalScope.workplace?.nombre_local ?? '';
+  const effectiveFiltroLocal = scopedLocalName || filtroLocal;
+  const hasScopedLocal = !!scopedLocalName;
+  const hasFilter = adminLocalScope.ready && !!effectiveFiltroLocal;
+  const localOptions = useMemo(() => [
+    ...(hasScopedLocal ? [] : [{ value: '', label: 'Seleccionar local' }]),
+    ...locales.map((l) => ({ value: l.nombre, label: l.nombre })),
+  ], [hasScopedLocal, locales]);
 
   // Expansion state — keyed by combo.nombre (API may omit id)
   const [expandedComboKey, setExpandedComboKey] = useState<string | null>(null);
@@ -170,16 +194,16 @@ export default function CombosPage() {
   // ─── Load servicio options when modal opens ────────────────────
 
   useEffect(() => {
-    if (!modalOpen || !filtroLocal) return;
+    if (!modalOpen || !effectiveFiltroLocal) return;
     setLoadingServicioOptions(true);
-    getServiciosDB({ local: filtroLocal })
+    getServiciosDB({ local: effectiveFiltroLocal })
       .then((res) => {
         const data = res as { data?: { servicios?: ServicioOption[] } };
         setServicioOptions(data?.data?.servicios ?? []);
       })
       .catch(() => setServicioOptions([]))
       .finally(() => setLoadingServicioOptions(false));
-  }, [modalOpen, filtroLocal]);
+  }, [modalOpen, effectiveFiltroLocal]);
 
   const handleSelectServicio = (value: string) => {
     const id = value ? Number(value) : null;
@@ -196,12 +220,12 @@ export default function CombosPage() {
   // ─── Data fetching ─────────────────────────────────────────────
 
   const fetchCombos = useCallback(async () => {
-    if (!filtroLocal) return;
+    if (!adminLocalScope.ready || !effectiveFiltroLocal) return;
     setLoading(true);
     setError(null);
     try {
       const res = await getCombosDB({
-        local: filtroLocal,
+        local: effectiveFiltroLocal,
         nombre: filtroNombreDebounced || undefined,
         categoria: filtroCategoria || undefined,
         sesiones: filtroSesiones ? Number(filtroSesiones) : undefined,
@@ -213,22 +237,26 @@ export default function CombosPage() {
     } finally {
       setLoading(false);
     }
-  }, [filtroLocal, filtroNombreDebounced, filtroCategoria, filtroSesiones]);
+  }, [adminLocalScope.ready, effectiveFiltroLocal, filtroNombreDebounced, filtroCategoria, filtroSesiones]);
 
   const fetchLocales = useCallback(async () => {
+    if (!adminLocalScope.ready) return;
+
     try {
       const res = await getLocalesDB() as { data?: { locales?: LocalOption[] } };
-      setLocales(res?.data?.locales ?? []);
+      setLocales(getScopedLocales(res?.data?.locales ?? [], adminLocalScope.workplace));
     } catch {
       // best-effort
     }
-  }, []);
+  }, [adminLocalScope.ready, adminLocalScope.workplace]);
 
   useEffect(() => {
+    if (!adminLocalScope.ready) return;
+
     const token = localStorage.getItem('adminToken');
     if (!token) { router.push('/atrevida-gestion/login'); return; }
     fetchLocales();
-  }, [router, fetchLocales]);
+  }, [adminLocalScope.ready, router, fetchLocales]);
 
   useEffect(() => {
     if (hasFilter) fetchCombos();
@@ -451,12 +479,9 @@ export default function CombosPage() {
                   <CustomSelect
                     id="filtro-local"
                     ariaLabelledBy="lbl-filtro-local"
-                    value={filtroLocal}
-                    onChange={setFiltroLocal}
-                    options={[
-                      { value: '', label: 'Seleccionar local' },
-                      ...locales.map((l) => ({ value: l.nombre, label: l.nombre })),
-                    ]}
+                    value={effectiveFiltroLocal}
+                    onChange={(value) => setFiltroLocal(scopedLocalName || value)}
+                    options={localOptions}
                   />
                 </div>
 

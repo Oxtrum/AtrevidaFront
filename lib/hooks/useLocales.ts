@@ -3,9 +3,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   getAdminTokenForCurrentRoute,
+  getStoredAdminWorkplace,
   isAdminProtectedRoute,
   isRedirectingToAdminLogin,
   redirectToAdminLogin,
+  shouldScopeAdminToLocal,
   shouldRedirectToAdminLogin,
   waitForAdminLoginRedirect,
 } from '@/lib/auth/adminSession';
@@ -67,7 +69,13 @@ export function useLocales(): UseLocalesReturn {
       }
 
       const data = response.data?.locales ?? [];
-      setLocales(data.filter((l: Local) => l.activo));
+      const activeLocales = data.filter((l: Local) => l.activo);
+      const workplace = getStoredAdminWorkplace();
+      const scopedLocales = shouldScopeAdminToLocal() && workplace
+        ? activeLocales.filter((local) => local.id === workplace.local_id || local.nombre === workplace.nombre_local)
+        : activeLocales;
+
+      setLocales(scopedLocales);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar locales');
       setLocales([]);

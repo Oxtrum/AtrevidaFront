@@ -29,12 +29,13 @@ export default function CalendarAdmin({
   onSucursalChange,
   onSemanaChange,
 }: CalendarAdminProps) {
-  const [sucursal, setSucursal] = useState(localInicial);
+  const [sucursalSeleccionada, setSucursalSeleccionada] = useState('');
   const [semanaIndex, setSemanaIndex] = useState(0);
   const [selectedDay, setSelectedDay] = useState<DiaSemana | null>(null);
 
   const { data, loading, error, fetch: fetchReservas } = useReservasCalendario();
   const { locales } = useLocales();
+  const sucursal = sucursalSeleccionada || localInicial;
   const sucursalEfectiva = sucursal || locales[0]?.nombre || '';
 
   const controlsRef = useRef<HTMLDivElement>(null);
@@ -62,7 +63,7 @@ export default function CalendarAdmin({
   }, [sucursalEfectiva, semanaIndex, semanaActual, fetchReservas]);
 
   const handleSucursalChange = (value: string) => {
-    setSucursal(value);
+    setSucursalSeleccionada(value);
     setSelectedDay(null);
     onSucursalChange?.(value);
   };

@@ -4,6 +4,7 @@
  */
 
 import { apiClient } from './client';
+import { withNombreLocalScope } from './localScope';
 import type { ApiResponse, EstadoReserva, ReservaBD, ReservaFormData, ReservasBDApiResponse } from '@/types/reserva';
 
 // ─── Parámetros (Sheets - DEPRECATED) ──────────────────────────────────────
@@ -62,6 +63,11 @@ export interface ReservasResumenData {
   reservas_agendadas_dia: number;
   servicios_completados_dia: number;
   semana: ReservasResumenSemana;
+}
+
+export interface GetReservasResumenParams {
+  fecha: string;
+  local?: string;
 }
 
 export interface CrearReservaDBData {
@@ -140,18 +146,20 @@ export async function getReservasSheets(params: GetReservasSheetsParams): Promis
 
 /** Obtiene reservas filtradas desde la base de datos. */
 export async function getReservasDB(params: GetReservasDBParams): Promise<ReservasBDApiResponse> {
+  const scopedParams = withNombreLocalScope(params);
+
   return apiClient.get<ReservasBDApiResponse>('/bd/reservas', {
     params: {
-      local: params.local,
-      fecha: params.fecha,
-      fecha_desde: params.fecha_desde,
-      fecha_hasta: params.fecha_hasta,
-      tipo: params.tipo,
-      cliente: params.cliente,
-      estado: params.estado,
-      numero_telefono: params.numero_telefono,
-      servicio_solicitado: params.servicio_solicitado,
-      servicio_confirmado: params.servicio_confirmado,
+      local: scopedParams.local,
+      fecha: scopedParams.fecha,
+      fecha_desde: scopedParams.fecha_desde,
+      fecha_hasta: scopedParams.fecha_hasta,
+      tipo: scopedParams.tipo,
+      cliente: scopedParams.cliente,
+      estado: scopedParams.estado,
+      numero_telefono: scopedParams.numero_telefono,
+      servicio_solicitado: scopedParams.servicio_solicitado,
+      servicio_confirmado: scopedParams.servicio_confirmado,
     },
   });
 }
@@ -163,23 +171,32 @@ export async function getReservaByID(id: string | number): Promise<ApiResponse<{
 
 /** Obtiene reservas para vista calendario desde la base de datos. */
 export async function getReservasCalendario(params: GetReservasCalendarioParams): Promise<ApiResponse> {
+  const scopedParams = withNombreLocalScope(params);
+
   return apiClient.get<ApiResponse>('/bd/reservas/calendario', {
     params: {
-      local: params.local,
-      fecha: params.fecha,
-      fecha_desde: params.fecha_desde,
-      fecha_hasta: params.fecha_hasta,
-      tipo: params.tipo,
-      cliente: params.cliente,
-      reservados: params.reservados?.toString(),
+      local: scopedParams.local,
+      fecha: scopedParams.fecha,
+      fecha_desde: scopedParams.fecha_desde,
+      fecha_hasta: scopedParams.fecha_hasta,
+      tipo: scopedParams.tipo,
+      cliente: scopedParams.cliente,
+      reservados: scopedParams.reservados?.toString(),
     },
   });
 }
 
 /** Obtiene el resumen operativo de reservas para una fecha. */
-export async function getReservasResumenDB(fecha: string): Promise<ApiResponse<ReservasResumenData>> {
+export async function getReservasResumenDB(
+  params: string | GetReservasResumenParams,
+): Promise<ApiResponse<ReservasResumenData>> {
+  const rawParams = typeof params === 'string' ? { fecha: params } : params;
+
   return apiClient.get<ApiResponse<ReservasResumenData>>('/bd/reservas/resumen', {
-    params: { fecha },
+    params: {
+      fecha: rawParams.fecha,
+      local: rawParams.local,
+    },
   });
 }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   DiaSemana, SUCURSALES,
@@ -11,6 +11,7 @@ import { useCrearReserva } from '@/lib/hooks/useCrearReserva';
 import { useReservas } from '@/lib/hooks/useReservas';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { getServiciosDB } from '@/lib/api/servicios';
+import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import { toast } from '../Shared/Toast';
 import { validateReservationForm, } from '@/lib/utils/reservationValidation';
 import { type SlotStatus } from '@/lib/utils/hoursAvailability';
@@ -26,6 +27,8 @@ export interface ReservationFormInitialData {
   isAdmin?: boolean;
 }
 
+const DEFAULT_LOCAL = SUCURSALES[0]?.value || 'SAN MARTIN';
+
 export function useReservationForm(
   initialData?: ReservationFormInitialData,
   onSuccess?: () => void,
@@ -34,6 +37,8 @@ export function useReservationForm(
   const { loading, error: hookError, crearReserva } = useCrearReserva();
   const { data: reservasData, fetch: fetchReservas } = useReservas();
   const { locales, loading: loadingLocales } = useLocales();
+  const adminLocalScope = useAdminLocalScopeState();
+  const scopedLocalName = adminLocalScope.workplace?.nombre_local ?? '';
   // ── State ──────────────────────────────────────
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -68,7 +73,8 @@ export function useReservationForm(
 
     return hora; // fallback
   };
-  const [sucursal, setSucursal] = useState(initialData?.local || SUCURSALES[0]?.value || 'SAN MARTIN');
+  const [sucursal, setSucursal] = useState(initialData?.local || DEFAULT_LOCAL);
+  const effectiveSucursal = scopedLocalName || (adminLocalScope.ready ? sucursal : '');
   const [semanaIndex, setSemanaIndex] = useState(initialData?.semana ? parseInt(initialData.semana, 10) : 0);
   const [dia, setDia] = useState<DiaSemana>(initialData?.dia || 'LUNES');
   const [horaDesde, setHoraDesde] = useState(normalizarHora(initialData?.hora_desde || ''));
@@ -94,14 +100,26 @@ export function useReservationForm(
   // Usar locales dinámicos, si no hay usar SUCURSALES estático
   const sucursalOptions = useMemo(
     () => {
+      if (!adminLocalScope.ready) {
+        return [{ value: '', label: 'Cargando local...' }];
+      }
+
+      if (scopedLocalName) {
+        return [{ value: scopedLocalName, label: scopedLocalName }];
+      }
+
       if (locales.length > 0) {
         return locales.map(l => ({ value: l.nombre, label: l.nombre }));
       }
       // Fallback a constantes estáticas
       return SUCURSALES.map(s => ({ value: s.value, label: s.label }));
     },
-    [locales]
+    [adminLocalScope.ready, locales, scopedLocalName]
   );
+
+  const setScopedSucursal = useCallback((value: string) => {
+    setSucursal(scopedLocalName || value);
+  }, [scopedLocalName]);
 
   // ── Semanas ────────────────────────────────────
   const semanasDisponibles = useMemo(() => generarSemanas(6), []);
@@ -132,7 +150,7 @@ export function useReservationForm(
 
   // ── Fetch reservas cuando cambian sucursal o semana ─────────
   useEffect(() => {
-    if (sucursal && semanaActual) {
+    if (effectiveSucursal && semanaActual) {
       const fechaInicio = new Date(semanaActual.fechaInicio);
       fechaInicio.setHours(0, 0, 0, 0);
 
@@ -143,13 +161,13 @@ export function useReservationForm(
       const fechaHastaStr = fechaFin.toISOString().split('T')[0];
 
       fetchReservas({
-        local: sucursal,
+        local: effectiveSucursal,
         semana: semanaIndex + 1,
         fecha_desde: fechaDesdeStr,
         fecha_hasta: fechaHastaStr
       });
     }
-  }, [sucursal, semanaIndex, semanaActual, fetchReservas]);
+  }, [effectiveSucursal, semanaIndex, semanaActual, fetchReservas]);
 
   // ── Hours availability ──────────────────────────────────
   // Marcar como 'past' las horas pasadas y 'occupied' las ya reservadas
@@ -165,7 +183,7 @@ export function useReservationForm(
     const fechaDia = fechasSemana?.get(dia)?.fecha ?? null;
     if (fechaDia) {
       for (const hora of HORAS) {
-        if (isSlotOutsideBusinessHours(sucursal, fechaDia, hora)) {
+        if (isSlotOutsideBusinessHours(effectiveSucursal, fechaDia, hora)) {
           map.set(hora, 'closed');
         }
       }
@@ -194,9 +212,9 @@ export function useReservationForm(
     }
 
     // 4. Marcar horas ocupadas basado en reservasData y capacidad
-    if (reservasData?.data?.reservas && fechaDia && sucursal && tipo) {
+    if (reservasData?.data?.reservas && fechaDia && effectiveSucursal && tipo) {
       const fechaDiaStr = fechaDia.toISOString().split('T')[0];
-      const currentLocal = locales.find(l => l.nombre === sucursal);
+      const currentLocal = locales.find(l => l.nombre === effectiveSucursal);
       const capacidadMaxima = tipo.toLowerCase() === 'm' || tipo.toLowerCase() === 'mesa' 
         ? (currentLocal?.capacidad_mesas || 3) 
         : (currentLocal?.capacidad_bicis || 2);
@@ -236,7 +254,7 @@ export function useReservationForm(
     }
 
     return map;
-  }, [dia, fechasSemana, reservasData, sucursal, tipo, locales]);
+  }, [dia, effectiveSucursal, fechasSemana, reservasData, tipo, locales]);
 
   useEffect(() => {
     const fechaDia = fechasSemana?.get(dia)?.fecha ?? null;
@@ -244,7 +262,7 @@ export function useReservationForm(
 
     const selectedStatus = hoursAvailability.get(horaDesde);
     const isOutsideHours = horaHasta
-      ? isSlotOutsideBusinessHours(sucursal, fechaDia, horaDesde, horaHasta)
+      ? isSlotOutsideBusinessHours(effectiveSucursal, fechaDia, horaDesde, horaHasta)
       : selectedStatus === 'closed';
 
     if (selectedStatus === 'closed' || isOutsideHours) {
@@ -252,16 +270,16 @@ export function useReservationForm(
       setHoraHasta('');
       setSlotWarning('Ese horario no está disponible en la sucursal seleccionada. Elige otro horario.');
     }
-  }, [dia, fechasSemana, horaDesde, horaHasta, hoursAvailability, sucursal]);
+  }, [dia, effectiveSucursal, fechasSemana, horaDesde, horaHasta, hoursAvailability]);
 
 
   // ── Fetch servicios desde API cuando cambia sucursal ───────────
   useEffect(() => {
-    if (!sucursal) { setServiciosAPI([]); return; }
+    if (!effectiveSucursal) { setServiciosAPI([]); return; }
     let cancelled = false;
     const fetchSvc = async () => {
       try {
-        const res = await getServiciosDB({ local: sucursal }) as { data?: { servicios?: typeof serviciosAPI } };
+        const res = await getServiciosDB({ local: effectiveSucursal }) as { data?: { servicios?: typeof serviciosAPI } };
         if (!cancelled) setServiciosAPI(res?.data?.servicios ?? []);
       } catch {
         if (!cancelled) setServiciosAPI([]);
@@ -269,16 +287,16 @@ export function useReservationForm(
     };
     fetchSvc();
     return () => { cancelled = true; };
-  }, [sucursal]);
+  }, [effectiveSucursal]);
 
   // ── Limpiar servicio si cambia sucursal (nuevo local puede no tener ese servicio) ───────────
   useEffect(() => {
-    if (sucursal && servicio && serviciosAPI.length > 0) {
+    if (effectiveSucursal && servicio && serviciosAPI.length > 0) {
       if (!serviciosAPI.some(s => s.nombre === servicio)) {
         setServicio('');
       }
     }
-  }, [sucursal, servicio, serviciosAPI]);
+  }, [effectiveSucursal, servicio, serviciosAPI]);
 
   // ── Días disponibles ───────────────────────────────────
   const diasDisponibles = useMemo(
@@ -359,7 +377,7 @@ export function useReservationForm(
   // ── Validación y submit ────────────────────────────────
   const validate = (): boolean => {
     const e = validateReservationForm(
-      sucursal,
+      effectiveSucursal,
       fechasSemana?.get(dia)?.fecha.toISOString().split('T')[0] || '',
       cliente,
       numeroTelefono,
@@ -399,7 +417,7 @@ export function useReservationForm(
         const servicioInfo = serviciosAPI.find(s => s.nombre === servicio);
         const tipoBody = (servicioInfo?.tipoEspacio === 'B' ? 'B' : 'M') as 'M' | 'B';
         const payload = {
-          local: sucursal,
+          local: effectiveSucursal,
           fecha: fechaISO,
           hora_desde: horaDesdeNorm,
           hora_hasta: horaHastaNorm,
@@ -429,7 +447,7 @@ export function useReservationForm(
   };
   return {
     // State
-    sucursal, setSucursal,
+    sucursal: effectiveSucursal, setSucursal: setScopedSucursal,
     semanaIndex,
     dia,
     horaDesde, horaHasta,

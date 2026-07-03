@@ -24,6 +24,11 @@
   margin: 0 auto;
 }
 
+.headerLayer {
+  position: relative;
+  z-index: 80;
+}
+
 /* ─────────────────────────────────────────────────────────────────────────── */
 /* BACKGROUND ELEMENTS - Subtle & Clean */
 /* ─────────────────────────────────────────────────────────────────────────── */
@@ -76,6 +81,50 @@
   color: var(--admin-text-muted);
   font-weight: 500;
   text-transform: capitalize;
+}
+
+.headerMeta {
+  display: grid;
+  justify-items: end;
+  gap: 0.45rem;
+  min-width: 190px;
+}
+
+.scopeControl {
+  width: 100%;
+  max-width: 220px;
+}
+
+.scopeButton,
+.scopeControl [role="combobox"] {
+  min-height: 36px;
+  width: 100%;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-full);
+  background: var(--admin-surface-2);
+  color: var(--admin-text-muted);
+  font-family: var(--admin-font-family);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.scopeControl [role="combobox"] span:first-child {
+  color: var(--admin-text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.scopeButton {
+  cursor: default;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scopeButton:disabled {
+  opacity: 1;
 }
 
 .dateIcon {
@@ -795,8 +844,17 @@
     width: 100%;
   }
 
+  .headerMeta {
+    justify-items: stretch;
+    width: 100%;
+  }
+
   .dateBadge {
     width: 100%;
     justify-content: center;
+  }
+
+  .scopeControl {
+    max-width: none;
   }
 }

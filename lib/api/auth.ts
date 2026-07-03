@@ -7,6 +7,10 @@ export interface UsuarioResumen {
   fecha_registro: string;
   rol_codigo: string;
   rol_nombre: string;
+  local_id?: number | null;
+  nombre_local?: string | null;
+  lugar_id?: number | null;
+  nombre_lugar?: string | null;
 }
 
 export type RolCodigo = 'admin_sys' | 'gerencia';
@@ -16,6 +20,11 @@ export interface LoginResponse {
   token: string;
   token_type: string;
   username: string;
+  rol_codigo?: string;
+  local_id?: number | null;
+  nombre_local?: string | null;
+  lugar_id?: number | null;
+  nombre_lugar?: string | null;
 }
 
 export interface UsuariosListResponse {
@@ -39,11 +48,13 @@ export async function registrarUsuario(
   username: string,
   password: string,
   rolCodigo: RolCodigo,
+  localId?: number,
 ): Promise<ApiResponse<{ id: number }>> {
   return apiClient.post<ApiResponse<{ id: number }>>('/auth/register', {
     username,
     password,
     rol_codigo: rolCodigo,
+    ...(rolCodigo !== 'admin_sys' && localId !== undefined && { local_id: localId }),
   });
 }
 

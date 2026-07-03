@@ -17,8 +17,14 @@ import {
 
 import Header from '@/components/AdminHeader/Header';
 import { PageHeader } from '@/components/AdminConfig';
-import { getReservasResumenDB, type ReservasResumenData } from '@/lib/api/reservas';
+import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
+import {
+  getReservasResumenDB,
+  type ReservasResumenData,
+} from '@/lib/api/reservas';
 import { getClientesDB } from '@/lib/api/clientes';
+import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
+import { useLocales } from '@/lib/hooks/useLocales';
 import styles from './page.module.css';
 
 type KpiCard = {
@@ -49,6 +55,9 @@ const getTodayISO = () => {
   const offset = now.getTimezoneOffset();
   return new Date(now.getTime() - offset * 60_000).toISOString().slice(0, 10);
 };
+
+const GENERAL_LOCAL = '';
+const LOCAL_SCOPE_PENDING = '__LOCAL_SCOPE_PENDING__';
 
 const makeKpiPrimary = (clientesTotal: number | null): KpiCard[] => [
   {
@@ -141,6 +150,26 @@ export default function AdminDashboardPage() {
   const [resumenLoading, setResumenLoading] = useState(true);
   const [resumenError, setResumenError] = useState<string | null>(null);
   const [clientesTotal, setClientesTotal] = useState<number | null>(null);
+  const [dashboardLocal, setDashboardLocal] = useState(GENERAL_LOCAL);
+  const adminLocalScope = useAdminLocalScopeState();
+  const scopedLocalName = adminLocalScope.workplace?.nombre_local ?? '';
+  const { locales } = useLocales();
+  const effectiveDashboardLocal = scopedLocalName || (adminLocalScope.ready ? dashboardLocal : '');
+  const dashboardLocalValue = adminLocalScope.ready
+    ? effectiveDashboardLocal
+    : LOCAL_SCOPE_PENDING;
+  const dashboardLocalOptions = !adminLocalScope.ready
+    ? [{ value: LOCAL_SCOPE_PENDING, label: 'Cargando local...' }]
+    : scopedLocalName
+      ? [{ value: scopedLocalName, label: scopedLocalName }]
+      : [
+          { value: GENERAL_LOCAL, label: 'General' },
+          ...locales.map((local) => ({ value: local.nombre, label: local.nombre })),
+        ];
+  const canChooseDashboardLocal = dashboardLocalOptions.length > 1;
+  const dashboardLocalLabel = dashboardLocalOptions.find((option) => option.value === dashboardLocalValue)?.label
+    ?? dashboardLocalOptions[0]?.label
+    ?? 'General';
 
   const containerRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
@@ -155,12 +184,19 @@ export default function AdminDashboardPage() {
       return;
     }
 
+    if (!adminLocalScope.ready) return;
+
     const loadResumen = async () => {
       setResumenLoading(true);
       setResumenError(null);
 
+      const resumenRequest = getReservasResumenDB({
+        fecha: resumenFecha,
+        local: !scopedLocalName ? effectiveDashboardLocal || undefined : undefined,
+      });
+
       const [resumenResult, clientesResult] = await Promise.allSettled([
-        getReservasResumenDB(resumenFecha),
+        resumenRequest,
         getClientesDB({}),
       ]);
 
@@ -228,7 +264,7 @@ export default function AdminDashboardPage() {
     }, containerRef);
 
     return () => ctx.revert();
-  }, [resumenFecha, router]);
+  }, [adminLocalScope.ready, effectiveDashboardLocal, resumenFecha, router, scopedLocalName]);
 
   const weekBars = getWeekBars(resumen);
 
@@ -246,7 +282,7 @@ export default function AdminDashboardPage() {
       <main className={styles.main}>
         <div className={styles.container}>
           {/* Page header */}
-          <div ref={headerRef}>
+          <div ref={headerRef} className={styles.headerLayer}>
             <PageHeader
               kicker="Panel de control"
               kickerIcon={<BarChart2 size={14} strokeWidth={2} />}
@@ -254,9 +290,27 @@ export default function AdminDashboardPage() {
               accentWord={adminName}
               subtitle="Gestiona reservas, servicios y operaciones de AtrevidaFit"
               actions={
-                <div className={styles.dateBadge}>
-                  <Calendar size={14} strokeWidth={1.5} className={styles.dateIcon} />
-                  {dateString}
+                <div className={styles.headerMeta}>
+                  <div className={styles.dateBadge}>
+                    <Calendar size={14} strokeWidth={1.5} className={styles.dateIcon} />
+                    {dateString}
+                  </div>
+                  <div className={styles.scopeControl}>
+                    {canChooseDashboardLocal ? (
+                      <CustomSelect
+                        value={dashboardLocalValue}
+                        onChange={(value) => {
+                          if (value === LOCAL_SCOPE_PENDING) return;
+                          setDashboardLocal(value);
+                        }}
+                        options={dashboardLocalOptions}
+                      />
+                    ) : (
+                      <button type="button" className={styles.scopeButton} disabled>
+                        {dashboardLocalLabel}
+                      </button>
+                    )}
+                  </div>
                 </div>
               }
             />

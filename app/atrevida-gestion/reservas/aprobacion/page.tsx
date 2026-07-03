@@ -27,6 +27,7 @@ import { PageHeader, StatGrid, StatCard, AdminPanel } from '@/components/AdminCo
 import { CATEGORIAS_ORDEN } from '@/components/AdminReservationForm/constants';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { actualizarEstadoReservaDB, actualizarReservaDB, actualizarReservaNotificadoDB, eliminarReservaDB, getReservasDB } from '@/lib/api/reservas';
+import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import {
   SERVICIOS_ADMIN_DISPONIBLES,
   getServiciosAdminPorCategoria,
@@ -62,6 +63,8 @@ const ESTADO_OPTIONS: Array<{ value: EstadoFiltro; label: string }> = [
   { value: 'TODOS', label: 'Todas' },
 ];
 const COMPLETION_REASON_DONE = 'Ya se brindo el servicio';
+const ALL_LOCALS_FILTER = 'TODOS';
+const LOCAL_SCOPE_PENDING = '__LOCAL_SCOPE_PENDING__';
 
 const TIPO_LABELS: Record<string, string> = {
   M: 'Tratamiento',
@@ -227,9 +230,13 @@ export default function AdminReservasAprobacionPage() {
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [estadoFiltro, setEstadoFiltro] = useState<EstadoFiltro>('PENDIENTE');
   const [searchQuery, setSearchQuery] = useState('');
-  const [localFiltro, setLocalFiltro] = useState('TODOS');
+  const [localFiltro, setLocalFiltro] = useState(ALL_LOCALS_FILTER);
   const [tipoFiltro, setTipoFiltro] = useState('TODOS');
   const [fechaFiltro, setFechaFiltro] = useState('');
+  const adminLocalScope = useAdminLocalScopeState();
+  const scopedLocalName = adminLocalScope.workplace?.nombre_local ?? '';
+  const defaultLocalFiltro = scopedLocalName || ALL_LOCALS_FILTER;
+  const effectiveLocalFiltro = scopedLocalName || (adminLocalScope.ready ? localFiltro : LOCAL_SCOPE_PENDING);
 
   const fetchReservas = useCallback(async () => {
     const isInitialRequest = !hasLoadedRef.current;
@@ -302,11 +309,15 @@ export default function AdminReservasAprobacionPage() {
   );
 
   const localFilterOptions = useMemo(
-    () => [
-      { value: 'TODOS', label: 'Todas' },
-      ...localOptions.map((local) => ({ value: local, label: local })),
-    ],
-    [localOptions],
+    () => !adminLocalScope.ready
+      ? [{ value: LOCAL_SCOPE_PENDING, label: 'Cargando local...' }]
+      : scopedLocalName
+      ? [{ value: scopedLocalName, label: scopedLocalName }]
+      : [
+          { value: ALL_LOCALS_FILTER, label: 'Todas' },
+          ...localOptions.map((local) => ({ value: local, label: local })),
+        ],
+    [adminLocalScope.ready, localOptions, scopedLocalName],
   );
 
   const tipoFilterOptions = useMemo(
@@ -325,7 +336,9 @@ export default function AdminReservasAprobacionPage() {
       if (estadoNormalizado === 'COMPLETADO') return false;
       const isVisibleByStateWindow = estadoNormalizado !== 'PENDIENTE' || isReservaPendienteVigente(reserva);
       const matchesEstado = estadoFiltro === 'TODOS' || estadoNormalizado === estadoFiltro;
-      const matchesLocal = localFiltro === 'TODOS' || reserva.local === localFiltro;
+      const matchesLocal = effectiveLocalFiltro === LOCAL_SCOPE_PENDING
+        || effectiveLocalFiltro === ALL_LOCALS_FILTER
+        || reserva.local === effectiveLocalFiltro;
       const matchesTipo = tipoFiltro === 'TODOS' || reserva.tipo === tipoFiltro;
       const matchesFecha = !fechaFiltro || reserva.fecha === fechaFiltro;
       const searchable = normalizeSearchText([
@@ -351,9 +364,14 @@ export default function AdminReservasAprobacionPage() {
       const stampB = sortStampByReservaIdRef.current.get(b.id) ?? getReservaAuditMs(b);
       return stampB - stampA;
     });
-  }, [estadoFiltro, fechaFiltro, localFiltro, reservas, searchQuery, tipoFiltro]);
+  }, [effectiveLocalFiltro, estadoFiltro, fechaFiltro, reservas, searchQuery, tipoFiltro]);
 
-  const hasAdvancedFilters = Boolean(searchQuery.trim() || localFiltro !== 'TODOS' || tipoFiltro !== 'TODOS' || fechaFiltro);
+  const hasAdvancedFilters = Boolean(
+    searchQuery.trim()
+    || (adminLocalScope.ready && effectiveLocalFiltro !== defaultLocalFiltro)
+    || tipoFiltro !== 'TODOS'
+    || fechaFiltro,
+  );
   const reservasVisiblesSignature = useMemo(
     () => reservasVisibles.map((reserva) => `${reserva.id}:${reserva.estado}:${reserva.servicio_confirmado ?? ''}:${reserva.notificado ? '1' : '0'}`).join('|'),
     [reservasVisibles],
@@ -361,7 +379,7 @@ export default function AdminReservasAprobacionPage() {
 
   const resetFilters = () => preserveScrollPosition(() => {
     setSearchQuery('');
-    setLocalFiltro('TODOS');
+    setLocalFiltro(defaultLocalFiltro);
     setTipoFiltro('TODOS');
     setFechaFiltro('');
   });
@@ -716,7 +734,7 @@ export default function AdminReservasAprobacionPage() {
     });
 
     return () => window.cancelAnimationFrame(raf);
-  }, [estadoFiltro, fechaFiltro, localFiltro, reservas.length, reservasVisibles.length, searchQuery, tipoFiltro]);
+  }, [effectiveLocalFiltro, estadoFiltro, fechaFiltro, reservas.length, reservasVisibles.length, searchQuery, tipoFiltro]);
 
   useEffect(() => {
     if (!approvalReserva) return undefined;
@@ -817,8 +835,8 @@ export default function AdminReservasAprobacionPage() {
               <label className={styles.controlField}>
                 <span>Sucursal</span>
                 <CustomSelect
-                  value={localFiltro}
-                  onChange={(value) => preserveScrollPosition(() => setLocalFiltro(value))}
+                  value={effectiveLocalFiltro}
+                  onChange={(value) => preserveScrollPosition(() => setLocalFiltro(scopedLocalName || value))}
                   options={localFilterOptions}
                 />
               </label>

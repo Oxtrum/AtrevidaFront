@@ -24,6 +24,7 @@ import type { ClientePG } from '@/lib/api/clientes';
 import { crearPagoDB, getPagosDB } from '@/lib/api/pagos';
 import type { CrearPagoData, DetalleServicio, Pago } from '@/lib/api/pagos';
 import { getLocalesDB, getServiciosDB } from '@/lib/api/servicios';
+import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import styles from './page.module.css';
 
 interface LocalOption {
@@ -106,6 +107,21 @@ const restoreStoredLocal = (locales: LocalOption[]): LocalOption | null => {
   }
 };
 
+const getScopedLocales = (
+  locales: LocalOption[],
+  workplace: { local_id: number; nombre_local: string } | null,
+): LocalOption[] => {
+  if (!workplace) return locales;
+
+  const scoped = locales.filter((local) =>
+    local.id === workplace.local_id || local.nombre === workplace.nombre_local
+  );
+
+  return scoped.length > 0
+    ? scoped
+    : [{ id: workplace.local_id, nombre: workplace.nombre_local, activo: true }];
+};
+
 export default function CajaPage() {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -145,23 +161,33 @@ export default function CajaPage() {
   });
   const [newClientErrors, setNewClientErrors] = useState<NewClientErrors>({});
   const [savingNewClient, setSavingNewClient] = useState(false);
+  const adminLocalScope = useAdminLocalScopeState();
+  const scopedWorkplace = adminLocalScope.workplace;
+  const hasScopedLocal = !!scopedWorkplace;
 
   const fetchLocales = useCallback(async () => {
+    if (!adminLocalScope.ready) return;
+
     setLoadingLocales(true);
     setLocalesError(null);
     try {
       const res = await getLocalesDB();
-      const activeLocales = (res?.data?.locales ?? []).filter((local) => local.activo !== false);
+      const activeLocales = getScopedLocales(
+        (res?.data?.locales ?? []).filter((local) => local.activo !== false),
+        scopedWorkplace,
+      );
       setLocales(activeLocales);
 
-      const restored = restoreStoredLocal(activeLocales);
-      if (restored) setSelectedLocal(restored);
+      const restored = !hasScopedLocal ? restoreStoredLocal(activeLocales) : null;
+      const nextLocal = restored ?? (hasScopedLocal ? activeLocales[0] ?? null : null);
+      setSelectedLocal(nextLocal);
+      if (nextLocal) localStorage.setItem(CAJA_LOCAL_STORAGE_KEY, JSON.stringify(nextLocal));
     } catch (err) {
       setLocalesError(err instanceof Error ? err.message : 'Error al cargar locales');
     } finally {
       setLoadingLocales(false);
     }
-  }, []);
+  }, [adminLocalScope.ready, hasScopedLocal, scopedWorkplace]);
 
   const fetchServicios = useCallback(async (local: LocalOption) => {
     setLoadingServicios(true);
@@ -195,13 +221,15 @@ export default function CajaPage() {
   }, [selectedLocal]);
 
   useEffect(() => {
+    if (!adminLocalScope.ready) return;
+
     const token = localStorage.getItem('adminToken');
     if (!token) {
       router.push('/atrevida-gestion/login');
       return;
     }
     void fetchLocales();
-  }, [router, fetchLocales]);
+  }, [adminLocalScope.ready, router, fetchLocales]);
 
   useEffect(() => {
     if (!selectedLocal) return;
@@ -250,6 +278,11 @@ export default function CajaPage() {
   }, [selectedLocal]);
 
   const selectLocal = (local: LocalOption) => {
+    if (scopedWorkplace && local.id !== scopedWorkplace.local_id && local.nombre !== scopedWorkplace.nombre_local) {
+      toast.error('Tu sesiÃ³n estÃ¡ limitada a un local');
+      return;
+    }
+
     localStorage.setItem(CAJA_LOCAL_STORAGE_KEY, JSON.stringify(local));
     setSelectedLocal(local);
     setDetalle([]);
@@ -561,7 +594,9 @@ export default function CajaPage() {
                   <div className={styles.summaryItem}>
                     <span>Local</span>
                     <strong>{selectedLocal.nombre}</strong>
-                    <button type="button" onClick={() => setSelectedLocal(null)}>Cambiar</button>
+                    {!hasScopedLocal && (
+                      <button type="button" onClick={() => setSelectedLocal(null)}>Cambiar</button>
+                    )}
                   </div>
                   <div className={styles.summaryItem}>
                     <span>Fecha</span>

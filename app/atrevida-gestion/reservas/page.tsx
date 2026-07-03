@@ -9,6 +9,7 @@ import { CalendarAdmin } from '@/components/Calendar';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { useReservasFiltradas } from '@/lib/hooks/useReservasFiltradas';
 import type { ReservaTipoBackend } from '@/lib/api/reservas';
+import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import { DataTable, Column, RowActionsMenu, PageHeader, AdminPanel } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { Input } from '@/components/Shared';
@@ -35,6 +36,9 @@ interface ReservaRow extends Record<string, unknown> {
   estado?: EstadoReserva;
 }
 
+const DEFAULT_LOCAL = 'SAN MARTIN';
+const LOCAL_SCOPE_PENDING = '__LOCAL_SCOPE_PENDING__';
+
 /**
  * AdminReservasPage - Página de gestión de reservas para administrador
  */
@@ -44,12 +48,12 @@ export default function AdminReservasPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const calendarRef = useRef<HTMLDivElement>(null);
-  const [sucursalActiva, setSucursalActiva] = useState('SAN MARTIN');
+  const [sucursalActiva, setSucursalActiva] = useState(DEFAULT_LOCAL);
   const [semanaActiva, setSemanaActiva] = useState('0');
 
   // Estado para filtros de lista de reservas
   const [vistaActiva, setVistaActiva] = useState<'calendario' | 'lista'>('calendario');
-  const [filtroLocal, setFiltroLocal] = useState('SAN MARTIN');
+  const [filtroLocal, setFiltroLocal] = useState(DEFAULT_LOCAL);
   const [filtroTipo, setFiltroTipo] = useState<ReservaTipoBackend | ''>('');
   const [filtroEstado, setFiltroEstado] = useState<EstadoReserva | ''>('');
 
@@ -57,6 +61,10 @@ export default function AdminReservasPage() {
   const { reservas, loading, error, fetch: fetchReservas } = useReservasFiltradas();
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [selectedReserva, setSelectedReserva] = useState<ReservaBD | null>(null);
+  const adminLocalScope = useAdminLocalScopeState();
+  const scopedLocalName = adminLocalScope.workplace?.nombre_local ?? '';
+  const effectiveSucursalActiva = scopedLocalName || (adminLocalScope.ready ? sucursalActiva : '');
+  const effectiveFiltroLocal = scopedLocalName || (adminLocalScope.ready ? filtroLocal : '');
 
   // Inicializar fechas por defecto
   const getInitialFechaDesde = () => {
@@ -75,16 +83,16 @@ export default function AdminReservasPage() {
 
   // Fetch reservas filtradas cuando cambian los filtros
   useEffect(() => {
-    if (filtroLocal && filtroFechaDesde && filtroFechaHasta) {
+    if (effectiveFiltroLocal && filtroFechaDesde && filtroFechaHasta) {
       fetchReservas({
-        local: filtroLocal,
+        local: effectiveFiltroLocal,
         fecha_desde: filtroFechaDesde,
         fecha_hasta: filtroFechaHasta,
         tipo: (filtroTipo as 'mesa' | 'bicicleta' | '') || undefined,
         estado: filtroEstado || undefined,
       });
     }
-  }, [filtroLocal, filtroFechaDesde, filtroFechaHasta, filtroTipo, filtroEstado, fetchReservas]);
+  }, [effectiveFiltroLocal, filtroFechaDesde, filtroFechaHasta, filtroTipo, filtroEstado, fetchReservas]);
 
   // Verificar autenticación admin
   useEffect(() => {
@@ -130,7 +138,7 @@ export default function AdminReservasPage() {
     }
 
     const params = new URLSearchParams({
-      local: sucursalActiva,
+      local: effectiveSucursalActiva,
       semana: semanaActiva,
       dia: dia,
       hora_desde,
@@ -141,6 +149,11 @@ export default function AdminReservasPage() {
   };
 
   const handleSucursalChange = (sucursal: string) => {
+    if (scopedLocalName) {
+      setSucursalActiva(scopedLocalName);
+      return;
+    }
+
     setSucursalActiva(sucursal);
   };
 
@@ -154,7 +167,7 @@ export default function AdminReservasPage() {
       await eliminarReservaDB(reserva.id);
       toast.success('Reserva eliminada');
       await fetchReservas({
-        local: filtroLocal,
+        local: effectiveFiltroLocal,
         fecha_desde: filtroFechaDesde,
         fecha_hasta: filtroFechaHasta,
         tipo: (filtroTipo as 'mesa' | 'bicicleta' | '') || undefined,
@@ -173,8 +186,12 @@ export default function AdminReservasPage() {
   };
 
   const localesOptions = useMemo(
-    () => locales.map(l => ({ value: l.nombre, label: l.nombre })),
-    [locales]
+    () => !adminLocalScope.ready
+      ? [{ value: LOCAL_SCOPE_PENDING, label: 'Cargando local...' }]
+      : scopedLocalName
+      ? [{ value: scopedLocalName, label: scopedLocalName }]
+      : locales.map(l => ({ value: l.nombre, label: l.nombre })),
+    [adminLocalScope.ready, locales, scopedLocalName]
   );
 
   const tipoOptions: Array<{ value: ReservaTipoBackend | ''; label: string }> = [
@@ -309,7 +326,7 @@ export default function AdminReservasPage() {
                     className={styles.createButton}
                     onClick={() => {
                       const params = new URLSearchParams({
-                        local: sucursalActiva,
+                        local: effectiveSucursalActiva,
                         semana: semanaActiva,
                       });
                       router.push(`/atrevida-gestion/reservas/crear?${params.toString()}`);
@@ -344,8 +361,8 @@ export default function AdminReservasPage() {
                   <div className={styles.filtroGroup}>
                     <label>Local</label>
                     <CustomSelect
-                      value={filtroLocal}
-                      onChange={setFiltroLocal}
+                      value={effectiveFiltroLocal || LOCAL_SCOPE_PENDING}
+                      onChange={(value) => setFiltroLocal(scopedLocalName || value)}
                       options={localesOptions}
                     />
                   </div>
@@ -417,7 +434,7 @@ export default function AdminReservasPage() {
 
             <CalendarAdmin
               key={pathname}
-              localInicial="SAN MARTIN"
+              localInicial={effectiveSucursalActiva}
               onSlotClick={handleSlotClick}
               onSucursalChange={handleSucursalChange}
               onSemanaChange={handleSemanaChange}

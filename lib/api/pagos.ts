@@ -1,4 +1,5 @@
 import { apiClient } from './client';
+import { withLocalIdScope, withNombreLocalScope } from './localScope';
 import type { ApiResponse } from '@/types/reserva';
 
 export interface DetalleServicio {
@@ -40,6 +41,7 @@ export interface Pago {
 
 export interface GetPagosParams {
   codigo_pago?: string;
+  local_id?: number;
   local_nombre?: string;
   cliente_nit?: string;
   cliente_nombre?: string;
@@ -103,14 +105,17 @@ export interface PagosResumenResponse {
 }
 
 export async function getPagosDB(params?: GetPagosParams): Promise<ApiResponse<PagosListResponse>> {
+  const scopedParams = withLocalIdScope<GetPagosParams>(params ?? {});
+
   return apiClient.get<ApiResponse<PagosListResponse>>('/bd/pagos', {
     params: {
-      codigo_pago: params?.codigo_pago,
-      local_nombre: params?.local_nombre,
-      cliente_nit: params?.cliente_nit,
-      cliente_nombre: params?.cliente_nombre,
-      estado: params?.estado,
-      activo: params?.activo ? 'true' : 'false',
+      codigo_pago: scopedParams.codigo_pago,
+      local_id: scopedParams.local_id,
+      local_nombre: scopedParams.local_nombre,
+      cliente_nit: scopedParams.cliente_nit,
+      cliente_nombre: scopedParams.cliente_nombre,
+      estado: scopedParams.estado,
+      activo: scopedParams.activo === undefined ? undefined : String(scopedParams.activo),
     },
   });
 }
@@ -126,11 +131,13 @@ export async function crearPagoDB(data: CrearPagoData): Promise<ApiResponse<{ co
 export async function getPagosResumenDB(
   params: PagosResumenParams,
 ): Promise<ApiResponse<PagosResumenResponse>> {
+  const scopedParams = withNombreLocalScope(params);
+
   return apiClient.get<ApiResponse<PagosResumenResponse>>('/bd/pagos/resumen', {
     params: {
-      fecha_desde: params.fecha_desde,
-      fecha_hasta: params.fecha_hasta,
-      local: params.local,
+      fecha_desde: scopedParams.fecha_desde,
+      fecha_hasta: scopedParams.fecha_hasta,
+      local: scopedParams.local,
     },
   });
 }

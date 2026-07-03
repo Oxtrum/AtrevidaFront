@@ -3,6 +3,7 @@
  */
 
 import { apiClient } from './client';
+import { withLocalIdScope, withNombreLocalScope } from './localScope';
 import type { ApiResponse } from '@/types/reserva';
 
 // ─── Parámetros ───────────────────────────────────────────────────
@@ -17,7 +18,7 @@ export interface GetServiciosParams {
 }
 
 export interface GetCombosParams {
-  local: string;
+  local?: string;
   nombre?: string;
   categoria?: string;
   sesiones?: number;
@@ -73,10 +74,12 @@ export interface ActivarServicioEnLocalData {
 
 /** Obtiene todas las categorías desde la base de datos. */
 export async function getCategoriasDB(params: GetCategoriasParams = {}) {
+  const scopedParams = withLocalIdScope(params);
+
   return apiClient.get('/bd/categorias', {
     params: {
-      local: params.local,
-      local_id: params.local_id,
+      local: scopedParams.local,
+      local_id: scopedParams.local_id,
     },
   });
 }
@@ -134,14 +137,16 @@ export interface ServicioRow {
 export async function getServiciosDB(
   params: GetServiciosParams,
 ): Promise<ApiResponse<{ servicios: ServicioRow[] }>> {
+  const scopedParams = withNombreLocalScope(params);
+
   return apiClient.get<ApiResponse<{ servicios: ServicioRow[] }>>('/bd/servicios', {
     params: {
-      local: params.local,
-      nombre: params.nombre,
-      categoria: params.categoria,
-      sesiones: params.sesiones,
-      requiere_evaluacion: params.requiere_evaluacion?.toString(),
-      paciente_nuevo: params.paciente_nuevo?.toString(),
+      local: scopedParams.local,
+      nombre: scopedParams.nombre,
+      categoria: scopedParams.categoria,
+      sesiones: scopedParams.sesiones,
+      requiere_evaluacion: scopedParams.requiere_evaluacion?.toString(),
+      paciente_nuevo: scopedParams.paciente_nuevo?.toString(),
     },
   });
 }
@@ -190,12 +195,14 @@ export async function activarServicioEnLocal(
 
 /** Obtiene combos filtrados desde la base de datos. */
 export async function getCombosDB(params: GetCombosParams) {
+  const scopedParams = withNombreLocalScope(params);
+
   return apiClient.get('/bd/combos', {
     params: {
-      local: params.local,
-      nombre: params.nombre,
-      categoria: params.categoria,
-      sesiones: params.sesiones,
+      local: scopedParams.local,
+      nombre: scopedParams.nombre,
+      categoria: scopedParams.categoria,
+      sesiones: scopedParams.sesiones,
     },
   });
 }

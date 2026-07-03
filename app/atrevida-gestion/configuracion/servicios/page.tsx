@@ -19,6 +19,7 @@ import {
   activarServicioEnLocal,
   togglePacienteNuevo,
 } from '@/lib/api/servicios';
+import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import styles from './page.module.css';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -96,6 +97,21 @@ const FORM_INITIAL: FormState = {
 
 // ─── Tiempo helpers ───────────────────────────────────────────────────────────
 
+function getScopedLocales(
+  locales: LocalOption[],
+  workplace: { local_id: number; nombre_local: string } | null,
+): LocalOption[] {
+  if (!workplace) return locales;
+
+  const scoped = locales.filter((local) =>
+    local.id === workplace.local_id || local.nombre === workplace.nombre_local
+  );
+
+  return scoped.length > 0
+    ? scoped
+    : [{ id: workplace.local_id, nombre: workplace.nombre_local }];
+}
+
 function minutosATexto(minutos: number): string {
   const h = Math.floor(minutos / 60);
   const m = minutos % 60;
@@ -134,7 +150,11 @@ export default function ServiciosPage() {
   const [filtroSesiones, setFiltroSesiones] = useState('');
   /** 'all' | 'true' | 'false' — filtro tri-estado */
   const [filtroEvaluacion, setFiltroEvaluacion] = useState<'all' | 'true' | 'false'>('all');
-  const hasFilter = !!(filtroLocal || filtroCategoria);
+  const adminLocalScope = useAdminLocalScopeState();
+  const scopedLocalName = adminLocalScope.workplace?.nombre_local ?? '';
+  const effectiveFiltroLocal = scopedLocalName || filtroLocal;
+  const hasScopedLocal = !!scopedLocalName;
+  const hasFilter = adminLocalScope.ready && !!(effectiveFiltroLocal || filtroCategoria);
 
   // Contar filtros secundarios activos para mostrar indicador
   const activeSecondaryFilters = [
@@ -166,6 +186,10 @@ export default function ServiciosPage() {
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const isEdit = editingId !== null;
   const formCategoriasLoading = modalOpen && !!form.local && formCategorias.local !== form.local;
+  const localOptions = useMemo(() => [
+    ...(hasScopedLocal ? [] : [{ value: '', label: 'Seleccionar local' }]),
+    ...locales.map((l) => ({ value: l.nombre, label: l.nombre })),
+  ], [hasScopedLocal, locales]);
   const categoriaOptions = useMemo(() => {
     const categoriasDisponibles = formCategorias.local === form.local ? formCategorias.categorias : [];
 
@@ -204,12 +228,12 @@ export default function ServiciosPage() {
   // ─── Data fetching ───────────────────────────────────────────────────────────
 
   const fetchServicios = useCallback(async () => {
-    if (!filtroLocal && !filtroCategoria) return;
+    if (!adminLocalScope.ready || (!effectiveFiltroLocal && !filtroCategoria)) return;
     setLoading(true);
     setError(null);
     try {
       const res = await getServiciosDB({
-        local: filtroLocal || undefined,
+        local: effectiveFiltroLocal || undefined,
         categoria: filtroCategoria || undefined,
         nombre: filtroNombreDebounced || undefined,
         sesiones: filtroSesiones ? Number(filtroSesiones) : undefined,
@@ -223,27 +247,31 @@ export default function ServiciosPage() {
     } finally {
       setLoading(false);
     }
-  }, [filtroLocal, filtroCategoria, filtroNombreDebounced, filtroSesiones, filtroEvaluacion]);
+  }, [adminLocalScope.ready, effectiveFiltroLocal, filtroCategoria, filtroNombreDebounced, filtroSesiones, filtroEvaluacion]);
 
   const fetchOptions = useCallback(async () => {
+    if (!adminLocalScope.ready) return;
+
     try {
       const [catRes, locRes] = await Promise.all([
         getCategoriasDB() as Promise<{ data?: { categorias?: CategoriaOption[] } }>,
         getLocalesDB() as Promise<{ data?: { locales?: LocalOption[] } }>,
       ]);
       setCategorias(catRes?.data?.categorias ?? []);
-      setLocales(locRes?.data?.locales ?? []);
+      setLocales(getScopedLocales(locRes?.data?.locales ?? [], adminLocalScope.workplace));
     } catch (err) {
       console.error('fetchOptions', err);
       toast.error('No se cargaron categorías o locales');
     }
-  }, []);
+  }, [adminLocalScope.ready, adminLocalScope.workplace]);
 
   useEffect(() => {
+    if (!adminLocalScope.ready) return;
+
     const token = localStorage.getItem('adminToken');
     if (!token) { router.push('/atrevida-gestion/login'); return; }
     fetchOptions();
-  }, [router, fetchOptions]);
+  }, [adminLocalScope.ready, router, fetchOptions]);
 
   useEffect(() => {
     if (!modalOpen || !form.local) return;
@@ -295,7 +323,7 @@ export default function ServiciosPage() {
   const patchForm = (patch: Partial<FormState>) => setForm((prev) => ({ ...prev, ...patch }));
 
   const resetModal = () => {
-    setForm(FORM_INITIAL);
+    setForm({ ...FORM_INITIAL, local: scopedLocalName });
     setFormErrors({});
     setEditingId(null);
   };
@@ -389,7 +417,7 @@ export default function ServiciosPage() {
           costo,
           sesiones,
           tipo_espacio_requerido: form.tipo_espacio_requerido,
-          local: form.local,
+          local: scopedLocalName || form.local,
           requiere_evaluacion: form.requiere_evaluacion,
         });
         toast.success('Servicio creado correctamente');
@@ -470,6 +498,11 @@ export default function ServiciosPage() {
   };
 
   const openActivarLocal = (row: ServicioRow) => {
+    if (scopedLocalName) {
+      toast.error('Tu sesiÃ³n estÃ¡ limitada a un local');
+      return;
+    }
+
     setActivarLocalRow(row);
     setActivarLocalValue('');
   };
@@ -566,13 +599,17 @@ export default function ServiciosPage() {
       key: 'acciones',
       label: '',
       searchable: false,
-      render: (_val, row) => (
-        <RowActionsMenu actions={[
+      render: (_val, row) => {
+        const actions = [
           { label: 'Editar', icon: <Pencil size={12} strokeWidth={2} />, onClick: () => openEdit(row) },
-          { label: 'Activar local', icon: <Plus size={12} strokeWidth={2} />, onClick: () => openActivarLocal(row) },
-          { label: 'Eliminar', icon: <Trash2 size={12} strokeWidth={2} />, onClick: () => handleDelete(row), variant: 'danger', disabled: deletingId === row.id },
-        ]} />
-      ),
+          ...(!scopedLocalName
+            ? [{ label: 'Activar local', icon: <Plus size={12} strokeWidth={2} />, onClick: () => openActivarLocal(row) }]
+            : []),
+          { label: 'Eliminar', icon: <Trash2 size={12} strokeWidth={2} />, onClick: () => handleDelete(row), variant: 'danger' as const, disabled: deletingId === row.id },
+        ];
+
+        return <RowActionsMenu actions={actions} />;
+      },
     },
   ];
 
@@ -634,12 +671,9 @@ export default function ServiciosPage() {
                   <CustomSelect
                     id="filtro-local"
                     ariaLabelledBy="lbl-filtro-local"
-                    value={filtroLocal}
-                    onChange={setFiltroLocal}
-                    options={[
-                      { value: '', label: 'Seleccionar local' },
-                      ...locales.map((l) => ({ value: l.nombre, label: l.nombre })),
-                    ]}
+                    value={effectiveFiltroLocal}
+                    onChange={(value) => setFiltroLocal(scopedLocalName || value)}
+                    options={localOptions}
                   />
                 </div>
 
@@ -801,15 +835,12 @@ export default function ServiciosPage() {
                 ariaLabelledBy="lbl-srv-local"
                 value={form.local}
                 onChange={(v) => {
-                  patchForm({ local: v, categoria: '' });
+                  patchForm({ local: scopedLocalName || v, categoria: '' });
                   if (formErrors.local || formErrors.categoria) {
                     setFormErrors((p) => ({ ...p, local: undefined, categoria: undefined }));
                   }
                 }}
-                options={[
-                  { value: '', label: 'Seleccionar local' },
-                  ...locales.map((l) => ({ value: l.nombre, label: l.nombre })),
-                ]}
+                options={localOptions}
                 hasError={!!formErrors.local}
               />
             )}
