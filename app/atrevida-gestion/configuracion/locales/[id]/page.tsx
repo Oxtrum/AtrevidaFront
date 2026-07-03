@@ -7,6 +7,7 @@ import Header from '@/components/AdminHeader/Header';
 import { PageHeader } from '@/components/AdminConfig';
 import { toast } from '@/components/Shared/Toast';
 import { getLocalByID, actualizarLocal } from '@/lib/api/servicios';
+import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import styles from './page.module.css';
 
 interface Espacio {
@@ -24,8 +25,19 @@ export default function EditarLocalPage() {
   const [espacios, setEspacios] = useState<Espacio[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const adminLocalScope = useAdminLocalScopeState();
+  const scopedLocalId = adminLocalScope.workplace?.local_id ?? null;
 
   const fetchLocal = useCallback(async () => {
+    if (!adminLocalScope.ready) return;
+
+    if (scopedLocalId !== null && Number(params.id) !== scopedLocalId) {
+      toast.error('No tienes acceso a este local');
+      setLoading(false);
+      router.replace('/atrevida-gestion/configuracion/locales');
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await getLocalByID(params.id) as { data?: { local?: { nombre: string; espacios: Espacio[] } } };
@@ -40,13 +52,15 @@ export default function EditarLocalPage() {
     } finally {
       setLoading(false);
     }
-  }, [params.id, router]);
+  }, [adminLocalScope.ready, params.id, router, scopedLocalId]);
 
   useEffect(() => {
+    if (!adminLocalScope.ready) return;
+
     const token = localStorage.getItem('adminToken');
     if (!token) { router.push('/atrevida-gestion/login'); return; }
     fetchLocal();
-  }, [router, fetchLocal]);
+  }, [adminLocalScope.ready, router, fetchLocal]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -57,6 +71,12 @@ export default function EditarLocalPage() {
 
   const handleSave = async () => {
     if (!nombre.trim()) return;
+    if (scopedLocalId !== null && Number(params.id) !== scopedLocalId) {
+      toast.error('No tienes acceso a este local');
+      router.replace('/atrevida-gestion/configuracion/locales');
+      return;
+    }
+
     setSaving(true);
     try {
       // PATCH /bd/locales/{id} spec acepta solo { nombre, activo }.

@@ -9,8 +9,6 @@ export function getAdminLocalScope() {
 }
 
 export function withNombreLocalScope<T extends { local?: string }>(params: T): T {
-  if (params.local) return params;
-
   const workplace = getAdminLocalScope();
   if (!workplace) return params;
 
@@ -20,14 +18,14 @@ export function withNombreLocalScope<T extends { local?: string }>(params: T): T
   };
 }
 
-export function withLocalIdScope<T extends { local_id?: number }>(params: T): T {
-  if (params.local_id !== undefined) return params;
-
+export function withLocalIdScope<T extends { local_id?: number; local?: string; local_nombre?: string }>(params: T): T {
   const workplace = getAdminLocalScope();
   if (!workplace) return params;
 
   return {
     ...params,
+    local: params.local !== undefined ? workplace.nombre_local : params.local,
+    local_nombre: params.local_nombre !== undefined ? workplace.nombre_local : params.local_nombre,
     local_id: workplace.local_id,
   };
 }

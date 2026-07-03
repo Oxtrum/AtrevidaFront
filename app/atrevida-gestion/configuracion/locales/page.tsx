@@ -9,6 +9,7 @@ import { PageHeader, DataTable, FormModal } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import { toast } from '@/components/Shared/Toast';
 import { getLocalesDB, crearLocalDB } from '@/lib/api/servicios';
+import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import styles from './page.module.css';
 
 interface Espacio {
@@ -30,6 +31,21 @@ interface FormErrors {
   submit?: string;
 }
 
+function getScopedLocales(
+  locales: LocalRow[],
+  workplace: { local_id: number; nombre_local: string } | null,
+): LocalRow[] {
+  if (!workplace) return locales;
+
+  const scoped = locales.filter((local) =>
+    local.id === workplace.local_id || local.nombre === workplace.nombre_local
+  );
+
+  return scoped.length > 0
+    ? scoped
+    : [{ id: workplace.local_id, nombre: workplace.nombre_local, activo: true, espacios: null }];
+}
+
 export default function LocalesPage() {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -47,25 +63,31 @@ export default function LocalesPage() {
   ]);
   const [saving, setSaving] = useState(false);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
+  const adminLocalScope = useAdminLocalScopeState();
+  const hasScopedLocal = !!adminLocalScope.workplace;
 
   const fetchData = useCallback(async () => {
+    if (!adminLocalScope.ready) return;
+
     setLoading(true);
     setError(null);
     try {
       const res = await getLocalesDB() as { data?: { locales?: LocalRow[] } };
-      setLocales(res?.data?.locales ?? []);
+      setLocales(getScopedLocales(res?.data?.locales ?? [], adminLocalScope.workplace));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar locales');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [adminLocalScope.ready, adminLocalScope.workplace]);
 
   useEffect(() => {
+    if (!adminLocalScope.ready) return;
+
     const token = localStorage.getItem('adminToken');
     if (!token) { router.push('/atrevida-gestion/login'); return; }
     fetchData();
-  }, [router, fetchData]);
+  }, [adminLocalScope.ready, router, fetchData]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -163,7 +185,7 @@ export default function LocalesPage() {
           accentWord="Locales"
           subtitle="Gestiona las sucursales y sus espacios disponibles"
           backHref="/atrevida-gestion/configuracion"
-          actions={
+          actions={!hasScopedLocal ? (
             <button
               className="admin-button admin-button-primary"
               onClick={() => { resetModal(); setModalOpen(true); }}
@@ -171,7 +193,7 @@ export default function LocalesPage() {
               <Plus size={18} strokeWidth={2} />
               Nuevo Local
             </button>
-          }
+          ) : undefined}
         />
 
         {/* ── DataTable ya tiene su propio wrapper (border/shadow) ── */}
