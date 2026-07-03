@@ -3,14 +3,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
-import { KeyRound, Plus, ShieldCheck, UserX, UserCheck } from 'lucide-react';
+import { ArrowRight, KeyRound, MapPin, Plus, ShieldCheck, UserX, UserCheck } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
 import { PageHeader, DataTable, FormModal, RowActionsMenu } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
-import type { Column } from '@/components/AdminConfig';
+import type { Column, RowAction } from '@/components/AdminConfig';
 import { toast } from '@/components/Shared/Toast';
 import { ApiError } from '@/lib/api/client';
 import {
+  cambiarUsuarioLocal,
   getUsuarios,
   registrarUsuario,
   cambiarPassword,
@@ -19,6 +20,7 @@ import {
 import type { UsuarioResumen } from '@/lib/api/auth';
 import type { RolCodigo } from '@/lib/api/auth';
 import { getLocalesDB, type LocalRow } from '@/lib/api/servicios';
+import { isAdminSys } from '@/lib/auth/adminSession';
 import styles from './page.module.css';
 
 interface UsuarioRow extends Record<string, unknown> {
@@ -59,6 +61,12 @@ interface PwForm {
   confirmPassword: string;
 }
 
+interface ChangeLocalState {
+  user: UsuarioRow;
+  localId: string;
+  error?: string;
+}
+
 interface ConfirmState {
   message: string;
   onConfirm: () => void;
@@ -82,6 +90,11 @@ const ROLE_OPTIONS = [
   { value: 'admin_sys', label: 'Administrador de sistema' },
 ];
 
+const getUserLocalLabel = (row: UsuarioRow) => {
+  if (row.rol_codigo === 'admin_sys') return 'Todos los locales';
+  return row.nombre_local || 'Sin local asignado';
+};
+
 export default function UsuariosPage() {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -92,6 +105,7 @@ export default function UsuariosPage() {
   const [error, setError] = useState<string | null>(null);
   const [locales, setLocales] = useState<LocalRow[]>([]);
   const [localesLoading, setLocalesLoading] = useState(false);
+  const [canManageUserLocales, setCanManageUserLocales] = useState(false);
 
   const [newUserModalOpen, setNewUserModalOpen] = useState(false);
   const [newUserForm, setNewUserForm] = useState<NewUserForm>(DEFAULT_NEW_USER_FORM);
@@ -102,6 +116,9 @@ export default function UsuariosPage() {
   const [pwForm, setPwForm] = useState<PwForm>(EMPTY_PW_FORM);
   const [pwErrors, setPwErrors] = useState<PwErrors>({});
   const [pwSaving, setPwSaving] = useState(false);
+
+  const [changeLocalState, setChangeLocalState] = useState<ChangeLocalState | null>(null);
+  const [localChangeSaving, setLocalChangeSaving] = useState(false);
 
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
 
@@ -135,6 +152,7 @@ export default function UsuariosPage() {
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
     if (!token) { router.push('/atrevida-gestion/login'); return; }
+    setCanManageUserLocales(isAdminSys());
     fetchData();
     fetchLocales();
   }, [router, fetchData, fetchLocales]);
@@ -192,6 +210,82 @@ export default function UsuariosPage() {
       setNewUserErrors({ submit: msg });
     } finally {
       setSaving(false);
+    }
+  };
+
+  // ─── Cambiar local ────────────────────────────────────────────────────────
+
+  const openChangeLocalModal = (row: UsuarioRow) => {
+    const currentLocalId = row.local_id == null ? '' : String(row.local_id);
+    const suggestedLocal = locales.find((local) => String(local.id) !== currentLocalId) ?? locales[0];
+
+    setChangeLocalState({
+      user: row,
+      localId: suggestedLocal ? String(suggestedLocal.id) : '',
+    });
+  };
+
+  const closeChangeLocalModal = () => {
+    if (localChangeSaving) return;
+    setChangeLocalState(null);
+  };
+
+  const updateChangeLocalId = (localId: string) => {
+    setChangeLocalState((current) => current
+      ? { ...current, localId, error: undefined }
+      : current);
+  };
+
+  const handleChangeUserLocal = async () => {
+    if (!changeLocalState) return;
+
+    const { user, localId } = changeLocalState;
+    const selectedLocal = locales.find((local) => String(local.id) === localId);
+    const selectedLocalId = Number(localId);
+    const currentLocalId = user.local_id == null ? '' : String(user.local_id);
+
+    if (user.rol_codigo === 'admin_sys') {
+      setChangeLocalState((current) => current
+        ? { ...current, error: 'No se puede cambiar el local de un administrador del sistema.' }
+        : current);
+      return;
+    }
+
+    if (!localId || !Number.isInteger(selectedLocalId) || selectedLocalId <= 0) {
+      setChangeLocalState((current) => current
+        ? { ...current, error: 'Selecciona un local válido.' }
+        : current);
+      return;
+    }
+
+    if (!selectedLocal) {
+      setChangeLocalState((current) => current
+        ? { ...current, error: 'El local seleccionado no está disponible.' }
+        : current);
+      return;
+    }
+
+    if (currentLocalId === localId) {
+      setChangeLocalState((current) => current
+        ? { ...current, error: 'Selecciona un local distinto al actual.' }
+        : current);
+      return;
+    }
+
+    setLocalChangeSaving(true);
+    try {
+      await cambiarUsuarioLocal({
+        username: user.username,
+        local_id: selectedLocalId,
+      });
+      toast.success(`Local de ${user.username} actualizado a ${selectedLocal.nombre}`);
+      setChangeLocalState(null);
+      await fetchData();
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'No se pudo cambiar el local del usuario';
+      setChangeLocalState((current) => current ? { ...current, error: msg } : current);
+    } finally {
+      setLocalChangeSaving(false);
     }
   };
 
@@ -276,6 +370,27 @@ export default function UsuariosPage() {
   const localOptions = locales.length > 0
     ? locales.map((local) => ({ value: String(local.id), label: local.nombre }))
     : [{ value: '', label: localesLoading ? 'Cargando locales...' : 'Sin locales activos', disabled: true }];
+  const selectedChangeLocal = changeLocalState
+    ? locales.find((local) => String(local.id) === changeLocalState.localId)
+    : null;
+
+  const getUserActions = (row: UsuarioRow): RowAction[] => {
+    const actions: RowAction[] = [];
+
+    if (canManageUserLocales && row.rol_codigo !== 'admin_sys') {
+      actions.push({
+        label: 'Cambiar de local',
+        icon: <MapPin size={12} strokeWidth={2} />,
+        onClick: () => openChangeLocalModal(row),
+      });
+    }
+
+    actions.push(row.activo
+      ? { label: 'Desactivar', icon: <UserX size={12} strokeWidth={2} />, onClick: () => handleToggle(row), variant: 'danger' }
+      : { label: 'Reactivar', icon: <UserCheck size={12} strokeWidth={2} />, onClick: () => handleToggle(row) });
+
+    return actions;
+  };
 
   const columns: Column<UsuarioRow>[] = [
     { key: 'username', label: 'Usuario' },
@@ -320,11 +435,7 @@ export default function UsuariosPage() {
       label: '',
       searchable: false,
       render: (_val, row) => (
-        <RowActionsMenu actions={[
-          row.activo
-            ? { label: 'Desactivar', icon: <UserX size={12} strokeWidth={2} />, onClick: () => handleToggle(row), variant: 'danger' }
-            : { label: 'Reactivar', icon: <UserCheck size={12} strokeWidth={2} />, onClick: () => handleToggle(row) },
-        ]} />
+        <RowActionsMenu actions={getUserActions(row)} />
       ),
     },
   ];
@@ -474,6 +585,56 @@ export default function UsuariosPage() {
 
           {newUserErrors.submit && <div className={styles.submitError}>{newUserErrors.submit}</div>}
         </div>
+      </FormModal>
+
+      {/* Modal: Cambiar local de usuario */}
+      <FormModal
+        isOpen={changeLocalState !== null}
+        onClose={closeChangeLocalModal}
+        title="Cambiar de local"
+        onSubmit={handleChangeUserLocal}
+        loading={localChangeSaving}
+        submitLabel="Confirmar cambio"
+      >
+        {changeLocalState && (
+          <div className={styles.formStack}>
+            <div className={styles.localMoveUser}>
+              <span>Usuario</span>
+              <strong>{changeLocalState.user.username}</strong>
+            </div>
+
+            <div className={styles.localMoveSummary}>
+              <div className={styles.localMovePoint}>
+                <span>Local actual</span>
+                <strong>{getUserLocalLabel(changeLocalState.user)}</strong>
+              </div>
+              <div className={styles.localMoveArrow} aria-hidden="true">
+                <ArrowRight size={16} strokeWidth={1.8} />
+              </div>
+              <div className={styles.localMovePoint}>
+                <span>Nuevo local</span>
+                <strong>{selectedChangeLocal?.nombre ?? 'Selecciona un local'}</strong>
+              </div>
+            </div>
+
+            <div className={styles.field}>
+              <label id="usr-change-local-label" htmlFor="usr-change-local">Nuevo local</label>
+              <CustomSelect
+                id="usr-change-local"
+                ariaLabelledBy="usr-change-local-label"
+                value={changeLocalState.localId}
+                onChange={updateChangeLocalId}
+                options={localOptions}
+                placeholder={localesLoading ? 'Cargando locales...' : 'Selecciona un local'}
+                hasError={!!changeLocalState.error}
+              />
+              <span className={styles.fieldHint}>
+                El cambio actualizará el local_id y nombre_local del usuario.
+              </span>
+              {changeLocalState.error && <span className={styles.fieldError}>{changeLocalState.error}</span>}
+            </div>
+          </div>
+        )}
       </FormModal>
 
       {/* Modal: Cambiar contraseña propia */}

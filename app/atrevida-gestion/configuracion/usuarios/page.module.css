@@ -96,6 +96,64 @@
   line-height: 1.45;
 }
 
+.localMoveUser {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-surface-solid-1);
+}
+
+.localMoveUser span,
+.localMovePoint span {
+  color: var(--admin-text-dim);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.localMoveUser strong {
+  min-width: 0;
+  color: var(--admin-foreground);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.localMoveSummary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: stretch;
+  gap: 0.75rem;
+}
+
+.localMovePoint {
+  min-width: 0;
+  padding: 0.85rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-surface-2);
+}
+
+.localMovePoint strong {
+  display: block;
+  margin-top: 0.35rem;
+  color: var(--admin-foreground);
+  font-size: 0.86rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.localMoveArrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--admin-text-dim);
+}
+
 .roleCell {
   color: var(--admin-foreground);
   font-size: 0.82rem;
@@ -111,6 +169,24 @@
   color: var(--admin-accent-danger);
   font-size: 0.8rem;
   line-height: 1.5;
+}
+
+@media (max-width: 520px) {
+  .localMoveUser {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .localMoveSummary {
+    grid-template-columns: 1fr;
+  }
+
+  .localMoveArrow {
+    justify-content: flex-start;
+    height: 1.25rem;
+    transform: rotate(90deg);
+    transform-origin: center;
+  }
 }
 
 @media (max-width: 768px) {
