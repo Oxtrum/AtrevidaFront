@@ -40,6 +40,8 @@ type KpiCard = {
 const EMPTY_RESUMEN: ReservasResumenData = {
   reservas_agendadas_dia: 0,
   servicios_completados_dia: 0,
+  ingresos_hoy: 0,
+  cancelaciones_hoy: 0,
   semana: {
     total_reservas: 0,
     lunes: 0,
@@ -59,6 +61,11 @@ const getTodayISO = () => {
 const GENERAL_LOCAL = '';
 const LOCAL_SCOPE_PENDING = '__LOCAL_SCOPE_PENDING__';
 
+const formatDashboardCurrency = (value: number | string | null | undefined) => `Bs ${Number(value ?? 0).toLocaleString('es-BO', {
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 2,
+})}`;
+
 const makeKpiPrimary = (clientesTotal: number | null): KpiCard[] => [
   {
     label: 'Reservas del día',
@@ -71,12 +78,12 @@ const makeKpiPrimary = (clientesTotal: number | null): KpiCard[] => [
   },
   {
     label: 'Ingresos de hoy',
-    trend: '—',
+    trend: 'Hoy',
     icon: <DollarSign size={16} strokeWidth={1.5} />,
     color: '#92278F',
     colorRgb: '146, 39, 143',
-    getValue: () => '—',
-    getSub: () => 'Disponible próximamente',
+    getValue: (resumen, isLoading) => isLoading ? '—' : formatDashboardCurrency(resumen.ingresos_hoy),
+    getSub: () => 'Ingresos registrados para la fecha seleccionada',
   },
   {
     label: 'Clientes activos',
@@ -101,12 +108,12 @@ const KPI_SECONDARY: KpiCard[] = [
   },
   {
     label: 'Cancelaciones',
-    trend: '—',
+    trend: 'Hoy',
     icon: <CalendarX size={16} strokeWidth={1.5} />,
     color: '#FFE600',
     colorRgb: '255, 230, 0',
-    getValue: () => '—',
-    getSub: () => 'Disponible próximamente',
+    getValue: (resumen, isLoading) => isLoading ? '—' : String(resumen.cancelaciones_hoy),
+    getSub: () => 'Reservas canceladas en la fecha seleccionada',
   }
 ];
 

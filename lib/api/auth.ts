@@ -37,6 +37,11 @@ export interface CambiarPasswordPayload {
   password_nueva: string;
 }
 
+export interface CambiarUsuarioLocalPayload {
+  username: string;
+  local_id: number;
+}
+
 export async function loginAuth(
   username: string,
   password: string,
@@ -73,6 +78,15 @@ export async function cambiarPassword(
     password_actual: payload.password_actual,
     password_nueva: payload.password_nueva,
     password: payload.password_nueva,
+  });
+}
+
+export async function cambiarUsuarioLocal(
+  payload: CambiarUsuarioLocalPayload,
+): Promise<ApiResponse<{ mensaje: string }>> {
+  return apiClient.patch<ApiResponse<{ mensaje: string }>>('/auth/usuarios/local', {
+    username: payload.username,
+    local_id: payload.local_id,
   });
 }
 
