@@ -18,6 +18,7 @@ import {
 } from '@/lib/api/auth';
 import type { UsuarioResumen } from '@/lib/api/auth';
 import type { RolCodigo } from '@/lib/api/auth';
+import { getLocalesDB, type LocalRow } from '@/lib/api/servicios';
 import styles from './page.module.css';
 
 interface UsuarioRow extends Record<string, unknown> {
@@ -26,18 +27,22 @@ interface UsuarioRow extends Record<string, unknown> {
   fecha_registro: string;
   rol_codigo: string;
   rol_nombre: string;
+  local_id?: number | null;
+  nombre_local?: string | null;
 }
 
 interface NewUserForm {
   username: string;
   password: string;
   rolCodigo: RolCodigo;
+  localId: string;
 }
 
 interface NewUserErrors {
   username?: string;
   password?: string;
   rolCodigo?: string;
+  localId?: string;
   submit?: string;
 }
 
@@ -69,6 +74,7 @@ const DEFAULT_NEW_USER_FORM: NewUserForm = {
   username: '',
   password: '',
   rolCodigo: 'gerencia',
+  localId: '',
 };
 
 const ROLE_OPTIONS = [
@@ -84,6 +90,8 @@ export default function UsuariosPage() {
   const [usuarios, setUsuarios] = useState<UsuarioRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [locales, setLocales] = useState<LocalRow[]>([]);
+  const [localesLoading, setLocalesLoading] = useState(false);
 
   const [newUserModalOpen, setNewUserModalOpen] = useState(false);
   const [newUserForm, setNewUserForm] = useState<NewUserForm>(DEFAULT_NEW_USER_FORM);
@@ -111,11 +119,25 @@ export default function UsuariosPage() {
     }
   }, []);
 
+  const fetchLocales = useCallback(async () => {
+    setLocalesLoading(true);
+    try {
+      const res = await getLocalesDB();
+      setLocales((res.data?.locales ?? []).filter((local) => local.activo !== false));
+    } catch (err) {
+      setLocales([]);
+      toast.error(err instanceof Error ? err.message : 'No se pudieron cargar los locales');
+    } finally {
+      setLocalesLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
     if (!token) { router.push('/atrevida-gestion/login'); return; }
     fetchData();
-  }, [router, fetchData]);
+    fetchLocales();
+  }, [router, fetchData, fetchLocales]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -137,9 +159,11 @@ export default function UsuariosPage() {
 
   const validateNewUser = (): boolean => {
     const errors: NewUserErrors = {};
+    const requiresLocal = newUserForm.rolCodigo !== 'admin_sys';
     if (!newUserForm.username.trim()) errors.username = 'El usuario es obligatorio';
     if (!newUserForm.password.trim()) errors.password = 'La contraseña es obligatoria';
     if (!newUserForm.rolCodigo) errors.rolCodigo = 'Selecciona un rol';
+    if (requiresLocal && !newUserForm.localId) errors.localId = 'Selecciona el local de trabajo';
     setNewUserErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -149,10 +173,15 @@ export default function UsuariosPage() {
     setSaving(true);
     setNewUserErrors({});
     try {
+      const localId = newUserForm.rolCodigo === 'admin_sys'
+        ? undefined
+        : Number(newUserForm.localId);
+
       await registrarUsuario(
         newUserForm.username.trim(),
         newUserForm.password,
         newUserForm.rolCodigo,
+        localId,
       );
       toast.success('Usuario creado correctamente');
       setNewUserModalOpen(false);
@@ -243,6 +272,11 @@ export default function UsuariosPage() {
 
   // ─── Columns ─────────────────────────────────────────────────────────────
 
+  const newUserRequiresLocal = newUserForm.rolCodigo !== 'admin_sys';
+  const localOptions = locales.length > 0
+    ? locales.map((local) => ({ value: String(local.id), label: local.nombre }))
+    : [{ value: '', label: localesLoading ? 'Cargando locales...' : 'Sin locales activos', disabled: true }];
+
   const columns: Column<UsuarioRow>[] = [
     { key: 'username', label: 'Usuario' },
     {
@@ -251,6 +285,15 @@ export default function UsuariosPage() {
       render: (value, row) => (
         <span className={styles.roleCell}>
           {String(value || row.rol_codigo)}
+        </span>
+      ),
+    },
+    {
+      key: 'nombre_local',
+      label: 'Local',
+      render: (value, row) => (
+        <span className={styles.roleCell}>
+          {String(value || (row.rol_codigo === 'admin_sys' ? 'Todos los locales' : 'Sin local'))}
         </span>
       ),
     },
@@ -382,12 +425,18 @@ export default function UsuariosPage() {
               ariaLabelledBy="usr-role-label"
               value={newUserForm.rolCodigo}
               onChange={(value) => {
+                const rolCodigo = value as RolCodigo;
                 setNewUserForm((current) => ({
                   ...current,
-                  rolCodigo: value as RolCodigo,
+                  rolCodigo,
+                  localId: rolCodigo === 'admin_sys' ? '' : current.localId,
                 }));
-                if (newUserErrors.rolCodigo) {
-                  setNewUserErrors((current) => ({ ...current, rolCodigo: undefined }));
+                if (newUserErrors.rolCodigo || newUserErrors.localId) {
+                  setNewUserErrors((current) => ({
+                    ...current,
+                    rolCodigo: undefined,
+                    localId: rolCodigo === 'admin_sys' ? undefined : current.localId,
+                  }));
                 }
               }}
               options={ROLE_OPTIONS}
@@ -398,6 +447,30 @@ export default function UsuariosPage() {
             </span>
             {newUserErrors.rolCodigo && <span className={styles.fieldError}>{newUserErrors.rolCodigo}</span>}
           </div>
+
+          {newUserRequiresLocal && (
+            <div className={styles.field}>
+              <label id="usr-local-label" htmlFor="usr-local">Local de trabajo</label>
+              <CustomSelect
+                id="usr-local"
+                ariaLabelledBy="usr-local-label"
+                value={newUserForm.localId}
+                onChange={(value) => {
+                  setNewUserForm((current) => ({ ...current, localId: value }));
+                  if (newUserErrors.localId) {
+                    setNewUserErrors((current) => ({ ...current, localId: undefined }));
+                  }
+                }}
+                options={localOptions}
+                placeholder={localesLoading ? 'Cargando locales...' : 'Selecciona un local'}
+                hasError={!!newUserErrors.localId}
+              />
+              <span className={styles.fieldHint}>
+                El usuario solo trabajara con la informacion de este local.
+              </span>
+              {newUserErrors.localId && <span className={styles.fieldError}>{newUserErrors.localId}</span>}
+            </div>
+          )}
 
           {newUserErrors.submit && <div className={styles.submitError}>{newUserErrors.submit}</div>}
         </div>
