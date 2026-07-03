@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { getReservasDB, actualizarReservaDB, type GetReservasDBParams, type ActualizarReservaDBData } from '@/lib/api/reservas';
+import { shouldScopeAdminToLocal } from '@/lib/auth/adminSession';
 import type { ReservaBD, ReservasBDApiResponse } from '@/types/reserva';
 
 interface UseReservasFiltradasReturn {
@@ -20,7 +21,7 @@ export function useReservasFiltradas(): UseReservasFiltradasReturn {
   const [error, setError] = useState<string | null>(null);
 
   const fetch = useCallback(async (params: GetReservasDBParams) => {
-    if (!params.local || !params.fecha_desde || !params.fecha_hasta) {
+    if ((!params.local && !shouldScopeAdminToLocal()) || !params.fecha_desde || !params.fecha_hasta) {
       setReservas([]);
       setTotal(0);
       setLoading(false);

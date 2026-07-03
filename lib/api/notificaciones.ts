@@ -1,4 +1,5 @@
 import { ApiError, apiClient } from './client';
+import { withNombreLocalScope } from './localScope';
 import type { ReservasBDApiResponse } from '@/types/reserva';
 
 export interface ReservaNotificacion {
@@ -48,8 +49,9 @@ export async function getReservasNotificaciones(limit = 20) {
       throw error;
     }
 
+    const fallbackParams = withNombreLocalScope<{ local?: string; estado: string }>({ estado: 'AGENDADO' });
     const fallback = await apiClient.get<ReservasBDApiResponse>('/bd/reservas', {
-      params: { estado: 'AGENDADO' },
+      params: fallbackParams,
     });
     const reservas = fallback.data.reservas
       .filter((reserva) => !reserva.notificado)
