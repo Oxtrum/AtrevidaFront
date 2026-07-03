@@ -59,10 +59,24 @@ export interface ReservasResumenSemana {
   sabado?: number;
 }
 
+export interface ReservasResumenIngresos {
+  total_ingresos: number;
+  lunes?: number;
+  martes?: number;
+  miercoles?: number;
+  jueves?: number;
+  viernes?: number;
+  sabado?: number;
+}
+
 export interface ReservasResumenData {
   reservas_agendadas_dia: number;
   servicios_completados_dia: number;
+  ingresos_hoy: number;
+  cancelaciones_hoy: number;
+  ingresos_semana?: number;
   semana: ReservasResumenSemana;
+  ingresos?: ReservasResumenIngresos;
 }
 
 export interface GetReservasResumenParams {
