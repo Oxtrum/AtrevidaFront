@@ -4,6 +4,10 @@
   user-select: none;
 }
 
+.customSelectOpen {
+  z-index: 10050;
+}
+
 .customSelectTrigger {
   min-height: 42px;
   display: flex;
