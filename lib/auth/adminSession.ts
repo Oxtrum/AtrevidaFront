@@ -1,6 +1,15 @@
 export interface AdminUserSession {
   username?: string;
   rol_codigo?: string;
+  local_id?: number | string | null;
+  nombre_local?: string | null;
+  lugar_id?: number | string | null;
+  nombre_lugar?: string | null;
+}
+
+export interface AdminWorkplace {
+  local_id: number;
+  nombre_local: string;
 }
 
 const ADMIN_LOGIN_PATH = '/atrevida-gestion/login';
@@ -53,6 +62,19 @@ function getRoleFromToken(): string | null {
   return getStoredAdminTokenClaims()?.rol_codigo ?? null;
 }
 
+function normalizeLocalId(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value.trim()) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return null;
+}
+
+function normalizeOptionalString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value.trim() : null;
+}
+
 export function getStoredAdminRole(): string | null {
   if (typeof window === 'undefined') return null;
 
@@ -66,6 +88,38 @@ export function getStoredAdminRole(): string | null {
 export function canViewAdminPayments(): boolean {
   const role = getStoredAdminRole();
   return role === 'admin_sys' || role === 'admin';
+}
+
+export function isAdminSys(): boolean {
+  const role = getStoredAdminRole();
+  return role === 'admin_sys';
+}
+
+export function getStoredAdminWorkplace(): AdminWorkplace | null {
+  if (typeof window === 'undefined') return null;
+  if (!hasActiveAdminSession()) return null;
+
+  const storedUser = getStoredAdminUser();
+  const tokenClaims = getStoredAdminTokenClaims();
+  const localId = normalizeLocalId(
+    storedUser?.local_id
+    ?? storedUser?.lugar_id
+    ?? tokenClaims?.local_id
+    ?? tokenClaims?.lugar_id,
+  );
+  const nombreLocal = normalizeOptionalString(
+    storedUser?.nombre_local
+    ?? storedUser?.nombre_lugar
+    ?? tokenClaims?.nombre_local
+    ?? tokenClaims?.nombre_lugar,
+  );
+
+  if (localId === null || !nombreLocal) return null;
+  return { local_id: localId, nombre_local: nombreLocal };
+}
+
+export function shouldScopeAdminToLocal(): boolean {
+  return isAdminProtectedRoute() && !isAdminSys() && getStoredAdminWorkplace() !== null;
 }
 
 export function clearStoredAdminSession(): void {

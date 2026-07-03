@@ -77,6 +77,7 @@ export default function AdminLoginPage() {
             localStorage.setItem('adminToken', data.token);
             localStorage.setItem('adminUser', JSON.stringify(data.user ?? { username: credentials.username }));
             if (data.user?.rol_codigo) localStorage.setItem('adminRole', data.user.rol_codigo);
+            else localStorage.removeItem('adminRole');
             router.push('/atrevida-gestion/dashboard');
           }
         });
