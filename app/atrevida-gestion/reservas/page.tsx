@@ -434,7 +434,7 @@ export default function AdminReservasPage() {
 
             <CalendarAdmin
               key={pathname}
-              localInicial={effectiveSucursalActiva}
+              sucursal={effectiveSucursalActiva}
               onSlotClick={handleSlotClick}
               onSucursalChange={handleSucursalChange}
               onSemanaChange={handleSemanaChange}

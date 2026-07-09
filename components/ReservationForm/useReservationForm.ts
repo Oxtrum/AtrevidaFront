@@ -98,7 +98,9 @@ export function useReservationForm(
 
     return hora; // fallback
   };
-  const [sucursal, setSucursal] = useState(initialData?.local || SUCURSALES[0]?.value || 'SAN MARTIN');
+  // Sin default silencioso: si no llega `local` explícito, queda vacío y la
+  // validación obliga a elegir sucursal (evita escribir en la sucursal equivocada).
+  const [sucursal, setSucursal] = useState(initialData?.local || '');
   const { servicios, loading: loadingServicios } = useServiciosPublicos(sucursal, true);
   const [dia, setDia] = useState<DiaSemana>(initialData?.dia || 'LUNES');
   const [fecha, setFecha] = useState(initialData?.fecha || getTodayISO());

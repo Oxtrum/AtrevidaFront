@@ -11,6 +11,8 @@ import { CustomSelect } from '../Custom/CustomSelectAdmin';
 
 interface CalendarAdminProps {
   localInicial?: string;
+  /** Sucursal controlada por el padre. Si se pasa, es la única fuente de verdad. */
+  sucursal?: string;
   semanaInicial?: string;
   onSlotClick?: (hora: string, dia: DiaSemana, slots: ReservaDetalle[] | undefined) => void;
   onSucursalChange?: (sucursal: string) => void;
@@ -25,17 +27,21 @@ interface CalendarAdminProps {
  */
 export default function CalendarAdmin({
   localInicial = '',
+  sucursal: sucursalProp,
   onSlotClick,
   onSucursalChange,
   onSemanaChange,
 }: CalendarAdminProps) {
+  // Modo controlado: si el padre pasa `sucursal`, esa es la única fuente de verdad.
+  // Evita el desync entre lo mostrado y la sucursal enviada al crear reservas.
+  const controlada = sucursalProp !== undefined;
   const [sucursalSeleccionada, setSucursalSeleccionada] = useState('');
   const [semanaIndex, setSemanaIndex] = useState(0);
   const [selectedDay, setSelectedDay] = useState<DiaSemana | null>(null);
 
   const { data, loading, error, fetch: fetchReservas } = useReservasCalendario();
   const { locales } = useLocales();
-  const sucursal = sucursalSeleccionada || localInicial;
+  const sucursal = controlada ? sucursalProp : (sucursalSeleccionada || localInicial);
   const sucursalEfectiva = sucursal || locales[0]?.nombre || '';
 
   const controlsRef = useRef<HTMLDivElement>(null);
@@ -63,7 +69,7 @@ export default function CalendarAdmin({
   }, [sucursalEfectiva, semanaIndex, semanaActual, fetchReservas]);
 
   const handleSucursalChange = (value: string) => {
-    setSucursalSeleccionada(value);
+    if (!controlada) setSucursalSeleccionada(value);
     setSelectedDay(null);
     onSucursalChange?.(value);
   };

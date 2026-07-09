@@ -27,7 +27,6 @@ export interface ReservationFormInitialData {
   isAdmin?: boolean;
 }
 
-const DEFAULT_LOCAL = SUCURSALES[0]?.value || 'SAN MARTIN';
 
 export function useReservationForm(
   initialData?: ReservationFormInitialData,
@@ -73,7 +72,9 @@ export function useReservationForm(
 
     return hora; // fallback
   };
-  const [sucursal, setSucursal] = useState(initialData?.local || DEFAULT_LOCAL);
+  // Sin default silencioso: si no llega `local` explícito, queda vacío y la
+  // validación obliga a elegir sucursal (evita escribir en la sucursal equivocada).
+  const [sucursal, setSucursal] = useState(initialData?.local || '');
   const effectiveSucursal = scopedLocalName || (adminLocalScope.ready ? sucursal : '');
   const [semanaIndex, setSemanaIndex] = useState(initialData?.semana ? parseInt(initialData.semana, 10) : 0);
   const [dia, setDia] = useState<DiaSemana>(initialData?.dia || 'LUNES');
