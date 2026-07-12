@@ -1,4 +1,5 @@
 import { apiClient } from './client';
+import type { ApiResponse } from '@/types/reserva';
 
 export interface CrearPlanData {
   combo_id: number;
@@ -24,27 +25,29 @@ export interface PlanItem {
   creado_en: string;
 }
 
-export async function getPlanesDB(params: {
+export interface GetPlanesParams {
   local?: string;
   local_id?: number;
   cliente?: string;
   estado?: string;
-}) {
-  return apiClient.get('/bd/planes', { params });
 }
 
-export async function getPlanByID(id: number) {
-  return apiClient.get(`/bd/planes/${id}`);
+export async function getPlanesDB(params: GetPlanesParams): Promise<ApiResponse<{ planes: PlanItem[] }>> {
+  return apiClient.get<ApiResponse<{ planes: PlanItem[] }>>('/bd/planes', { params });
 }
 
-export async function crearPlan(data: CrearPlanData) {
-  return apiClient.post('/bd/planes', data);
+export async function getPlanByID(id: number): Promise<ApiResponse<{ plan: unknown }>> {
+  return apiClient.get<ApiResponse<{ plan: unknown }>>(`/bd/planes/${id}`);
 }
 
-export async function actualizarPlan(id: number, data: { notas?: string }) {
-  return apiClient.patch(`/bd/planes/${id}`, data);
+export async function crearPlan(data: CrearPlanData): Promise<ApiResponse<{ id: number }>> {
+  return apiClient.post<ApiResponse<{ id: number }>>('/bd/planes', data);
 }
 
-export async function cambiarEstadoPlan(id: number, estado: string) {
-  return apiClient.patch(`/bd/planes/${id}/estado`, { estado });
+export async function actualizarPlan(id: number, data: { notas?: string }): Promise<ApiResponse<{ mensaje: string }>> {
+  return apiClient.patch<ApiResponse<{ mensaje: string }>>(`/bd/planes/${id}`, data);
+}
+
+export async function cambiarEstadoPlan(id: number, estado: string): Promise<ApiResponse<{ mensaje: string }>> {
+  return apiClient.patch<ApiResponse<{ mensaje: string }>>(`/bd/planes/${id}/estado`, { estado });
 }

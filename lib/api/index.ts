@@ -4,3 +4,4 @@ export * from './servicios';
 export * from './clientes';
 export * from './auth';
 export * from './pagos';
+export * from './planes';
