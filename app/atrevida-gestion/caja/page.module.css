@@ -778,3 +778,59 @@
     width: 100%;
   }
 }
+
+.sectionLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--admin-text-dim);
+}
+
+.comboList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 1rem;
+}
+
+.comboItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-surface-2);
+  color: var(--admin-foreground);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  text-align: left;
+  width: 100%;
+}
+
+.comboItem:hover:not(:disabled) {
+  border-color: var(--admin-accent-primary);
+  background: rgba(236, 0, 140, 0.06);
+}
+
+.comboItem:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.comboItemName {
+  font-weight: 600;
+}
+
+.comboItemPrice {
+  color: var(--admin-accent-primary);
+  font-weight: 700;
+  font-size: 0.85rem;
+}

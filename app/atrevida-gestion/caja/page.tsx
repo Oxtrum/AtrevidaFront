@@ -8,6 +8,7 @@ import {
   Building2,
   CheckCircle2,
   CreditCard,
+  Gift,
   Minus,
   Plus,
   ReceiptText,
@@ -23,7 +24,8 @@ import { crearClienteDB, getClientesDB } from '@/lib/api/clientes';
 import type { ClientePG } from '@/lib/api/clientes';
 import { crearPagoDB, getPagosDB } from '@/lib/api/pagos';
 import type { CrearPagoData, DetalleServicio, Pago } from '@/lib/api/pagos';
-import { getLocalesDB, getServiciosDB } from '@/lib/api/servicios';
+import { getLocalesDB, getServiciosDB, getCombosDB } from '@/lib/api/servicios';
+import { crearPlan } from '@/lib/api/planes';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import styles from './page.module.css';
 
@@ -134,6 +136,8 @@ export default function CajaPage() {
 
   const [servicios, setServicios] = useState<ServicioOption[]>([]);
   const [loadingServicios, setLoadingServicios] = useState(false);
+  const [combos, setCombos] = useState<{ id: number; nombre: string; precio_total: number }[]>([]);
+  const [loadingCombos, setLoadingCombos] = useState(false);
   const [serviceQuery, setServiceQuery] = useState('');
 
   const [pagos, setPagos] = useState<PagoRow[]>([]);
@@ -202,6 +206,24 @@ export default function CajaPage() {
     }
   }, []);
 
+  const fetchCombos = useCallback(async (local: LocalOption) => {
+    setLoadingCombos(true);
+    try {
+      const res = await getCombosDB({ local: local.nombre }) as {
+        data?: { combos?: { id: number; nombre: string; costo_total: string; precio_paquete?: number }[] };
+      };
+      setCombos((res?.data?.combos ?? []).map((c) => ({
+        id: c.id,
+        nombre: c.nombre,
+        precio_total: Number(c.precio_paquete ?? c.costo_total ?? 0),
+      })));
+    } catch {
+      setCombos([]);
+    } finally {
+      setLoadingCombos(false);
+    }
+  }, []);
+
   const fetchPagos = useCallback(async (local = selectedLocal) => {
     if (!local) return;
     setLoadingPagos(true);
@@ -234,8 +256,9 @@ export default function CajaPage() {
   useEffect(() => {
     if (!selectedLocal) return;
     void fetchServicios(selectedLocal);
+    void fetchCombos(selectedLocal);
     void fetchPagos(selectedLocal);
-  }, [selectedLocal, fetchServicios, fetchPagos]);
+  }, [selectedLocal, fetchServicios, fetchCombos, fetchPagos]);
 
   useEffect(() => {
     const query = clienteNombre.trim();
@@ -356,6 +379,30 @@ export default function CajaPage() {
     setCustomServicio('');
     setCustomPrecio('');
     clearFieldError('detalle');
+  };
+
+  const handleVenderCombo = async (combo: { id: number; nombre: string; precio_total: number }) => {
+    if (!selectedClienteId) {
+      toast.warning('Selecciona un cliente antes de vender un paquete.');
+      return;
+    }
+    if (!selectedLocal) return;
+    try {
+      await crearPlan({
+        combo_id: combo.id,
+        cliente_id: selectedClienteId,
+        local_id: selectedLocal.id,
+        tipo_pago: 'UNICO',
+      });
+      setDetalle((prev) => [
+        ...prev,
+        { servicio_id: null, servicio: `Paquete: ${combo.nombre}`, precio_unitario: combo.precio_total, cantidad: 1, subtotal: combo.precio_total },
+      ]);
+      toast.success(`Paquete "${combo.nombre}" vendido`);
+    } catch (err) {
+      if (err instanceof Error) console.error('venderCombo', err);
+      toast.error('No se pudo vender el paquete.');
+    }
   };
 
   const updateCantidad = (index: number, cantidad: number) => {
@@ -644,6 +691,31 @@ export default function CajaPage() {
                         </button>
                       </div>
                     </div>
+
+                    {loadingCombos && <div className={styles.comboList}><p className={styles.mutedText}>Cargando paquetes…</p></div>}
+                    {!loadingCombos && combos.length > 0 && (
+                      <>
+                        <div className={styles.sectionLabel}>
+                          <Gift size={13} strokeWidth={2} />
+                          Paquetes
+                        </div>
+                        <div className={styles.comboList}>
+                          {combos.map((combo) => (
+                            <button
+                              key={combo.id}
+                              type="button"
+                              className={styles.comboItem}
+                              onClick={() => handleVenderCombo(combo)}
+                              disabled={!selectedClienteId}
+                              title={!selectedClienteId ? 'Selecciona un cliente primero' : `Vender ${combo.nombre}`}
+                            >
+                              <span className={styles.comboItemName}>{combo.nombre}</span>
+                              <span className={styles.comboItemPrice}>{combo.precio_total} Bs</span>
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
 
                     <div className={styles.searchBox}>
                       <Search size={15} strokeWidth={1.8} />
