@@ -38,8 +38,26 @@ export async function getPlanesDB(params: GetPlanesParams): Promise<ApiResponse<
   return apiClient.get<ApiResponse<{ planes: PlanItem[] }>>('/bd/planes', { params });
 }
 
-export async function getPlanByID(id: number): Promise<ApiResponse<{ plan: unknown }>> {
-  return apiClient.get<ApiResponse<{ plan: unknown }>>(`/bd/planes/${id}`);
+export interface PlanServicioDetalle {
+  id: number;
+  nombre_snapshot: string;
+  sesion_numero: number;
+  realizado: boolean;
+  fecha_realizado?: string;
+  orden: number;
+}
+
+export interface PlanDetalle extends PlanItem {
+  servicios: PlanServicioDetalle[];
+}
+
+export async function getPlanByID(id: number): Promise<ApiResponse<{ plan: PlanDetalle }>> {
+  return apiClient.get<ApiResponse<{ plan: PlanDetalle }>>(`/bd/planes/${id}`);
+}
+
+/** PATCH /bd/planes/{id}/sesiones/{numero} — marca/desmarca una sesión. */
+export async function marcarSesionPlan(id: number, numero: number, realizado: boolean) {
+  return apiClient.patch(`/bd/planes/${id}/sesiones/${numero}`, { realizado });
 }
 
 export async function crearPlan(data: CrearPlanData): Promise<ApiResponse<{ id: number }>> {

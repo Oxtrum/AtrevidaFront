@@ -1,15 +1,23 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
-import { CheckCircle, Package2, PlayCircle, XCircle } from 'lucide-react';
+import { CheckCircle, ListChecks, Package2, PlayCircle, X, XCircle } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
-import { PageHeader, DataTable, AdminPanel, Column, RowActionsMenu } from '@/components/AdminConfig';
+import { PageHeader, DataTable, AdminPanel, Column, RowActionsMenu, RowAction } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
 import { getLocalesDB } from '@/lib/api/servicios';
-import { getPlanesDB, cambiarEstadoPlan, type PlanItem } from '@/lib/api/planes';
+import {
+  getPlanesDB,
+  getPlanByID,
+  cambiarEstadoPlan,
+  marcarSesionPlan,
+  type PlanItem,
+  type PlanDetalle,
+  type PlanServicioDetalle,
+} from '@/lib/api/planes';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import styles from './page.module.css';
 
@@ -28,6 +36,10 @@ export default function PaquetesActivosPage() {
   const [loading, setLoading] = useState(false);
   const [locales, setLocales] = useState<LocalOpt[]>([]);
   const [filtroLocal, setFiltroLocal] = useState(scopedLocalName);
+
+  const [planAbierto, setPlanAbierto] = useState<PlanRow | null>(null);
+  const [detalle, setDetalle] = useState<PlanDetalle | null>(null);
+  const [detalleLoading, setDetalleLoading] = useState(false);
 
   const hasFilter = adminLocalScope.ready && !!filtroLocal;
 
@@ -55,6 +67,48 @@ export default function PaquetesActivosPage() {
       setLocales(res?.data?.locales ?? []);
     } catch { /* best-effort */ }
   }, []);
+
+  const recargarDetalle = useCallback(async (planId: number) => {
+    setDetalleLoading(true);
+    try {
+      const res = await getPlanByID(planId);
+      setDetalle(res?.data?.plan ?? null);
+    } catch {
+      toast.error('No se pudo cargar el detalle del plan.');
+      setDetalle(null);
+    } finally {
+      setDetalleLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (planAbierto) recargarDetalle(planAbierto.id);
+    else setDetalle(null);
+  }, [planAbierto, recargarDetalle]);
+
+  const sesiones = useMemo(() => {
+    const map = new Map<number, PlanServicioDetalle[]>();
+    for (const s of detalle?.servicios ?? []) {
+      const arr = map.get(s.sesion_numero) ?? [];
+      arr.push(s);
+      map.set(s.sesion_numero, arr);
+    }
+    return [...map.entries()].sort((a, b) => a[0] - b[0])
+      .map(([numero, servs]) => ({ numero, servicios: servs, hecha: servs.every((x) => x.realizado) }));
+  }, [detalle]);
+  const hechas = sesiones.filter((s) => s.hecha).length;
+
+  const toggleSesion = async (numero: number, realizado: boolean) => {
+    if (!planAbierto) return;
+    try {
+      await marcarSesionPlan(planAbierto.id, numero, realizado);
+      await recargarDetalle(planAbierto.id);
+      fetchPlanes();
+      toast.success(realizado ? 'Sesión marcada' : 'Sesión pendiente');
+    } catch {
+      toast.error('No se pudo actualizar la sesión');
+    }
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -117,23 +171,21 @@ export default function PaquetesActivosPage() {
       label: '',
       searchable: false,
       render: (_v, row) => {
+        const actions: RowAction[] = [
+          { label: 'Ver progreso', icon: <ListChecks size={12} strokeWidth={2} />, onClick: () => setPlanAbierto(row) },
+        ];
         if (row.estado === 'BORRADOR') {
-          return (
-            <RowActionsMenu actions={[
-              { label: 'Activar', icon: <PlayCircle size={12} strokeWidth={2} />, onClick: () => handleCambiarEstado(row, 'ACTIVO') },
-              { label: 'Cancelar', icon: <XCircle size={12} strokeWidth={2} />, onClick: () => handleCambiarEstado(row, 'CANCELADO'), variant: 'danger' },
-            ]} />
+          actions.push(
+            { label: 'Activar', icon: <PlayCircle size={12} strokeWidth={2} />, onClick: () => handleCambiarEstado(row, 'ACTIVO') },
+            { label: 'Cancelar', icon: <XCircle size={12} strokeWidth={2} />, onClick: () => handleCambiarEstado(row, 'CANCELADO'), variant: 'danger' },
+          );
+        } else if (row.estado === 'ACTIVO') {
+          actions.push(
+            { label: 'Completar', icon: <CheckCircle size={12} strokeWidth={2} />, onClick: () => handleCambiarEstado(row, 'COMPLETADO') },
+            { label: 'Cancelar', icon: <XCircle size={12} strokeWidth={2} />, onClick: () => handleCambiarEstado(row, 'CANCELADO'), variant: 'danger' },
           );
         }
-        if (row.estado === 'ACTIVO') {
-          return (
-            <RowActionsMenu actions={[
-              { label: 'Completar', icon: <CheckCircle size={12} strokeWidth={2} />, onClick: () => handleCambiarEstado(row, 'COMPLETADO') },
-              { label: 'Cancelar', icon: <XCircle size={12} strokeWidth={2} />, onClick: () => handleCambiarEstado(row, 'CANCELADO'), variant: 'danger' },
-            ]} />
-          );
-        }
-        return null;
+        return <RowActionsMenu actions={actions} />;
       },
     },
   ];
@@ -175,6 +227,48 @@ export default function PaquetesActivosPage() {
               getRowKey={(p) => p.id}
               emptyMessage="No hay paquetes activos para este local."
             />
+
+            {planAbierto && (
+              <div className={styles.detallePanel}>
+                <div className={styles.detalleHeader}>
+                  <div>
+                    <h3 className={styles.detalleTitle}>{planAbierto.combo_nombre_snapshot ?? 'Plan'}</h3>
+                    <p className={styles.detalleSubtitle}>{planAbierto.cliente}</p>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.cerrarBtn}
+                    onClick={() => setPlanAbierto(null)}
+                    aria-label="Cerrar detalle del plan"
+                  >
+                    <X size={16} strokeWidth={2} />
+                  </button>
+                </div>
+
+                {detalleLoading ? (
+                  <p className={styles.detalleLoading}>Cargando sesiones...</p>
+                ) : sesiones.length === 0 ? (
+                  <p className={styles.detalleLoading}>Este plan no tiene sesiones registradas.</p>
+                ) : (
+                  <>
+                    <div className={styles.progreso}>Progreso: {hechas}/{sesiones.length} sesiones</div>
+                    {sesiones.map((s) => (
+                      <div key={s.numero} className={`${styles.sesionRow} ${s.hecha ? styles.sesionHecha : ''}`}>
+                        <span className={styles.sesionNum}>Sesión {s.numero}</span>
+                        <span className={styles.sesionServs}>{s.servicios.map((x) => x.nombre_snapshot).join(' · ')}</span>
+                        <button
+                          type="button"
+                          className={styles.toggleBtn}
+                          onClick={() => toggleSesion(s.numero, !s.hecha)}
+                        >
+                          {s.hecha ? '✓ Hecha' : 'Marcar hecha'}
+                        </button>
+                      </div>
+                    ))}
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </main>
