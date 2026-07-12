@@ -17,6 +17,7 @@ export interface PlanItem {
   codigo: string;
   cliente: string;
   cliente_id?: number;
+  local_nombre_snapshot?: string;
   combo_id_origen?: number;
   combo_nombre_snapshot?: string;
   sesiones_totales: number;

@@ -72,7 +72,7 @@ const OPTIONS = [
     colorRgb: '20, 174, 239',
   },
   {
-    title: 'Paquetes',
+    title: 'Catálogo de Paquetes',
     description: 'Crea y edita los paquetes del catálogo',
     icon: <Package2 size={24} strokeWidth={1.5} />,
     href: '/atrevida-gestion/configuracion/paquetes',

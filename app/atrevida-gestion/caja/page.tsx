@@ -620,8 +620,8 @@ export default function CajaPage() {
           <PageHeader
             kicker="Operación diaria"
             kickerIcon={<Banknote size={14} strokeWidth={2} />}
-            title="Caja"
-            accentWord="Caja"
+            title="Cobros"
+            accentWord="Cobros"
             subtitle={selectedLocal ? `Registrando pagos en ${selectedLocal.nombre}` : 'Selecciona el local para iniciar el registro de pagos'}
           />
 

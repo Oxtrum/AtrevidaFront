@@ -137,7 +137,7 @@ export default function PagosPage() {
           <PageHeader
             kicker="Auditoría"
             kickerIcon={<CreditCard size={14} strokeWidth={2} />}
-            title="Pagos registrados"
+            title="Historial de Pagos"
             accentWord="Pagos"
             subtitle="Consulta administrativa de pagos, locales y clientes"
           />

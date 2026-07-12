@@ -30,7 +30,6 @@ export interface EditableCombo {
   precio_paquete?: number;
   moneda?: string;
   sesiones_totales?: number;
-  duracion_min?: number;
   locales?: { id: number; nombre: string }[];
 }
 
@@ -79,7 +78,6 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
   const [precioPaquete, setPrecioPaquete] = useState('');
   const [precioTocado, setPrecioTocado] = useState(false);
   const [moneda, setMoneda] = useState('BOB');
-  const [duracionMin, setDuracionMin] = useState('');
   const [localIds, setLocalIds] = useState<number[]>([]);
   const [lineas, setLineas] = useState<LineaForm[]>([nuevaLinea()]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
@@ -133,7 +131,6 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
       setPrecioPaquete(combo.precio_paquete != null ? String(combo.precio_paquete) : '');
       setPrecioTocado(true); // ya tiene precio: no auto-sobreescribir con la sugerencia
       setMoneda(combo.moneda ?? 'BOB');
-      setDuracionMin(combo.duracion_min != null ? String(combo.duracion_min) : '');
       setLocalIds((combo.locales ?? []).map((l) => l.id));
 
       if (combo.id != null) {
@@ -165,7 +162,6 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
       setPrecioPaquete('');
       setPrecioTocado(false);
       setMoneda('BOB');
-      setDuracionMin('');
       setLocalIds([]);
       setLineas([nuevaLinea()]);
     }
@@ -202,6 +198,17 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
   };
   const removeLinea = (i: number) => setLineas((prev) => prev.filter((_, idx) => idx !== i));
 
+  // Quita una sesión completa y renumera las restantes a 1..k contiguo.
+  const removeSesion = (n: number) => {
+    setLineas((prev) => {
+      const restantes = prev.filter((l) => l.sesion_numero !== n);
+      const base = restantes.length > 0 ? restantes : [nuevaLinea()];
+      const nums = Array.from(new Set(base.map((l) => l.sesion_numero))).sort((a, b) => a - b);
+      const remap = new Map(nums.map((v, idx) => [v, idx + 1]));
+      return base.map((l) => ({ ...l, sesion_numero: remap.get(l.sesion_numero) ?? 1 }));
+    });
+  };
+
   // Sugerencia de precio = suma del costo de catálogo de los servicios elegidos.
   const precioSugerido = useMemo(
     () => lineas.reduce((s, l) => s + (Number(l.costo) || 0), 0),
@@ -221,7 +228,6 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
     const p = Number(precioPaquete);
     if (!precioPaquete || Number.isNaN(p) || p < 0) return 'Ingresa un precio de paquete válido.';
     if (moneda.trim().length !== 3) return 'La moneda debe tener 3 letras (ej. BOB).';
-    if (duracionMin !== '' && (Number.isNaN(Number(duracionMin)) || Number(duracionMin) < 0)) return 'Duración inválida.';
     if (lineas.length === 0 || lineas.some((l) => l.servicio_id == null)) return 'Cada línea debe seleccionar un servicio.';
     return null;
   };
@@ -243,7 +249,6 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
 
     const categoria_id = categoriaId ? Number(categoriaId) : undefined;
     const precio_paquete = Number(precioPaquete);
-    const duracion_min = duracionMin !== '' ? Number(duracionMin) : undefined;
 
     try {
       if (mode === 'crear') {
@@ -254,7 +259,6 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
           tipo_precio: TIPO_PRECIO,
           precio_paquete,
           moneda: moneda.trim().toUpperCase(),
-          duracion_min,
           local_ids: localIds,
           servicios: lineas.map(construirLinea),
         });
@@ -267,7 +271,6 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
           tipo_precio: TIPO_PRECIO,
           precio_paquete,
           moneda: moneda.trim().toUpperCase(),
-          duracion_min,
         });
         await reemplazarLocalesCombo(combo.id, localIds);
         // Reemplazo total de las líneas (PUT). Simple y coincide con el endpoint del backend.
@@ -293,66 +296,62 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
       title={mode === 'crear' ? 'Nuevo paquete' : 'Editar paquete'}
       onSubmit={handleSubmit}
       loading={saving}
-      size="lg"
+      size="xl"
       submitLabel={mode === 'crear' ? 'Crear paquete' : 'Guardar cambios'}
     >
-      <div className={fields.formGrid}>
-        {error && <div className={styles.formError}>{error}</div>}
+      {error && <div className={styles.formError}>{error}</div>}
+      <div className={styles.twoCol}>
+        {/* ── Columna izquierda: datos del paquete ── */}
+        <div className={styles.colForm}>
+          <div className={styles.groupLabel}>Datos</div>
 
-        <div className={fields.formDivider}><span className={fields.formDividerLabel}>Datos</span></div>
+          <div className={fields.field}>
+            <label htmlFor="cb-nombre">Nombre</label>
+            <input id="cb-nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="PAQUETE FIT" />
+          </div>
 
-        <div className={`${fields.field} ${fields.colSpan2}`}>
-          <label htmlFor="cb-nombre">Nombre</label>
-          <input id="cb-nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="PAQUETE FIT" />
-        </div>
+          <div className={fields.field}>
+            <label htmlFor="cb-desc">Descripción <span className={styles.optional}>(opcional)</span></label>
+            <textarea id="cb-desc" rows={2} value={descripcion} onChange={(e) => setDescripcion(e.target.value)} placeholder="Promoción de 10 sesiones…" />
+          </div>
 
-        <div className={`${fields.field} ${fields.colSpan2}`}>
-          <label htmlFor="cb-desc">Descripción <span className={styles.optional}>(opcional)</span></label>
-          <textarea id="cb-desc" rows={2} value={descripcion} onChange={(e) => setDescripcion(e.target.value)} placeholder="Promoción de 10 sesiones…" />
-        </div>
+          <div className={fields.field}>
+            <label id="lbl-cb-cat" htmlFor="cb-cat">Categoría <span className={styles.optional}>(opcional)</span></label>
+            <CustomSelect
+              id="cb-cat"
+              ariaLabelledBy="lbl-cb-cat"
+              value={categoriaId}
+              onChange={setCategoriaId}
+              options={[{ value: '', label: 'Sin categoría' }, ...categorias.map((c) => ({ value: String(c.id), label: c.nombre }))]}
+            />
+          </div>
 
-        <div className={`${fields.field} ${fields.colSpan2}`}>
-          <label id="lbl-cb-cat" htmlFor="cb-cat">Categoría <span className={styles.optional}>(opcional)</span></label>
-          <CustomSelect
-            id="cb-cat"
-            ariaLabelledBy="lbl-cb-cat"
-            value={categoriaId}
-            onChange={setCategoriaId}
-            options={[{ value: '', label: 'Sin categoría' }, ...categorias.map((c) => ({ value: String(c.id), label: c.nombre }))]}
-          />
-        </div>
+          <div className={styles.groupLabel}>Paquete</div>
 
-        <div className={fields.formDivider}><span className={fields.formDividerLabel}>Paquete</span></div>
-
-        <div className={fields.field}>
-          <label>Sesiones</label>
-          <p className={styles.totalSesiones}>Derivado de los servicios: <strong>{sesiones.length}</strong></p>
-        </div>
-        <div className={fields.field}>
-          <label htmlFor="cb-duracion">Duración/sesión (min) <span className={styles.optional}>(opcional)</span></label>
-          <input id="cb-duracion" type="number" min={0} value={duracionMin} onChange={(e) => setDuracionMin(e.target.value)} placeholder="90" />
-        </div>
-
-        <div className={fields.field}>
-          <label htmlFor="cb-precio">Precio del paquete</label>
-          <input id="cb-precio" type="number" step="0.01" min={0} value={precioPaquete} onChange={(e) => { setPrecioTocado(true); setPrecioPaquete(e.target.value); }} placeholder="679" />
-          {precioSugerido > 0 && (
-            <span className={styles.priceHint}>
-              Sugerido: Bs {precioSugerido.toFixed(2)}
-              {precioTocado && (
-                <button type="button" className={styles.priceHintBtn} onClick={() => { setPrecioTocado(false); setPrecioPaquete(String(precioSugerido)); }}>usar</button>
+          <div className={styles.pairGrid}>
+            <div className={fields.field}>
+              <label htmlFor="cb-precio">Precio del paquete</label>
+              <input id="cb-precio" type="number" step="0.01" min={0} value={precioPaquete} onChange={(e) => { setPrecioTocado(true); setPrecioPaquete(e.target.value); }} placeholder="679" />
+              {precioSugerido > 0 && (
+                <span className={styles.priceHint}>
+                  Sugerido: Bs {precioSugerido.toFixed(2)}
+                  {precioTocado && (
+                    <button type="button" className={styles.priceHintBtn} onClick={() => { setPrecioTocado(false); setPrecioPaquete(String(precioSugerido)); }}>usar</button>
+                  )}
+                </span>
               )}
-            </span>
-          )}
-        </div>
-        <div className={fields.field}>
-          <label htmlFor="cb-moneda">Moneda</label>
-          <input id="cb-moneda" value={moneda} onChange={(e) => setMoneda(e.target.value)} maxLength={3} placeholder="BOB" />
-        </div>
+            </div>
+            <div className={fields.field}>
+              <label htmlFor="cb-moneda">Moneda</label>
+              <input id="cb-moneda" value={moneda} onChange={(e) => setMoneda(e.target.value)} maxLength={3} placeholder="BOB" />
+            </div>
+            <div className={fields.field}>
+              <label>Sesiones</label>
+              <p className={styles.derivado}>{sesiones.length} <span>(derivado)</span></p>
+            </div>
+          </div>
 
-        <div className={fields.formDivider}><span className={fields.formDividerLabel}>Locales</span></div>
-
-        <div className={fields.colSpan2}>
+          <div className={styles.groupLabel}>Locales</div>
           <div className={styles.checkboxGrid}>
             {locales.map((l) => (
               <label key={l.id} className={styles.checkbox}>
@@ -364,26 +363,30 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
           </div>
         </div>
 
-        <div className={fields.formDivider}><span className={fields.formDividerLabel}>Servicios incluidos</span></div>
+        {/* ── Columna derecha: sesiones y servicios ── */}
+        <div className={styles.colServicios}>
+          <div className={styles.groupLabel}>Servicios por sesión</div>
 
-        {loadingServiciosCombo ? (
-          <div className={fields.colSpan2}>
+          {loadingServiciosCombo ? (
             <p className={styles.hint}>Cargando servicios del paquete…</p>
-          </div>
-        ) : sinId ? (
-          <div className={fields.colSpan2}>
+          ) : sinId ? (
             <p className={styles.hint}>La edición de servicios no está disponible para este paquete (requiere ID numérico).</p>
-          </div>
-        ) : (
-          <div className={fields.colSpan2}>
-            <p className={styles.hint}>Agrupa los servicios por sesión de visita. El precio arriba se sugiere sumando el costo de todos los servicios de todas las sesiones.</p>
-            <div className={styles.lineas}>
-              {sesiones.map((n) => (
-                <div key={n} className={styles.sesionBloque}>
-                  <div className={styles.sesionHeader}>Sesión {n}</div>
-                  {lineas.map((l, i) => l.sesion_numero === n && (
-                    <div key={i} className={styles.lineaCard}>
-                      <div className={styles.lineaTop}>
+          ) : (
+            <>
+              <p className={styles.hint}>Cada sesión es una visita. El precio se sugiere sumando el costo de todos los servicios.</p>
+              <div className={styles.lineas}>
+                {sesiones.map((n) => (
+                  <div key={n} className={styles.sesionBloque}>
+                    <div className={styles.sesionHead}>
+                      <span className={styles.sesionChip}>Sesión {n}</span>
+                      {sesiones.length > 1 && (
+                        <button type="button" className={styles.removeSesion} onClick={() => removeSesion(n)}>
+                          <Trash2 size={13} strokeWidth={2} /> Quitar
+                        </button>
+                      )}
+                    </div>
+                    {lineas.map((l, i) => l.sesion_numero === n && (
+                      <div key={i} className={styles.servicioLinea}>
                         <CustomSelect
                           value={l.servicio_id != null ? String(l.servicio_id) : ''}
                           onChange={(v) => seleccionarServicioLinea(i, Number(v))}
@@ -396,19 +399,19 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
                           <Trash2 size={14} strokeWidth={2} />
                         </button>
                       </div>
-                    </div>
-                  ))}
-                  <button type="button" className={styles.addLinea} onClick={() => addLineaEnSesion(n)}>
-                    <Plus size={13} strokeWidth={2.2} /> Agregar servicio
-                  </button>
-                </div>
-              ))}
-            </div>
-            <button type="button" className={styles.addLinea} onClick={addSesion}>
-              <Plus size={13} strokeWidth={2.2} /> Agregar sesión
-            </button>
-          </div>
-        )}
+                    ))}
+                    <button type="button" className={styles.addServicio} onClick={() => addLineaEnSesion(n)}>
+                      <Plus size={13} strokeWidth={2.2} /> Agregar servicio
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <button type="button" className={styles.addSesion} onClick={addSesion}>
+                <Plus size={14} strokeWidth={2.2} /> Agregar sesión
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </FormModal>
   );

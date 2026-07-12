@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
-import { CheckCircle, ListChecks, Package2, PlayCircle, X, XCircle } from 'lucide-react';
+import { CheckCircle, Filter, Package2, PlayCircle, X, XCircle } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
 import { PageHeader, DataTable, AdminPanel, Column, RowActionsMenu, RowAction } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
@@ -37,29 +37,34 @@ export default function PaquetesActivosPage() {
   const [locales, setLocales] = useState<LocalOpt[]>([]);
   const [filtroLocal, setFiltroLocal] = useState(scopedLocalName);
 
+  const [soloActivos, setSoloActivos] = useState(true);
   const [planAbierto, setPlanAbierto] = useState<PlanRow | null>(null);
   const [detalle, setDetalle] = useState<PlanDetalle | null>(null);
   const [detalleLoading, setDetalleLoading] = useState(false);
 
-  const hasFilter = adminLocalScope.ready && !!filtroLocal;
+  // Sin local elegido = todas las sucursales. Usuarios con local asignado quedan fijados al suyo.
+  const hasFilter = adminLocalScope.ready;
 
   const localOptions = [
-    ...(scopedLocalName ? [] : [{ value: '', label: 'Seleccionar local' }]),
+    ...(scopedLocalName ? [] : [{ value: '', label: 'Todas las sucursales' }]),
     ...locales.map((l) => ({ value: l.nombre, label: l.nombre })),
   ];
 
   const fetchPlanes = useCallback(async () => {
-    if (!hasFilter) return;
+    if (!adminLocalScope.ready) return;
     setLoading(true);
     try {
-      const res = await getPlanesDB({ local: filtroLocal });
+      const res = await getPlanesDB({
+        local: filtroLocal || undefined,
+        estado: soloActivos ? 'ACTIVO' : undefined,
+      });
       setPlanes((res?.data?.planes ?? []) as unknown as PlanRow[]);
     } catch {
       setPlanes([]);
     } finally {
       setLoading(false);
     }
-  }, [hasFilter, filtroLocal]);
+  }, [adminLocalScope.ready, filtroLocal, soloActivos]);
 
   const fetchLocales = useCallback(async () => {
     try {
@@ -149,6 +154,11 @@ export default function PaquetesActivosPage() {
       label: 'Paquete',
       render: (_v, row) => <span>{row.combo_nombre_snapshot ?? '—'}</span>,
     },
+    ...(!scopedLocalName ? [{
+      key: 'local_nombre_snapshot',
+      label: 'Local',
+      render: (_v: unknown, row: PlanRow) => <span className={styles.localCell}>{row.local_nombre_snapshot ?? '—'}</span>,
+    } as Column<PlanRow>] : []),
     {
       key: 'precio_total',
       label: 'Total',
@@ -165,9 +175,7 @@ export default function PaquetesActivosPage() {
       label: '',
       searchable: false,
       render: (_v, row) => {
-        const actions: RowAction[] = [
-          { label: 'Ver progreso', icon: <ListChecks size={12} strokeWidth={2} />, onClick: () => setPlanAbierto(row) },
-        ];
+        const actions: RowAction[] = [];
         if (row.estado === 'BORRADOR') {
           actions.push(
             { label: 'Activar', icon: <PlayCircle size={12} strokeWidth={2} />, onClick: () => handleCambiarEstado(row, 'ACTIVO') },
@@ -179,7 +187,7 @@ export default function PaquetesActivosPage() {
             { label: 'Cancelar', icon: <XCircle size={12} strokeWidth={2} />, onClick: () => handleCambiarEstado(row, 'CANCELADO'), variant: 'danger' },
           );
         }
-        return <RowActionsMenu actions={actions} />;
+        return actions.length > 0 ? <RowActionsMenu actions={actions} /> : null;
       },
     },
   ];
@@ -199,31 +207,59 @@ export default function PaquetesActivosPage() {
           />
 
           <div ref={contentRef} className={styles.contentStack}>
-            {!scopedLocalName && (
-              <div className={styles.filterRow}>
-                <div className={styles.filterGroup}>
-                  <label id="lbl-local" htmlFor="filtro-local">Local</label>
-                  <CustomSelect
-                    id="filtro-local"
-                    ariaLabelledBy="lbl-local"
-                    value={filtroLocal}
-                    onChange={setFiltroLocal}
-                    options={localOptions}
-                  />
+            <div className={styles.filterCard}>
+              <div className={styles.filterCardInner}>
+                <div className={styles.filterSectionLabel}>
+                  <Filter size={12} />
+                  Filtros
+                </div>
+                <div className={styles.filterBar}>
+                  {!scopedLocalName && (
+                    <div className={styles.filterGroup}>
+                      <label id="lbl-local" htmlFor="filtro-local" className={styles.filterLabel}>Local</label>
+                      <CustomSelect
+                        id="filtro-local"
+                        ariaLabelledBy="lbl-local"
+                        value={filtroLocal}
+                        onChange={setFiltroLocal}
+                        options={localOptions}
+                      />
+                    </div>
+                  )}
+                  <div className={styles.filterGroup}>
+                    <label id="lbl-estado" htmlFor="filtro-estado" className={styles.filterLabel}>Estado</label>
+                    <CustomSelect
+                      id="filtro-estado"
+                      ariaLabelledBy="lbl-estado"
+                      value={soloActivos ? 'ACTIVO' : ''}
+                      onChange={(v) => setSoloActivos(v === 'ACTIVO')}
+                      options={[
+                        { value: 'ACTIVO', label: 'Activos' },
+                        { value: '', label: 'Todos' },
+                      ]}
+                    />
+                  </div>
                 </div>
               </div>
-            )}
+            </div>
 
             <DataTable<PlanRow>
               columns={columns}
               data={planes}
               loading={loading}
+              onRefresh={fetchPlanes}
               getRowKey={(p) => p.id}
-              emptyMessage="No hay paquetes activos para este local."
+              onRowClick={(p) => setPlanAbierto(p)}
+              emptyMessage="No hay paquetes registrados."
             />
 
-            {planAbierto && (
-              <div className={styles.detallePanel}>
+            
+          </div>
+        </div>
+      </main>
+      {planAbierto && (
+              <div className={styles.detalleOverlay} onClick={() => setPlanAbierto(null)}>
+                <div className={styles.detalleModal} onClick={(e) => e.stopPropagation()}>
                 <div className={styles.detalleHeader}>
                   <div>
                     <h3 className={styles.detalleTitle}>{planAbierto.combo_nombre_snapshot ?? 'Plan'}</h3>
@@ -245,7 +281,18 @@ export default function PaquetesActivosPage() {
                   <p className={styles.detalleLoading}>Este plan no tiene sesiones registradas.</p>
                 ) : (
                   <>
-                    <div className={styles.progreso}>Progreso: {hechas}/{sesiones.length} sesiones</div>
+                    <div className={styles.progresoWrap}>
+                      <div className={styles.progresoTop}>
+                        <span>Progreso del paquete</span>
+                        <strong>{hechas}/{sesiones.length} sesiones</strong>
+                      </div>
+                      <div className={styles.progresoBar}>
+                        <div
+                          className={styles.progresoFill}
+                          style={{ width: `${sesiones.length ? Math.round((hechas / sesiones.length) * 100) : 0}%` }}
+                        />
+                      </div>
+                    </div>
                     {sesiones.map((s) => (
                       <div key={s.numero} className={`${styles.sesionRow} ${s.hecha ? styles.sesionHecha : ''}`}>
                         <span className={styles.sesionNum}>Sesión {s.numero}</span>
@@ -261,11 +308,9 @@ export default function PaquetesActivosPage() {
                     ))}
                   </>
                 )}
+                </div>
               </div>
             )}
-          </div>
-        </div>
-      </main>
     </AdminPanel>
   );
 }

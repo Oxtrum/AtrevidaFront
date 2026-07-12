@@ -10,7 +10,7 @@ interface FormModalProps {
   onSubmit: () => void;
   submitLabel?: string;
   loading?: boolean;
-  size?: 'md' | 'lg';
+  size?: 'md' | 'lg' | 'xl';
   children: React.ReactNode;
 }
 
@@ -29,7 +29,7 @@ export function FormModal({
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div
-        className={`${styles.modal} ${size === 'lg' ? styles.modalLg : ''}`}
+        className={`${styles.modal} ${size === 'lg' ? styles.modalLg : ''} ${size === 'xl' ? styles.modalXl : ''}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className={styles.header}>

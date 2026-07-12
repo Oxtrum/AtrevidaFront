@@ -52,13 +52,13 @@ const NAV_LINKS = [
     icon: Clock3,
   },
   {
-    label: 'Caja',
-    detail: 'Registro local',
+    label: 'Cobros',
+    detail: 'Registro de pagos',
     href: '/atrevida-gestion/caja',
     icon: Banknote,
   },
   {
-    label: 'Pagos',
+    label: 'Historial de Pagos',
     detail: 'Auditoría de pagos',
     href: '/atrevida-gestion/pagos',
     icon: CreditCard,
@@ -78,7 +78,7 @@ const NAV_LINKS = [
     icon: Users,
   },
   {
-    label: 'Paquetes',
+    label: 'Paquetes Activos',
     detail: 'Vendidos y en curso',
     href: '/atrevida-gestion/paquetes-activos',
     icon: Package2,

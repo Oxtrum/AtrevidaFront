@@ -354,6 +354,52 @@
   color: var(--admin-text-dim);
 }
 
+/* ── Servicios agrupados por sesión (vista expandida) ──────────── */
+
+.sesionesRead {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sesionReadRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--admin-radius-md);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--admin-border-subtle);
+}
+
+.sesionReadNum {
+  flex-shrink: 0;
+  padding: 0.15rem 0.55rem;
+  border-radius: 9999px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: #EC008C;
+  background: rgba(236, 0, 140, 0.1);
+  border: 1px solid rgba(236, 0, 140, 0.25);
+}
+
+.sesionReadServs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.servPill {
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  color: var(--admin-foreground);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--admin-border-subtle);
+}
+
 /* ── Form modal grid ──────────────────────────────────────────── */
 
 .formGrid {

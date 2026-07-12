@@ -32,6 +32,10 @@
   max-width: 780px;
 }
 
+.modalXl {
+  max-width: 1000px;
+}
+
 @keyframes scaleIn {
   from {
     opacity: 0;
