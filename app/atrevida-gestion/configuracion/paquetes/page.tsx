@@ -39,6 +39,7 @@ interface ComboItem {
   local: string;
   costo_total: string;
   sesiones_totales: number;
+  duracion_min?: number;
   locales?: { id: number; nombre: string }[];
   servicios_incluidos: ServicioIncluido[];
 }
@@ -64,17 +65,6 @@ interface ComboServicioDetalle {
 interface ConfirmState {
   message: string;
   onConfirm: () => void;
-}
-
-function formatTiempoMin(tiempo: string): string {
-  if (!tiempo) return '—';
-  if (tiempo.includes('min')) return tiempo;
-  const match = tiempo.match(/^(\d{1,2}):(\d{2})$/);
-  if (match) {
-    const total = parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
-    return `${total} min`;
-  }
-  return tiempo;
 }
 
 function getScopedLocales(
@@ -264,10 +254,10 @@ export default function CombosPage() {
       nombre: combo.nombre,
       descripcion: combo.descripcion,
       categoria_id: combo.categoria_id,
-      tipo_precio: combo.tipo_precio ?? 'PRECIO_PAQUETE',
       precio_paquete: combo.precio_paquete,
       moneda: combo.moneda,
       sesiones_totales: combo.sesiones_totales,
+      duracion_min: combo.duracion_min,
       locales: combo.locales,
     });
     setComboModalOpen(true);
@@ -425,7 +415,9 @@ export default function CombosPage() {
                         <span className={styles.comboName}>{combo.nombre}</span>
                         <span className={styles.comboMeta}>{combo.categoria}</span>
                       </div>
-                      <span className={styles.comboBadge}>{combo.sesiones_totales} ses.</span>
+                      <span className={styles.comboBadge}>
+                        {combo.sesiones_totales} ses.{combo.duracion_min ? ` · ${combo.duracion_min} min` : ''}
+                      </span>
                       <span className={styles.comboCosto}>{combo.costo_total} Bs.</span>
                       <span className={styles.comboActions} onClick={(e) => e.stopPropagation()}>
                         <RowActionsMenu actions={[
@@ -474,10 +466,8 @@ export default function CombosPage() {
                           <table className={styles.serviciosTable}>
                             <thead>
                               <tr>
-                                <th>Nombre</th>
-                                <th>Tiempo</th>
+                                <th>Servicio</th>
                                 <th>Costo</th>
-                                <th>Sesiones</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -486,9 +476,7 @@ export default function CombosPage() {
                                   <td className={styles.servicioNombre}>
                                     {svc.servicio_nombre || svc.servicio_texto || '—'}
                                   </td>
-                                  <td>{formatTiempoMin(svc.tiempo)}</td>
                                   <td>{svc.costo} Bs.</td>
-                                  <td>{svc.sesiones}</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -515,7 +503,12 @@ export default function CombosPage() {
         combo={editingCombo}
         locales={locales}
         onClose={() => setComboModalOpen(false)}
-        onSaved={fetchCombos}
+        onSaved={() => {
+          // Invalida el cache de servicios expandidos para reflejar cambios recién guardados.
+          setComboServicios({});
+          setExpandedComboKey(null);
+          fetchCombos();
+        }}
       />
 
       {/* ── Confirm dialog ── */}

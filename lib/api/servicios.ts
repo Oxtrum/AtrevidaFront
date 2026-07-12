@@ -208,44 +208,12 @@ export async function getCombosDB(params: GetCombosParams) {
 }
 
 // ─── Combo Servicios ──────────────────────────────────────────────
-
-export interface ComboServicioCreateData {
-  combo_id: number;
-  servicio_id?: number;
-  servicio_texto?: string;
-  tiempo?: string;
-  costo?: number;
-  sesiones?: number;
-  orden?: number;
-}
-
-export interface ComboServicioUpdateData {
-  servicio_id?: number;
-  servicio_texto?: string;
-  tiempo?: string;
-  costo?: number;
-  sesiones?: number;
-  orden?: number;
-}
+// Nota: la edición de líneas usa PUT /bd/combos/{id}/servicios (reemplazarServiciosCombo
+// en lib/api/combos.ts). No existen endpoints individuales POST/PATCH/DELETE.
 
 /** GET /bd/combos/{combo_id}/servicios — list items of an active combo. */
 export async function getComboServiciosDB(combo_id: number | string) {
   return apiClient.get(`/bd/combos/${combo_id}/servicios`);
-}
-
-/** POST /bd/combos/servicios — add an item to a combo. */
-export async function crearComboServicio(data: ComboServicioCreateData) {
-  return apiClient.post('/bd/combos/servicios', data);
-}
-
-/** PATCH /bd/combos/servicios/{id} — update fields of a combo_servicios item. */
-export async function actualizarComboServicio(id: number | string, data: ComboServicioUpdateData) {
-  return apiClient.patch(`/bd/combos/servicios/${id}`, data);
-}
-
-/** DELETE /bd/combos/servicios/{id} — remove a combo_servicios item. */
-export async function eliminarComboServicio(id: number | string) {
-  return apiClient.delete(`/bd/combos/servicios/${id}`);
 }
 
 // ─── Locales ──────────────────────────────────────────────────────

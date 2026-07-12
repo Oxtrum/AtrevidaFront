@@ -30,6 +30,8 @@ export interface CrearComboData {
   tipo_precio: TipoPrecio;
   precio_paquete?: number;
   moneda?: string;
+  sesiones_totales: number;
+  duracion_min?: number;
   local_ids: number[];
   servicios: ComboServicioLineaInput[];
 }
@@ -42,6 +44,8 @@ export interface ActualizarComboData {
   tipo_precio?: TipoPrecio;
   precio_paquete?: number;
   moneda?: string;
+  sesiones_totales?: number;
+  duracion_min?: number;
 }
 
 /** POST /bd/combos — crea el combo con sus locales y líneas de servicio. */
@@ -57,6 +61,11 @@ export async function actualizarCombo(id: number, data: ActualizarComboData) {
 /** PUT /bd/combos/{id}/locales — reemplaza los locales donde se publica. */
 export async function reemplazarLocalesCombo(id: number, localIds: number[]) {
   return apiClient.put(`/bd/combos/${id}/locales`, { local_ids: localIds });
+}
+
+/** PUT /bd/combos/{id}/servicios — reemplaza todas las líneas de servicio del combo. */
+export async function reemplazarServiciosCombo(id: number, servicios: ComboServicioLineaInput[]) {
+  return apiClient.put(`/bd/combos/${id}/servicios`, { servicios });
 }
 
 /** DELETE /bd/combos/{id} — borrado lógico (activo=false). */
