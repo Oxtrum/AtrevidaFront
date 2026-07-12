@@ -1,0 +1,41 @@
+.main {
+  padding: 1.5rem 2rem 3rem;
+}
+
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.contentStack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.filterRow {
+  display: flex;
+  gap: 1rem;
+  align-items: end;
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 220px;
+}
+
+.filterGroup label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--admin-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+@media (max-width: 600px) {
+  .main { padding: 1rem; }
+  .filterRow { flex-direction: column; }
+  .filterGroup { min-width: 100%; }
+}
