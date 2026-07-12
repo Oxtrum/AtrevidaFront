@@ -72,50 +72,80 @@
 .lineas {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.6rem;
 }
 
-.lineaCol {
+/* Fila de precio: Tipo · Precio · Moneda distribuidos en 3 columnas.
+   Con solo el Tipo (POR_ITEMS) ocupa 1/3 y las demás celdas quedan vacías. */
+.trio {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.lineaCard {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.65rem;
+  padding: 0.85rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: rgba(255, 255, 255, 0.02);
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
 
-.lineaRow {
+.lineaCard:focus-within {
+  border-color: rgba(236, 0, 140, 0.4);
+  background: rgba(236, 0, 140, 0.03);
+}
+
+.lineaTop {
   display: flex;
   gap: 0.5rem;
   align-items: center;
 }
 
-.lineaNombreReadonly {
+/* El CustomSelect ocupa el ancho; el botón quitar queda fijo a la derecha. */
+.lineaTop > :first-child {
   flex: 1;
   min-width: 0;
-  padding: 0.6rem 0.75rem;
-  border: 1px solid transparent;
-  border-radius: var(--admin-radius-md);
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--admin-foreground);
-  font-size: 0.85rem;
-  font-family: inherit;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.lineaCorto {
-  width: 84px;
-  flex-shrink: 0;
-  padding: 0.6rem 0.75rem;
+.lineaFields {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+}
+
+.fieldMini {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.fieldMini label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--admin-text-dim);
+}
+
+.fieldMini input {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
   border: 1px solid var(--admin-border-subtle);
   border-radius: var(--admin-radius-md);
   background: var(--admin-input-bg);
   color: var(--admin-foreground);
   font-size: 0.85rem;
   font-family: inherit;
+  font-variant-numeric: tabular-nums;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.lineaCorto:focus {
+.fieldMini input:focus {
   outline: none;
   border-color: #ec008c;
   box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.14);
@@ -169,11 +199,7 @@
 }
 
 @media (max-width: 560px) {
-  .lineaRow {
-    flex-wrap: wrap;
-  }
-
-  .lineaNombreReadonly {
-    flex-basis: 100%;
+  .trio {
+    grid-template-columns: 1fr;
   }
 }

@@ -276,6 +276,7 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
             <PlanSelector
               clienteNombre={cliente}
               planId={planId}
+              localNombre={sucursal}
               onChange={setPlanId}
             />
           )}

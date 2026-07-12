@@ -13,6 +13,7 @@ import { useLocales } from '@/lib/hooks/useLocales';
 import { getServiciosDB } from '@/lib/api/servicios';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import { toast } from '../Shared/Toast';
+import { getPlanesDB } from '@/lib/api/planes';
 import { validateReservationForm, } from '@/lib/utils/reservationValidation';
 import { type SlotStatus } from '@/lib/utils/hoursAvailability';
 import { HORAS, DIAS_SEMANA, isSlotOutsideBusinessHours } from '@/lib/constants/reservationForm';
@@ -410,6 +411,25 @@ export function useReservationForm(
       return;
     }
     if (!validate()) return;
+
+    // Revalidar paquete antes de enviar (#C + #F capa 2)
+    if (planId != null && effectiveSucursal) {
+      try {
+        const planRes = await getPlanesDB({ cliente, estado: 'ACTIVO', local: effectiveSucursal });
+        const planData = planRes as { data?: { planes?: { id: number; sesiones_totales: number; sesiones_usadas: number }[] } };
+        const planValido = (planData?.data?.planes ?? []).find(
+          (p) => p.id === planId && p.sesiones_totales - p.sesiones_usadas > 0,
+        );
+        if (!planValido) {
+          toast.error('El paquete ya no es válido para esta sucursal o no tiene sesiones disponibles.');
+          setPlanId(null);
+          return;
+        }
+      } catch {
+        toast.error('No se pudo verificar el paquete. Intenta de nuevo.');
+        return;
+      }
+    }
 
     setError(null);
     const horaDesdeNorm = normalizarHora(horaDesde);

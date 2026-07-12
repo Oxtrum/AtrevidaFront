@@ -28,6 +28,10 @@
   animation: scaleIn 0.2s var(--admin-ease-spring);
 }
 
+.modalLg {
+  max-width: 780px;
+}
+
 @keyframes scaleIn {
   from {
     opacity: 0;

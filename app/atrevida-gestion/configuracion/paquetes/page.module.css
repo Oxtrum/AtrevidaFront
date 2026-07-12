@@ -205,9 +205,9 @@
 
 .comboRowHeader {
   display: grid;
-  grid-template-columns: 2fr 1.2fr 1fr auto auto;
+  grid-template-columns: 1fr auto auto auto auto;
   align-items: center;
-  gap: 1rem;
+  gap: 1.25rem;
   padding: 1rem 1.5rem;
   cursor: pointer;
   user-select: none;
@@ -217,16 +217,28 @@
   color: #EC008C;
 }
 
+.comboMain {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
 .comboName {
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   font-weight: 600;
   color: var(--admin-foreground);
   transition: color 0.15s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .comboMeta {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--admin-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
 }
 
 .comboBadge {

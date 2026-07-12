@@ -10,6 +10,7 @@ interface FormModalProps {
   onSubmit: () => void;
   submitLabel?: string;
   loading?: boolean;
+  size?: 'md' | 'lg';
   children: React.ReactNode;
 }
 
@@ -20,13 +21,17 @@ export function FormModal({
   onSubmit,
   submitLabel = 'Guardar',
   loading = false,
+  size = 'md',
   children,
 }: FormModalProps) {
   if (!isOpen) return null;
 
   return (
     <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <div
+        className={`${styles.modal} ${size === 'lg' ? styles.modalLg : ''}`}
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className={styles.header}>
           <h2 className={styles.title}>{title}</h2>
           <button className={styles.closeButton} onClick={onClose} aria-label="Cerrar">

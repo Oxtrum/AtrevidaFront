@@ -1,11 +1,18 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { FormModal } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
-import { getCategoriasDB, getServiciosDB } from '@/lib/api/servicios';
+import {
+  getCategoriasDB,
+  getServiciosDB,
+  getComboServiciosDB,
+  crearComboServicio,
+  actualizarComboServicio,
+  eliminarComboServicio,
+} from '@/lib/api/servicios';
 import {
   crearCombo,
   actualizarCombo,
@@ -47,6 +54,7 @@ interface ServicioOpt {
 }
 
 interface LineaForm {
+  id?: number;
   servicio_id: number | null;
   servicio_texto: string;
   tiempo: string;
@@ -75,9 +83,11 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
   const [moneda, setMoneda] = useState('BOB');
   const [localIds, setLocalIds] = useState<number[]>([]);
   const [lineas, setLineas] = useState<LineaForm[]>([nuevaLinea()]);
+  const lineasOriginales = useRef<LineaForm[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [serviciosDisponibles, setServiciosDisponibles] = useState<ServicioOpt[]>([]);
   const [loadingServicios, setLoadingServicios] = useState(false);
+  const [loadingServiciosCombo, setLoadingServiciosCombo] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -100,7 +110,7 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
   }, [localIds, locales]);
 
   useEffect(() => {
-    if (!open || mode !== 'crear' || !primerLocalNombre) {
+    if (!open || !primerLocalNombre) {
       setServiciosDisponibles([]);
       return;
     }
@@ -112,12 +122,13 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
       })
       .catch(() => setServiciosDisponibles([]))
       .finally(() => setLoadingServicios(false));
-  }, [open, mode, primerLocalNombre]);
+  }, [open, primerLocalNombre]);
 
   // Prefill (editar) o reset (crear) al abrir.
   useEffect(() => {
     if (!open) return;
     setError(null);
+    lineasOriginales.current = [];
     if (mode === 'editar' && combo) {
       setNombre(combo.nombre ?? '');
       setDescripcion(combo.descripcion ?? '');
@@ -126,7 +137,31 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
       setPrecioPaquete(combo.precio_paquete != null ? String(combo.precio_paquete) : '');
       setMoneda(combo.moneda ?? 'BOB');
       setLocalIds((combo.locales ?? []).map((l) => l.id));
-      setLineas([nuevaLinea()]);
+
+      if (combo.id != null) {
+        setLoadingServiciosCombo(true);
+        getComboServiciosDB(combo.id)
+          .then((res) => {
+            const raw = (res as { data?: { servicios?: { id: number; servicio_id?: number | null; servicio_texto?: string | null; servicio_nombre: string; tiempo: string; costo: number; sesiones: number; orden?: number }[] } })?.data?.servicios ?? [];
+            const loaded: LineaForm[] = raw.map((s) => ({
+              id: s.id,
+              servicio_id: s.servicio_id ?? null,
+              servicio_texto: s.servicio_texto ?? s.servicio_nombre ?? '',
+              tiempo: String(parseInt(s.tiempo, 10) || ''),
+              costo: String(s.costo ?? ''),
+              sesiones: String(s.sesiones ?? 1),
+              orden: s.orden != null ? String(s.orden) : '0',
+            }));
+            setLineas(loaded.length > 0 ? loaded : [nuevaLinea()]);
+            lineasOriginales.current = loaded;
+          })
+          .catch(() => {
+            setLineas([nuevaLinea()]);
+          })
+          .finally(() => setLoadingServiciosCombo(false));
+      } else {
+        setLineas([nuevaLinea()]);
+      }
     } else {
       setNombre('');
       setDescripcion('');
@@ -165,9 +200,13 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
   const addLinea = () => setLineas((prev) => [...prev, nuevaLinea()]);
   const removeLinea = (i: number) => setLineas((prev) => prev.filter((_, idx) => idx !== i));
 
-  // Las sesiones del paquete son la suma de las sesiones de sus líneas.
   const totalSesiones = useMemo(
     () => lineas.reduce((s, l) => s + (Number(l.sesiones) || 0), 0),
+    [lineas],
+  );
+
+  const totalPrecioItems = useMemo(
+    () => lineas.reduce((s, l) => s + (Number(l.costo) || 0), 0),
     [lineas],
   );
 
@@ -179,14 +218,12 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
       if (!precioPaquete || Number.isNaN(p) || p < 0) return 'Ingresa un precio de paquete válido.';
     }
     if (moneda.trim().length !== 3) return 'La moneda debe tener 3 letras (ej. BOB).';
-    if (mode === 'crear') {
-      if (lineas.length === 0) return 'Agrega al menos una línea de servicio.';
-      for (const l of lineas) {
-        if (l.servicio_id == null) return 'Cada línea debe seleccionar un servicio existente.';
-        if (!Number.isInteger(Number(l.sesiones)) || Number(l.sesiones) < 1) return 'Sesiones inválidas en una línea.';
-        const c = Number(l.costo);
-        if (l.costo !== '' && (Number.isNaN(c) || c < 0)) return 'Costo inválido en una línea.';
-      }
+    if (lineas.length === 0) return 'Agrega al menos una línea de servicio.';
+    for (const l of lineas) {
+      if (l.servicio_id == null) return 'Cada línea debe seleccionar un servicio existente.';
+      if (!Number.isInteger(Number(l.sesiones)) || Number(l.sesiones) < 1) return 'Sesiones inválidas en una línea.';
+      const c = Number(l.costo);
+      if (l.costo !== '' && (Number.isNaN(c) || c < 0)) return 'Costo inválido en una línea.';
     }
     return null;
   };
@@ -231,6 +268,58 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
           moneda: moneda.trim().toUpperCase(),
         });
         await reemplazarLocalesCombo(combo.id, localIds);
+
+        // Diff de líneas
+        const originales = lineasOriginales.current;
+        const actuales = lineas;
+
+        const originalMap = new Map(originales.filter((l) => l.id != null).map((l) => [l.id!, l]));
+        const actualMap = new Map(actuales.filter((l) => l.id != null).map((l) => [l.id!, l]));
+
+        // Eliminar: están en originales pero no en actuales
+        for (const orig of originales) {
+          if (orig.id != null && !actualMap.has(orig.id)) {
+            await eliminarComboServicio(orig.id);
+          }
+        }
+
+        // Crear: están en actuales pero no en originales (sin id)
+        for (const act of actuales) {
+          if (act.id == null) {
+            await crearComboServicio({
+              combo_id: combo.id,
+              servicio_id: act.servicio_id ?? undefined,
+              servicio_texto: act.servicio_texto.trim() || undefined,
+              tiempo: act.tiempo.trim() || undefined,
+              costo: act.costo !== '' ? Number(act.costo) : undefined,
+              sesiones: Number(act.sesiones),
+              orden: act.orden !== '' ? Number(act.orden) : undefined,
+            });
+          }
+        }
+
+        // Actualizar: están en ambas pero cambiaron
+        for (const act of actuales) {
+          if (act.id == null) continue;
+          const orig = originalMap.get(act.id);
+          if (!orig) continue;
+          const changed =
+            orig.servicio_id !== act.servicio_id
+            || orig.tiempo !== act.tiempo
+            || orig.costo !== act.costo
+            || orig.sesiones !== act.sesiones
+            || orig.orden !== act.orden;
+          if (changed) {
+            await actualizarComboServicio(act.id, {
+              servicio_id: act.servicio_id ?? undefined,
+              tiempo: act.tiempo.trim() || undefined,
+              costo: act.costo !== '' ? Number(act.costo) : undefined,
+              sesiones: Number(act.sesiones),
+              orden: act.orden !== '' ? Number(act.orden) : undefined,
+            });
+          }
+        }
+
         toast.success('Paquete actualizado');
       }
       onSaved();
@@ -243,6 +332,8 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
     }
   };
 
+  const sinId = mode === 'editar' && combo && combo.id == null;
+
   return (
     <FormModal
       isOpen={open}
@@ -250,6 +341,7 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
       title={mode === 'crear' ? 'Nuevo paquete' : 'Editar paquete'}
       onSubmit={handleSubmit}
       loading={saving}
+      size="lg"
       submitLabel={mode === 'crear' ? 'Crear paquete' : 'Guardar cambios'}
     >
       <div className={fields.formGrid}>
@@ -280,32 +372,34 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
 
         <div className={fields.formDivider}><span className={fields.formDividerLabel}>Precio</span></div>
 
-        <div className={fields.field}>
-          <label id="lbl-cb-tipo" htmlFor="cb-tipo">Tipo de precio</label>
-          <CustomSelect
-            id="cb-tipo"
-            ariaLabelledBy="lbl-cb-tipo"
-            value={tipoPrecio}
-            onChange={(v) => setTipoPrecio(v as TipoPrecio)}
-            options={[
-              { value: 'PRECIO_PAQUETE', label: 'Precio de paquete (fijo)' },
-              { value: 'POR_ITEMS', label: 'Por ítems (suma de líneas)' },
-            ]}
-          />
-        </div>
+        <div className={`${fields.colSpan2} ${styles.trio}`}>
+          <div className={fields.field}>
+            <label id="lbl-cb-tipo" htmlFor="cb-tipo">Tipo de precio</label>
+            <CustomSelect
+              id="cb-tipo"
+              ariaLabelledBy="lbl-cb-tipo"
+              value={tipoPrecio}
+              onChange={(v) => setTipoPrecio(v as TipoPrecio)}
+              options={[
+                { value: 'PRECIO_PAQUETE', label: 'Precio de paquete (fijo)' },
+                { value: 'POR_ITEMS', label: 'Por ítems (suma de líneas)' },
+              ]}
+            />
+          </div>
 
-        {tipoPrecio === 'PRECIO_PAQUETE' && (
-          <>
-            <div className={fields.field}>
-              <label htmlFor="cb-precio">Precio</label>
-              <input id="cb-precio" type="number" step="0.01" min={0} value={precioPaquete} onChange={(e) => setPrecioPaquete(e.target.value)} placeholder="679" />
-            </div>
-            <div className={fields.field}>
-              <label htmlFor="cb-moneda">Moneda</label>
-              <input id="cb-moneda" value={moneda} onChange={(e) => setMoneda(e.target.value)} maxLength={3} placeholder="BOB" />
-            </div>
-          </>
-        )}
+          {tipoPrecio === 'PRECIO_PAQUETE' && (
+            <>
+              <div className={fields.field}>
+                <label htmlFor="cb-precio">Precio</label>
+                <input id="cb-precio" type="number" step="0.01" min={0} value={precioPaquete} onChange={(e) => setPrecioPaquete(e.target.value)} placeholder="679" />
+              </div>
+              <div className={fields.field}>
+                <label htmlFor="cb-moneda">Moneda</label>
+                <input id="cb-moneda" value={moneda} onChange={(e) => setMoneda(e.target.value)} maxLength={3} placeholder="BOB" />
+              </div>
+            </>
+          )}
+        </div>
 
         <div className={fields.formDivider}><span className={fields.formDividerLabel}>Locales</span></div>
 
@@ -321,49 +415,65 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
           </div>
         </div>
 
-        {mode === 'crear' ? (
-          <>
-            <div className={fields.formDivider}><span className={fields.formDividerLabel}>Servicios y sesiones</span></div>
-            <div className={fields.colSpan2}>
-              <p className={styles.hint}>Cada línea es un servicio incluido con sus sesiones. El total de sesiones del paquete es la suma de las líneas.</p>
-              <div className={styles.lineas}>
-                {lineas.map((l, i) => (
-                  <div key={i} className={styles.lineaCol}>
-                    <div className={styles.lineaRow}>
-                      <CustomSelect
-                        value={l.servicio_id != null ? String(l.servicio_id) : ''}
-                        onChange={(v) => seleccionarServicioLinea(i, Number(v))}
-                        options={[
-                          { value: '', label: loadingServicios ? 'Cargando servicios…' : 'Seleccionar servicio…' },
-                          ...serviciosDisponibles.map((s) => ({ value: String(s.id), label: s.nombre })),
-                        ]}
-                      />
-                      <button type="button" className={styles.removeLinea} onClick={() => removeLinea(i)} aria-label="Quitar línea" disabled={lineas.length === 1}>
-                        <Trash2 size={14} strokeWidth={2} />
-                      </button>
-                    </div>
-                    {l.servicio_id != null && (
-                      <div className={styles.lineaRow}>
-                        <span className={styles.lineaNombreReadonly}>{l.servicio_texto}</span>
-                        <input className={styles.lineaCorto} value={l.tiempo} onChange={(e) => patchLinea(i, { tiempo: e.target.value })} placeholder="Tiempo" title="Tiempo" aria-label="Tiempo" />
-                        <input className={styles.lineaCorto} type="number" step="0.01" min={0} value={l.costo} onChange={(e) => patchLinea(i, { costo: e.target.value })} placeholder="Costo" title="Costo (Bs)" aria-label="Costo en Bs" />
-                        <input className={styles.lineaCorto} type="number" min={1} value={l.sesiones} onChange={(e) => patchLinea(i, { sesiones: e.target.value })} placeholder="Sesiones" title="Sesiones" aria-label="Sesiones" />
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-              <button type="button" className={styles.addLinea} onClick={addLinea}>
-                <Plus size={13} strokeWidth={2.2} /> Agregar línea
-              </button>
-              <p className={styles.totalSesiones}>Total del paquete: <strong>{totalSesiones}</strong> {totalSesiones === 1 ? 'sesión' : 'sesiones'}</p>
-            </div>
-          </>
-        ) : (
+        <div className={fields.formDivider}><span className={fields.formDividerLabel}>Servicios y sesiones</span></div>
+
+        {loadingServiciosCombo ? (
+          <div className={fields.colSpan2}>
+            <p className={styles.hint}>Cargando servicios del paquete…</p>
+          </div>
+        ) : sinId ? (
           <div className={fields.colSpan2}>
             <p className={styles.hint}>
               Este paquete tiene <strong>{combo?.sesiones_totales ?? 0}</strong> {(combo?.sesiones_totales ?? 0) === 1 ? 'sesión' : 'sesiones'}.
-              Los servicios y sus sesiones se editan expandiendo el paquete en la lista.
+              La edición de servicios no está disponible para este paquete (requiere ID numérico).
+            </p>
+          </div>
+        ) : (
+          <div className={fields.colSpan2}>
+            <p className={styles.hint}>Cada línea es un servicio incluido con sus sesiones. El total de sesiones del paquete es la suma de las líneas.</p>
+            <div className={styles.lineas}>
+              {lineas.map((l, i) => (
+                <div key={i} className={styles.lineaCard}>
+                  <div className={styles.lineaTop}>
+                    <CustomSelect
+                      value={l.servicio_id != null ? String(l.servicio_id) : ''}
+                      onChange={(v) => seleccionarServicioLinea(i, Number(v))}
+                      options={[
+                        { value: '', label: loadingServicios ? 'Cargando servicios…' : 'Seleccionar servicio…' },
+                        ...serviciosDisponibles.map((s) => ({ value: String(s.id), label: s.nombre })),
+                      ]}
+                    />
+                    <button type="button" className={styles.removeLinea} onClick={() => removeLinea(i)} aria-label="Quitar línea" disabled={lineas.length === 1}>
+                      <Trash2 size={14} strokeWidth={2} />
+                    </button>
+                  </div>
+                  {l.servicio_id != null && (
+                    <div className={styles.lineaFields}>
+                      <div className={styles.fieldMini}>
+                        <label htmlFor={`ln-tiempo-${i}`}>Tiempo (min)</label>
+                        <input id={`ln-tiempo-${i}`} type="number" min={0} value={l.tiempo} onChange={(e) => patchLinea(i, { tiempo: e.target.value })} placeholder="45" />
+                      </div>
+                      <div className={styles.fieldMini}>
+                        <label htmlFor={`ln-costo-${i}`}>Costo (Bs)</label>
+                        <input id={`ln-costo-${i}`} type="number" step="0.01" min={0} value={l.costo} onChange={(e) => patchLinea(i, { costo: e.target.value })} placeholder="120" />
+                      </div>
+                      <div className={styles.fieldMini}>
+                        <label htmlFor={`ln-sesiones-${i}`}>Sesiones</label>
+                        <input id={`ln-sesiones-${i}`} type="number" min={1} value={l.sesiones} onChange={(e) => patchLinea(i, { sesiones: e.target.value })} placeholder="1" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            <button type="button" className={styles.addLinea} onClick={addLinea}>
+              <Plus size={13} strokeWidth={2.2} /> Agregar línea
+            </button>
+            <p className={styles.totalSesiones}>
+              Total del paquete: <strong>{totalSesiones}</strong> {totalSesiones === 1 ? 'sesión' : 'sesiones'}
+              {tipoPrecio === 'POR_ITEMS' && totalPrecioItems > 0 && (
+                <> — <strong>Bs {totalPrecioItems.toFixed(2)}</strong></>
+              )}
             </p>
           </div>
         )}

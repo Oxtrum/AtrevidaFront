@@ -11,11 +11,7 @@ import { toast } from '@/components/Shared/Toast';
 import {
   getCombosDB,
   getLocalesDB,
-  getServiciosDB,
   getComboServiciosDB,
-  crearComboServicio,
-  actualizarComboServicio,
-  eliminarComboServicio,
 } from '@/lib/api/servicios';
 import { eliminarCombo } from '@/lib/api/combos';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
@@ -65,29 +61,6 @@ interface ComboServicioDetalle {
   orden?: number;
 }
 
-interface ServicioOption {
-  id: number;
-  nombre: string;
-  tiempo: string;
-  costo: string;
-  sesiones: number;
-}
-
-interface ComboServicioForm {
-  servicio_id: number | null;
-  tiempo: string;
-  costo: string;
-  sesiones: number;
-  orden: string;
-}
-
-interface ComboServicioFormErrors {
-  servicio_id?: string;
-  tiempo?: string;
-  costo?: string;
-  sesiones?: string;
-}
-
 interface ConfirmState {
   message: string;
   onConfirm: () => void;
@@ -104,14 +77,6 @@ function formatTiempoMin(tiempo: string): string {
   return tiempo;
 }
 
-const SERVICIO_FORM_INITIAL: ComboServicioForm = {
-  servicio_id: null,
-  tiempo: '',
-  costo: '',
-  sesiones: 1,
-  orden: '',
-};
-
 function getScopedLocales(
   locales: LocalOption[],
   workplace: { local_id: number; nombre_local: string } | null,
@@ -125,20 +90,6 @@ function getScopedLocales(
   return scoped.length > 0
     ? scoped
     : [{ id: workplace.local_id, nombre: workplace.nombre_local }];
-}
-
-function minToHHMM(min: number): string {
-  const h = Math.floor(min / 60);
-  const m = min % 60;
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-}
-
-function hhmmToMin(tiempo: string): string {
-  if (!tiempo) return '';
-  const match = tiempo.match(/^(\d{1,2}):(\d{2})$/);
-  if (match) return String(parseInt(match[1], 10) * 60 + parseInt(match[2], 10));
-  const n = parseInt(tiempo, 10);
-  return Number.isFinite(n) ? String(n) : '';
 }
 
 // ─── Component ───────────────────────────────────────────────────
@@ -177,23 +128,11 @@ export default function CombosPage() {
   const [comboServiciosLoading, setComboServiciosLoading] = useState<Record<string, boolean>>({});
 
   // CRUD modal state
-  const [modalOpen, setModalOpen] = useState(false);
   const [comboModalOpen, setComboModalOpen] = useState(false);
   const [comboModalMode, setComboModalMode] = useState<'crear' | 'editar'>('crear');
   const [editingCombo, setEditingCombo] = useState<EditableCombo | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [editingServiceId, setEditingServiceId] = useState<number | null>(null);
-  const [activeComboId, setActiveComboId] = useState<number | null>(null);
-  const [activeComboKey, setActiveComboKey] = useState<string | null>(null);
-  const [form, setForm] = useState<ComboServicioForm>(SERVICIO_FORM_INITIAL);
-  const [formErrors, setFormErrors] = useState<ComboServicioFormErrors>({});
-  const isEdit = editingServiceId !== null;
 
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
-
-  // Service dropdown options for the add/edit modal
-  const [servicioOptions, setServicioOptions] = useState<ServicioOption[]>([]);
-  const [loadingServicioOptions, setLoadingServicioOptions] = useState(false);
 
   // ─── Debounce ─────────────────────────────────────────────────
 
@@ -201,32 +140,6 @@ export default function CombosPage() {
     const timer = setTimeout(() => setFiltroNombreDebounced(filtroNombre), 350);
     return () => clearTimeout(timer);
   }, [filtroNombre]);
-
-  // ─── Load servicio options when modal opens ────────────────────
-
-  useEffect(() => {
-    if (!modalOpen || !effectiveFiltroLocal) return;
-    setLoadingServicioOptions(true);
-    getServiciosDB({ local: effectiveFiltroLocal })
-      .then((res) => {
-        const data = res as { data?: { servicios?: ServicioOption[] } };
-        setServicioOptions(data?.data?.servicios ?? []);
-      })
-      .catch(() => setServicioOptions([]))
-      .finally(() => setLoadingServicioOptions(false));
-  }, [modalOpen, effectiveFiltroLocal]);
-
-  const handleSelectServicio = (value: string) => {
-    const id = value ? Number(value) : null;
-    const svc = servicioOptions.find((s) => s.id === id);
-    patchForm({
-      servicio_id: id,
-      tiempo: svc ? String(parseInt(svc.tiempo, 10) || '') : '',
-      costo: svc ? String(svc.costo) : '',
-      sesiones: svc?.sesiones ?? 1,
-    });
-    if (formErrors.servicio_id) setFormErrors((p) => ({ ...p, servicio_id: undefined }));
-  };
 
   // ─── Data fetching ─────────────────────────────────────────────
 
@@ -338,30 +251,6 @@ export default function CombosPage() {
     }
   }, [expandedComboKey, comboServicios]);
 
-  const reloadComboServicios = async (comboId: number, key: string) => {
-    try {
-      const res = await getComboServiciosDB(comboId) as {
-        data?: { servicios?: ComboServicioDetalle[] };
-      };
-      setComboServicios((prev) => ({ ...prev, [key]: res?.data?.servicios ?? [] }));
-    } catch {
-      // best-effort
-    }
-  };
-
-  // ─── CRUD handlers ────────────────────────────────────────────
-
-  const patchForm = (patch: Partial<ComboServicioForm>) =>
-    setForm((prev) => ({ ...prev, ...patch }));
-
-  const resetModal = () => {
-    setForm(SERVICIO_FORM_INITIAL);
-    setFormErrors({});
-    setEditingServiceId(null);
-    setActiveComboId(null);
-    setActiveComboKey(null);
-  };
-
   const openCrearCombo = () => {
     setComboModalMode('crear');
     setEditingCombo(null);
@@ -395,100 +284,6 @@ export default function CombosPage() {
         } catch (err) {
           if (err instanceof Error) console.error('eliminarCombo', err);
           toast.error('No se pudo eliminar el paquete.');
-        }
-      },
-    });
-  };
-
-  const openAddServicio = (combo: ComboItem) => {
-    resetModal();
-    setActiveComboId(combo.id);
-    setActiveComboKey(combo.nombre);
-    setModalOpen(true);
-  };
-
-  const openEditServicio = (svc: ComboServicioDetalle) => {
-    setEditingServiceId(svc.id);
-    setActiveComboId(svc.combo_id);
-    setActiveComboKey(svc.combo_nombre);
-    setFormErrors({});
-    setForm({
-      servicio_id: svc.servicio_id ?? null,
-      tiempo: hhmmToMin(svc.tiempo ?? ''),
-      costo: String(svc.costo ?? ''),
-      sesiones: svc.sesiones ?? 1,
-      orden: svc.orden != null ? String(svc.orden) : '',
-    });
-    setModalOpen(true);
-  };
-
-  const validateForm = (): boolean => {
-    const errors: ComboServicioFormErrors = {};
-    if (form.servicio_id == null) errors.servicio_id = 'Selecciona un servicio';
-    const tiempoNum = Number(form.tiempo);
-    if (!form.tiempo || Number.isNaN(tiempoNum) || tiempoNum <= 0) errors.tiempo = 'Duración inválida (mínimo 1 min)';
-    const costoNum = Number(form.costo);
-    if (form.costo === '' || Number.isNaN(costoNum) || costoNum < 0) errors.costo = 'Costo inválido';
-    if (!Number.isInteger(form.sesiones) || form.sesiones < 1) errors.sesiones = 'Mínimo 1 sesión';
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleSubmitServicio = async () => {
-    if (!validateForm()) return;
-    if (activeComboId == null) {
-      toast.error('El paquete no tiene ID — operación no disponible (requiere actualización del backend).');
-      return;
-    }
-    setSaving(true);
-    setFormErrors({});
-    const costo = Number(form.costo);
-    const tiempo = minToHHMM(Number(form.tiempo));
-    const orden = form.orden !== '' ? Number(form.orden) : undefined;
-
-    try {
-      if (isEdit && editingServiceId !== null) {
-        await actualizarComboServicio(editingServiceId, {
-          servicio_id: form.servicio_id ?? undefined,
-          tiempo,
-          costo,
-          sesiones: form.sesiones,
-          orden,
-        });
-        toast.success('Servicio actualizado');
-      } else {
-        await crearComboServicio({
-          combo_id: activeComboId,
-          servicio_id: form.servicio_id ?? undefined,
-          tiempo,
-          costo,
-          sesiones: form.sesiones,
-          orden,
-        });
-        toast.success('Servicio agregado al combo');
-      }
-      setModalOpen(false);
-      resetModal();
-      if (activeComboKey) await reloadComboServicios(activeComboId, activeComboKey);
-    } catch (err) {
-      if (err instanceof Error) console.error('comboServicio submit', err);
-      toast.error(isEdit ? 'No se pudo actualizar el servicio.' : 'No se pudo agregar el servicio.');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleDeleteServicio = (svc: ComboServicioDetalle) => {
-    setConfirmState({
-      message: `¿Eliminar "${svc.servicio_nombre || svc.servicio_texto}" del paquete?`,
-      onConfirm: async () => {
-        try {
-          await eliminarComboServicio(svc.id);
-          toast.success('Servicio eliminado del paquete');
-          await reloadComboServicios(svc.combo_id, svc.combo_nombre);
-        } catch (err) {
-          if (err instanceof Error) console.error('eliminarComboServicio', err);
-          toast.error('No se pudo eliminar el servicio.');
         }
       },
     });
@@ -626,8 +421,10 @@ export default function CombosPage() {
                       onKeyDown={(e) => e.key === 'Enter' && handleToggleExpand(combo)}
                       aria-expanded={isExpanded}
                     >
-                      <span className={styles.comboName}>{combo.nombre}</span>
-                      <span className={styles.comboMeta}>{combo.categoria}</span>
+                      <div className={styles.comboMain}>
+                        <span className={styles.comboName}>{combo.nombre}</span>
+                        <span className={styles.comboMeta}>{combo.categoria}</span>
+                      </div>
                       <span className={styles.comboBadge}>{combo.sesiones_totales} ses.</span>
                       <span className={styles.comboCosto}>{combo.costo_total} Bs.</span>
                       <span className={styles.comboActions} onClick={(e) => e.stopPropagation()}>
@@ -663,16 +460,6 @@ export default function CombosPage() {
                       <div className={styles.serviciosSection}>
                         <div className={styles.serviciosSectionHeader}>
                           <span className={styles.serviciosSectionTitle}>Servicios incluidos</span>
-                          {combo.id != null && (
-                            <button
-                              type="button"
-                              className={styles.btnSm}
-                              onClick={(e) => { e.stopPropagation(); openAddServicio(combo); }}
-                            >
-                              <Plus size={12} strokeWidth={2.2} />
-                              Agregar
-                            </button>
-                          )}
                         </div>
 
                         {comboServiciosLoading[key] && (
@@ -691,7 +478,6 @@ export default function CombosPage() {
                                 <th>Tiempo</th>
                                 <th>Costo</th>
                                 <th>Sesiones</th>
-                                <th></th>
                               </tr>
                             </thead>
                             <tbody>
@@ -703,23 +489,6 @@ export default function CombosPage() {
                                   <td>{formatTiempoMin(svc.tiempo)}</td>
                                   <td>{svc.costo} Bs.</td>
                                   <td>{svc.sesiones}</td>
-                                  <td>
-                                    {svc.id > 0 && (
-                                      <RowActionsMenu actions={[
-                                        {
-                                          label: 'Editar',
-                                          icon: <Pencil size={12} strokeWidth={2} />,
-                                          onClick: () => openEditServicio(svc),
-                                        },
-                                        {
-                                          label: 'Eliminar',
-                                          icon: <Trash2 size={12} strokeWidth={2} />,
-                                          onClick: () => handleDeleteServicio(svc),
-                                          variant: 'danger' as const,
-                                        },
-                                      ]} />
-                                    )}
-                                  </td>
                                 </tr>
                               ))}
                             </tbody>
@@ -748,116 +517,6 @@ export default function CombosPage() {
         onClose={() => setComboModalOpen(false)}
         onSaved={fetchCombos}
       />
-
-      {/* ── Modal: Agregar / Editar servicio ── */}
-      <FormModal
-        isOpen={modalOpen}
-        onClose={() => { setModalOpen(false); resetModal(); }}
-        title={isEdit ? 'Editar servicio del paquete' : 'Agregar servicio al paquete'}
-        onSubmit={handleSubmitServicio}
-        loading={saving}
-        submitLabel={isEdit ? 'Guardar cambios' : 'Agregar servicio'}
-      >
-        <div className={styles.formGrid}>
-
-          <div className={styles.formDivider}>
-            <span className={styles.formDividerLabel}>Identificación</span>
-          </div>
-
-          <div className={`${styles.field} ${styles.colSpan2}`}>
-            <label id="lbl-cs-servicio" htmlFor="cs-servicio">Servicio</label>
-            <CustomSelect
-              id="cs-servicio"
-              ariaLabelledBy="lbl-cs-servicio"
-              value={form.servicio_id != null ? String(form.servicio_id) : ''}
-              onChange={handleSelectServicio}
-              options={[
-                { value: '', label: loadingServicioOptions ? 'Cargando servicios…' : 'Seleccionar servicio…' },
-                ...servicioOptions.map((s) => ({ value: String(s.id), label: s.nombre })),
-              ]}
-              hasError={!!formErrors.servicio_id}
-            />
-            {formErrors.servicio_id && (
-              <span className={styles.fieldError}>{formErrors.servicio_id}</span>
-            )}
-          </div>
-
-          <div className={styles.formDivider}>
-            <span className={styles.formDividerLabel}>Detalles</span>
-          </div>
-
-          <div className={styles.field}>
-            <label htmlFor="cs-tiempo">Duración (min)</label>
-            <input
-              id="cs-tiempo"
-              type="number"
-              min={1}
-              value={form.tiempo}
-              onChange={(e) => {
-                patchForm({ tiempo: e.target.value });
-                if (formErrors.tiempo) setFormErrors((p) => ({ ...p, tiempo: undefined }));
-              }}
-              placeholder="60"
-              aria-invalid={!!formErrors.tiempo}
-              className={formErrors.tiempo ? styles.inputError : ''}
-            />
-            {formErrors.tiempo && <span className={styles.fieldError}>{formErrors.tiempo}</span>}
-          </div>
-
-          <div className={styles.field}>
-            <label htmlFor="cs-costo">Costo (Bs.)</label>
-            <input
-              id="cs-costo"
-              type="number"
-              step="0.01"
-              min={0}
-              value={form.costo}
-              onChange={(e) => {
-                patchForm({ costo: e.target.value });
-                if (formErrors.costo) setFormErrors((p) => ({ ...p, costo: undefined }));
-              }}
-              placeholder="0.00"
-              aria-invalid={!!formErrors.costo}
-              className={formErrors.costo ? styles.inputError : ''}
-            />
-            {formErrors.costo && <span className={styles.fieldError}>{formErrors.costo}</span>}
-          </div>
-
-          <div className={styles.field}>
-            <label htmlFor="cs-sesiones">Sesiones</label>
-            <input
-              id="cs-sesiones"
-              type="number"
-              min={1}
-              value={form.sesiones}
-              onChange={(e) => {
-                const n = Number(e.target.value);
-                patchForm({ sesiones: Number.isFinite(n) ? n : 1 });
-                if (formErrors.sesiones) setFormErrors((p) => ({ ...p, sesiones: undefined }));
-              }}
-              aria-invalid={!!formErrors.sesiones}
-              className={formErrors.sesiones ? styles.inputError : ''}
-            />
-            {formErrors.sesiones && <span className={styles.fieldError}>{formErrors.sesiones}</span>}
-          </div>
-
-          <div className={styles.field}>
-            <label htmlFor="cs-orden">
-              Orden{' '}
-              <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(opcional)</span>
-            </label>
-            <input
-              id="cs-orden"
-              type="number"
-              min={1}
-              value={form.orden}
-              onChange={(e) => patchForm({ orden: e.target.value })}
-              placeholder="1"
-            />
-          </div>
-
-        </div>
-      </FormModal>
 
       {/* ── Confirm dialog ── */}
       <FormModal
