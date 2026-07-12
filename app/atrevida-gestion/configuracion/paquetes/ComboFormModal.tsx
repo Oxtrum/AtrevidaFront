@@ -50,7 +50,7 @@ interface ServicioOpt {
   costo: number | string;
 }
 
-// Cada línea es una referencia a un servicio incluido en la visita.
+// Cada línea es una referencia a un servicio incluido en una sesión de la visita.
 // costo se copia del catálogo (para la sugerencia de precio); no se edita por línea.
 interface LineaForm {
   id?: number;
@@ -58,6 +58,7 @@ interface LineaForm {
   servicio_texto: string;
   costo: string;
   orden: string;
+  sesion_numero: number;
 }
 
 interface ComboFormModalProps {
@@ -69,7 +70,7 @@ interface ComboFormModalProps {
   onSaved: () => void;
 }
 
-const nuevaLinea = (): LineaForm => ({ servicio_id: null, servicio_texto: '', costo: '', orden: '0' });
+const nuevaLinea = (sesion_numero = 1): LineaForm => ({ servicio_id: null, servicio_texto: '', costo: '', orden: '0', sesion_numero });
 
 export default function ComboFormModal({ open, mode, combo, locales, onClose, onSaved }: ComboFormModalProps) {
   const [nombre, setNombre] = useState('');
@@ -78,7 +79,6 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
   const [precioPaquete, setPrecioPaquete] = useState('');
   const [precioTocado, setPrecioTocado] = useState(false);
   const [moneda, setMoneda] = useState('BOB');
-  const [sesionesTotales, setSesionesTotales] = useState('1');
   const [duracionMin, setDuracionMin] = useState('');
   const [localIds, setLocalIds] = useState<number[]>([]);
   const [lineas, setLineas] = useState<LineaForm[]>([nuevaLinea()]);
@@ -133,7 +133,6 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
       setPrecioPaquete(combo.precio_paquete != null ? String(combo.precio_paquete) : '');
       setPrecioTocado(true); // ya tiene precio: no auto-sobreescribir con la sugerencia
       setMoneda(combo.moneda ?? 'BOB');
-      setSesionesTotales(combo.sesiones_totales != null ? String(combo.sesiones_totales) : '1');
       setDuracionMin(combo.duracion_min != null ? String(combo.duracion_min) : '');
       setLocalIds((combo.locales ?? []).map((l) => l.id));
 
@@ -141,13 +140,14 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
         setLoadingServiciosCombo(true);
         getComboServiciosDB(combo.id)
           .then((res) => {
-            const raw = (res as { data?: { servicios?: { id: number; servicio_id?: number | null; servicio_texto?: string | null; servicio_nombre: string; costo: number; orden?: number }[] } })?.data?.servicios ?? [];
+            const raw = (res as { data?: { servicios?: { id: number; servicio_id?: number | null; servicio_texto?: string | null; servicio_nombre: string; costo: number; orden?: number; sesion_numero?: number | null }[] } })?.data?.servicios ?? [];
             const loaded: LineaForm[] = raw.map((s) => ({
               id: s.id,
               servicio_id: s.servicio_id ?? null,
               servicio_texto: s.servicio_texto ?? s.servicio_nombre ?? '',
               costo: String(s.costo ?? ''),
               orden: s.orden != null ? String(s.orden) : '0',
+              sesion_numero: s.sesion_numero ?? 1,
             }));
             setLineas(loaded.length > 0 ? loaded : [nuevaLinea()]);
           })
@@ -165,7 +165,6 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
       setPrecioPaquete('');
       setPrecioTocado(false);
       setMoneda('BOB');
-      setSesionesTotales('1');
       setDuracionMin('');
       setLocalIds([]);
       setLineas([nuevaLinea()]);
@@ -190,7 +189,17 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
     ));
   };
 
-  const addLinea = () => setLineas((prev) => [...prev, nuevaLinea()]);
+  // Sesiones derivadas de las líneas: cada número distinto de sesion_numero es una sesión.
+  const sesiones = useMemo(() => {
+    const nums = Array.from(new Set(lineas.map((l) => l.sesion_numero))).sort((a, b) => a - b);
+    return nums.length > 0 ? nums : [1];
+  }, [lineas]);
+
+  const addLineaEnSesion = (n: number) => setLineas((prev) => [...prev, { ...nuevaLinea(), sesion_numero: n }]);
+  const addSesion = () => {
+    const siguiente = Math.max(...sesiones) + 1;
+    setLineas((prev) => [...prev, { ...nuevaLinea(), sesion_numero: siguiente }]);
+  };
   const removeLinea = (i: number) => setLineas((prev) => prev.filter((_, idx) => idx !== i));
 
   // Sugerencia de precio = suma del costo de catálogo de los servicios elegidos.
@@ -212,8 +221,6 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
     const p = Number(precioPaquete);
     if (!precioPaquete || Number.isNaN(p) || p < 0) return 'Ingresa un precio de paquete válido.';
     if (moneda.trim().length !== 3) return 'La moneda debe tener 3 letras (ej. BOB).';
-    const ses = Number(sesionesTotales);
-    if (!Number.isInteger(ses) || ses < 1) return 'Las sesiones del paquete deben ser un entero ≥ 1.';
     if (duracionMin !== '' && (Number.isNaN(Number(duracionMin)) || Number(duracionMin) < 0)) return 'Duración inválida.';
     if (lineas.length === 0 || lineas.some((l) => l.servicio_id == null)) return 'Cada línea debe seleccionar un servicio.';
     return null;
@@ -223,7 +230,8 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
     servicio_id: l.servicio_id ?? undefined,
     servicio_texto: l.servicio_texto.trim() || undefined,
     costo: l.costo !== '' ? Number(l.costo) : undefined,
-    sesiones: 1, // referencia: 1 por línea; las sesiones reales son a nivel paquete
+    sesiones: 1, // referencia: 1 por línea; las sesiones reales se derivan de sesion_numero
+    sesion_numero: l.sesion_numero,
     orden: l.orden !== '' ? Number(l.orden) : i,
   });
 
@@ -235,7 +243,6 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
 
     const categoria_id = categoriaId ? Number(categoriaId) : undefined;
     const precio_paquete = Number(precioPaquete);
-    const sesiones_totales = Number(sesionesTotales);
     const duracion_min = duracionMin !== '' ? Number(duracionMin) : undefined;
 
     try {
@@ -247,7 +254,6 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
           tipo_precio: TIPO_PRECIO,
           precio_paquete,
           moneda: moneda.trim().toUpperCase(),
-          sesiones_totales,
           duracion_min,
           local_ids: localIds,
           servicios: lineas.map(construirLinea),
@@ -261,7 +267,6 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
           tipo_precio: TIPO_PRECIO,
           precio_paquete,
           moneda: moneda.trim().toUpperCase(),
-          sesiones_totales,
           duracion_min,
         });
         await reemplazarLocalesCombo(combo.id, localIds);
@@ -320,8 +325,8 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
         <div className={fields.formDivider}><span className={fields.formDividerLabel}>Paquete</span></div>
 
         <div className={fields.field}>
-          <label htmlFor="cb-sesiones">Sesiones</label>
-          <input id="cb-sesiones" type="number" min={1} value={sesionesTotales} onChange={(e) => setSesionesTotales(e.target.value)} placeholder="10" />
+          <label>Sesiones</label>
+          <p className={styles.totalSesiones}>Derivado de los servicios: <strong>{sesiones.length}</strong></p>
         </div>
         <div className={fields.field}>
           <label htmlFor="cb-duracion">Duración/sesión (min) <span className={styles.optional}>(opcional)</span></label>
@@ -371,28 +376,36 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
           </div>
         ) : (
           <div className={fields.colSpan2}>
-            <p className={styles.hint}>Servicios que incluye cada visita del paquete (referencia). El precio arriba se sugiere sumando sus costos.</p>
+            <p className={styles.hint}>Agrupa los servicios por sesión de visita. El precio arriba se sugiere sumando el costo de todos los servicios de todas las sesiones.</p>
             <div className={styles.lineas}>
-              {lineas.map((l, i) => (
-                <div key={i} className={styles.lineaCard}>
-                  <div className={styles.lineaTop}>
-                    <CustomSelect
-                      value={l.servicio_id != null ? String(l.servicio_id) : ''}
-                      onChange={(v) => seleccionarServicioLinea(i, Number(v))}
-                      options={[
-                        { value: '', label: loadingServicios ? 'Cargando servicios…' : 'Seleccionar servicio…' },
-                        ...serviciosDisponibles.map((s) => ({ value: String(s.id), label: s.nombre })),
-                      ]}
-                    />
-                    <button type="button" className={styles.removeLinea} onClick={() => removeLinea(i)} aria-label="Quitar servicio" disabled={lineas.length === 1}>
-                      <Trash2 size={14} strokeWidth={2} />
-                    </button>
-                  </div>
+              {sesiones.map((n) => (
+                <div key={n} className={styles.sesionBloque}>
+                  <div className={styles.sesionHeader}>Sesión {n}</div>
+                  {lineas.map((l, i) => l.sesion_numero === n && (
+                    <div key={i} className={styles.lineaCard}>
+                      <div className={styles.lineaTop}>
+                        <CustomSelect
+                          value={l.servicio_id != null ? String(l.servicio_id) : ''}
+                          onChange={(v) => seleccionarServicioLinea(i, Number(v))}
+                          options={[
+                            { value: '', label: loadingServicios ? 'Cargando servicios…' : 'Seleccionar servicio…' },
+                            ...serviciosDisponibles.map((s) => ({ value: String(s.id), label: s.nombre })),
+                          ]}
+                        />
+                        <button type="button" className={styles.removeLinea} onClick={() => removeLinea(i)} aria-label="Quitar servicio" disabled={lineas.length === 1}>
+                          <Trash2 size={14} strokeWidth={2} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  <button type="button" className={styles.addLinea} onClick={() => addLineaEnSesion(n)}>
+                    <Plus size={13} strokeWidth={2.2} /> Agregar servicio
+                  </button>
                 </div>
               ))}
             </div>
-            <button type="button" className={styles.addLinea} onClick={addLinea}>
-              <Plus size={13} strokeWidth={2.2} /> Agregar servicio
+            <button type="button" className={styles.addLinea} onClick={addSesion}>
+              <Plus size={13} strokeWidth={2.2} /> Agregar sesión
             </button>
           </div>
         )}

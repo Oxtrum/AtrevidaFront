@@ -20,6 +20,7 @@ export interface ComboServicioLineaInput {
   tiempo?: string;
   costo?: number;
   sesiones: number;
+  sesion_numero: number;
   orden: number;
 }
 
@@ -30,7 +31,6 @@ export interface CrearComboData {
   tipo_precio: TipoPrecio;
   precio_paquete?: number;
   moneda?: string;
-  sesiones_totales: number;
   duracion_min?: number;
   local_ids: number[];
   servicios: ComboServicioLineaInput[];
@@ -44,7 +44,6 @@ export interface ActualizarComboData {
   tipo_precio?: TipoPrecio;
   precio_paquete?: number;
   moneda?: string;
-  sesiones_totales?: number;
   duracion_min?: number;
 }
 
