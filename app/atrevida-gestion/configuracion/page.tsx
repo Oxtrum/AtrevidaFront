@@ -80,6 +80,14 @@ const OPTIONS = [
     colorRgb: '16, 185, 129',
   },
   {
+    title: 'Paquetes activos',
+    description: 'Planes de servicios adquiridos por clientes',
+    icon: <Package2 size={24} strokeWidth={1.5} />,
+    href: '/atrevida-gestion/configuracion/paquetes-activos',
+    color: '#EC008C',
+    colorRgb: '236, 0, 140',
+  },
+  {
     title: 'Usuarios',
     description: 'Gestionar usuarios del sistema',
     icon: <ShieldCheck size={24} strokeWidth={1.5} />,
