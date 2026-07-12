@@ -84,6 +84,7 @@ export function useReservationForm(
   const [numeroTelefono, setNumeroTelefono] = useState('');
   const [servicio, setServicio] = useState(initialData?.servicio || '');
   const [notas, setNotas] = useState('');
+  const [planId, setPlanId] = useState<number | null>(null);
   const [serviciosAPI, setServiciosAPI] = useState<Array<{ nombre: string; categoria: string; tipoEspacio: string; costo: string; tiempo: string; requiere_evaluacion: boolean }>>([]);
 
   const calcularHoraHasta = (desde: string, svc: string): string => {
@@ -430,6 +431,7 @@ export function useReservationForm(
           servicio_confirmado: servicio,
           precio: servicioInfo ? Number(servicioInfo.costo) || 0 : 0,
           notas: notas || undefined,
+          plan_id: planId ?? undefined,
           estado: 'AGENDADO' as const,
         };
 
@@ -455,6 +457,7 @@ export function useReservationForm(
     cliente, setCliente,
     numeroTelefono, setNumeroTelefono,
     notas, setNotas,
+    planId, setPlanId,
     servicio,
     error, errors,
     slotWarning,

@@ -6,6 +6,7 @@ import { AlertTriangle, CalendarPlus } from 'lucide-react';
 import { CustomSelect } from '../Custom/CustomSelectAdmin';
 import { TimeSlotPicker } from './TimeSlotPicker';
 import { DaySelector } from './DaySelector';
+import PlanSelector from './PlanSelector';
 import { ServiceSelect } from './ServiceSelect';
 import { useReservationForm, type ReservationFormInitialData } from './useReservationForm';
 import { getClientesDB, type ClientePG } from '@/lib/api/clientes';
@@ -43,6 +44,7 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
     cliente, setCliente,
     numeroTelefono, setNumeroTelefono,
     notas, setNotas,
+    planId, setPlanId,
     servicio,
     error, errors,
     slotWarning,
@@ -269,6 +271,14 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
             />
             {errors.numeroTelefono && <span className={styles.errorText}>{errors.numeroTelefono}</span>}
           </div>
+
+          {initialData?.isAdmin && (
+            <PlanSelector
+              clienteNombre={cliente}
+              planId={planId}
+              onChange={setPlanId}
+            />
+          )}
 
           <div className={`${styles.formGroup} ${styles.fullWidth}`}>
             <label>Notas <span style={{ opacity: 0.4, fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(opcional)</span></label>
