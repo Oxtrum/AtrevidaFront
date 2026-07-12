@@ -394,6 +394,7 @@ export interface ReservaBD {
   servicio_solicitado?: string | null;
   servicio_confirmado?: string | null;
   precio?: number;
+  plan_id?: number;
   notas?: string;
   estado?: EstadoReserva;
   notificado?: boolean;
