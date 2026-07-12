@@ -1,6 +1,7 @@
 import Header from "@/components/Header/Header";
 import Hero from "@/components/Hero/Hero";
 import Servicios from "@/components/Servicios/Servicios";
+import Paquetes from "@/components/Paquetes/Paquetes";
 import Nosotros from "@/components/Nosotros/Nosotros";
 import Testimonios from "@/components/Testimonios/Testimonios";
 import Contacto from "@/components/Contacto/Contacto";
@@ -53,6 +54,7 @@ export default function Home() {
       <main className={styles.landingMain}>
         <Hero />
         <Servicios />
+        <Paquetes />
         <Nosotros />
         <Contacto />
         <Testimonios />

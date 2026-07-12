@@ -1,0 +1,275 @@
+/* ────────────────────────────────────────────────────────────────
+   PAQUETES — catálogo público de combos (text-forward, sin imagen)
+   Reutiliza la cabecera de Servicios.module.css. Cards agrupadas por
+   familia; los tiers son chips discretos. 2 columnas en desktop.
+   ──────────────────────────────────────────────────────────────── */
+
+.paquetes {
+  position: relative;
+  padding: clamp(5rem, 9vw, 8rem) 1.5rem clamp(5.5rem, 9vw, 8.5rem);
+  background:
+    radial-gradient(ellipse 60% 50% at 15% 8%, rgba(255, 230, 0, 0.06), transparent 60%),
+    radial-gradient(ellipse 55% 48% at 88% 90%, rgba(236, 0, 140, 0.08), transparent 62%);
+  overflow: hidden;
+}
+
+/* ── Grid: 1 columna → 2 columnas en desktop ───────────────────── */
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  max-width: 620px;
+  margin: 0 auto;
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+    max-width: 1120px;
+  }
+}
+
+/* ── Card ──────────────────────────────────────────────────────── */
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--af-surface-1);
+  border: 1px solid var(--af-border);
+  border-radius: var(--af-radius-lg);
+  overflow: hidden;
+  backdrop-filter: var(--af-blur);
+  transition: transform 0.25s var(--af-ease), box-shadow 0.25s var(--af-ease), border-color 0.25s var(--af-ease);
+}
+
+/* Acento superior de marca (aporta color en lugar de la imagen). */
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: var(--af-grad-brand);
+  opacity: 0.85;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(236, 0, 140, 0.28);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+
+/* ── Detalle ───────────────────────────────────────────────────── */
+
+.detail {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.5rem 1.4rem 1.4rem;
+}
+
+/* Título con gradiente de marca para que resalte. */
+.name {
+  font-size: clamp(1.25rem, 2.8vw, 1.55rem);
+  font-weight: 900;
+  line-height: 1.12;
+  letter-spacing: -0.4px;
+  background: var(--af-grad-brand);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.services {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  list-style: none;
+  margin: 0;
+}
+
+.services li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--af-muted);
+}
+
+.services li svg {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  color: var(--af-accent-tertiary);
+}
+
+/* ── Tiers: chips a ancho completo ─────────────────────────────── */
+
+.tiers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.4rem;
+}
+
+.tiersLabel {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--af-dim);
+}
+
+.tierList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.tier {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.62rem 0.9rem;
+  border: 1px solid var(--af-border);
+  border-radius: var(--af-radius-md);
+  background: rgba(255, 255, 255, 0.015);
+  text-decoration: none;
+  transition: border-color 0.2s var(--af-ease), background 0.2s var(--af-ease), transform 0.2s var(--af-ease);
+}
+
+.tier:hover {
+  border-color: rgba(236, 0, 140, 0.45);
+  background: rgba(236, 0, 140, 0.06);
+  transform: translateX(3px);
+}
+
+.tier:focus-visible {
+  outline: 2px solid rgba(236, 0, 140, 0.6);
+  outline-offset: 2px;
+}
+
+.tierSesiones {
+  margin-right: auto;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--af-muted);
+}
+
+.tierPrecio {
+  font-size: 0.98rem;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  color: #f7a8cc;
+}
+
+.tierArrow {
+  color: var(--af-dim);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.2s var(--af-ease), transform 0.2s var(--af-ease);
+}
+
+.tier:hover .tierArrow {
+  color: #f7a8cc;
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.tiersHint {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  color: var(--af-dim);
+}
+
+.tiersHint svg {
+  color: #25d366;
+}
+
+/* ── Locales ───────────────────────────────────────────────────── */
+
+.locales {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.pin {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  padding: 0.24rem 0.6rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: var(--af-dim);
+  background: var(--af-surface-2);
+  border: 1px solid var(--af-border-subtle);
+  border-radius: var(--af-radius-pill);
+}
+
+/* ── Follow (enlace AtrevidaFit) ───────────────────────────────── */
+
+.follow {
+  margin: 2.5rem auto 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--af-muted);
+}
+
+.follow a {
+  color: #f7a8cc;
+  font-weight: 700;
+  text-decoration: none;
+  transition: color 0.2s var(--af-ease);
+}
+
+.follow a:hover {
+  color: #ffe600;
+}
+
+/* ── Loading / vacío ───────────────────────────────────────────── */
+
+.skeleton {
+  min-height: 220px;
+  border-radius: var(--af-radius-lg);
+  background: linear-gradient(100deg, var(--af-surface-1) 30%, var(--af-surface-2) 50%, var(--af-surface-1) 70%);
+  background-size: 200% 100%;
+  animation: paquete-shimmer 1.4s ease-in-out infinite;
+}
+
+.empty {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: var(--af-muted);
+  font-size: 0.95rem;
+}
+
+@keyframes paquete-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .tier,
+  .tierArrow,
+  .follow a {
+    transition: none;
+  }
+
+  .card:hover {
+    transform: none;
+  }
+
+  .skeleton {
+    animation: none;
+  }
+}
