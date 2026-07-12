@@ -29,7 +29,7 @@ export default function PlanSelector({ clienteNombre, planId, localNombre, onCha
       .then((res) => {
         if (cancelled) return;
         const data = res as { data?: { planes?: PlanItem[] } };
-        setPlanes((data?.data?.planes ?? []).filter((p) => p.sesiones_totales - p.sesiones_usadas > 0));
+        setPlanes(data?.data?.planes ?? []);
       })
       .catch(() => {
         if (!cancelled) setPlanes([]);
@@ -59,7 +59,7 @@ export default function PlanSelector({ clienteNombre, planId, localNombre, onCha
     { value: '', label: 'No usar paquete' },
     ...planes.map((p) => ({
       value: String(p.id),
-      label: `${p.combo_nombre_snapshot ?? 'Paquete'} — ${p.sesiones_totales - p.sesiones_usadas}/${p.sesiones_totales} sesiones`,
+      label: `${p.combo_nombre_snapshot ?? 'Paquete'} — ${p.sesiones_totales} sesiones`,
     })),
   ];
 

@@ -150,12 +150,6 @@ export default function PaquetesActivosPage() {
       render: (_v, row) => <span>{row.combo_nombre_snapshot ?? '—'}</span>,
     },
     {
-      key: 'sesiones',
-      label: 'Sesiones',
-      searchable: false,
-      render: (_v, row) => <span>{row.sesiones_usadas}/{row.sesiones_totales}</span>,
-    },
-    {
       key: 'precio_total',
       label: 'Total',
       searchable: false,

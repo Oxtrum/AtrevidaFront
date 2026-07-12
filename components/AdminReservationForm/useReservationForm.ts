@@ -416,12 +416,10 @@ export function useReservationForm(
     if (planId != null && effectiveSucursal) {
       try {
         const planRes = await getPlanesDB({ cliente, estado: 'ACTIVO', local: effectiveSucursal });
-        const planData = planRes as { data?: { planes?: { id: number; sesiones_totales: number; sesiones_usadas: number }[] } };
-        const planValido = (planData?.data?.planes ?? []).find(
-          (p) => p.id === planId && p.sesiones_totales - p.sesiones_usadas > 0,
-        );
+        const planData = planRes as { data?: { planes?: { id: number }[] } };
+        const planValido = (planData?.data?.planes ?? []).find((p) => p.id === planId);
         if (!planValido) {
-          toast.error('El paquete ya no es válido para esta sucursal o no tiene sesiones disponibles.');
+          toast.error('El paquete ya no es válido para esta sucursal.');
           setPlanId(null);
           return;
         }

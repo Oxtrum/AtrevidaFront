@@ -232,7 +232,7 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
     costo: l.costo !== '' ? Number(l.costo) : undefined,
     sesiones: 1, // referencia: 1 por línea; las sesiones reales se derivan de sesion_numero
     sesion_numero: l.sesion_numero,
-    orden: l.orden !== '' ? Number(l.orden) : i,
+    orden: i, // único por línea enviada (lineas.map(construirLinea) garantiza índice secuencial)
   });
 
   const handleSubmit = async () => {
