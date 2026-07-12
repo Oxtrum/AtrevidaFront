@@ -23,6 +23,7 @@ interface CalendarGridProps {
   fechas: Map<DiaSemana, FechaDia> | null;
   isAdmin?: boolean;
   onSlotClick?: (hora: string, dia: DiaSemana, slots: ReservaDetalle[] | undefined) => void;
+  onReservaClick?: (reserva: ReservaDetalle) => void;
   selectedDay?: DiaSemana | null;
   onDayChange?: (day: DiaSemana) => void;
   loading?: boolean;
@@ -88,6 +89,7 @@ export default function CalendarGrid({
   fechas,
   isAdmin = false,
   onSlotClick,
+  onReservaClick,
   selectedDay,
   onDayChange,
   loading = false,
@@ -221,6 +223,7 @@ export default function CalendarGrid({
                     hora={horaObj.hora}
                     fecha={fechaInfo?.fecha || new Date()}
                     onClick={() => handleSlotClick(horaObj.hora, dia, horaObj)}
+                    onReservaClick={onReservaClick}
                     esPasado={esPasado}
                   />
                 );

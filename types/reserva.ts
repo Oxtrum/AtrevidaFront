@@ -106,6 +106,14 @@ export interface ReservaDetalle {
   cliente?: string;
   servicio?: string;
   esFeriado?: boolean;
+  // Campos para abrir el detalle desde el calendario (reserva ocupada).
+  id?: number;
+  local?: string;
+  fecha?: string;
+  hora_desde?: string;
+  hora_hasta?: string;
+  estado?: EstadoReserva;
+  plan_id?: number;
 }
 
 export interface ReservaPorHora {

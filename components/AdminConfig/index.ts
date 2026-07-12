@@ -2,6 +2,7 @@ export { PageHeader } from './PageHeader';
 export { DataTable } from './DataTable';
 export type { Column } from './DataTable';
 export { FormModal } from './FormModal';
+export { ConfirmDialog } from './ConfirmDialog';
 export { RowActionsMenu } from './RowActionsMenu';
 export type { RowAction } from './RowActionsMenu';
 export { SectionLabel } from './SectionLabel';

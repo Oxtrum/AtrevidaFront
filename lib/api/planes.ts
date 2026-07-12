@@ -8,6 +8,8 @@ export interface CrearPlanData {
   tipo_pago?: string;
   fecha_inicio?: string;
   notas?: string;
+  /** Código del pago de caja a aplicar a la cuota (UNICO): marca la cuota PAGADO. */
+  pago_codigo?: string;
 }
 
 export interface PlanItem {

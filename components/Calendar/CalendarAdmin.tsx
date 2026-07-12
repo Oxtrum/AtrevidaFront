@@ -15,6 +15,7 @@ interface CalendarAdminProps {
   sucursal?: string;
   semanaInicial?: string;
   onSlotClick?: (hora: string, dia: DiaSemana, slots: ReservaDetalle[] | undefined) => void;
+  onReservaClick?: (reserva: ReservaDetalle) => void;
   onSucursalChange?: (sucursal: string) => void;
   onSemanaChange?: (semana: string) => void;
 }
@@ -29,6 +30,7 @@ export default function CalendarAdmin({
   localInicial = '',
   sucursal: sucursalProp,
   onSlotClick,
+  onReservaClick,
   onSucursalChange,
   onSemanaChange,
 }: CalendarAdminProps) {
@@ -179,6 +181,7 @@ export default function CalendarAdmin({
             fechas={fechas}
             isAdmin={true}
             onSlotClick={handleSlotClick}
+            onReservaClick={onReservaClick}
             selectedDay={selectedDay}
             onDayChange={setSelectedDay}
             loading={loading}

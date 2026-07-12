@@ -502,16 +502,18 @@ export default function CajaPage() {
         activo: true,
         detalle,
       };
-      await crearPagoDB(payload);
+      const pagoRes = await crearPagoDB(payload);
+      const codigoPago = pagoRes.data?.codigo_pago;
 
       // Crear y ACTIVAR el paquete de cada línea de paquete que quedó en el ticket.
       // Nace ACTIVO porque ya está pagado: el cliente puede usar sus sesiones de inmediato.
+      // Se pasa el código del pago para aplicarlo a la cuota (queda PAGADO).
       const paquetes = detalle.filter((i) => i.servicio_id === null && combosVenta[i.servicio]);
       if (paquetes.length > 0 && clienteId) {
         try {
           await Promise.all(
             paquetes.map(async (i) => {
-              const res = await crearPlan({ combo_id: combosVenta[i.servicio].combo_id, cliente_id: clienteId, local_id: selectedLocal.id, tipo_pago: 'UNICO' });
+              const res = await crearPlan({ combo_id: combosVenta[i.servicio].combo_id, cliente_id: clienteId, local_id: selectedLocal.id, tipo_pago: 'UNICO', pago_codigo: codigoPago });
               const nuevoId = res.data?.id;
               if (nuevoId) await cambiarEstadoPlan(nuevoId, 'ACTIVO');
             }),

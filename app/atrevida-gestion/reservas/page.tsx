@@ -4,13 +4,13 @@ import { useRef, useEffect, useState, useMemo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import gsap from 'gsap';
 import { CalendarRange, Pencil, Trash2 } from 'lucide-react';
-import { DiaSemana, EstadoReserva, ReservaBD } from '@/types/reserva';
+import { DiaSemana, EstadoReserva, ReservaBD, ReservaDetalle } from '@/types/reserva';
 import { CalendarAdmin } from '@/components/Calendar';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { useReservasFiltradas } from '@/lib/hooks/useReservasFiltradas';
 import type { ReservaTipoBackend } from '@/lib/api/reservas';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
-import { DataTable, Column, RowActionsMenu, PageHeader, AdminPanel } from '@/components/AdminConfig';
+import { DataTable, Column, RowActionsMenu, PageHeader, AdminPanel, ConfirmDialog } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { Input } from '@/components/Shared';
 import Header from '@/components/AdminHeader/Header';
@@ -61,6 +61,7 @@ export default function AdminReservasPage() {
   const { reservas, loading, error, fetch: fetchReservas } = useReservasFiltradas();
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [selectedReserva, setSelectedReserva] = useState<ReservaBD | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<ReservaBD | null>(null);
   const adminLocalScope = useAdminLocalScopeState();
   const scopedLocalName = adminLocalScope.workplace?.nombre_local ?? '';
   const effectiveSucursalActiva = scopedLocalName || (adminLocalScope.ready ? sucursalActiva : '');
@@ -157,11 +158,10 @@ export default function AdminReservasPage() {
     setSucursalActiva(sucursal);
   };
 
-  const handleDeleteReserva = async (reserva: ReservaBD) => {
-    const etiqueta = reserva.cliente || `#${reserva.id}`;
-    if (!window.confirm(`¿Eliminar la reserva de ${etiqueta}? Esta acción puede revertirse desde el backend (borrado lógico).`)) {
-      return;
-    }
+  // Abre el diálogo de confirmación (reemplaza window.confirm).
+  const requestDeleteReserva = (reserva: ReservaBD) => setConfirmDelete(reserva);
+
+  const performDeleteReserva = async (reserva: ReservaBD) => {
     setDeletingId(reserva.id);
     try {
       await eliminarReservaDB(reserva.id);
@@ -179,6 +179,23 @@ export default function AdminReservasPage() {
     } finally {
       setDeletingId(null);
     }
+  };
+
+  // Reserva ocupada del calendario → ReservaBD para abrir el detalle.
+  const abrirDetalleDesdeCalendario = (r: ReservaDetalle) => {
+    if (r.id == null) return;
+    setSelectedReserva({
+      id: r.id,
+      local: r.local ?? '',
+      tipo: r.tipo ?? '',
+      fecha: r.fecha ?? '',
+      hora_desde: r.hora_desde ?? '',
+      hora_hasta: r.hora_hasta ?? '',
+      cliente: r.cliente ?? '',
+      servicio: r.servicio ?? '',
+      estado: r.estado,
+      plan_id: r.plan_id,
+    });
   };
 
   const handleSemanaChange = (semana: string) => {
@@ -296,7 +313,7 @@ export default function AdminReservasPage() {
         <div onClick={e => e.stopPropagation()}>
           <RowActionsMenu actions={[
             { label: 'Editar', icon: <Pencil size={12} strokeWidth={2} />, onClick: () => router.push(`/atrevida-gestion/reservas/editar/${row.id}`) },
-            { label: 'Eliminar', icon: <Trash2 size={12} strokeWidth={2} />, onClick: () => handleDeleteReserva(row as unknown as ReservaBD), variant: 'danger', disabled: deletingId === (row.id as number) },
+            { label: 'Eliminar', icon: <Trash2 size={12} strokeWidth={2} />, onClick: () => requestDeleteReserva(row as unknown as ReservaBD), variant: 'danger', disabled: deletingId === (row.id as number) },
           ]} />
         </div>
       ),
@@ -424,11 +441,26 @@ export default function AdminReservasPage() {
               }}
               onDelete={(r) => {
                 setSelectedReserva(null);
-                handleDeleteReserva(r);
+                requestDeleteReserva(r);
               }}
               deleting={deletingId === selectedReserva.id}
             />
           )}
+
+          <ConfirmDialog
+            isOpen={confirmDelete !== null}
+            title="Eliminar reserva"
+            message={`¿Eliminar la reserva de ${confirmDelete?.cliente || `#${confirmDelete?.id}`}? Si usa un paquete, la sesión se devuelve. Es un borrado lógico, reversible desde el backend.`}
+            confirmLabel="Eliminar"
+            danger
+            loading={deletingId != null}
+            onConfirm={() => {
+              const r = confirmDelete;
+              setConfirmDelete(null);
+              if (r) performDeleteReserva(r);
+            }}
+            onClose={() => setConfirmDelete(null)}
+          />
 
           {vistaActiva === 'calendario' && (
 
@@ -436,6 +468,7 @@ export default function AdminReservasPage() {
               key={pathname}
               sucursal={effectiveSucursalActiva}
               onSlotClick={handleSlotClick}
+              onReservaClick={abrirDetalleDesdeCalendario}
               onSucursalChange={handleSucursalChange}
               onSemanaChange={handleSemanaChange}
             />

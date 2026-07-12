@@ -11,6 +11,7 @@ interface TimeSlotAdminProps {
   hora: string;
   fecha: Date;
   onClick?: () => void;
+  onReservaClick?: (reserva: ReservaDetalle) => void;
   esPasado?: boolean;
 }
 
@@ -24,6 +25,7 @@ export default function TimeSlotAdmin({
   slots,
   fecha,
   onClick,
+  onReservaClick,
   esPasado = false,
 }: TimeSlotAdminProps) {
   const slotsOcupados = slots?.filter(s => s.cliente && s.cliente.trim() !== '') || [];
@@ -78,14 +80,21 @@ export default function TimeSlotAdmin({
           <div className={styles.reservationList}>
             {Object.entries(slotsPorTipo).map(([tipo, reservas]) => {
               const colors = getTipoColor2(tipo.toLowerCase());
-              return reservas.map((slot, idx) => (
+              return reservas.map((slot, idx) => {
+              const clickable = onReservaClick && slot.id != null;
+              return (
                 <div
                   key={`${tipo}-${idx}`}
                   className={styles.reservationCard}
                   style={{
                     background: colors.bg,
                     borderColor: colors.border,
+                    cursor: clickable ? 'pointer' : undefined,
                   }}
+                  onClick={clickable ? (e) => { e.stopPropagation(); onReservaClick!(slot); } : undefined}
+                  role={clickable ? 'button' : undefined}
+                  tabIndex={clickable ? 0 : undefined}
+                  title={clickable ? 'Ver detalle de la reserva' : undefined}
                 >
                   <div style={{ fontSize: '0.68rem', lineHeight: '1.2' }}>
                     {slot.cliente && (
@@ -103,7 +112,8 @@ export default function TimeSlotAdmin({
                     </span>
                   </div>
                 </div>
-              ));
+              );
+              });
             })}
             {hayDisponibilidad && (
               <SlotBadges mesas={mesasLibres} bicicletas={bicicletasLibres} slots={slots} />

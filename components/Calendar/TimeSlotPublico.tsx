@@ -14,6 +14,8 @@ interface TimeSlotPublicoProps {
   hora: string;
   fecha: Date;
   onClick?: () => void;
+  /** No usado en público; presente para compatibilidad con TimeSlotAdmin. */
+  onReservaClick?: (reserva: ReservaDetalle) => void;
   esPasado?: boolean;
 }
 
