@@ -25,7 +25,7 @@ export interface PlanItem {
   creado_en: string;
 }
 
-export interface GetPlanesParams {
+export interface GetPlanesParams extends Record<string, string | number | undefined> {
   local?: string;
   local_id?: number;
   cliente?: string;

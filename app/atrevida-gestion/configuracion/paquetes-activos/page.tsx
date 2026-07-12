@@ -15,6 +15,8 @@ import styles from './page.module.css';
 
 interface LocalOpt { id: number; nombre: string; }
 
+interface PlanRow extends PlanItem, Record<string, unknown> {}
+
 export default function PaquetesActivosPage() {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -22,7 +24,7 @@ export default function PaquetesActivosPage() {
   const adminLocalScope = useAdminLocalScopeState();
   const scopedLocalName = adminLocalScope.workplace?.nombre_local ?? '';
 
-  const [planes, setPlanes] = useState<PlanItem[]>([]);
+  const [planes, setPlanes] = useState<PlanRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [locales, setLocales] = useState<LocalOpt[]>([]);
   const [filtroLocal, setFiltroLocal] = useState(scopedLocalName);
@@ -38,10 +40,8 @@ export default function PaquetesActivosPage() {
     if (!hasFilter) return;
     setLoading(true);
     try {
-      const res = await getPlanesDB({ local: filtroLocal }) as {
-        data?: { planes?: PlanItem[] };
-      };
-      setPlanes(res?.data?.planes ?? []);
+      const res = await getPlanesDB({ local: filtroLocal });
+      setPlanes((res?.data?.planes ?? []) as unknown as PlanRow[]);
     } catch {
       setPlanes([]);
     } finally {
@@ -78,7 +78,7 @@ export default function PaquetesActivosPage() {
     if (scopedLocalName) setFiltroLocal(scopedLocalName);
   }, [scopedLocalName]);
 
-  const handleCambiarEstado = async (plan: PlanItem, nuevoEstado: string) => {
+  const handleCambiarEstado = async (plan: PlanRow, nuevoEstado: string) => {
     try {
       await cambiarEstadoPlan(plan.id, nuevoEstado);
       toast.success(`Plan ${nuevoEstado}`);
@@ -88,7 +88,7 @@ export default function PaquetesActivosPage() {
     }
   };
 
-  const columns: Column<PlanItem>[] = [
+  const columns: Column<PlanRow>[] = [
     { key: 'cliente', label: 'Cliente' },
     {
       key: 'combo_nombre_snapshot',
@@ -158,7 +158,7 @@ export default function PaquetesActivosPage() {
               </div>
             )}
 
-            <DataTable<PlanItem>
+            <DataTable<PlanRow>
               columns={columns}
               data={planes}
               loading={loading}
