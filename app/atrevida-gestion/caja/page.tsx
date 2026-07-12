@@ -383,7 +383,7 @@ export default function CajaPage() {
 
   const handleVenderCombo = async (combo: { id: number; nombre: string; precio_total: number }) => {
     if (!selectedClienteId) {
-      toast.warning('Selecciona un cliente antes de vender un paquete.');
+      toast.info('Selecciona un cliente antes de vender un paquete.');
       return;
     }
     if (!selectedLocal) return;
