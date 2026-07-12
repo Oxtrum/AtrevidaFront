@@ -11,6 +11,7 @@ import styles from './Header.module.css';
 const NAV_LINKS = [
   { label: 'Inicio', href: '/', section: 'inicio' },
   { label: 'Servicios', href: '/#servicios', section: 'servicios' },
+  { label: 'Paquetes', href: '/#paquetes', section: 'paquetes' },
   { label: 'Nosotros', href: '/#nosotros', section: 'nosotros' },
   { label: 'Contacto', href: '/#contacto', section: 'contacto' },
   { label: 'Reservas', href: '/reservas', section: 'reservas' },
