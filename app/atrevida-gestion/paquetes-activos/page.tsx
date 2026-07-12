@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
-import { CheckCircle, Package2, XCircle } from 'lucide-react';
+import { CheckCircle, Package2, PlayCircle, XCircle } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
 import { PageHeader, DataTable, AdminPanel, Column, RowActionsMenu } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
@@ -117,13 +117,23 @@ export default function PaquetesActivosPage() {
       label: '',
       searchable: false,
       render: (_v, row) => {
-        if (row.estado !== 'ACTIVO') return null;
-        return (
-          <RowActionsMenu actions={[
-            { label: 'Completar', icon: <CheckCircle size={12} strokeWidth={2} />, onClick: () => handleCambiarEstado(row, 'COMPLETADO') },
-            { label: 'Cancelar', icon: <XCircle size={12} strokeWidth={2} />, onClick: () => handleCambiarEstado(row, 'CANCELADO'), variant: 'danger' },
-          ]} />
-        );
+        if (row.estado === 'BORRADOR') {
+          return (
+            <RowActionsMenu actions={[
+              { label: 'Activar', icon: <PlayCircle size={12} strokeWidth={2} />, onClick: () => handleCambiarEstado(row, 'ACTIVO') },
+              { label: 'Cancelar', icon: <XCircle size={12} strokeWidth={2} />, onClick: () => handleCambiarEstado(row, 'CANCELADO'), variant: 'danger' },
+            ]} />
+          );
+        }
+        if (row.estado === 'ACTIVO') {
+          return (
+            <RowActionsMenu actions={[
+              { label: 'Completar', icon: <CheckCircle size={12} strokeWidth={2} />, onClick: () => handleCambiarEstado(row, 'COMPLETADO') },
+              { label: 'Cancelar', icon: <XCircle size={12} strokeWidth={2} />, onClick: () => handleCambiarEstado(row, 'CANCELADO'), variant: 'danger' },
+            ]} />
+          );
+        }
+        return null;
       },
     },
   ];
@@ -134,12 +144,12 @@ export default function PaquetesActivosPage() {
       <main className={styles.main}>
         <div className={styles.container}>
           <PageHeader
-            kicker="Configuración"
+            kicker="Operación"
             kickerIcon={<Package2 size={14} strokeWidth={2} />}
             title="Paquetes Activos"
             accentWord="Paquetes"
-            subtitle="Planes de servicios adquiridos por clientes"
-            backHref="/atrevida-gestion/configuracion"
+            subtitle="Paquetes adquiridos por los clientes y su avance de sesiones"
+            backHref="/atrevida-gestion/dashboard"
           />
 
           <div ref={contentRef} className={styles.contentStack}>

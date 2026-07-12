@@ -14,6 +14,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Package2,
   PanelLeftClose,
   Settings,
   ShieldCheck,
@@ -75,6 +76,12 @@ const NAV_LINKS = [
     detail: 'Directorio de clientes',
     href: '/atrevida-gestion/clientes',
     icon: Users,
+  },
+  {
+    label: 'Paquetes',
+    detail: 'Vendidos y en curso',
+    href: '/atrevida-gestion/paquetes-activos',
+    icon: Package2,
   },
   {
     label: 'Configuración',

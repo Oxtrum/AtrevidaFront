@@ -8,7 +8,6 @@ import {
   Building2,
   CheckCircle2,
   CreditCard,
-  Gift,
   Minus,
   Plus,
   ReceiptText,
@@ -25,7 +24,7 @@ import type { ClientePG } from '@/lib/api/clientes';
 import { crearPagoDB, getPagosDB } from '@/lib/api/pagos';
 import type { CrearPagoData, DetalleServicio, Pago } from '@/lib/api/pagos';
 import { getLocalesDB, getServiciosDB, getCombosDB } from '@/lib/api/servicios';
-import { crearPlan } from '@/lib/api/planes';
+import { crearPlan, cambiarEstadoPlan } from '@/lib/api/planes';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import styles from './page.module.css';
 
@@ -138,6 +137,9 @@ export default function CajaPage() {
   const [loadingServicios, setLoadingServicios] = useState(false);
   const [combos, setCombos] = useState<{ id: number; nombre: string; precio_total: number }[]>([]);
   const [loadingCombos, setLoadingCombos] = useState(false);
+  // Paquetes agregados al ticket; el plan se crea al registrar el pago. Clave = nombre de la línea.
+  const [combosVenta, setCombosVenta] = useState<Record<string, { combo_id: number; precio: number }>>({});
+  const [catalogoTab, setCatalogoTab] = useState<'servicios' | 'paquetes' | 'personalizado'>('servicios');
   const [serviceQuery, setServiceQuery] = useState('');
 
   const [pagos, setPagos] = useState<PagoRow[]>([]);
@@ -330,6 +332,12 @@ export default function CajaPage() {
       .slice(0, 18);
   }, [servicios, serviceQuery]);
 
+  const combosFiltrados = useMemo(() => {
+    const query = serviceQuery.trim().toLowerCase();
+    if (!query) return combos;
+    return combos.filter((combo) => combo.nombre.toLowerCase().includes(query));
+  }, [combos, serviceQuery]);
+
   const clearFieldError = (field: keyof FormErrors) => {
     if (formErrors[field]) setFormErrors((prev) => ({ ...prev, [field]: undefined }));
   };
@@ -381,28 +389,16 @@ export default function CajaPage() {
     clearFieldError('detalle');
   };
 
-  const handleVenderCombo = async (combo: { id: number; nombre: string; precio_total: number }) => {
-    if (!selectedClienteId) {
-      toast.info('Selecciona un cliente antes de vender un paquete.');
-      return;
-    }
-    if (!selectedLocal) return;
-    try {
-      await crearPlan({
-        combo_id: combo.id,
-        cliente_id: selectedClienteId,
-        local_id: selectedLocal.id,
-        tipo_pago: 'UNICO',
-      });
-      setDetalle((prev) => [
-        ...prev,
-        { servicio_id: null, servicio: `Paquete: ${combo.nombre}`, precio_unitario: combo.precio_total, cantidad: 1, subtotal: combo.precio_total },
-      ]);
-      toast.success(`Paquete "${combo.nombre}" vendido`);
-    } catch (err) {
-      if (err instanceof Error) console.error('venderCombo', err);
-      toast.error('No se pudo vender el paquete.');
-    }
+  const handleAgregarCombo = (combo: { id: number; nombre: string; precio_total: number }) => {
+    const nombreLinea = `Paquete: ${combo.nombre}`;
+    setDetalle((prev) =>
+      prev.some((i) => i.servicio === nombreLinea)
+        ? prev
+        : [...prev, { servicio_id: null, servicio: nombreLinea, precio_unitario: combo.precio_total, cantidad: 1, subtotal: combo.precio_total }],
+    );
+    setCombosVenta((prev) => ({ ...prev, [nombreLinea]: { combo_id: combo.id, precio: combo.precio_total } }));
+    clearFieldError('detalle');
+    toast.success(`Paquete "${combo.nombre}" agregado al ticket`);
   };
 
   const updateCantidad = (index: number, cantidad: number) => {
@@ -427,6 +423,7 @@ export default function CajaPage() {
     setDescuento(0);
     setTipoPago('qr');
     setDetalle([]);
+    setCombosVenta({});
     setCustomServicio('');
     setCustomPrecio('');
     setFormErrors({});
@@ -484,6 +481,12 @@ export default function CajaPage() {
 
   const registerPayment = async (clienteId: number | null) => {
     if (!selectedLocal) return;
+    // Un paquete es una membresía: necesita un cliente registrado como dueño.
+    const tienePaquete = detalle.some((i) => combosVenta[i.servicio]);
+    if (tienePaquete && !clienteId) {
+      toast.error('Un paquete necesita un cliente registrado. Selecciona o crea el cliente.');
+      return;
+    }
     setSaving(true);
     setFormErrors({});
     try {
@@ -500,6 +503,25 @@ export default function CajaPage() {
         detalle,
       };
       await crearPagoDB(payload);
+
+      // Crear y ACTIVAR el paquete de cada línea de paquete que quedó en el ticket.
+      // Nace ACTIVO porque ya está pagado: el cliente puede usar sus sesiones de inmediato.
+      const paquetes = detalle.filter((i) => i.servicio_id === null && combosVenta[i.servicio]);
+      if (paquetes.length > 0 && clienteId) {
+        try {
+          await Promise.all(
+            paquetes.map(async (i) => {
+              const res = await crearPlan({ combo_id: combosVenta[i.servicio].combo_id, cliente_id: clienteId, local_id: selectedLocal.id, tipo_pago: 'UNICO' });
+              const nuevoId = res.data?.id;
+              if (nuevoId) await cambiarEstadoPlan(nuevoId, 'ACTIVO');
+            }),
+          );
+        } catch (err) {
+          if (err instanceof Error) console.error('crear/activar paquete tras pago', err);
+          toast.error('El pago se registró, pero un paquete no se activó. Actívalo en Paquetes.');
+        }
+      }
+
       toast.success('Pago registrado en caja');
       resetSale();
       await fetchPagos(selectedLocal);
@@ -664,86 +686,125 @@ export default function CajaPage() {
                     <div className={styles.panelHeader}>
                       <div>
                         <span className={styles.kicker}>Catálogo</span>
-                        <h2>Servicios</h2>
+                        <h2>Agregar al pago</h2>
                       </div>
-                      {loadingServicios && <span className="admin-badge">Cargando</span>}
+                      {(loadingServicios || loadingCombos) && <span className="admin-badge">Cargando</span>}
                     </div>
 
-                    <div className={styles.customService}>
-                      <span className={styles.kicker}>Servicio personalizado</span>
-                      <input
-                        type="text"
-                        value={customServicio}
-                        onChange={(e) => setCustomServicio(e.target.value)}
-                        placeholder="Nombre del servicio"
-                      />
-                      <div className={styles.inlineFields}>
+                    <div className={styles.catalogTabs} role="tablist">
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={catalogoTab === 'servicios'}
+                        className={`${styles.catalogTab} ${catalogoTab === 'servicios' ? styles.catalogTabActive : ''}`}
+                        onClick={() => setCatalogoTab('servicios')}
+                      >
+                        Servicios
+                      </button>
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={catalogoTab === 'paquetes'}
+                        className={`${styles.catalogTab} ${catalogoTab === 'paquetes' ? styles.catalogTabActive : ''}`}
+                        onClick={() => setCatalogoTab('paquetes')}
+                      >
+                        Paquetes
+                        {combos.length > 0 && <span className={styles.tabCount}>{combos.length}</span>}
+                      </button>
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={catalogoTab === 'personalizado'}
+                        className={`${styles.catalogTab} ${catalogoTab === 'personalizado' ? styles.catalogTabActive : ''}`}
+                        onClick={() => setCatalogoTab('personalizado')}
+                      >
+                        Otro
+                      </button>
+                    </div>
+
+                    {catalogoTab !== 'personalizado' && (
+                      <div className={styles.searchBox}>
+                        <Search size={15} strokeWidth={1.8} />
                         <input
-                          type="number"
-                          min={0}
-                          value={customPrecio}
-                          onChange={(e) => setCustomPrecio(e.target.value)}
-                          placeholder="Precio"
+                          type="text"
+                          value={serviceQuery}
+                          onChange={(e) => setServiceQuery(e.target.value)}
+                          placeholder={catalogoTab === 'servicios' ? 'Buscar servicio...' : 'Buscar paquete...'}
                         />
-                        <button type="button" className="admin-button admin-button-secondary" onClick={addCustomDetalle}>
-                          <Plus size={16} strokeWidth={2} />
-                          Agregar
-                        </button>
                       </div>
-                    </div>
+                    )}
 
-                    {loadingCombos && <div className={styles.comboList}><p className={styles.mutedText}>Cargando paquetes…</p></div>}
-                    {!loadingCombos && combos.length > 0 && (
-                      <>
-                        <div className={styles.sectionLabel}>
-                          <Gift size={13} strokeWidth={2} />
-                          Paquetes
+                    <div className={styles.catalogBody}>
+                      {catalogoTab === 'servicios' && (
+                        <div className={styles.serviceList}>
+                          {serviciosFiltrados.map((servicio) => (
+                            <button
+                              key={servicio.id}
+                              type="button"
+                              className={styles.serviceItem}
+                              onClick={() => addDetalle(servicio)}
+                            >
+                              <span>
+                                <strong>{servicio.nombre}</strong>
+                                <small>{servicio.categoria || 'Servicio'}</small>
+                              </span>
+                              <b>{formatMoney(normalizeServicePrice(servicio.costo))}</b>
+                            </button>
+                          ))}
+                          {!loadingServicios && serviciosFiltrados.length === 0 && (
+                            <p className={styles.mutedText}>No hay servicios para este filtro.</p>
+                          )}
                         </div>
-                        <div className={styles.comboList}>
-                          {combos.map((combo) => (
+                      )}
+
+                      {catalogoTab === 'paquetes' && (
+                        <div className={styles.serviceList}>
+                          {combosFiltrados.map((combo) => (
                             <button
                               key={combo.id}
                               type="button"
-                              className={styles.comboItem}
-                              onClick={() => handleVenderCombo(combo)}
-                              disabled={!selectedClienteId}
-                              title={!selectedClienteId ? 'Selecciona un cliente primero' : `Vender ${combo.nombre}`}
+                              className={styles.serviceItem}
+                              onClick={() => handleAgregarCombo(combo)}
+                              title={`Agregar ${combo.nombre} al ticket`}
                             >
-                              <span className={styles.comboItemName}>{combo.nombre}</span>
-                              <span className={styles.comboItemPrice}>{combo.precio_total} Bs</span>
+                              <span>
+                                <strong>{combo.nombre}</strong>
+                                <small>Paquete</small>
+                              </span>
+                              <b>{formatMoney(combo.precio_total)}</b>
                             </button>
                           ))}
+                          {!loadingCombos && combosFiltrados.length === 0 && (
+                            <p className={styles.mutedText}>
+                              {combos.length === 0 ? 'Este local no tiene paquetes.' : 'No hay paquetes para ese filtro.'}
+                            </p>
+                          )}
                         </div>
-                      </>
-                    )}
+                      )}
 
-                    <div className={styles.searchBox}>
-                      <Search size={15} strokeWidth={1.8} />
-                      <input
-                        type="text"
-                        value={serviceQuery}
-                        onChange={(e) => setServiceQuery(e.target.value)}
-                        placeholder="Buscar servicio..."
-                      />
-                    </div>
-
-                    <div className={styles.serviceList}>
-                      {serviciosFiltrados.map((servicio) => (
-                        <button
-                          key={servicio.id}
-                          type="button"
-                          className={styles.serviceItem}
-                          onClick={() => addDetalle(servicio)}
-                        >
-                          <span>
-                            <strong>{servicio.nombre}</strong>
-                            <small>{servicio.categoria || 'Servicio'}</small>
-                          </span>
-                          <b>{formatMoney(normalizeServicePrice(servicio.costo))}</b>
-                        </button>
-                      ))}
-                      {!loadingServicios && serviciosFiltrados.length === 0 && (
-                        <p className={styles.mutedText}>No hay servicios para este filtro.</p>
+                      {catalogoTab === 'personalizado' && (
+                        <div className={styles.customService}>
+                          <input
+                            type="text"
+                            value={customServicio}
+                            onChange={(e) => setCustomServicio(e.target.value)}
+                            placeholder="Nombre del servicio"
+                          />
+                          <div className={styles.inlineFields}>
+                            <input
+                              type="number"
+                              min={0}
+                              value={customPrecio}
+                              onChange={(e) => setCustomPrecio(e.target.value)}
+                              placeholder="Precio"
+                            />
+                            <button type="button" className="admin-button admin-button-secondary" onClick={addCustomDetalle}>
+                              <Plus size={16} strokeWidth={2} />
+                              Agregar
+                            </button>
+                          </div>
+                          <p className={styles.mutedText}>Cobro puntual que no está en el catálogo.</p>
+                        </div>
                       )}
                     </div>
                   </div>

@@ -17,7 +17,9 @@ import {
   actualizarComboServicio,
   eliminarComboServicio,
 } from '@/lib/api/servicios';
+import { eliminarCombo } from '@/lib/api/combos';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
+import ComboFormModal, { type EditableCombo } from './ComboFormModal';
 import styles from './page.module.css';
 
 // ─── Types ───────────────────────────────────────────────────────
@@ -32,10 +34,16 @@ interface ServicioIncluido {
 interface ComboItem {
   id: number;
   nombre: string;
+  descripcion?: string;
   categoria: string;
+  categoria_id?: number;
+  tipo_precio?: 'POR_ITEMS' | 'PRECIO_PAQUETE';
+  precio_paquete?: number;
+  moneda?: string;
   local: string;
   costo_total: string;
   sesiones_totales: number;
+  locales?: { id: number; nombre: string }[];
   servicios_incluidos: ServicioIncluido[];
 }
 
@@ -170,6 +178,9 @@ export default function CombosPage() {
 
   // CRUD modal state
   const [modalOpen, setModalOpen] = useState(false);
+  const [comboModalOpen, setComboModalOpen] = useState(false);
+  const [comboModalMode, setComboModalMode] = useState<'crear' | 'editar'>('crear');
+  const [editingCombo, setEditingCombo] = useState<EditableCombo | null>(null);
   const [saving, setSaving] = useState(false);
   const [editingServiceId, setEditingServiceId] = useState<number | null>(null);
   const [activeComboId, setActiveComboId] = useState<number | null>(null);
@@ -351,6 +362,44 @@ export default function CombosPage() {
     setActiveComboKey(null);
   };
 
+  const openCrearCombo = () => {
+    setComboModalMode('crear');
+    setEditingCombo(null);
+    setComboModalOpen(true);
+  };
+
+  const openEditarCombo = (combo: ComboItem) => {
+    setComboModalMode('editar');
+    setEditingCombo({
+      id: combo.id,
+      nombre: combo.nombre,
+      descripcion: combo.descripcion,
+      categoria_id: combo.categoria_id,
+      tipo_precio: combo.tipo_precio ?? 'PRECIO_PAQUETE',
+      precio_paquete: combo.precio_paquete,
+      moneda: combo.moneda,
+      sesiones_totales: combo.sesiones_totales,
+      locales: combo.locales,
+    });
+    setComboModalOpen(true);
+  };
+
+  const handleDeleteCombo = (combo: ComboItem) => {
+    setConfirmState({
+      message: `¿Eliminar el paquete "${combo.nombre}"?`,
+      onConfirm: async () => {
+        try {
+          await eliminarCombo(combo.id);
+          toast.success('Paquete eliminado');
+          fetchCombos();
+        } catch (err) {
+          if (err instanceof Error) console.error('eliminarCombo', err);
+          toast.error('No se pudo eliminar el paquete.');
+        }
+      },
+    });
+  };
+
   const openAddServicio = (combo: ComboItem) => {
     resetModal();
     setActiveComboId(combo.id);
@@ -388,7 +437,7 @@ export default function CombosPage() {
   const handleSubmitServicio = async () => {
     if (!validateForm()) return;
     if (activeComboId == null) {
-      toast.error('El combo no tiene ID — operación no disponible (requiere actualización del backend).');
+      toast.error('El paquete no tiene ID — operación no disponible (requiere actualización del backend).');
       return;
     }
     setSaving(true);
@@ -431,11 +480,11 @@ export default function CombosPage() {
 
   const handleDeleteServicio = (svc: ComboServicioDetalle) => {
     setConfirmState({
-      message: `¿Eliminar "${svc.servicio_nombre || svc.servicio_texto}" del combo?`,
+      message: `¿Eliminar "${svc.servicio_nombre || svc.servicio_texto}" del paquete?`,
       onConfirm: async () => {
         try {
           await eliminarComboServicio(svc.id);
-          toast.success('Servicio eliminado del combo');
+          toast.success('Servicio eliminado del paquete');
           await reloadComboServicios(svc.combo_id, svc.combo_nombre);
         } catch (err) {
           if (err instanceof Error) console.error('eliminarComboServicio', err);
@@ -456,10 +505,16 @@ export default function CombosPage() {
           <PageHeader
           kicker="Configuración"
           kickerIcon={<Package2 size={14} strokeWidth={2} />}
-          title="Combos de Servicios"
-          accentWord="Combos"
-          subtitle="Visualiza combos y gestiona sus servicios incluidos"
+          title="Paquetes"
+          accentWord="Paquetes"
+          subtitle="Crea y edita paquetes, y gestiona los servicios que incluyen"
           backHref="/atrevida-gestion/configuracion"
+          actions={
+            <button type="button" className={styles.btnPrimary} onClick={openCrearCombo}>
+              <Plus size={14} strokeWidth={2.2} />
+              Nuevo paquete
+            </button>
+          }
         />
 
         <div ref={contentRef} className={styles.contentStack}>
@@ -546,7 +601,7 @@ export default function CombosPage() {
                 )}
                 {!loading && !error && total > 0 && (
                   <p className={styles.totalLabel}>
-                    <strong>{total}</strong> combo{total !== 1 ? 's' : ''} encontrado{total !== 1 ? 's' : ''}
+                    <strong>{total}</strong> paquete{total !== 1 ? 's' : ''} encontrado{total !== 1 ? 's' : ''}
                   </p>
                 )}
                 {!loading && !error && combos.length === 0 && (
@@ -575,6 +630,21 @@ export default function CombosPage() {
                       <span className={styles.comboMeta}>{combo.categoria}</span>
                       <span className={styles.comboBadge}>{combo.sesiones_totales} ses.</span>
                       <span className={styles.comboCosto}>{combo.costo_total} Bs.</span>
+                      <span className={styles.comboActions} onClick={(e) => e.stopPropagation()}>
+                        <RowActionsMenu actions={[
+                          {
+                            label: 'Editar paquete',
+                            icon: <Pencil size={12} strokeWidth={2} />,
+                            onClick: () => openEditarCombo(combo),
+                          },
+                          {
+                            label: 'Eliminar paquete',
+                            icon: <Trash2 size={12} strokeWidth={2} />,
+                            onClick: () => handleDeleteCombo(combo),
+                            variant: 'danger' as const,
+                          },
+                        ]} />
+                      </span>
                       <button
                         type="button"
                         className={`${styles.expandToggle} ${isExpanded ? styles.expandToggleOpen : ''}`}
@@ -669,11 +739,21 @@ export default function CombosPage() {
         </div>
       </main>
 
+      {/* ── Modal: Crear / Editar combo ── */}
+      <ComboFormModal
+        open={comboModalOpen}
+        mode={comboModalMode}
+        combo={editingCombo}
+        locales={locales}
+        onClose={() => setComboModalOpen(false)}
+        onSaved={fetchCombos}
+      />
+
       {/* ── Modal: Agregar / Editar servicio ── */}
       <FormModal
         isOpen={modalOpen}
         onClose={() => { setModalOpen(false); resetModal(); }}
-        title={isEdit ? 'Editar servicio del combo' : 'Agregar servicio al combo'}
+        title={isEdit ? 'Editar servicio del paquete' : 'Agregar servicio al paquete'}
         onSubmit={handleSubmitServicio}
         loading={saving}
         submitLabel={isEdit ? 'Guardar cambios' : 'Agregar servicio'}

@@ -72,20 +72,12 @@ const OPTIONS = [
     colorRgb: '20, 174, 239',
   },
   {
-    title: 'Combos',
-    description: 'Ver y gestionar servicios dentro de combos',
+    title: 'Paquetes',
+    description: 'Crea y edita los paquetes del catálogo',
     icon: <Package2 size={24} strokeWidth={1.5} />,
     href: '/atrevida-gestion/configuracion/combos',
     color: '#10b981',
     colorRgb: '16, 185, 129',
-  },
-  {
-    title: 'Paquetes activos',
-    description: 'Planes de servicios adquiridos por clientes',
-    icon: <Package2 size={24} strokeWidth={1.5} />,
-    href: '/atrevida-gestion/configuracion/paquetes-activos',
-    color: '#EC008C',
-    colorRgb: '236, 0, 140',
   },
   {
     title: 'Usuarios',

@@ -297,9 +297,98 @@
 .customService {
   display: grid;
   gap: 0.65rem;
-  margin-top: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--admin-border-subtle);
+  margin-top: 0.65rem;
+}
+
+/* ── Tabs del catálogo (Servicios / Paquetes) ─────────────────── */
+
+.catalogTabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.3rem;
+  margin-top: 0.85rem;
+  padding: 0.25rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-input-bg);
+}
+
+.catalogTab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: calc(var(--admin-radius-md) - 3px);
+  background: transparent;
+  color: var(--admin-text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.catalogTab:hover {
+  color: var(--admin-foreground);
+}
+
+.catalogTabActive {
+  background: linear-gradient(135deg, #ec008c, #92278f);
+  color: #fff;
+}
+
+.tabCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.catalogTab:not(.catalogTabActive) .tabCount {
+  background: var(--admin-surface-3);
+  color: var(--admin-text-dim);
+}
+
+.catalogBody {
+  min-height: 120px;
+}
+
+/* ── Servicio personalizado (colapsable, al fondo) ────────────── */
+
+.customWrap {
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--admin-border-subtle);
+}
+
+.customToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  padding: 0.5rem 0.15rem;
+  border: none;
+  background: transparent;
+  color: var(--admin-text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.customToggle:hover {
+  color: var(--admin-accent-primary);
+}
+
+.customToggle > svg:last-child {
+  margin-left: auto;
 }
 
 .inlineFields {

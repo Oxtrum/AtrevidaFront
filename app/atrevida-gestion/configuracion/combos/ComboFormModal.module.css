@@ -1,0 +1,179 @@
+/* Modal Crear/Editar combo — piezas propias (el resto de campos
+   reutiliza .field/.formGrid de page.module.css). */
+
+.formError {
+  grid-column: 1 / -1;
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--admin-radius-md);
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+  font-size: 0.82rem;
+}
+
+.optional {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--admin-text-dim);
+}
+
+.hint {
+  font-size: 0.82rem;
+  color: var(--admin-text-muted);
+}
+
+.totalSesiones {
+  margin-top: 0.7rem;
+  font-size: 0.85rem;
+  color: var(--admin-text-muted);
+}
+
+.totalSesiones strong {
+  color: var(--admin-accent-primary);
+  font-weight: 800;
+}
+
+/* ── Locales (checkboxes) ──────────────────────────────────────── */
+
+.checkboxGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-input-bg);
+  color: var(--admin-foreground);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.checkbox:hover {
+  border-color: rgba(236, 0, 140, 0.4);
+}
+
+.checkbox input {
+  accent-color: #ec008c;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/* ── Líneas de servicio ────────────────────────────────────────── */
+
+.lineas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.lineaCol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.lineaRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.lineaNombreReadonly {
+  flex: 1;
+  min-width: 0;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: var(--admin-radius-md);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--admin-foreground);
+  font-size: 0.85rem;
+  font-family: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lineaCorto {
+  width: 84px;
+  flex-shrink: 0;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-input-bg);
+  color: var(--admin-foreground);
+  font-size: 0.85rem;
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.lineaCorto:focus {
+  outline: none;
+  border-color: #ec008c;
+  box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.14);
+}
+
+.removeLinea {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: transparent;
+  color: var(--admin-text-muted);
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.removeLinea:hover:not(:disabled) {
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.removeLinea:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.addLinea {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.7rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px dashed var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: transparent;
+  color: var(--admin-accent-primary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.addLinea:hover {
+  border-color: rgba(236, 0, 140, 0.5);
+  background: rgba(236, 0, 140, 0.06);
+}
+
+@media (max-width: 560px) {
+  .lineaRow {
+    flex-wrap: wrap;
+  }
+
+  .lineaNombreReadonly {
+    flex-basis: 100%;
+  }
+}
