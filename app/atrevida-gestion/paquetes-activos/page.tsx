@@ -150,14 +150,14 @@ export default function PaquetesActivosPage() {
   const columns: Column<PlanRow>[] = [
     { key: 'cliente', label: 'Cliente' },
     {
-      key: 'combo_nombre_snapshot',
+      key: 'combo_nombre_texto',
       label: 'Paquete',
-      render: (_v, row) => <span>{row.combo_nombre_snapshot ?? '—'}</span>,
+      render: (_v, row) => <span>{row.combo_nombre_texto ?? '—'}</span>,
     },
     ...(!scopedLocalName ? [{
-      key: 'local_nombre_snapshot',
+      key: 'local_nombre_texto',
       label: 'Local',
-      render: (_v: unknown, row: PlanRow) => <span className={styles.localCell}>{row.local_nombre_snapshot ?? '—'}</span>,
+      render: (_v: unknown, row: PlanRow) => <span className={styles.localCell}>{row.local_nombre_texto ?? '—'}</span>,
     } as Column<PlanRow>] : []),
     {
       key: 'precio_total',
@@ -187,7 +187,11 @@ export default function PaquetesActivosPage() {
             { label: 'Cancelar', icon: <XCircle size={12} strokeWidth={2} />, onClick: () => handleCambiarEstado(row, 'CANCELADO'), variant: 'danger' },
           );
         }
-        return actions.length > 0 ? <RowActionsMenu actions={actions} /> : null;
+        return actions.length > 0 ? (
+          <div onClick={(e) => e.stopPropagation()}>
+            <RowActionsMenu actions={actions} />
+          </div>
+        ) : null;
       },
     },
   ];
@@ -262,7 +266,7 @@ export default function PaquetesActivosPage() {
                 <div className={styles.detalleModal} onClick={(e) => e.stopPropagation()}>
                 <div className={styles.detalleHeader}>
                   <div>
-                    <h3 className={styles.detalleTitle}>{planAbierto.combo_nombre_snapshot ?? 'Plan'}</h3>
+                    <h3 className={styles.detalleTitle}>{planAbierto.combo_nombre_texto ?? 'Plan'}</h3>
                     <p className={styles.detalleSubtitle}>{planAbierto.cliente}</p>
                   </div>
                   <button
@@ -296,7 +300,7 @@ export default function PaquetesActivosPage() {
                     {sesiones.map((s) => (
                       <div key={s.numero} className={`${styles.sesionRow} ${s.hecha ? styles.sesionHecha : ''}`}>
                         <span className={styles.sesionNum}>Sesión {s.numero}</span>
-                        <span className={styles.sesionServs}>{s.servicios.map((x) => x.nombre_snapshot).join(' · ')}</span>
+                        <span className={styles.sesionServs}>{s.servicios.map((x) => x.nombre_texto).join(' · ')}</span>
                         <button
                           type="button"
                           className={styles.toggleBtn}

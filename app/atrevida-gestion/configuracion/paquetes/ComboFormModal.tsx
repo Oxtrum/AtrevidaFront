@@ -371,6 +371,8 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
             <p className={styles.hint}>Cargando servicios del paquete…</p>
           ) : sinId ? (
             <p className={styles.hint}>La edición de servicios no está disponible para este paquete (requiere ID numérico).</p>
+          ) : localIds.length === 0 ? (
+            <p className={styles.hint}>Selecciona al menos un local para poder agregar servicios.</p>
           ) : (
             <>
               <p className={styles.hint}>Cada sesión es una visita. El precio se sugiere sumando el costo de todos los servicios.</p>

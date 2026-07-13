@@ -4,6 +4,7 @@ import styles from './CustomSelectAdmin.module.css';
 // ═══════════════════════════════════════════════════════════════════
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 interface SelectOption {
   value: string;
@@ -34,6 +35,12 @@ export function CustomSelect({
 }: CustomSelectProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  // Posición fija del dropdown (se portaliza a body para no ser recortado por
+  // contenedores con overflow: auto/hidden).
+  const [coords, setCoords] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [portalTarget, setPortalTarget] = useState<Element | null>(null);
 
   // Manejo robusto de listeners globales y BFCache
   // Guardar referencias para poder remover/volver a añadir cuando el navegador
@@ -48,7 +55,10 @@ export function CustomSelect({
     if (handlersRef.current.m && handlersRef.current.k) return;
 
     const m = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      const inTrigger = ref.current?.contains(target);
+      const inDropdown = dropdownRef.current?.contains(target);
+      if (!inTrigger && !inDropdown) setOpen(false);
     };
     const k = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false);
@@ -97,6 +107,32 @@ export function CustomSelect({
     };
   }, []);
 
+  // Mientras está abierto: posicionar el dropdown bajo el trigger y mantenerlo
+  // pegado ante scroll (de cualquier contenedor, por eso capture) o resize.
+  useEffect(() => {
+    if (!open) return;
+
+    const updatePosition = () => {
+      const el = triggerRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      setCoords({ top: r.bottom + 6, left: r.left, width: r.width });
+      // Portalizar dentro del scope [data-admin="true"] (donde viven las vars
+      // --admin-*), no a document.body, o el dropdown pierde fondo/color/borde.
+      // Sigue escapando el overflow del modal porque el root admin está por encima.
+      setPortalTarget(el.closest('[data-admin="true"]') ?? document.body);
+    };
+
+    updatePosition();
+    window.addEventListener('scroll', updatePosition, true);
+    window.addEventListener('resize', updatePosition);
+
+    return () => {
+      window.removeEventListener('scroll', updatePosition, true);
+      window.removeEventListener('resize', updatePosition);
+    };
+  }, [open]);
+
   const listboxId = id ? `${id}-listbox` : undefined;
   const allOptions = groups ? groups.flatMap(g => g.options) : options;
   const selectedLabel = allOptions.find(o => o.value === value)?.label;
@@ -124,12 +160,64 @@ export function CustomSelect({
     </div>
   );
 
+  const dropdown = open && coords && portalTarget
+    ? createPortal(
+      <div
+        ref={dropdownRef}
+        id={listboxId}
+        className={styles.selectDropdown}
+        role="listbox"
+        aria-labelledby={ariaLabelledBy}
+        style={{ position: 'fixed', top: coords.top, left: coords.left, width: coords.width, right: 'auto' }}
+      >
+        {placeholder && (
+          <div
+            className={`${styles.selectOption} ${!value ? styles.selectOptionActive : ''}`}
+            onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); handleSelect(''); }}
+            role="option"
+            aria-selected={!value}
+          >
+            {placeholder}
+          </div>
+        )}
+
+        {groups
+          ? groups.map(g => (
+            <div key={g.label}>
+              <div className={styles.selectGroup}>{g.label}</div>
+              {g.options.map((opt, idx) => (
+                <div
+                  key={`${g.label}-${opt.value}-${idx}`}
+                  className={`${styles.selectOption}
+                    ${opt.value === value ? styles.selectOptionActive : ''}
+                    ${opt.disabled ? styles.selectOptionDisabled : ''}`}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!opt.disabled) handleSelect(opt.value);
+                  }}
+                  role="option"
+                  aria-selected={opt.value === value}
+                >
+                  {opt.label}
+                </div>
+              ))}
+            </div>
+          ))
+          : options.map(renderOption)
+        }
+      </div>,
+      portalTarget,
+    )
+    : null;
+
   return (
     <div
       ref={ref}
       className={`${styles.customSelect} ${hasError ? styles.inputError : ''} ${open ? styles.customSelectOpen : ''}`}
     >
       <div
+        ref={triggerRef}
         id={id}
         className={styles.customSelectTrigger}
         onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(prev => !prev); }}
@@ -152,46 +240,7 @@ export function CustomSelect({
         </span>
       </div>
 
-      {open && (
-        <div id={listboxId} className={styles.selectDropdown} role="listbox" aria-labelledby={ariaLabelledBy}>
-          {placeholder && (
-            <div
-              className={`${styles.selectOption} ${!value ? styles.selectOptionActive : ''}`}
-              onClick={() => handleSelect('')}
-              role="option"
-              aria-selected={!value}
-            >
-              {placeholder}
-            </div>
-          )}
-
-          {groups
-            ? groups.map(g => (
-              <div key={g.label}>
-                <div className={styles.selectGroup}>{g.label}</div>
-                {g.options.map((opt, idx) => (
-                  <div
-                    key={`${g.label}-${opt.value}-${idx}`}
-                    className={`${styles.selectOption}
-                      ${opt.value === value ? styles.selectOptionActive : ''}
-                      ${opt.disabled ? styles.selectOptionDisabled : ''}`}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      if (!opt.disabled) handleSelect(opt.value);
-                    }}
-                    role="option"
-                    aria-selected={opt.value === value}
-                  >
-                    {opt.label}
-                  </div>
-                ))}
-              </div>
-            ))
-            : options.map(renderOption)
-          }
-        </div>
-      )}
+      {dropdown}
     </div>
   );
 }
