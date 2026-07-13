@@ -72,3 +72,8 @@ export async function actualizarPlan(id: number, data: { notas?: string }): Prom
 export async function cambiarEstadoPlan(id: number, estado: string): Promise<ApiResponse<{ mensaje: string }>> {
   return apiClient.patch<ApiResponse<{ mensaje: string }>>(`/bd/planes/${id}/estado`, { estado });
 }
+
+/** POST /bd/planes/{id}/cobrar — adjunta un pago existente y activa el plan reservado. */
+export async function cobrarPlan(id: number, pago_codigo: string): Promise<ApiResponse<{ mensaje: string }>> {
+  return apiClient.post<ApiResponse<{ mensaje: string }>>(`/bd/planes/${id}/cobrar`, { pago_codigo });
+}
