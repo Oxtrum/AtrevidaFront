@@ -112,21 +112,28 @@ export default function ReservarPlanModal({ locales, onClose, onReservado }: Pro
         <div className={styles.field}>
           <label id="lbl-reservar-cliente" htmlFor="reservar-cliente">Cliente</label>
           <div className={styles.clientAutocomplete}>
-            <input
-              id="reservar-cliente"
-              type="text"
-              value={clienteQuery}
-              onChange={(e) => {
-                setClienteQuery(e.target.value);
-                if (clienteId) setClienteId('');
-                setDropdownOpen(true);
-              }}
-              onFocus={() => setDropdownOpen(true)}
-              onBlur={() => window.setTimeout(() => setDropdownOpen(false), 120)}
-              placeholder="Busca un cliente por nombre o apellido…"
-              autoComplete="off"
-              className={styles.clientInput}
-            />
+            <div className={styles.clientTrigger}>
+              <input
+                id="reservar-cliente"
+                type="text"
+                value={clienteQuery}
+                onChange={(e) => {
+                  setClienteQuery(e.target.value);
+                  if (clienteId) setClienteId('');
+                  setDropdownOpen(true);
+                }}
+                onFocus={() => setDropdownOpen(true)}
+                onBlur={() => window.setTimeout(() => setDropdownOpen(false), 120)}
+                placeholder="Busca un cliente…"
+                autoComplete="off"
+                className={styles.clientInput}
+              />
+              <span className={`${styles.clientArrow} ${dropdownOpen ? styles.clientArrowOpen : ''}`}>
+                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true">
+                  <path d="M5 6L0 0H10L5 6Z" fill="currentColor" />
+                </svg>
+              </span>
+            </div>
             {showDropdown && (
               <div className={styles.clientDropdown} role="listbox" aria-label="Clientes registrados">
                 {sugeridos.length > 0 ? (

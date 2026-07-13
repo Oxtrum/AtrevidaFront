@@ -292,41 +292,93 @@
   color: var(--admin-accent-danger);
 }
 
-/* ── Client autocomplete (ReservarPlanModal) ── */
+/* ── Client autocomplete (ReservarPlanModal) — mismo estilo que CustomSelectAdmin ── */
 .clientAutocomplete {
   position: relative;
+  width: 100%;
+}
+
+.clientTrigger {
+  display: flex;
+  align-items: center;
+  gap: 0.68rem;
+  min-height: 42px;
+  padding: 0 0.9rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-input-bg);
+  cursor: pointer;
+  transition:
+    border-color var(--admin-t-normal) var(--admin-ease),
+    box-shadow var(--admin-t-normal) var(--admin-ease),
+    background var(--admin-t-normal) var(--admin-ease);
+}
+
+.clientTrigger:hover {
+  border-color: var(--admin-border-hover);
+  background: var(--admin-input-bg-hover);
+}
+
+.clientAutocomplete:focus-within .clientTrigger {
+  border-color: var(--admin-border-focus);
+  box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.16);
 }
 
 .clientInput {
-  width: 100%;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.85rem;
-  border: 1px solid var(--admin-border);
-  border-radius: var(--admin-radius-md);
-  background: var(--admin-bg);
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
   color: var(--admin-foreground);
+  font-size: 0.875rem;
+  font-weight: 600;
   outline: none;
-  box-sizing: border-box;
+  padding: 0.7rem 0;
 }
 
-.clientInput:focus {
-  border-color: var(--admin-accent);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--admin-accent) 20%, transparent);
+.clientInput::placeholder {
+  color: var(--admin-text-dim);
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.clientArrow {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: var(--admin-text-muted);
+  transition: transform var(--admin-t-normal) var(--admin-ease);
+}
+
+.clientArrowOpen {
+  transform: rotate(180deg);
 }
 
 .clientDropdown {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 6px);
   left: 0;
   right: 0;
-  z-index: 100;
-  margin-top: 2px;
-  background: var(--admin-panel-bg);
+  z-index: 10050;
+  max-height: 280px;
+  overflow: hidden auto;
   border: 1px solid var(--admin-border);
-  border-radius: var(--admin-radius-md);
+  border-radius: var(--admin-radius-xl);
+  background: var(--admin-surface-solid-1);
   box-shadow: var(--admin-shadow-lg);
-  max-height: 260px;
-  overflow-y: auto;
+  backdrop-filter: blur(18px);
+  animation: clientDropdownIn 0.2s var(--admin-ease);
+}
+
+@keyframes clientDropdownIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .clientOption {
@@ -334,17 +386,25 @@
   flex-direction: column;
   gap: 0.1rem;
   width: 100%;
-  padding: 0.5rem 0.75rem;
+  padding: 0.75rem 1rem;
   border: none;
   background: transparent;
   color: var(--admin-foreground);
-  font-size: 0.82rem;
+  font-size: 0.875rem;
   cursor: pointer;
   text-align: left;
+  transition:
+    color var(--admin-t-fast) var(--admin-ease),
+    background var(--admin-t-fast) var(--admin-ease);
 }
 
 .clientOption:hover {
-  background: color-mix(in srgb, var(--admin-accent) 10%, transparent);
+  background: rgba(236, 0, 140, 0.08);
+  color: var(--admin-foreground);
+}
+
+.clientOption strong {
+  font-weight: 700;
 }
 
 .clientOption span {
@@ -353,10 +413,27 @@
 }
 
 .clientDropdownStatus {
-  padding: 0.75rem;
-  font-size: 0.8rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
   color: var(--admin-text-muted);
   text-align: center;
+}
+
+.clientDropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.clientDropdown::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.clientDropdown::-webkit-scrollbar-thumb {
+  background: rgba(146, 39, 143, 0.58);
+  border-radius: 999px;
+}
+
+.clientDropdown::-webkit-scrollbar-thumb:hover {
+  background: rgba(236, 0, 140, 0.68);
 }
 
 .summaryCard {
