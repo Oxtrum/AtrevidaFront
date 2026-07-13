@@ -17,9 +17,9 @@ export interface PlanItem {
   codigo: string;
   cliente: string;
   cliente_id?: number;
-  local_nombre_snapshot?: string;
+  local_nombre_texto?: string;
   combo_id_origen?: number;
-  combo_nombre_snapshot?: string;
+  combo_nombre_texto?: string;
   sesiones_totales: number;
   sesiones_usadas: number;
   precio_total: number;
@@ -41,7 +41,7 @@ export async function getPlanesDB(params: GetPlanesParams): Promise<ApiResponse<
 
 export interface PlanServicioDetalle {
   id: number;
-  nombre_snapshot: string;
+  nombre_texto: string;
   sesion_numero: number;
   realizado: boolean;
   fecha_realizado?: string;

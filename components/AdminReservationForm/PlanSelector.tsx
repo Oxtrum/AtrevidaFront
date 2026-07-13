@@ -59,7 +59,7 @@ export default function PlanSelector({ clienteNombre, planId, localNombre, onCha
     { value: '', label: 'No usar paquete' },
     ...planes.map((p) => ({
       value: String(p.id),
-      label: `${p.combo_nombre_snapshot ?? 'Paquete'} — ${p.sesiones_totales} sesiones`,
+      label: `${p.combo_nombre_texto ?? 'Paquete'} — ${p.sesiones_totales} sesiones`,
     })),
   ];
 
