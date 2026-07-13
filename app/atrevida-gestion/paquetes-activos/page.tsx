@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
-import { CheckCircle, Filter, Package2, PlayCircle, X, XCircle } from 'lucide-react';
+import { CheckCircle, Filter, Package2, PlayCircle, Plus, X, XCircle } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
 import { PageHeader, DataTable, AdminPanel, Column, RowActionsMenu, RowAction } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
@@ -19,6 +19,8 @@ import {
   type PlanServicioDetalle,
 } from '@/lib/api/planes';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
+import ReservarPlanModal from './ReservarPlanModal';
+import CobrarPlanModal from './CobrarPlanModal';
 import styles from './page.module.css';
 
 interface LocalOpt { id: number; nombre: string; }
@@ -37,10 +39,12 @@ export default function PaquetesActivosPage() {
   const [locales, setLocales] = useState<LocalOpt[]>([]);
   const [filtroLocal, setFiltroLocal] = useState(scopedLocalName);
 
-  const [soloActivos, setSoloActivos] = useState(true);
+  const [filtroEstado, setFiltroEstado] = useState(''); // '' = Todos
   const [planAbierto, setPlanAbierto] = useState<PlanRow | null>(null);
   const [detalle, setDetalle] = useState<PlanDetalle | null>(null);
   const [detalleLoading, setDetalleLoading] = useState(false);
+  const [reservarOpen, setReservarOpen] = useState(false);
+  const [planACobrar, setPlanACobrar] = useState<PlanRow | null>(null);
 
   // Sin local elegido = todas las sucursales. Usuarios con local asignado quedan fijados al suyo.
   const hasFilter = adminLocalScope.ready;
@@ -56,7 +60,7 @@ export default function PaquetesActivosPage() {
     try {
       const res = await getPlanesDB({
         local: filtroLocal || undefined,
-        estado: soloActivos ? 'ACTIVO' : undefined,
+        estado: filtroEstado || undefined,
       });
       setPlanes((res?.data?.planes ?? []) as unknown as PlanRow[]);
     } catch {
@@ -64,7 +68,7 @@ export default function PaquetesActivosPage() {
     } finally {
       setLoading(false);
     }
-  }, [adminLocalScope.ready, filtroLocal, soloActivos]);
+  }, [adminLocalScope.ready, filtroLocal, filtroEstado]);
 
   const fetchLocales = useCallback(async () => {
     try {
@@ -102,6 +106,15 @@ export default function PaquetesActivosPage() {
       .map(([numero, servs]) => ({ numero, servicios: servs, hecha: servs.every((x) => x.realizado) }));
   }, [detalle]);
   const hechas = sesiones.filter((s) => s.hecha).length;
+
+  const planesOrdenados = useMemo(() => {
+    const rank = (e: string) => (e === 'RESERVADO' ? 0 : e === 'ACTIVO' ? 1 : 2);
+    return [...planes].sort((a, b) => {
+      const r = rank(a.estado) - rank(b.estado);
+      if (r !== 0) return r;
+      return (b.creado_en ?? '').localeCompare(a.creado_en ?? '');
+    });
+  }, [planes]);
 
   const toggleSesion = async (numero: number, realizado: boolean) => {
     if (!planAbierto) return;
@@ -176,8 +189,9 @@ export default function PaquetesActivosPage() {
       searchable: false,
       render: (_v, row) => {
         const actions: RowAction[] = [];
-        if (row.estado === 'BORRADOR') {
+        if (row.estado === 'RESERVADO') {
           actions.push(
+            { label: 'Cobrar', icon: <CheckCircle size={12} strokeWidth={2} />, onClick: () => setPlanACobrar(row) },
             { label: 'Activar', icon: <PlayCircle size={12} strokeWidth={2} />, onClick: () => handleCambiarEstado(row, 'ACTIVO') },
             { label: 'Cancelar', icon: <XCircle size={12} strokeWidth={2} />, onClick: () => handleCambiarEstado(row, 'CANCELADO'), variant: 'danger' },
           );
@@ -204,10 +218,20 @@ export default function PaquetesActivosPage() {
           <PageHeader
             kicker="Operación"
             kickerIcon={<Package2 size={14} strokeWidth={2} />}
-            title="Paquetes Activos"
+            title="Paquetes de clientes"
             accentWord="Paquetes"
-            subtitle="Paquetes adquiridos por los clientes y su avance de sesiones"
+            subtitle="Paquetes reservados y adquiridos por los clientes y su avance"
             backHref="/atrevida-gestion/dashboard"
+            actions={
+              <button
+                type="button"
+                className="admin-button admin-button-primary"
+                onClick={() => setReservarOpen(true)}
+              >
+                <Plus size={16} strokeWidth={2.2} />
+                Reservar paquete
+              </button>
+            }
           />
 
           <div ref={contentRef} className={styles.contentStack}>
@@ -235,11 +259,14 @@ export default function PaquetesActivosPage() {
                     <CustomSelect
                       id="filtro-estado"
                       ariaLabelledBy="lbl-estado"
-                      value={soloActivos ? 'ACTIVO' : ''}
-                      onChange={(v) => setSoloActivos(v === 'ACTIVO')}
+                      value={filtroEstado}
+                      onChange={setFiltroEstado}
                       options={[
-                        { value: 'ACTIVO', label: 'Activos' },
                         { value: '', label: 'Todos' },
+                        { value: 'RESERVADO', label: 'Reservado' },
+                        { value: 'ACTIVO', label: 'Activo' },
+                        { value: 'COMPLETADO', label: 'Completado' },
+                        { value: 'CANCELADO', label: 'Cancelado' },
                       ]}
                     />
                   </div>
@@ -249,7 +276,7 @@ export default function PaquetesActivosPage() {
 
             <DataTable<PlanRow>
               columns={columns}
-              data={planes}
+              data={planesOrdenados}
               loading={loading}
               onRefresh={fetchPlanes}
               getRowKey={(p) => p.id}
@@ -315,6 +342,21 @@ export default function PaquetesActivosPage() {
                 </div>
               </div>
             )}
+      {reservarOpen && (
+        <ReservarPlanModal
+          locales={locales}
+          onClose={() => setReservarOpen(false)}
+          onReservado={fetchPlanes}
+        />
+      )}
+      {planACobrar && (
+        <CobrarPlanModal
+          plan={planACobrar}
+          locales={locales}
+          onClose={() => setPlanACobrar(null)}
+          onCobrado={fetchPlanes}
+        />
+      )}
     </AdminPanel>
   );
 }

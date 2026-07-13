@@ -267,3 +267,50 @@
   .sesionRow { flex-wrap: wrap; }
   .sesionServs { width: 100%; order: 3; }
 }
+
+/* ── Form fields (ReservarPlanModal / CobrarPlanModal) ── */
+.formStack {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.field label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--admin-foreground);
+}
+
+.fieldError {
+  font-size: 0.75rem;
+  color: var(--admin-accent-danger);
+}
+
+.summaryCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-surface-1);
+}
+
+.summaryRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--admin-text-muted);
+}
+
+.summaryRow strong {
+  color: var(--admin-foreground);
+  font-weight: 600;
+}
