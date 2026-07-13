@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FormModal } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
@@ -12,6 +12,9 @@ import styles from './page.module.css';
 interface LocalOpt { id: number; nombre: string; }
 interface ComboOpt { id: number; nombre: string; }
 
+const getClienteNombreCompleto = (c: ClientePG) => `${c.nombre} ${c.apellido}`.trim();
+const normalizeSearch = (v: string) => v.trim().toLowerCase();
+
 interface Props {
   locales: LocalOpt[];
   onClose: () => void;
@@ -19,6 +22,7 @@ interface Props {
 }
 
 export default function ReservarPlanModal({ locales, onClose, onReservado }: Props) {
+  const [clienteQuery, setClienteQuery] = useState('');
   const [clienteId, setClienteId] = useState('');
   const [localId, setLocalId] = useState('');
   const [comboId, setComboId] = useState('');
@@ -26,6 +30,7 @@ export default function ReservarPlanModal({ locales, onClose, onReservado }: Pro
   const [combos, setCombos] = useState<ComboOpt[]>([]);
   const [loadingCombos, setLoadingCombos] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   useEffect(() => {
     getClientesDB({})
@@ -49,6 +54,27 @@ export default function ReservarPlanModal({ locales, onClose, onReservado }: Pro
       .catch(() => setCombos([]))
       .finally(() => setLoadingCombos(false));
   }, [localId, locales]);
+
+  const query = normalizeSearch(clienteQuery);
+  const sugeridos = useMemo(() => {
+    if (query.length < 2) return [];
+    return clientes
+      .filter((c) => {
+        const n = normalizeSearch(c.nombre);
+        const a = normalizeSearch(c.apellido);
+        const full = normalizeSearch(getClienteNombreCompleto(c));
+        return n.includes(query) || a.includes(query) || full.includes(query);
+      })
+      .slice(0, 7);
+  }, [query, clientes]);
+
+  const showDropdown = dropdownOpen && query.length >= 2;
+
+  const selectCliente = (c: ClientePG) => {
+    setClienteQuery(getClienteNombreCompleto(c));
+    setClienteId(String(c.id));
+    setDropdownOpen(false);
+  };
 
   const handleSubmit = async () => {
     if (!clienteId || !localId || !comboId) {
@@ -85,14 +111,47 @@ export default function ReservarPlanModal({ locales, onClose, onReservado }: Pro
       <div className={styles.formStack}>
         <div className={styles.field}>
           <label id="lbl-reservar-cliente" htmlFor="reservar-cliente">Cliente</label>
-          <CustomSelect
-            id="reservar-cliente"
-            ariaLabelledBy="lbl-reservar-cliente"
-            value={clienteId}
-            onChange={setClienteId}
-            placeholder="Selecciona un cliente…"
-            options={clientes.map((c) => ({ value: String(c.id), label: `${c.nombre} ${c.apellido}`.trim() }))}
-          />
+          <div className={styles.clientAutocomplete}>
+            <input
+              id="reservar-cliente"
+              type="text"
+              value={clienteQuery}
+              onChange={(e) => {
+                setClienteQuery(e.target.value);
+                if (clienteId) setClienteId('');
+                setDropdownOpen(true);
+              }}
+              onFocus={() => setDropdownOpen(true)}
+              onBlur={() => window.setTimeout(() => setDropdownOpen(false), 120)}
+              placeholder="Busca un cliente por nombre o apellido…"
+              autoComplete="off"
+              className={styles.clientInput}
+            />
+            {showDropdown && (
+              <div className={styles.clientDropdown} role="listbox" aria-label="Clientes registrados">
+                {sugeridos.length > 0 ? (
+                  sugeridos.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      className={styles.clientOption}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        selectCliente(c);
+                      }}
+                      role="option"
+                      aria-selected={String(c.id) === clienteId}
+                    >
+                      <strong>{getClienteNombreCompleto(c)}</strong>
+                      <span>{c.numero_telefono || 'Sin teléfono'}</span>
+                    </button>
+                  ))
+                ) : (
+                  <div className={styles.clientDropdownStatus}>Sin coincidencias</div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className={styles.field}>
