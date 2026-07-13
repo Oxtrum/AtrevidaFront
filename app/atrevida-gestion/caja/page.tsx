@@ -24,7 +24,9 @@ import type { ClientePG } from '@/lib/api/clientes';
 import { crearPagoDB, getPagosDB } from '@/lib/api/pagos';
 import type { CrearPagoData, DetalleServicio, Pago } from '@/lib/api/pagos';
 import { getLocalesDB, getServiciosDB, getCombosDB } from '@/lib/api/servicios';
-import { crearPlan, cambiarEstadoPlan } from '@/lib/api/planes';
+import { crearPlan, cobrarPlan, getPlanesDB } from '@/lib/api/planes';
+import type { PlanItem } from '@/lib/api/planes';
+import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import styles from './page.module.css';
 
@@ -167,6 +169,12 @@ export default function CajaPage() {
   });
   const [newClientErrors, setNewClientErrors] = useState<NewClientErrors>({});
   const [savingNewClient, setSavingNewClient] = useState(false);
+  // Modo "cobrar reserva": en vez de armar un ticket libre, se elige un plan
+  // RESERVADO existente y el pago lo activa (no crea un plan nuevo).
+  const [modo, setModo] = useState<'venta' | 'cobrarReserva'>('venta');
+  const [planesReservados, setPlanesReservados] = useState<PlanItem[]>([]);
+  const [loadingPlanesReservados, setLoadingPlanesReservados] = useState(false);
+  const [planReservado, setPlanReservado] = useState<PlanItem | null>(null);
   const adminLocalScope = useAdminLocalScopeState();
   const scopedWorkplace = adminLocalScope.workplace;
   const hasScopedLocal = !!scopedWorkplace;
@@ -290,6 +298,34 @@ export default function CajaPage() {
       window.clearTimeout(timer);
     };
   }, [clienteNombre, selectedClienteId]);
+
+  useEffect(() => {
+    if (modo !== 'cobrarReserva' || !selectedLocal) return;
+    const nombre = clienteNombre.trim();
+    if (nombre.length < 2) {
+      setPlanesReservados([]);
+      return;
+    }
+
+    let cancelled = false;
+    const timer = window.setTimeout(async () => {
+      setLoadingPlanesReservados(true);
+      try {
+        const res = await getPlanesDB({ cliente: nombre, estado: 'RESERVADO', local: selectedLocal.nombre });
+        if (cancelled) return;
+        setPlanesReservados(res.data?.planes ?? []);
+      } catch {
+        if (!cancelled) setPlanesReservados([]);
+      } finally {
+        if (!cancelled) setLoadingPlanesReservados(false);
+      }
+    }, 280);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [modo, clienteNombre, selectedLocal]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -427,6 +463,38 @@ export default function CajaPage() {
     setCustomServicio('');
     setCustomPrecio('');
     setFormErrors({});
+    setPlanReservado(null);
+    setPlanesReservados([]);
+  };
+
+  const handleModoChange = (nextModo: 'venta' | 'cobrarReserva') => {
+    if (nextModo === modo) return;
+    setModo(nextModo);
+    setDetalle([]);
+    setCombosVenta({});
+    setPlanReservado(null);
+    setPlanesReservados([]);
+    setFormErrors({});
+  };
+
+  const handleSelectPlanReservado = (value: string) => {
+    const plan = planesReservados.find((p) => String(p.id) === value) ?? null;
+    setPlanReservado(plan);
+    if (plan) {
+      setClienteNombre(plan.cliente);
+      setSelectedClienteId(plan.cliente_id ?? null);
+      setClienteDropdownOpen(false);
+      setDetalle([{
+        servicio_id: null,
+        servicio: plan.combo_nombre_texto ?? 'Paquete',
+        precio_unitario: plan.precio_total,
+        cantidad: 1,
+        subtotal: plan.precio_total,
+      }]);
+    } else {
+      setDetalle([]);
+    }
+    clearFieldError('detalle');
   };
 
   const resetNewClientModal = () => {
@@ -465,7 +533,11 @@ export default function CajaPage() {
     const errors: FormErrors = {};
     if (!selectedLocal) errors.local = 'Selecciona un local para abrir caja';
     if (!clienteNombre.trim()) errors.cliente_nombre = 'El nombre del cliente es obligatorio';
-    if (detalle.length === 0) errors.detalle = 'Agrega al menos un servicio';
+    if (detalle.length === 0) {
+      errors.detalle = modo === 'cobrarReserva'
+        ? 'Selecciona una reserva pendiente para cobrar'
+        : 'Agrega al menos un servicio';
+    }
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -481,8 +553,12 @@ export default function CajaPage() {
 
   const registerPayment = async (clienteId: number | null) => {
     if (!selectedLocal) return;
-    // Un paquete es una membresía: necesita un cliente registrado como dueño.
-    const tienePaquete = detalle.some((i) => combosVenta[i.servicio]);
+    if (modo === 'cobrarReserva' && !planReservado) {
+      toast.error('Selecciona una reserva pendiente para cobrar.');
+      return;
+    }
+    // Un paquete nuevo es una membresía: necesita un cliente registrado como dueño.
+    const tienePaquete = modo === 'venta' && detalle.some((i) => combosVenta[i.servicio]);
     if (tienePaquete && !clienteId) {
       toast.error('Un paquete necesita un cliente registrado. Selecciona o crea el cliente.');
       return;
@@ -505,26 +581,35 @@ export default function CajaPage() {
       const pagoRes = await crearPagoDB(payload);
       const codigoPago = pagoRes.data?.codigo_pago;
 
-      // Crear y ACTIVAR el paquete de cada línea de paquete que quedó en el ticket.
-      // Nace ACTIVO porque ya está pagado: el cliente puede usar sus sesiones de inmediato.
-      // Se pasa el código del pago para aplicarlo a la cuota (queda PAGADO).
-      const paquetes = detalle.filter((i) => i.servicio_id === null && combosVenta[i.servicio]);
-      if (paquetes.length > 0 && clienteId) {
-        try {
-          await Promise.all(
-            paquetes.map(async (i) => {
-              const res = await crearPlan({ combo_id: combosVenta[i.servicio].combo_id, cliente_id: clienteId, local_id: selectedLocal.id, tipo_pago: 'UNICO', pago_codigo: codigoPago });
-              const nuevoId = res.data?.id;
-              if (nuevoId) await cambiarEstadoPlan(nuevoId, 'ACTIVO');
-            }),
-          );
-        } catch (err) {
-          if (err instanceof Error) console.error('crear/activar paquete tras pago', err);
-          toast.error('El pago se registró, pero un paquete no se activó. Actívalo en Paquetes.');
+      if (modo === 'cobrarReserva' && planReservado) {
+        // La reserva ya existe como plan RESERVADO: solo se le adjunta el pago
+        // recién creado, lo que la activa (no se crea un plan nuevo).
+        if (codigoPago) {
+          try {
+            await cobrarPlan(planReservado.id, codigoPago);
+          } catch (err) {
+            if (err instanceof Error) console.error('cobrar reserva tras pago', err);
+            toast.error('El pago se registró, pero la reserva no se activó. Actívala en Paquetes.');
+          }
+        }
+      } else {
+        // Crear el paquete (ya ACTIVO) de cada línea de paquete que quedó en el ticket.
+        // Nace ACTIVO porque ya está pagado: el cliente puede usar sus sesiones de inmediato.
+        // Se pasa el código del pago para aplicarlo a la cuota (queda PAGADO).
+        const paquetes = detalle.filter((i) => i.servicio_id === null && combosVenta[i.servicio]);
+        if (paquetes.length > 0 && clienteId) {
+          try {
+            await Promise.all(
+              paquetes.map((i) => crearPlan({ combo_id: combosVenta[i.servicio].combo_id, cliente_id: clienteId, local_id: selectedLocal.id, tipo_pago: 'UNICO', pago_codigo: codigoPago })),
+            );
+          } catch (err) {
+            if (err instanceof Error) console.error('crear paquete tras pago', err);
+            toast.error('El pago se registró, pero un paquete no se creó. Créalo en Paquetes.');
+          }
         }
       }
 
-      toast.success('Pago registrado en caja');
+      toast.success(modo === 'cobrarReserva' ? 'Reserva cobrada y activada' : 'Pago registrado en caja');
       resetSale();
       await fetchPagos(selectedLocal);
     } catch (err) {
@@ -538,6 +623,10 @@ export default function CajaPage() {
 
   const handleSubmit = async () => {
     if (!validate() || !selectedLocal) return;
+    if (modo === 'cobrarReserva') {
+      await registerPayment(planReservado?.cliente_id ?? selectedClienteId ?? null);
+      return;
+    }
     if (!selectedClienteId) {
       openNewClientModal();
       return;
@@ -683,16 +772,66 @@ export default function CajaPage() {
                   </div>
                 </section>
 
+                <div className={styles.paymentToggle} role="group" aria-label="Modo de cobro">
+                  <button
+                    type="button"
+                    className={modo === 'venta' ? styles.paymentActive : ''}
+                    onClick={() => handleModoChange('venta')}
+                  >
+                    <ReceiptText size={16} strokeWidth={1.8} />
+                    Venta nueva
+                  </button>
+                  <button
+                    type="button"
+                    className={modo === 'cobrarReserva' ? styles.paymentActive : ''}
+                    onClick={() => handleModoChange('cobrarReserva')}
+                  >
+                    <CheckCircle2 size={16} strokeWidth={1.8} />
+                    Cobrar reserva
+                  </button>
+                </div>
+
                 <section className={styles.saleShell}>
                   <div className={styles.catalogPanel}>
                     <div className={styles.panelHeader}>
                       <div>
-                        <span className={styles.kicker}>Catálogo</span>
-                        <h2>Agregar al pago</h2>
+                        <span className={styles.kicker}>{modo === 'venta' ? 'Catálogo' : 'Cobrar reserva'}</span>
+                        <h2>{modo === 'venta' ? 'Agregar al pago' : 'Reserva seleccionada'}</h2>
                       </div>
-                      {(loadingServicios || loadingCombos) && <span className="admin-badge">Cargando</span>}
+                      {modo === 'venta'
+                        ? (loadingServicios || loadingCombos) && <span className="admin-badge">Cargando</span>
+                        : loadingPlanesReservados && <span className="admin-badge">Buscando</span>}
                     </div>
 
+                    {modo === 'cobrarReserva' ? (
+                      <div className={styles.catalogBody}>
+                        {planReservado ? (
+                          <div className={styles.summaryCard}>
+                            <div className={styles.summaryRow}>
+                              <span>Cliente</span>
+                              <strong>{planReservado.cliente}</strong>
+                            </div>
+                            <div className={styles.summaryRow}>
+                              <span>Paquete</span>
+                              <strong>{planReservado.combo_nombre_texto ?? '—'}</strong>
+                            </div>
+                            <div className={styles.summaryRow}>
+                              <span>Sesiones</span>
+                              <strong>{planReservado.sesiones_totales}</strong>
+                            </div>
+                            <div className={styles.summaryRow}>
+                              <span>Precio</span>
+                              <strong>{formatMoney(planReservado.precio_total)}</strong>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className={styles.mutedText}>
+                            Escribe el nombre del cliente en el panel derecho y elige su reserva pendiente para cargarla al ticket.
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                    <>
                     <div className={styles.catalogTabs} role="tablist">
                       <button
                         type="button"
@@ -809,13 +948,15 @@ export default function CajaPage() {
                         </div>
                       )}
                     </div>
+                    </>
+                    )}
                   </div>
 
                   <div className={styles.ticketPanel}>
                     <div className={styles.panelHeader}>
                       <div>
-                        <span className={styles.kicker}>Nuevo pago</span>
-                        <h2>Detalle de caja</h2>
+                        <span className={styles.kicker}>{modo === 'venta' ? 'Nuevo pago' : 'Cobrar reserva'}</span>
+                        <h2>{modo === 'venta' ? 'Detalle de caja' : 'Reserva a cobrar'}</h2>
                       </div>
                       <ReceiptText size={22} strokeWidth={1.7} />
                     </div>
@@ -880,6 +1021,31 @@ export default function CajaPage() {
                         {formErrors.cliente_nombre && <small className={styles.fieldError}>{formErrors.cliente_nombre}</small>}
                       </label>
                     </div>
+
+                    {modo === 'cobrarReserva' && (
+                      <div className={styles.modalField}>
+                        <span>Reserva pendiente</span>
+                        {loadingPlanesReservados ? (
+                          <p className={styles.mutedText}>Buscando reservas...</p>
+                        ) : clienteNombre.trim().length < 2 ? (
+                          <p className={styles.mutedText}>Escribe el nombre del cliente para buscar sus reservas pendientes.</p>
+                        ) : planesReservados.length === 0 ? (
+                          <p className={styles.mutedText}>Este cliente no tiene reservas pendientes de cobro.</p>
+                        ) : (
+                          <CustomSelect
+                            id="plan-reservado-select"
+                            value={planReservado ? String(planReservado.id) : ''}
+                            onChange={handleSelectPlanReservado}
+                            placeholder="Selecciona la reserva"
+                            hasError={!!formErrors.detalle}
+                            options={planesReservados.map((p) => ({
+                              value: String(p.id),
+                              label: `${p.combo_nombre_texto ?? 'Paquete'} — ${p.sesiones_totales} sesiones — ${formatMoney(p.precio_total)}`,
+                            }))}
+                          />
+                        )}
+                      </div>
+                    )}
 
                     <div className={styles.paymentToggle} role="group" aria-label="Tipo de pago">
                       <button
@@ -966,7 +1132,7 @@ export default function CajaPage() {
                       </button>
                       <button type="button" className="admin-button admin-button-primary" onClick={handleSubmit} disabled={saving}>
                         <CheckCircle2 size={17} strokeWidth={2} />
-                        {saving ? 'Registrando...' : 'Registrar pago'}
+                        {saving ? 'Registrando...' : modo === 'cobrarReserva' ? 'Cobrar reserva' : 'Registrar pago'}
                       </button>
                     </div>
                   </div>

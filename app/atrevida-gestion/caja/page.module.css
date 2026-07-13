@@ -294,6 +294,30 @@
   font-size: 0.84rem;
 }
 
+/* ── Resumen de la reserva seleccionada (modo "Cobrar reserva") ── */
+.summaryCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-surface-1);
+}
+
+.summaryRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--admin-text-muted);
+}
+
+.summaryRow strong {
+  color: var(--admin-foreground);
+  font-weight: 600;
+}
+
 .customService {
   display: grid;
   gap: 0.65rem;
