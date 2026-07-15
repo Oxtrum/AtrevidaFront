@@ -45,6 +45,7 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
     numeroTelefono, setNumeroTelefono,
     notas, setNotas,
     planId, setPlanId,
+    agendarDirecto, setAgendarDirecto,
     servicio,
     error, errors,
     slotWarning,
@@ -289,6 +290,26 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
               placeholder="Observaciones sobre la reserva..."
               rows={3}
             />
+          </div>
+
+          <div className={`${styles.formGroup} ${styles.fullWidth}`}>
+            <label className={styles.directToggle}>
+              <input
+                type="checkbox"
+                className={styles.directToggleInput}
+                checked={agendarDirecto}
+                onChange={(e) => setAgendarDirecto(e.target.checked)}
+              />
+              <span className={styles.directToggleSwitch} aria-hidden="true">
+                <span className={styles.directToggleThumb} />
+              </span>
+              <span className={styles.directToggleText}>
+                <span className={styles.directToggleTitle}>Agendar directamente</span>
+                <span className={styles.directToggleHint}>
+                  Activado, la reserva queda agendada al instante. Desactívalo para enviarla a aprobación.
+                </span>
+              </span>
+            </label>
           </div>
 
         </div>

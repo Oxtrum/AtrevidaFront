@@ -74,8 +74,13 @@ function obtenerHorasFijas(data: ApiResponse | null): ReservaPorHora[] {
       if (targetSlot) {
         for (const [dia, slots] of Object.entries(horaObj.dias)) {
           const diaKey = dia as DiaSemana;
+          // El calendario solo muestra reservas ya agendadas: las PENDIENTE
+          // (a la espera de aprobación) y las RECHAZADO no ocupan el calendario.
+          const visibles = (slots as ReservaDetalle[]).filter(
+            (r) => r.estado !== 'PENDIENTE' && r.estado !== 'RECHAZADO',
+          );
           if (!targetSlot.dias[diaKey]) targetSlot.dias[diaKey] = [];
-          targetSlot.dias[diaKey]!.push(...(slots as ReservaDetalle[]));
+          targetSlot.dias[diaKey]!.push(...visibles);
         }
       }
     }

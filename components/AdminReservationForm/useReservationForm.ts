@@ -86,6 +86,10 @@ export function useReservationForm(
   const [servicio, setServicio] = useState(initialData?.servicio || '');
   const [notas, setNotas] = useState('');
   const [planId, setPlanId] = useState<number | null>(null);
+  // Por defecto el staff agenda directamente (AGENDADO): en la mayoría de casos
+  // la reserva creada desde el panel ya está confirmada. Desactivar el toggle la
+  // envía a aprobación (PENDIENTE).
+  const [agendarDirecto, setAgendarDirecto] = useState(true);
   const [serviciosAPI, setServiciosAPI] = useState<Array<{ nombre: string; categoria: string; tipoEspacio: string; costo: string; tiempo: string; requiere_evaluacion: boolean }>>([]);
 
   const calcularHoraHasta = (desde: string, svc: string): string => {
@@ -446,15 +450,19 @@ export function useReservationForm(
           numero_telefono: numeroTelefono.replace(/\D/g, ''),
           servicio,
           servicio_solicitado: servicio,
-          servicio_confirmado: servicio,
+          servicio_confirmado: agendarDirecto ? servicio : null,
           precio: servicioInfo ? Number(servicioInfo.costo) || 0 : 0,
           notas: notas || undefined,
           plan_id: planId ?? undefined,
-          estado: 'AGENDADO' as const,
+          estado: agendarDirecto ? 'AGENDADO' as const : 'PENDIENTE' as const,
         };
 
         await crearReserva(payload);
-        toast.success('¡Reserva registrada con éxito!');
+        toast.success(
+          agendarDirecto
+            ? '¡Reserva agendada con éxito!'
+            : 'Reserva registrada. Quedará pendiente de aprobación.',
+        );
 
         if (onSuccess) {
           onSuccess();
@@ -476,6 +484,7 @@ export function useReservationForm(
     numeroTelefono, setNumeroTelefono,
     notas, setNotas,
     planId, setPlanId,
+    agendarDirecto, setAgendarDirecto,
     servicio,
     error, errors,
     slotWarning,

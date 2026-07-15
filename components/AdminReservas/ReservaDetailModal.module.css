@@ -270,6 +270,37 @@
   border-top: 1px solid var(--admin-border-subtle, rgba(255,255,255,0.06));
 }
 
+.reminderButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-right: auto;
+  padding: 0.625rem 1.25rem;
+  min-height: var(--admin-btn-h, 38px);
+  border-radius: var(--admin-radius-md, 8px);
+  border: 1px solid rgba(37, 211, 102, 0.28);
+  background: rgba(37, 211, 102, 0.10);
+  color: #25D366;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.reminderButton:hover {
+  background: rgba(37, 211, 102, 0.18);
+  border-color: rgba(37, 211, 102, 0.45);
+  transform: translateY(-1px);
+}
+
+.reminderButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
 .editButton {
   display: inline-flex;
   align-items: center;
@@ -339,9 +370,11 @@
     gap: 0.5rem;
   }
 
+  .reminderButton,
   .editButton,
   .deleteButton {
     width: 100%;
     justify-content: center;
+    margin-right: 0;
   }
 }

@@ -4,6 +4,8 @@ import { useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Pencil, Trash2, Clock, CalendarDays } from 'lucide-react';
 import type { ReservaBD } from '@/types/reserva';
+import { WhatsappIcon } from '@/components/icons/WhatsappIcon';
+import { buildReminderWhatsappHref } from '@/lib/utils/whatsapp';
 import styles from './ReservaDetailModal.module.css';
 
 interface ReservaDetailModalProps {
@@ -67,6 +69,7 @@ export function ReservaDetailModal({
   const tipoClass = tipoRaw === 'm' || tipoRaw === 'mesa' ? styles.tipoMesa : styles.tipoBicicleta;
   const estado = reserva.estado || 'PENDIENTE';
   const estadoClass = ESTADO_CLASS[estado] || styles.estadoPendiente;
+  const reminderHref = buildReminderWhatsappHref(reserva);
 
   const content = (
     <div className={styles.overlay} onClick={onClose}>
@@ -190,6 +193,27 @@ export function ReservaDetailModal({
         </div>
 
         <div className={styles.footer}>
+          {reminderHref ? (
+            <a
+              className={styles.reminderButton}
+              href={reminderHref}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <WhatsappIcon size={15} />
+              Enviar recordatorio
+            </a>
+          ) : (
+            <button
+              className={styles.reminderButton}
+              type="button"
+              disabled
+              title="La reserva no tiene teléfono registrado"
+            >
+              <WhatsappIcon size={15} />
+              Enviar recordatorio
+            </button>
+          )}
           <button
             className={styles.deleteButton}
             onClick={() => onDelete(reserva)}

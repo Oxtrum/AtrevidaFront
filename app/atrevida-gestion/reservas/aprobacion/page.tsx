@@ -11,7 +11,6 @@ import {
   Check,
   Clock,
   MapPin,
-  MessageCircle,
   MoreHorizontal,
   Phone,
   RefreshCw,
@@ -23,6 +22,7 @@ import {
 } from 'lucide-react';
 
 import Header from '@/components/AdminHeader/Header';
+import { WhatsappIcon } from '@/components/icons/WhatsappIcon';
 import { PageHeader, StatGrid, StatCard, AdminPanel } from '@/components/AdminConfig';
 import { CATEGORIAS_ORDEN } from '@/components/AdminReservationForm/constants';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
@@ -94,7 +94,7 @@ const getWhatsappHref = (telefono?: string) => {
   if (!phoneDigits) return null;
 
   const phone = phoneDigits.startsWith('591') ? phoneDigits : '591' + phoneDigits;
-  const message = 'Hola 👋 Acabamos de recibir tu reserva ✨ ¿Qué tratamiento deseas realizar? 💆‍♀️';
+  const message = 'Hola 🌸 Recibimos tu reserva. ¿Qué tratamiento deseas realizar?';
 
   return `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`;
 };
@@ -113,16 +113,16 @@ const getConfirmationWhatsappHref = (reserva: ReservaBD) => {
   const tratamiento = reserva.servicio_confirmado || reserva.servicio_solicitado || reserva.servicio || 'Tratamiento confirmado';
   const comidaPrevia = getMealLabelByTime(reserva.hora_desde);
   const message = [
-    '*Su cita ha sido confirmada y reservada con éxito 🎉 en Atrevida Fit - Tecnología y Salud 🌟*',
+    '*Su cita ha sido confirmada en Atrevida Fit* 🌸',
     '',
-    `*📅 Fecha:* ${formatDate(reserva.fecha)} (${reserva.fecha})`,
-    `*⏰ Horario:* ${reserva.hora_desde} - ${reserva.hora_hasta}`,
-    `*✨ Tratamiento:* ${tratamiento}`,
-    `*📍 Sucursal:* ${reserva.local}`,
+    `*Fecha:* ${formatDate(reserva.fecha)} (${reserva.fecha})`,
+    `*Horario:* ${reserva.hora_desde} - ${reserva.hora_hasta}`,
+    `*Tratamiento:* ${tratamiento}`,
+    `*Sucursal:* ${reserva.local}`,
     '',
-    `*Vienes con el estómago lleno (${comidaPrevia}) y 1 litro de agua* ✨🥰`,
+    `Venga con el estómago lleno (${comidaPrevia}) y 1 litro de agua.`,
     '',
-    'Será un placer atenderte! 🤗',
+    'La esperamos.',
   ].join('\n');
 
   return `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`;
@@ -1063,7 +1063,7 @@ export default function AdminReservasAprobacionPage() {
                             rel="noopener noreferrer"
                             className={styles.contactButton}
                           >
-                            <MessageCircle size={15} strokeWidth={1.8} />
+                            <WhatsappIcon size={15} />
                             Contactar
                           </a>
                         ) : (
@@ -1072,7 +1072,7 @@ export default function AdminReservasAprobacionPage() {
                             className={styles.contactButton}
                             disabled
                           >
-                            <MessageCircle size={15} strokeWidth={1.8} />
+                            <WhatsappIcon size={15} />
                             Contactar
                           </button>
                         )}
@@ -1098,7 +1098,7 @@ export default function AdminReservasAprobacionPage() {
                             className={`${styles.notifyButton} ${confirmationSent ? styles.notifyButtonSent : ''}`}
                             onClick={() => { void markConfirmationSent(reserva.id); }}
                           >
-                            <MessageCircle size={15} strokeWidth={1.8} />
+                            <WhatsappIcon size={15} />
                             {confirmationSent ? 'Reenviar confirmación' : 'Enviar confirmación'}
                           </a>
                         ) : (
@@ -1107,7 +1107,7 @@ export default function AdminReservasAprobacionPage() {
                             className={styles.notifyButton}
                             disabled
                           >
-                            <MessageCircle size={15} strokeWidth={1.8} />
+                            <WhatsappIcon size={15} />
                             Sin teléfono
                           </button>
                         )}
@@ -1498,12 +1498,12 @@ export default function AdminReservasAprobacionPage() {
               className={styles.promptAction}
               onClick={() => { void markConfirmationSent(notificationReserva.id); }}
             >
-              <MessageCircle size={16} strokeWidth={1.8} />
+              <WhatsappIcon size={16} />
               Enviar WhatsApp
             </a>
           ) : (
             <button type="button" className={styles.promptAction} disabled>
-              <MessageCircle size={16} strokeWidth={1.8} />
+              <WhatsappIcon size={16} />
               Sin teléfono
             </button>
           )}

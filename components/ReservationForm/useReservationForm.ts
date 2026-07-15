@@ -489,7 +489,6 @@ export function useReservationForm(
     const horaHastaNorm = normalizarHora(horaHasta);
 
     const servicioInfo = selectedService ?? SERVICIOS_DISPONIBLES.find(s => s.value === servicio);
-    const reservaRequiereAprobacion = servicioInfo?.requiere_evaluacion ?? true;
     const servicioSolicitadoInfo = esTratamientoEspecializado
       ? SERVICIOS_ESPECIALIZADOS_DISPONIBLES.find(s => s.value === servicioSolicitado)
       : servicioInfo;
@@ -507,19 +506,16 @@ export function useReservationForm(
           numero_telefono: phoneDigits,
           servicio: servicioLabel,
           servicio_solicitado: servicioSolicitadoInfo?.label || servicioLabel,
-          servicio_confirmado: reservaRequiereAprobacion ? null : servicioLabel,
+          // Toda reserva pública nace PENDIENTE: la valida el staff antes de agendarla.
+          servicio_confirmado: null,
           precio: esTratamientoEspecializado ? 0 : servicioInfo?.precio ?? 0,
           notas,
-          estado: reservaRequiereAprobacion ? 'PENDIENTE' as const : 'AGENDADO' as const,
+          estado: 'PENDIENTE' as const,
         };
 
         await crearReserva(payload);
         if (initialData?.isAdmin) {
-          toast.success(
-            reservaRequiereAprobacion
-              ? 'Reserva enviada. Quedará pendiente de aprobación.'
-              : 'Reserva agendada correctamente.',
-          );
+          toast.success('Reserva enviada. Quedará pendiente de aprobación.');
         }
 
         if (onSuccess) {

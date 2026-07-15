@@ -19,6 +19,7 @@ import {
 import Header from '@/components/AdminHeader/Header';
 import { PageHeader, StatGrid, StatCard, AdminPanel } from '@/components/AdminConfig';
 import { getReservasDB } from '@/lib/api/reservas';
+import { buildReminderWhatsappHref } from '@/lib/utils/whatsapp';
 import type { ReservaBD, EstadoReserva } from '@/types/reserva';
 import styles from './page.module.css';
 
@@ -70,21 +71,6 @@ const getClientInitials = (name?: string) => {
     .slice(0, 2);
 
   return parts.map((part) => part[0]?.toUpperCase()).join('') || 'CL';
-};
-
-const getReminderWhatsappHref = (reserva: ReservaBD, relativeDay: RelativeDay) => {
-  const phoneDigits = reserva.numero_telefono?.replace(/\D/g, '') ?? '';
-  if (!phoneDigits) return null;
-
-  const phone = phoneDigits.startsWith('591') ? phoneDigits : '591' + phoneDigits;
-  const dayLabel = relativeDay === 'HOY' ? 'Hoy' : 'Mañana';
-  const message = [
-    'Hola buenas tardes🌙',
-    `${dayLabel} la esperamos para su cita a las ${reserva.hora_desde} 🌹`,
-    `📍Sucursal ${reserva.local}`,
-  ].join('\n');
-
-  return `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`;
 };
 
 export default function AdminReservasProximasPage() {
@@ -185,7 +171,7 @@ export default function AdminReservasProximasPage() {
       ) : (
         <div className={styles.cardList}>
           {items.map((reserva) => {
-            const reminderHref = getReminderWhatsappHref(reserva, relativeDay);
+            const reminderHref = buildReminderWhatsappHref(reserva);
             const finalService = reserva.servicio_confirmado || reserva.servicio_solicitado || reserva.servicio || 'Tratamiento confirmado';
 
             return (
