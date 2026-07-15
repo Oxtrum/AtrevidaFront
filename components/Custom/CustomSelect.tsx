@@ -4,6 +4,8 @@ import styles from './CustomSelect.module.css';
 // ═══════════════════════════════════════════════════════════════════
 
 import { useEffect, useId, useRef, useState } from "react";
+import { Search } from "lucide-react";
+import { useSearchableSelect, type RenderOption } from "./useSearchableSelect";
 
 interface SelectOption {
   value: string;
@@ -109,19 +111,32 @@ export function CustomSelect({
     setOpen(false);
   };
 
-  const renderOption = (opt: SelectOption) => (
+  const {
+    query, setQuery, showSearch,
+    visibleGroups, visibleOptions, isEmpty,
+    selectedKey, activeKey, onKeyDown,
+    searchInputRef, listboxRef,
+  } = useSearchableSelect({
+    options, groups, value, open,
+    onSelect: handleSelect,
+    onClose: () => setOpen(false),
+  });
+
+  const renderOption = (opt: RenderOption) => (
     <div
-      key={opt.value}
+      key={opt._key}
       className={`${styles.selectOption}
-        ${opt.value === value ? styles.selectOptionActive : ''}
+        ${opt._key === selectedKey ? styles.selectOptionActive : ''}
+        ${opt._key === activeKey ? styles.selectOptionHighlight : ''}
         ${opt.disabled ? styles.selectOptionDisabled : ''}`}
+      data-active={opt._key === activeKey ? 'true' : undefined}
       onMouseDown={(e) => {
         e.preventDefault();
         e.stopPropagation();
         if (!opt.disabled) handleSelect(opt.value);
       }}
       role="option"
-      aria-selected={opt.value === value}
+      aria-selected={opt._key === selectedKey}
     >
       <span>{opt.label}</span>
       {opt.subtitle && (
@@ -141,7 +156,13 @@ export function CustomSelect({
         className={styles.customSelectTrigger}
         onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(prev => !prev); }}
         tabIndex={0}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(prev => !prev); } }}
+        onKeyDown={(e) => {
+          if (!open) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(true); }
+          } else {
+            onKeyDown(e);
+          }
+        }}
         role="combobox"
         aria-expanded={open}
         aria-haspopup="listbox"
@@ -154,14 +175,31 @@ export function CustomSelect({
         </span>
         <span className={`${styles.customSelectArrow} ${open ? styles.customSelectArrowOpen : ''}`}>
           <svg width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true">
-            <path d="M5 6L0 0H10L5 6Z" fill="#EC008C" />
+            <path d="M5 6L0 0H10L5 6Z" fill="var(--af-dim)" />
           </svg>
         </span>
       </div>
 
       {open && (
-        <div id={listboxId} className={styles.selectDropdown} role="listbox" aria-labelledby={ariaLabelledBy}>
-          {placeholder && (
+        <div ref={listboxRef} id={listboxId} className={styles.selectDropdown} role="listbox" aria-labelledby={ariaLabelledBy}>
+          {showSearch && (
+            <div className={styles.selectSearch}>
+              <Search size={15} strokeWidth={1.8} aria-hidden="true" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={onKeyDown}
+                onMouseDown={(e) => e.stopPropagation()}
+                placeholder="Buscar..."
+                aria-label="Buscar opción"
+                autoFocus
+              />
+            </div>
+          )}
+
+          {placeholder && !query && (
             <div
               className={`${styles.selectOption} ${!value ? styles.selectOptionActive : ''}`}
               onClick={() => handleSelect('')}
@@ -172,15 +210,19 @@ export function CustomSelect({
             </div>
           )}
 
-          {groups
-            ? groups.map(g => (
+          {visibleGroups
+            ? visibleGroups.map(g => (
               <div key={g.label}>
                 <div className={styles.selectGroup}>{g.label}</div>
                 {g.options.map(renderOption)}
               </div>
             ))
-            : options.map(renderOption)
+            : visibleOptions.map(renderOption)
           }
+
+          {isEmpty && (
+            <div className={styles.selectEmpty}>Sin resultados</div>
+          )}
         </div>
       )}
     </div>

@@ -55,7 +55,7 @@
   --af-input-bg: rgba(9, 9, 11, 0.50);
   --af-input-bg-hov: rgba(220, 38, 38, 0.04);
   --af-input-bg-foc: rgba(220, 38, 38, 0.08);
-  --af-input-radius: 12px;
+  --af-input-radius: 50px;
   --af-input-pad: 0.875rem 1.125rem;
 
   /* ── Border Radii ────────────────────────────────────────────────– */

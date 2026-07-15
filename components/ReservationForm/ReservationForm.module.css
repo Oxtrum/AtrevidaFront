@@ -162,7 +162,8 @@
    ──────────────────────────────────────────────────────────────── */
 
 .formGroup input,
-.formGroup select {
+.formGroup select,
+.formGroup textarea {
   background: var(--af-input-bg);
   border: 1px solid var(--af-border);
   border-radius: var(--af-input-radius);
@@ -175,20 +176,29 @@
   box-sizing: border-box;
 }
 
+.formGroup textarea {
+  min-height: 96px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
 .formGroup input::placeholder,
-.formGroup select::placeholder {
+.formGroup select::placeholder,
+.formGroup textarea::placeholder {
   color: var(--af-dim);
   font-weight: 400;
 }
 
 .formGroup input:hover:not(:disabled),
-.formGroup select:hover:not(:disabled) {
+.formGroup select:hover:not(:disabled),
+.formGroup textarea:hover:not(:disabled) {
   border-color: var(--af-border-hover);
   background: var(--af-input-bg-hov);
 }
 
 .formGroup input:focus,
-.formGroup select:focus {
+.formGroup select:focus,
+.formGroup textarea:focus {
   outline: none;
   border-color: var(--af-accent-primary);
   background: var(--af-input-bg-foc);
@@ -198,9 +208,7 @@
 }
 
 .phoneInputWrap {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: stretch;
+  display: block;
 }
 
 .phonePrefix {
@@ -217,7 +225,7 @@
 }
 
 .phoneInputWrap input {
-  border-radius: 0 var(--af-input-radius) var(--af-input-radius) 0;
+  border-radius: var(--af-input-radius);
 }
 
 .dateInputWrap {
@@ -831,7 +839,7 @@
 
 .timeChip {
   min-height: 38px;
-  border-radius: 12px;
+  border-radius: 50px;
   border-color: rgba(20, 174, 239, 0.22);
   background: rgba(20, 174, 239, 0.075);
 }
@@ -1073,7 +1081,7 @@
   margin-bottom: 1.75rem;
   background: rgba(220, 38, 38, 0.10);
   border: 1px solid rgba(220, 38, 38, 0.35);
-  border-radius: 12px;
+  border-radius: 50px;
   color: #FCA5A5;
   font-size: 0.875rem;
   line-height: 1.5;
@@ -1148,9 +1156,7 @@
 }
 
 .phoneInputWrap {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: stretch;
+  display: block;
 }
 
 .phonePrefix {
@@ -1167,7 +1173,7 @@
 }
 
 .phoneInputWrap input {
-  border-radius: 0 50px 50px 0;
+  border-radius: var(--af-input-radius);
 }
 
 .dateInputWrap {
@@ -1639,7 +1645,7 @@
   align-items: flex-start;
   gap: 0.5rem;
   padding: 0.68rem 1rem;
-  border-radius: 12px;
+  border-radius: 50px;
   background: rgba(255, 230, 0, 0.08);
   border: 1px solid rgba(255, 230, 0, 0.3);
   color: #FFE600;
