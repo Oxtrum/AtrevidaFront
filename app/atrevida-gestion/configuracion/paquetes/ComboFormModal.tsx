@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ImagePlus, Plus, Trash2 } from 'lucide-react';
 import { FormModal } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
@@ -15,6 +15,9 @@ import {
   actualizarCombo,
   reemplazarLocalesCombo,
   reemplazarServiciosCombo,
+  subirImagenCombo,
+  eliminarImagenCombo,
+  validarImagenCombo,
   type ComboServicioLineaInput,
 } from '@/lib/api/combos';
 import fields from './page.module.css';
@@ -30,6 +33,7 @@ export interface EditableCombo {
   precio_paquete?: number;
   moneda?: string;
   sesiones_totales?: number;
+  imagen_url?: string;
   locales?: { id: number; nombre: string }[];
 }
 
@@ -87,6 +91,17 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Portada: archivo pendiente (aún no subido), URL actual guardada, y flag de quitar.
+  const [imagenFile, setImagenFile] = useState<File | null>(null);
+  const [imagenPreview, setImagenPreview] = useState<string | null>(null);
+  const [imagenActual, setImagenActual] = useState<string | null>(null);
+  const [imagenQuitar, setImagenQuitar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // La vista previa muestra el archivo pendiente; si no hay, la imagen guardada
+  // (salvo que se haya marcado para quitar).
+  const previewSrc = imagenPreview ?? (imagenQuitar ? null : imagenActual);
+
   // Cargar categorías al abrir.
   useEffect(() => {
     if (!open) return;
@@ -124,6 +139,10 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
   useEffect(() => {
     if (!open) return;
     setError(null);
+    setImagenFile(null);
+    setImagenPreview(null);
+    setImagenQuitar(false);
+    setImagenActual(mode === 'editar' && combo ? (combo.imagen_url ?? null) : null);
     if (mode === 'editar' && combo) {
       setNombre(combo.nombre ?? '');
       setDescripcion(combo.descripcion ?? '');
@@ -166,6 +185,29 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
       setLineas([nuevaLinea()]);
     }
   }, [open, mode, combo]);
+
+  // Revoca el object URL de la vista previa al reemplazarlo o desmontar.
+  useEffect(() => {
+    return () => { if (imagenPreview) URL.revokeObjectURL(imagenPreview); };
+  }, [imagenPreview]);
+
+  const seleccionarImagen = (file: File | undefined) => {
+    if (!file) return;
+    const err = validarImagenCombo(file);
+    if (err) { toast.error(err); return; }
+    if (imagenPreview) URL.revokeObjectURL(imagenPreview);
+    setImagenFile(file);
+    setImagenPreview(URL.createObjectURL(file));
+    setImagenQuitar(false);
+  };
+
+  const quitarImagen = () => {
+    if (imagenPreview) URL.revokeObjectURL(imagenPreview);
+    setImagenFile(null);
+    setImagenPreview(null);
+    setImagenQuitar(true);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
 
   const toggleLocal = (id: number) =>
     setLocalIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -251,8 +293,9 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
     const precio_paquete = Number(precioPaquete);
 
     try {
+      let comboId: number | null = null;
       if (mode === 'crear') {
-        await crearCombo({
+        const res = await crearCombo({
           nombre: nombre.trim(),
           descripcion: descripcion.trim() || undefined,
           categoria_id,
@@ -262,8 +305,9 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
           local_ids: localIds,
           servicios: lineas.map(construirLinea),
         });
-        toast.success('Paquete creado');
+        comboId = res.data?.id ?? null;
       } else if (combo) {
+        comboId = combo.id;
         await actualizarCombo(combo.id, {
           nombre: nombre.trim(),
           descripcion: descripcion.trim(),
@@ -275,7 +319,20 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
         await reemplazarLocalesCombo(combo.id, localIds);
         // Reemplazo total de las líneas (PUT). Simple y coincide con el endpoint del backend.
         await reemplazarServiciosCombo(combo.id, lineas.map(construirLinea));
-        toast.success('Paquete actualizado');
+      }
+
+      const okMsg = mode === 'crear' ? 'Paquete creado' : 'Paquete actualizado';
+      // La imagen se gestiona aparte: un fallo aquí no invalida el paquete guardado.
+      if (comboId != null && (imagenFile || (imagenQuitar && imagenActual))) {
+        try {
+          if (imagenFile) await subirImagenCombo(comboId, imagenFile);
+          else await eliminarImagenCombo(comboId);
+          toast.success(okMsg);
+        } catch {
+          toast.error('El paquete se guardó, pero la imagen no se pudo actualizar.');
+        }
+      } else {
+        toast.success(okMsg);
       }
       onSaved();
       onClose();
@@ -303,6 +360,31 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
       <div className={styles.twoCol}>
         {/* ── Columna izquierda: datos del paquete ── */}
         <div className={styles.colForm}>
+          <div className={styles.groupLabel}>Portada <span className={styles.optional}>(opcional)</span></div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className={styles.imagenInput}
+            onChange={(e) => { seleccionarImagen(e.target.files?.[0]); e.target.value = ''; }}
+          />
+          {previewSrc ? (
+            <div className={styles.imagenPreview}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={previewSrc} alt="Portada del paquete" className={styles.imagenThumb} />
+              <div className={styles.imagenActions}>
+                <button type="button" className={styles.imagenBtn} onClick={() => fileInputRef.current?.click()}>Cambiar</button>
+                <button type="button" className={styles.imagenBtnDanger} onClick={quitarImagen}>Quitar</button>
+              </div>
+            </div>
+          ) : (
+            <button type="button" className={styles.imagenDrop} onClick={() => fileInputRef.current?.click()}>
+              <ImagePlus size={20} strokeWidth={1.8} />
+              <span className={styles.imagenDropTitle}>Subir imagen</span>
+              <span className={styles.imagenHint}>JPG o PNG · máx 5 MB</span>
+            </button>
+          )}
+
           <div className={styles.groupLabel}>Datos</div>
 
           <div className={fields.field}>

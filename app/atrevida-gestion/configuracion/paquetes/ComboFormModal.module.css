@@ -80,6 +80,89 @@
   color: var(--admin-text-dim);
 }
 
+/* ── Portada del paquete ──────────────────────────────────────── */
+
+.imagenInput {
+  display: none;
+}
+
+.imagenDrop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  width: 100%;
+  padding: 1.4rem 1rem;
+  border: 1.5px dashed var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--admin-text-muted);
+  cursor: pointer;
+  transition: border-color 0.16s ease, color 0.16s ease, background 0.16s ease;
+}
+
+.imagenDrop:hover {
+  border-color: var(--admin-accent-primary);
+  color: var(--admin-accent-primary);
+  background: rgba(236, 0, 140, 0.05);
+}
+
+.imagenDropTitle {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.imagenHint {
+  font-size: 0.7rem;
+  color: var(--admin-text-dim);
+}
+
+.imagenPreview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.imagenThumb {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: var(--admin-radius-md);
+  border: 1px solid var(--admin-border-subtle);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.imagenActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.imagenBtn,
+.imagenBtnDanger {
+  flex: 1;
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--admin-radius-md);
+  border: 1px solid var(--admin-border-subtle);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--admin-foreground);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.16s ease, color 0.16s ease, background 0.16s ease;
+}
+
+.imagenBtn:hover {
+  border-color: var(--admin-accent-primary);
+  color: var(--admin-accent-primary);
+}
+
+.imagenBtnDanger:hover {
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.08);
+}
+
 @media (max-width: 720px) {
   .twoCol {
     grid-template-columns: 1fr;

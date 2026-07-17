@@ -38,6 +38,7 @@ interface ComboItem {
   costo_total: string;
   precio_final?: number;
   sesiones_totales: number;
+  imagen_url?: string;
   locales?: { id: number; nombre: string }[];
   servicios_incluidos: ServicioIncluido[];
 }
@@ -215,6 +216,7 @@ export default function CombosPage() {
       precio_paquete: combo.precio_paquete,
       moneda: combo.moneda,
       sesiones_totales: combo.sesiones_totales,
+      imagen_url: combo.imagen_url,
       locales: combo.locales,
     });
     setComboModalOpen(true);
@@ -236,6 +238,25 @@ export default function CombosPage() {
   };
 
   const columns: Column<ComboRow>[] = [
+    {
+      key: 'imagen_url',
+      label: '',
+      searchable: false,
+      render: (_v, row) => (
+        <div style={{
+          width: 44, height: 44, flexShrink: 0, borderRadius: 'var(--admin-radius-md)',
+          overflow: 'hidden', display: 'grid', placeItems: 'center',
+          background: 'rgba(255,255,255,0.04)', border: '1px solid var(--admin-border-subtle)',
+        }}>
+          {row.imagen_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={row.imagen_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            <Package2 size={16} strokeWidth={1.8} style={{ color: 'var(--admin-text-dim)' }} />
+          )}
+        </div>
+      ),
+    },
     { key: 'nombre', label: 'Nombre' },
     { key: 'categoria', label: 'Categoría' },
     {
