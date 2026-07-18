@@ -1,11 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Check, MapPin } from 'lucide-react';
-import { getCombosDB } from '@/lib/api/combos';
-import type { ComboCatalogo, ComboLocal } from '@/types/combo';
+import { getPaquetesDB, type PaqueteDetalle } from '@/lib/api/paquetes';
 import section from '@/components/Servicios/Servicios.module.css';
 import styles from './Paquetes.module.css';
 
@@ -25,8 +24,8 @@ function WhatsappGlyph({ size = 14 }: { size?: number }) {
   );
 }
 
-const moneda = (valor: number, codigo: string) =>
-  `${valor.toLocaleString('es-BO')} ${codigo === 'BOB' ? 'Bs' : codigo}`;
+const moneda = (valor: number, codigo?: string) =>
+  `${valor.toLocaleString('es-BO')} ${!codigo || codigo === 'BOB' ? 'Bs' : codigo}`;
 
 const sesionesLabel = (n: number) => `${n} ${n === 1 ? 'sesión' : 'sesiones'}`;
 
@@ -37,56 +36,38 @@ const MAX_SERVICIOS = 4;
 const whatsappUrl = (nombre: string) =>
   `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Hola, me interesa el paquete ${nombre}.`)}`;
 
-// Nombre de familia: quita el sufijo de tier ("- 3 SESIONES") del nombre del combo.
-const nombreFamilia = (nombre: string) =>
-  nombre.replace(/\s*-\s*\d+\s*SESI[OÓ]N(?:ES)?\s*$/i, '').trim();
-
-interface Familia {
-  nombre: string;
-  servicios: ComboCatalogo['servicios'];
-  locales: ComboLocal[];
-  tiers: ComboCatalogo[];
-}
-
-// Agrupa los combos por nombre de familia (mismo tratamiento, distintos tiers de sesiones).
-function agruparFamilias(combos: ComboCatalogo[]): Familia[] {
-  const mapa = new Map<string, Familia>();
-  for (const combo of combos) {
-    const clave = nombreFamilia(combo.nombre);
-    let familia = mapa.get(clave);
-    if (!familia) {
-      familia = { nombre: clave, servicios: combo.servicios, locales: [], tiers: [] };
-      mapa.set(clave, familia);
-    }
-    familia.tiers.push(combo);
-    for (const local of combo.locales) {
-      if (!familia.locales.some((l) => l.id === local.id)) familia.locales.push(local);
-    }
+// Servicios base únicos (deduplicados por texto) — el back guarda una línea por
+// servicio base, pero el admin puede repetir el mismo texto.
+function serviciosUnicos(base: PaqueteDetalle['servicios_base']): string[] {
+  const vistos = new Set<string>();
+  const out: string[] = [];
+  for (const s of base) {
+    const label = (s.servicio_texto ?? '').trim();
+    if (!label) continue;
+    const clave = label.toLowerCase();
+    if (vistos.has(clave)) continue;
+    vistos.add(clave);
+    out.push(label);
   }
-  for (const familia of mapa.values()) {
-    familia.tiers.sort((a, b) => a.sesiones_totales - b.sesiones_totales);
-  }
-  return [...mapa.values()];
+  return out;
 }
 
 export default function Paquetes() {
-  const [combos, setCombos] = useState<ComboCatalogo[]>([]);
+  const [paquetes, setPaquetes] = useState<PaqueteDetalle[]>([]);
   const [loading, setLoading] = useState(true);
   const sectionRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
-  const familias = useMemo(() => agruparFamilias(combos), [combos]);
-
   // Carga dinámica: refleja altas/bajas de paquetes en cada visita.
   useEffect(() => {
     let active = true;
-    getCombosDB()
+    getPaquetesDB()
       .then((res) => {
-        if (active) setCombos(res.data?.combos ?? []);
+        if (active) setPaquetes(res.data?.paquetes ?? []);
       })
       .catch(() => {
-        if (active) setCombos([]);
+        if (active) setPaquetes([]);
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -98,7 +79,7 @@ export default function Paquetes() {
 
   // Entrada animada; count-agnostic (anima las cards que existan). Respeta reduce-motion.
   useEffect(() => {
-    if (loading || familias.length === 0) return;
+    if (loading || paquetes.length === 0) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     gsap.registerPlugin(ScrollTrigger);
@@ -134,7 +115,7 @@ export default function Paquetes() {
     }, sectionRef);
 
     return () => ctx.revert();
-  }, [loading, familias]);
+  }, [loading, paquetes]);
 
   return (
     <section ref={sectionRef} className={styles.paquetes} id="paquetes">
@@ -160,83 +141,87 @@ export default function Paquetes() {
               <div key={i} className={styles.skeleton} />
             ))}
           </div>
-        ) : familias.length === 0 ? (
+        ) : paquetes.length === 0 ? (
           <p className={styles.empty}>Pronto publicaremos nuevos paquetes. Escríbenos por WhatsApp mientras tanto.</p>
         ) : (
           <div ref={gridRef} className={styles.grid}>
-            {familias.map((familia) => {
-              const cover = familia.tiers.find((t) => t.imagen_url)?.imagen_url;
+            {paquetes.map((p) => {
+              const cover = p.paquete.imagen_url;
+              const servicios = serviciosUnicos(p.servicios_base);
+              const tiers = [...p.tiers].sort((a, b) => (a.sesiones_totales ?? 0) - (b.sesiones_totales ?? 0));
               return (
-              <article key={familia.nombre} className={styles.card}>
-                {cover ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={cover} alt={familia.nombre} className={styles.cardBg} loading="lazy" />
-                ) : (
-                  <div className={styles.cardBgFallback} aria-hidden="true" />
-                )}
-                <div className={styles.cardOverlay} aria-hidden="true" />
-
-                <div className={styles.detail}>
-                  <h3 className={styles.name}>{familia.nombre}</h3>
-
-                  {familia.servicios.length > 0 && (
-                    <ul className={styles.services}>
-                      {familia.servicios.slice(0, MAX_SERVICIOS).map((s) => (
-                        <li key={s.id}>
-                          <Check size={14} strokeWidth={2.4} />
-                          <span>{s.servicio_texto || s.servicio_nombre}</span>
-                        </li>
-                      ))}
-                      {familia.servicios.length > MAX_SERVICIOS && (
-                        <li className={styles.moreServicios}>
-                          +{familia.servicios.length - MAX_SERVICIOS} más
-                        </li>
-                      )}
-                    </ul>
+                <article key={p.paquete.id} className={styles.card}>
+                  {cover ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={cover} alt={p.paquete.nombre} className={styles.cardBg} loading="lazy" />
+                  ) : (
+                    <div className={styles.cardBgFallback} aria-hidden="true" />
                   )}
+                  <div className={styles.cardOverlay} aria-hidden="true" />
 
-                  <div className={styles.tiers}>
-                    <span className={styles.tiersLabel}>
-                      {familia.tiers.length > 1 ? 'Elige tus sesiones' : 'Reserva tu paquete'}
-                    </span>
-                    <div className={styles.tierList}>
-                      {familia.tiers.map((tier) => (
-                        <a
-                          key={tier.id}
-                          className={styles.tier}
-                          href={whatsappUrl(tier.nombre)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <span className={styles.tierSesiones}>{sesionesLabel(tier.sesiones_totales)}</span>
-                          <span className={styles.tierPrecio}>{moneda(tier.precio_final, tier.moneda)}</span>
-                        </a>
-                      ))}
-                    </div>
-                    <span className={styles.tiersHint}>
-                      <WhatsappGlyph size={14} />
-                      Reservas por WhatsApp
-                    </span>
-                  </div>
+                  <div className={styles.detail}>
+                    <h3 className={styles.name}>{p.paquete.nombre}</h3>
 
-                  {familia.locales.length > 0 && (
-                    <div className={styles.locales}>
-                      {familia.locales.map((l) => (
-                        <span key={l.id} className={styles.pin}>
-                          <MapPin size={13} strokeWidth={2} />
-                          {l.nombre}
+                    {servicios.length > 0 && (
+                      <ul className={styles.services}>
+                        {servicios.slice(0, MAX_SERVICIOS).map((label, i) => (
+                          <li key={i}>
+                            <Check size={14} strokeWidth={2.4} />
+                            <span>{label}</span>
+                          </li>
+                        ))}
+                        {servicios.length > MAX_SERVICIOS && (
+                          <li className={styles.moreServicios}>
+                            +{servicios.length - MAX_SERVICIOS} más
+                          </li>
+                        )}
+                      </ul>
+                    )}
+
+                    {tiers.length > 0 && (
+                      <div className={styles.tiers}>
+                        <span className={styles.tiersLabel}>
+                          {tiers.length > 1 ? 'Elige tus sesiones' : 'Reserva tu paquete'}
                         </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </article>
+                        <div className={styles.tierList}>
+                          {tiers.map((tier) => (
+                            <a
+                              key={tier.id}
+                              className={styles.tier}
+                              href={whatsappUrl(tier.nombre ?? p.paquete.nombre)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <span className={styles.tierSesiones}>{sesionesLabel(tier.sesiones_totales ?? 0)}</span>
+                              <span className={styles.tierPrecio}>{moneda(tier.precio_final ?? 0, tier.moneda)}</span>
+                            </a>
+                          ))}
+                        </div>
+                        <span className={styles.tiersHint}>
+                          <WhatsappGlyph size={14} />
+                          Reservas por WhatsApp
+                        </span>
+                      </div>
+                    )}
+
+                    {p.locales.length > 0 && (
+                      <div className={styles.locales}>
+                        {p.locales.map((l) => (
+                          <span key={l.id} className={styles.pin}>
+                            <MapPin size={13} strokeWidth={2} />
+                            {l.nombre}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </article>
               );
             })}
           </div>
         )}
 
-        {!loading && familias.length > 0 && (
+        {!loading && paquetes.length > 0 && (
           <p className={styles.follow}>
             Síguenos en{' '}
             <a href={INSTAGRAM} target="_blank" rel="noopener noreferrer">
