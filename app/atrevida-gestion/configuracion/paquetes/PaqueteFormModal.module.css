@@ -264,7 +264,7 @@
 
 .serviceRow {
   display: grid;
-  grid-template-columns: 1.1fr 1fr auto;
+  grid-template-columns: 1.1fr 1fr 110px auto;
   gap: 0.5rem;
   align-items: start;
 }
@@ -288,6 +288,31 @@
 }
 
 .serviceTextInput:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--admin-surface-2);
+}
+
+.serviceCostInput {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-input-bg);
+  color: var(--admin-foreground);
+  font-size: 0.85rem;
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  width: 100%;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.serviceCostInput:focus {
+  outline: none;
+  border-color: #ec008c;
+  box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.14);
+}
+
+.serviceCostInput:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   background-color: var(--admin-surface-2);

@@ -225,8 +225,12 @@ export default function PaqueteFormModal({ open, mode, paquete, locales, onClose
     for (const t of tiers) {
       const sesiones = Number(t.sesiones);
       const precioContado = Number(t.precioContado);
-      if (!t.sesiones || Number.isNaN(sesiones) || sesiones < 1) return 'Cada tier debe tener un número de sesiones válido (mínimo 1).';
+      if (!t.sesiones || Number.isNaN(sesiones) || !Number.isInteger(sesiones) || sesiones < 1) return 'Cada tier debe tener un número de sesiones válido (mínimo 1).';
       if (t.precioContado === '' || Number.isNaN(precioContado) || precioContado < 0) return 'Cada tier debe tener un precio de contado válido.';
+      if (t.precioRegular.trim()) {
+        const precioRegular = Number(t.precioRegular);
+        if (Number.isNaN(precioRegular) || precioRegular < 0) return 'El precio regular debe ser un número válido.';
+      }
     }
     for (const s of serviciosBase) {
       if (s.servicioId == null && !s.texto.trim()) return 'Cada servicio base debe seleccionarse del catálogo o tener un texto.';
@@ -387,6 +391,17 @@ export default function PaqueteFormModal({ open, mode, paquete, locales, onClose
               value={s.texto}
               onChange={(e) => setServiciosBase((prev) => prev.map((row, idx) => (idx === i ? { ...row, texto: e.target.value } : row)))}
               placeholder="…o texto libre"
+              disabled={s.servicioId != null}
+            />
+            <input
+              className={styles.serviceCostInput}
+              type="number"
+              min={0}
+              step="0.01"
+              value={s.costo}
+              onChange={(e) => setServiciosBase((prev) => prev.map((row, idx) => (idx === i ? { ...row, costo: e.target.value } : row)))}
+              placeholder="Costo"
+              aria-label="Costo del servicio"
               disabled={s.servicioId != null}
             />
             <button type="button" className={styles.removeBtn} onClick={() => removeServicioBase(i)} aria-label="Quitar servicio" disabled={serviciosBase.length === 1}>
