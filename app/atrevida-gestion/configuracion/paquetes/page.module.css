@@ -749,36 +749,6 @@
   flex-shrink: 0;
 }
 
-.cardMetaRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  margin-top: 0.3rem;
-  padding-top: 0.6rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.14);
-}
-
-.cardMetaItem {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.32rem;
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.84);
-}
-
-.cardMetaItem svg {
-  color: var(--admin-accent-tertiary);
-}
-
-.cardPrice {
-  font-size: 0.94rem;
-  font-weight: 800;
-  letter-spacing: 0.2px;
-  color: #fff;
-}
-
 /* ── Card grid states ──────────────────────────────────────────── */
 
 .cardSkeleton {
