@@ -13,21 +13,12 @@
   overflow: hidden;
 }
 
-/* ── Grid: 1 columna → 2 columnas en desktop ───────────────────── */
-
-/* El grid llena el contenedor de sección (que ya centra y limita el ancho);
-   no añade su propio max-width/margen para no duplicar los márgenes. */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 1.5rem;
 }
 
-/* ── Card ──────────────────────────────────────────────────────── */
-
-/* Card = marco de imagen a sangre; el contenido se superpone abajo sobre un
-   degradado oscuro. Fusiona el estilo image-forward del admin con el detalle
-   (servicios, tiers, locales) del catálogo público. */
 .card {
   position: relative;
   display: flex;
@@ -41,7 +32,6 @@
   transition: transform 0.25s var(--af-ease), box-shadow 0.25s var(--af-ease), border-color 0.25s var(--af-ease);
 }
 
-/* Acento superior de marca. */
 .card::before {
   content: '';
   position: absolute;
@@ -57,8 +47,6 @@
   border-color: rgba(236, 0, 140, 0.4);
   box-shadow: 0 22px 48px rgba(0, 0, 0, 0.45);
 }
-
-/* ── Fondo: imagen de Supabase o degradado de marca ────────────── */
 
 .cardBg {
   position: absolute;
@@ -109,8 +97,6 @@
   );
 }
 
-/* ── Detalle (superpuesto) ─────────────────────────────────────── */
-
 .detail {
   position: relative;
   z-index: 2;
@@ -120,7 +106,6 @@
   padding: 1.5rem 1.4rem 1.4rem;
 }
 
-/* Título con gradiente de marca para que resalte. */
 .name {
   font-size: clamp(1.3rem, 2.8vw, 1.6rem);
   font-weight: 900;
@@ -155,7 +140,6 @@
   color: var(--af-accent-tertiary);
 }
 
-/* Cada servicio en una sola línea (ellipsis) para no crecer en alto. */
 .services li span {
   min-width: 0;
   overflow: hidden;
@@ -163,49 +147,12 @@
   white-space: nowrap;
 }
 
-/* ── Toggle "Ver servicios" (colapsable) ───────────────────────── */
-
-.serviciosWrap {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.serviciosToggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: var(--af-radius-md);
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(6px);
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: border-color 0.2s var(--af-ease), background 0.2s var(--af-ease);
-}
-
-.serviciosToggle:hover {
-  border-color: rgba(236, 0, 140, 0.45);
-  background: rgba(236, 0, 140, 0.1);
-}
-
-.chevron,
-.chevronOpen {
-  flex-shrink: 0;
+.moreServicios {
+  padding-left: 1.4rem;
+  font-size: 0.74rem;
+  font-weight: 700;
   color: #f7a8cc;
-  transition: transform 0.2s var(--af-ease);
 }
-
-.chevronOpen {
-  transform: rotate(180deg);
-}
-
-/* ── Tiers: chips a ancho completo ─────────────────────────────── */
 
 .tiers {
   display: flex;
@@ -223,8 +170,6 @@
   color: rgba(255, 255, 255, 0.62);
 }
 
-/* Chips compactos en grid de 2 columnas: ocupan ~la mitad de alto que la
-   lista apilada a ancho completo cuando hay varios tiers. */
 .tierList {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
@@ -262,10 +207,20 @@
 }
 
 .tierPrecio {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   font-size: 0.98rem;
   font-weight: 800;
   letter-spacing: -0.2px;
   color: #f7a8cc;
+}
+
+.tachado {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.4);
+  text-decoration: line-through;
 }
 
 .tiersHint {
@@ -279,8 +234,6 @@
 .tiersHint svg {
   color: #25d366;
 }
-
-/* ── Locales ───────────────────────────────────────────────────── */
 
 .locales {
   display: flex;
@@ -303,8 +256,6 @@
   backdrop-filter: blur(6px);
 }
 
-/* ── Follow (enlace AtrevidaFit) ───────────────────────────────── */
-
 .follow {
   margin: 2.5rem auto 0;
   text-align: center;
@@ -322,8 +273,6 @@
 .follow a:hover {
   color: #ffe600;
 }
-
-/* ── Loading / vacío ───────────────────────────────────────────── */
 
 .skeleton {
   min-height: 220px;

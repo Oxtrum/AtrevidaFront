@@ -341,7 +341,7 @@ export default function PaquetesActivosPage() {
                     </div>
                     {serviciosIncluidos.length > 0 && (
                       <div className={styles.serviciosIncluidos}>
-                        <span className={styles.serviciosIncluidosLabel}>Servicios incluidos (cada sesión)</span>
+                        <span className={styles.serviciosIncluidosLabel}>Servicios incluidos</span>
                         <ul className={styles.serviciosIncluidosList}>
                           {serviciosIncluidos.map((label, i) => (
                             <li key={i}>{label}</li>

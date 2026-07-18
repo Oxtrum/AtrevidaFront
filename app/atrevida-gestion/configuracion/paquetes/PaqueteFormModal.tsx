@@ -49,9 +49,8 @@ interface ServicioBaseForm {
 interface TierForm {
   id?: number;
   sesiones: string;
-  precioContado: string;
+  precio: string;
   precioRegular: string;
-  nota: string;
 }
 
 interface PaqueteFormModalProps {
@@ -64,7 +63,7 @@ interface PaqueteFormModalProps {
 }
 
 const nuevoServicioBase = (orden = 0): ServicioBaseForm => ({ servicioId: null, texto: '', costo: '', orden });
-const nuevoTier = (): TierForm => ({ sesiones: '', precioContado: '', precioRegular: '', nota: '' });
+const nuevoTier = (): TierForm => ({ sesiones: '', precio: '', precioRegular: '' });
 
 export default function PaqueteFormModal({ open, mode, paquete, locales, onClose, onSaved }: PaqueteFormModalProps) {
   const [nombre, setNombre] = useState('');
@@ -149,9 +148,8 @@ export default function PaqueteFormModal({ open, mode, paquete, locales, onClose
       const loadedTiers: TierForm[] = (paquete.tiers ?? []).map((t) => ({
         id: t.id,
         sesiones: t.sesiones_totales != null ? String(t.sesiones_totales) : '',
-        precioContado: t.precio_paquete != null ? String(t.precio_paquete) : (t.precio_final != null ? String(t.precio_final) : ''),
+        precio: t.precio_paquete != null ? String(t.precio_paquete) : (t.precio_final != null ? String(t.precio_final) : ''),
         precioRegular: t.precio_regular != null ? String(t.precio_regular) : '',
-        nota: t.nota ?? '',
       }));
       setTiers(loadedTiers.length > 0 ? loadedTiers : [nuevoTier()]);
     } else {
@@ -221,12 +219,13 @@ export default function PaqueteFormModal({ open, mode, paquete, locales, onClose
     if (tiers.length === 0) return 'Agrega al menos un tier.';
     for (const t of tiers) {
       const sesiones = Number(t.sesiones);
-      const precioContado = Number(t.precioContado);
+      const precioVal = Number(t.precio);
       if (!t.sesiones || Number.isNaN(sesiones) || !Number.isInteger(sesiones) || sesiones < 1) return 'Cada tier debe tener un número de sesiones válido (mínimo 1).';
-      if (t.precioContado === '' || Number.isNaN(precioContado) || precioContado < 0) return 'Cada tier debe tener un precio de contado válido.';
+      if (t.precio === '' || Number.isNaN(precioVal) || precioVal < 0) return 'Cada tier debe tener un precio válido.';
       if (t.precioRegular.trim()) {
         const precioRegular = Number(t.precioRegular);
         if (Number.isNaN(precioRegular) || precioRegular < 0) return 'El precio regular debe ser un número válido.';
+        if (precioRegular <= Number(t.precio)) return 'El precio regular debe ser mayor al precio.';
       }
     }
     for (const s of serviciosBase) {
@@ -256,9 +255,8 @@ export default function PaqueteFormModal({ open, mode, paquete, locales, onClose
       tiers: tiers.map((t) => ({
         id: t.id,
         sesiones: Number(t.sesiones),
-        precio_contado: Number(t.precioContado),
+        precio_contado: Number(t.precio),
         precio_regular: t.precioRegular.trim() ? Number(t.precioRegular) : undefined,
-        nota: t.nota.trim() || undefined,
       })),
     };
 
@@ -343,7 +341,7 @@ export default function PaqueteFormModal({ open, mode, paquete, locales, onClose
 
           <div className={fields.field}>
             <label htmlFor="pq-nombre">Nombre</label>
-            <input id="pq-nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="PAQUETE FIT" />
+            <input id="pq-nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej: Pulse Fit" />
           </div>
 
           <div className={fields.field}>
@@ -432,15 +430,15 @@ export default function PaqueteFormModal({ open, mode, paquete, locales, onClose
                 />
               </div>
               <div className={styles.fieldMini}>
-                <label htmlFor={`pq-tier-contado-${i}`}>Precio contado</label>
+                <label htmlFor={`pq-tier-precio-${i}`}>Precio</label>
                 <input
-                  id={`pq-tier-contado-${i}`}
+                  id={`pq-tier-precio-${i}`}
                   type="number"
                   step="0.01"
                   min={0}
-                  value={t.precioContado}
-                  onChange={(e) => updateTier(i, { precioContado: e.target.value })}
-                  placeholder="679"
+                  value={t.precio}
+                  onChange={(e) => updateTier(i, { precio: e.target.value })}
+                  placeholder="0.00"
                 />
               </div>
               <div className={styles.fieldMini}>
@@ -452,16 +450,7 @@ export default function PaqueteFormModal({ open, mode, paquete, locales, onClose
                   min={0}
                   value={t.precioRegular}
                   onChange={(e) => updateTier(i, { precioRegular: e.target.value })}
-                  placeholder="799"
-                />
-              </div>
-              <div className={styles.fieldMini}>
-                <label htmlFor={`pq-tier-nota-${i}`}>Nota <span className={styles.optional}>(opcional)</span></label>
-                <input
-                  id={`pq-tier-nota-${i}`}
-                  value={t.nota}
-                  onChange={(e) => updateTier(i, { nota: e.target.value })}
-                  placeholder="Promoción de lanzamiento"
+                  placeholder="0.00"
                 />
               </div>
             </div>

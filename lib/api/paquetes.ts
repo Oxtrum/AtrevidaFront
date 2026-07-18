@@ -20,7 +20,6 @@ export interface PaqueteTier {
   precio_final?: number;
   precio_paquete?: number;
   precio_regular?: number;
-  nota?: string;
   moneda?: string;
 }
 
@@ -65,7 +64,6 @@ export interface CrearPaqueteBody {
     sesiones: number;
     precio_contado: number;
     precio_regular?: number;
-    nota?: string;
   }[];
 }
 

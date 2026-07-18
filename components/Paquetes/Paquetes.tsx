@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { Check, ChevronDown, MapPin } from 'lucide-react';
+import { Check, MapPin } from 'lucide-react';
 import { getPaquetesDB, type PaqueteDetalle } from '@/lib/api/paquetes';
 import section from '@/components/Servicios/Servicios.module.css';
 import styles from './Paquetes.module.css';
@@ -11,7 +11,6 @@ import styles from './Paquetes.module.css';
 const WHATSAPP = '59177411855';
 const INSTAGRAM = 'https://instagram.com/atrevida.fit';
 
-// Glifo de WhatsApp (mismo trazo que components/WhatsappFab).
 function WhatsappGlyph({ size = 14 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -29,11 +28,11 @@ const moneda = (valor: number, codigo?: string) =>
 
 const sesionesLabel = (n: number) => `${n} ${n === 1 ? 'sesión' : 'sesiones'}`;
 
+const MAX_SERVICIOS = 4;
+
 const whatsappUrl = (nombre: string) =>
   `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Hola, me interesa el paquete ${nombre}.`)}`;
 
-// Servicios base únicos (deduplicados por texto) — el back guarda una línea por
-// servicio base, pero el admin puede repetir el mismo texto.
 function serviciosUnicos(base: PaqueteDetalle['servicios_base']): string[] {
   const vistos = new Set<string>();
   const out: string[] = [];
@@ -51,14 +50,6 @@ function serviciosUnicos(base: PaqueteDetalle['servicios_base']): string[] {
 export default function Paquetes() {
   const [paquetes, setPaquetes] = useState<PaqueteDetalle[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expandido, setExpandido] = useState<Set<number>>(new Set());
-
-  const toggleServicios = (id: number) =>
-    setExpandido((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
   const sectionRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -153,7 +144,6 @@ export default function Paquetes() {
               const cover = p.paquete.imagen_url;
               const servicios = serviciosUnicos(p.servicios_base);
               const tiers = [...p.tiers].sort((a, b) => (a.sesiones_totales ?? 0) - (b.sesiones_totales ?? 0));
-              const abierto = expandido.has(p.paquete.id);
               return (
                 <article key={p.paquete.id} className={styles.card}>
                   {cover ? (
@@ -168,31 +158,19 @@ export default function Paquetes() {
                     <h3 className={styles.name}>{p.paquete.nombre}</h3>
 
                     {servicios.length > 0 && (
-                      <div className={styles.serviciosWrap}>
-                        <button
-                          type="button"
-                          className={styles.serviciosToggle}
-                          onClick={() => toggleServicios(p.paquete.id)}
-                          aria-expanded={abierto}
-                        >
-                          <span>{abierto ? 'Ocultar servicios' : `Ver servicios (${servicios.length})`}</span>
-                          <ChevronDown
-                            size={15}
-                            strokeWidth={2.2}
-                            className={abierto ? styles.chevronOpen : styles.chevron}
-                          />
-                        </button>
-                        {abierto && (
-                          <ul className={styles.services}>
-                            {servicios.map((label, i) => (
-                              <li key={i}>
-                                <Check size={14} strokeWidth={2.4} />
-                                <span>{label}</span>
-                              </li>
-                            ))}
-                          </ul>
+                      <ul className={styles.services}>
+                        {servicios.slice(0, MAX_SERVICIOS).map((label, i) => (
+                          <li key={i}>
+                            <Check size={14} strokeWidth={2.4} />
+                            <span>{label}</span>
+                          </li>
+                        ))}
+                        {servicios.length > MAX_SERVICIOS && (
+                          <li className={styles.moreServicios}>
+                            +{servicios.length - MAX_SERVICIOS} más
+                          </li>
                         )}
-                      </div>
+                      </ul>
                     )}
 
                     {tiers.length > 0 && (
@@ -210,7 +188,12 @@ export default function Paquetes() {
                               rel="noopener noreferrer"
                             >
                               <span className={styles.tierSesiones}>{sesionesLabel(tier.sesiones_totales ?? 0)}</span>
-                              <span className={styles.tierPrecio}>{moneda(tier.precio_final ?? 0, tier.moneda)}</span>
+                              <span className={styles.tierPrecio}>
+                                {tier.precio_regular != null && tier.precio_regular > 0 && (
+                                  <span className={styles.tachado}>{moneda(tier.precio_regular, tier.moneda)}</span>
+                                )}
+                                {moneda(tier.precio_final ?? 0, tier.moneda)}
+                              </span>
                             </a>
                           ))}
                         </div>

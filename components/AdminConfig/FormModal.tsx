@@ -7,10 +7,11 @@ interface FormModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
-  onSubmit: () => void;
+  onSubmit?: () => void;
   submitLabel?: string;
   loading?: boolean;
   size?: 'md' | 'lg' | 'xl';
+  hideFooter?: boolean;
   children: React.ReactNode;
 }
 
@@ -22,6 +23,7 @@ export function FormModal({
   submitLabel = 'Guardar',
   loading = false,
   size = 'md',
+  hideFooter = false,
   children,
 }: FormModalProps) {
   if (!isOpen) return null;
@@ -39,14 +41,16 @@ export function FormModal({
           </button>
         </div>
         <div className={styles.body}>{children}</div>
-        <div className={styles.footer}>
-          <button className={styles.cancelButton} onClick={onClose} disabled={loading}>
-            Cancelar
-          </button>
-          <button className={styles.submitButton} onClick={onSubmit} disabled={loading}>
-            {loading ? 'Guardando...' : submitLabel}
-          </button>
-        </div>
+        {!hideFooter && (
+          <div className={styles.footer}>
+            <button className={styles.cancelButton} onClick={onClose} disabled={loading}>
+              Cancelar
+            </button>
+            <button className={styles.submitButton} onClick={onSubmit} disabled={loading}>
+              {loading ? 'Guardando...' : submitLabel}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
