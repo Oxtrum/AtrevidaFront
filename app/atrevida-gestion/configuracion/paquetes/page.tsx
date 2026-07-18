@@ -2,10 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Eye, Filter, Package2, Plus, Pencil, Trash2 } from 'lucide-react';
+import { Eye, Filter, Layers, MapPin, Package2, Plus, Pencil, Trash2 } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
-import { PageHeader, DataTable, FormModal, RowActionsMenu } from '@/components/AdminConfig';
-import type { Column } from '@/components/AdminConfig';
+import { PageHeader, FormModal, RowActionsMenu } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
 import {
@@ -237,60 +236,10 @@ export default function CombosPage() {
     });
   };
 
-  const columns: Column<ComboRow>[] = [
-    {
-      key: 'imagen_url',
-      label: '',
-      searchable: false,
-      render: (_v, row) => (
-        <div style={{
-          width: 44, height: 44, flexShrink: 0, borderRadius: 'var(--admin-radius-md)',
-          overflow: 'hidden', display: 'grid', placeItems: 'center',
-          background: 'rgba(255,255,255,0.04)', border: '1px solid var(--admin-border-subtle)',
-        }}>
-          {row.imagen_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={row.imagen_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-          ) : (
-            <Package2 size={16} strokeWidth={1.8} style={{ color: 'var(--admin-text-dim)' }} />
-          )}
-        </div>
-      ),
-    },
-    { key: 'nombre', label: 'Nombre' },
-    { key: 'categoria', label: 'Categoría' },
-    {
-      key: 'locales_display',
-      label: 'Locales',
-      searchable: false,
-      render: (_v, row) => {
-        const names = row.locales?.map((l) => l.nombre).join(', ') ?? row.local ?? '—';
-        return <span>{names}</span>;
-      },
-    },
-    {
-      key: 'sesiones_totales',
-      label: 'Sesiones',
-      searchable: false,
-    },
-    {
-      key: 'precio_final',
-      label: 'Precio',
-      searchable: false,
-      render: (_v, row) => <span>{row.precio_final != null ? `${row.precio_final} Bs.` : '—'}</span>,
-    },
-    {
-      key: 'acciones',
-      label: '',
-      searchable: false,
-      render: (_v, row) => (
-        <RowActionsMenu actions={[
-          { label: 'Ver detalle', icon: <Eye size={12} strokeWidth={2} />, onClick: () => loadDetalle(row) },
-          { label: 'Editar', icon: <Pencil size={12} strokeWidth={2} />, onClick: () => openEditar(row) },
-          { label: 'Eliminar', icon: <Trash2 size={12} strokeWidth={2} />, onClick: () => handleDelete(row), variant: 'danger' },
-        ]} />
-      ),
-    },
+  const cardActions = (combo: ComboRow) => [
+    { label: 'Ver detalle', icon: <Eye size={12} strokeWidth={2} />, onClick: () => loadDetalle(combo) },
+    { label: 'Editar', icon: <Pencil size={12} strokeWidth={2} />, onClick: () => openEditar(combo) },
+    { label: 'Eliminar', icon: <Trash2 size={12} strokeWidth={2} />, onClick: () => handleDelete(combo), variant: 'danger' as const },
   ];
 
   return (
@@ -348,16 +297,89 @@ export default function CombosPage() {
               </div>
             </div>
 
-            <DataTable<ComboRow>
-              columns={columns}
-              data={combos}
-              loading={loading}
-              error={error}
-              onRefresh={fetchCombos}
-              getRowKey={(c) => c.id ?? c.nombre}
-              searchPlaceholder="Buscar por nombre..."
-              emptyMessage="No hay paquetes que coincidan"
-            />
+            {loading ? (
+              <div className={styles.grid} aria-busy="true">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className={styles.cardSkeleton} />
+                ))}
+              </div>
+            ) : error ? (
+              <div className={styles.stateBox}>
+                <div className={styles.hintIcon}><Package2 size={22} strokeWidth={1.8} /></div>
+                <p className={styles.hintText}>{error}</p>
+                <button type="button" className={styles.btnSm} onClick={fetchCombos}>Reintentar</button>
+              </div>
+            ) : combos.length === 0 ? (
+              <div className={styles.stateBox}>
+                <div className={styles.hintIcon}><Package2 size={22} strokeWidth={1.8} /></div>
+                <p className={styles.hintText}>No hay paquetes que coincidan</p>
+                <p className={styles.hintSub}>Ajusta los filtros o crea un nuevo paquete.</p>
+              </div>
+            ) : (
+              <>
+                <div className={styles.totalLabel}>
+                  {combos.length} {combos.length === 1 ? 'paquete' : 'paquetes'}
+                </div>
+                <div className={styles.grid}>
+                  {combos.map((combo) => {
+                    const localesText = combo.locales?.map((l) => l.nombre).join(' · ') ?? combo.local;
+                    return (
+                      <article
+                        key={combo.id ?? combo.nombre}
+                        className={styles.card}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => openEditar(combo)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openEditar(combo); }
+                        }}
+                      >
+                        {combo.imagen_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={combo.imagen_url} alt={combo.nombre} className={styles.cardImg} />
+                        ) : (
+                          <div className={styles.cardPlaceholder}>
+                            <Package2 size={42} strokeWidth={1.2} />
+                          </div>
+                        )}
+                        <div className={styles.cardOverlay} />
+
+                        <div className={styles.cardTopRow}>
+                          {combo.categoria ? (
+                            <span className={styles.cardTag}>{combo.categoria}</span>
+                          ) : <span />}
+                          <div className={styles.cardActions} onClick={(e) => e.stopPropagation()}>
+                            <RowActionsMenu actions={cardActions(combo)} />
+                          </div>
+                        </div>
+
+                        <div className={styles.cardBody}>
+                          <h3 className={styles.cardTitle}>{combo.nombre}</h3>
+                          {combo.descripcion && (
+                            <p className={styles.cardDesc}>{combo.descripcion}</p>
+                          )}
+                          {localesText && (
+                            <span className={styles.cardLocale}>
+                              <MapPin size={12} strokeWidth={2} />
+                              {localesText}
+                            </span>
+                          )}
+                          <div className={styles.cardMetaRow}>
+                            <span className={styles.cardMetaItem}>
+                              <Layers size={13} strokeWidth={2} />
+                              {combo.sesiones_totales} {combo.sesiones_totales === 1 ? 'sesión' : 'sesiones'}
+                            </span>
+                            <span className={styles.cardPrice}>
+                              {combo.precio_final != null ? `${combo.precio_final} Bs.` : '—'}
+                            </span>
+                          </div>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </main>

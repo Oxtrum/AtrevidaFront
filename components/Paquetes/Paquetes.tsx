@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ArrowRight, Check, MapPin } from 'lucide-react';
+import { Check, MapPin } from 'lucide-react';
 import { getCombosDB } from '@/lib/api/combos';
 import type { ComboCatalogo, ComboLocal } from '@/types/combo';
 import section from '@/components/Servicios/Servicios.module.css';
@@ -29,6 +29,10 @@ const moneda = (valor: number, codigo: string) =>
   `${valor.toLocaleString('es-BO')} ${codigo === 'BOB' ? 'Bs' : codigo}`;
 
 const sesionesLabel = (n: number) => `${n} ${n === 1 ? 'sesión' : 'sesiones'}`;
+
+// Tope de servicios listados en la card para que el texto no tape la imagen de
+// fondo; el resto se resume en "+N más".
+const MAX_SERVICIOS = 4;
 
 const whatsappUrl = (nombre: string) =>
   `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Hola, me interesa el paquete ${nombre}.`)}`;
@@ -160,19 +164,34 @@ export default function Paquetes() {
           <p className={styles.empty}>Pronto publicaremos nuevos paquetes. Escríbenos por WhatsApp mientras tanto.</p>
         ) : (
           <div ref={gridRef} className={styles.grid}>
-            {familias.map((familia) => (
+            {familias.map((familia) => {
+              const cover = familia.tiers.find((t) => t.imagen_url)?.imagen_url;
+              return (
               <article key={familia.nombre} className={styles.card}>
+                {cover ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={cover} alt={familia.nombre} className={styles.cardBg} loading="lazy" />
+                ) : (
+                  <div className={styles.cardBgFallback} aria-hidden="true" />
+                )}
+                <div className={styles.cardOverlay} aria-hidden="true" />
+
                 <div className={styles.detail}>
                   <h3 className={styles.name}>{familia.nombre}</h3>
 
                   {familia.servicios.length > 0 && (
                     <ul className={styles.services}>
-                      {familia.servicios.map((s) => (
+                      {familia.servicios.slice(0, MAX_SERVICIOS).map((s) => (
                         <li key={s.id}>
                           <Check size={14} strokeWidth={2.4} />
                           <span>{s.servicio_texto || s.servicio_nombre}</span>
                         </li>
                       ))}
+                      {familia.servicios.length > MAX_SERVICIOS && (
+                        <li className={styles.moreServicios}>
+                          +{familia.servicios.length - MAX_SERVICIOS} más
+                        </li>
+                      )}
                     </ul>
                   )}
 
@@ -191,7 +210,6 @@ export default function Paquetes() {
                         >
                           <span className={styles.tierSesiones}>{sesionesLabel(tier.sesiones_totales)}</span>
                           <span className={styles.tierPrecio}>{moneda(tier.precio_final, tier.moneda)}</span>
-                          <ArrowRight className={styles.tierArrow} size={15} strokeWidth={2} />
                         </a>
                       ))}
                     </div>
@@ -213,7 +231,8 @@ export default function Paquetes() {
                   )}
                 </div>
               </article>
-            ))}
+              );
+            })}
           </div>
         )}
 

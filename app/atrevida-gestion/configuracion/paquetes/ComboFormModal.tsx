@@ -427,10 +427,6 @@ export default function ComboFormModal({ open, mode, combo, locales, onClose, on
               <label htmlFor="cb-moneda">Moneda</label>
               <input id="cb-moneda" value={moneda} onChange={(e) => setMoneda(e.target.value)} maxLength={3} placeholder="BOB" />
             </div>
-            <div className={fields.field}>
-              <label>Sesiones</label>
-              <p className={styles.derivado}>{sesiones.length} <span>(derivado)</span></p>
-            </div>
           </div>
 
           <div className={styles.groupLabel}>Locales</div>
