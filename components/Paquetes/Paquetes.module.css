@@ -163,11 +163,46 @@
   white-space: nowrap;
 }
 
-.moreServicios {
-  padding-left: 1.4rem;
-  font-size: 0.74rem;
-  font-weight: 700;
+/* ── Toggle "Ver servicios" (colapsable) ───────────────────────── */
+
+.serviciosWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.serviciosToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--af-radius-md);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(6px);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s var(--af-ease), background 0.2s var(--af-ease);
+}
+
+.serviciosToggle:hover {
+  border-color: rgba(236, 0, 140, 0.45);
+  background: rgba(236, 0, 140, 0.1);
+}
+
+.chevron,
+.chevronOpen {
+  flex-shrink: 0;
   color: #f7a8cc;
+  transition: transform 0.2s var(--af-ease);
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
 }
 
 /* ── Tiers: chips a ancho completo ─────────────────────────────── */

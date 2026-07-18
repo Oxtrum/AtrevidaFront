@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { Check, MapPin } from 'lucide-react';
+import { Check, ChevronDown, MapPin } from 'lucide-react';
 import { getPaquetesDB, type PaqueteDetalle } from '@/lib/api/paquetes';
 import section from '@/components/Servicios/Servicios.module.css';
 import styles from './Paquetes.module.css';
@@ -29,10 +29,6 @@ const moneda = (valor: number, codigo?: string) =>
 
 const sesionesLabel = (n: number) => `${n} ${n === 1 ? 'sesión' : 'sesiones'}`;
 
-// Tope de servicios listados en la card para que el texto no tape la imagen de
-// fondo; el resto se resume en "+N más".
-const MAX_SERVICIOS = 4;
-
 const whatsappUrl = (nombre: string) =>
   `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Hola, me interesa el paquete ${nombre}.`)}`;
 
@@ -55,6 +51,14 @@ function serviciosUnicos(base: PaqueteDetalle['servicios_base']): string[] {
 export default function Paquetes() {
   const [paquetes, setPaquetes] = useState<PaqueteDetalle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandido, setExpandido] = useState<Set<number>>(new Set());
+
+  const toggleServicios = (id: number) =>
+    setExpandido((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
   const sectionRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -149,6 +153,7 @@ export default function Paquetes() {
               const cover = p.paquete.imagen_url;
               const servicios = serviciosUnicos(p.servicios_base);
               const tiers = [...p.tiers].sort((a, b) => (a.sesiones_totales ?? 0) - (b.sesiones_totales ?? 0));
+              const abierto = expandido.has(p.paquete.id);
               return (
                 <article key={p.paquete.id} className={styles.card}>
                   {cover ? (
@@ -163,19 +168,31 @@ export default function Paquetes() {
                     <h3 className={styles.name}>{p.paquete.nombre}</h3>
 
                     {servicios.length > 0 && (
-                      <ul className={styles.services}>
-                        {servicios.slice(0, MAX_SERVICIOS).map((label, i) => (
-                          <li key={i}>
-                            <Check size={14} strokeWidth={2.4} />
-                            <span>{label}</span>
-                          </li>
-                        ))}
-                        {servicios.length > MAX_SERVICIOS && (
-                          <li className={styles.moreServicios}>
-                            +{servicios.length - MAX_SERVICIOS} más
-                          </li>
+                      <div className={styles.serviciosWrap}>
+                        <button
+                          type="button"
+                          className={styles.serviciosToggle}
+                          onClick={() => toggleServicios(p.paquete.id)}
+                          aria-expanded={abierto}
+                        >
+                          <span>{abierto ? 'Ocultar servicios' : `Ver servicios (${servicios.length})`}</span>
+                          <ChevronDown
+                            size={15}
+                            strokeWidth={2.2}
+                            className={abierto ? styles.chevronOpen : styles.chevron}
+                          />
+                        </button>
+                        {abierto && (
+                          <ul className={styles.services}>
+                            {servicios.map((label, i) => (
+                              <li key={i}>
+                                <Check size={14} strokeWidth={2.4} />
+                                <span>{label}</span>
+                              </li>
+                            ))}
+                          </ul>
                         )}
-                      </ul>
+                      </div>
                     )}
 
                     {tiers.length > 0 && (
