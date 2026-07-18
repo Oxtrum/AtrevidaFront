@@ -73,9 +73,11 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.3rem;
+  gap: 0.4rem;
   width: 100%;
-  padding: 1.4rem 1rem;
+  /* Mismo footprint que la preview: cuadrado 1:1, así no salta al subir. */
+  aspect-ratio: 1 / 1;
+  padding: 1rem;
   border: 1.5px dashed var(--admin-border-subtle);
   border-radius: var(--admin-radius-md);
   background: rgba(255, 255, 255, 0.02);
