@@ -107,6 +107,21 @@ export default function PaquetesActivosPage() {
   }, [detalle]);
   const hechas = sesiones.filter((s) => s.hecha).length;
 
+  // Servicios incluidos (únicos): se entregan en cada sesión, se listan una vez.
+  const serviciosIncluidos = useMemo(() => {
+    const vistos = new Set<string>();
+    const out: string[] = [];
+    for (const s of detalle?.servicios ?? []) {
+      const label = (s.nombre_texto ?? '').trim();
+      if (!label) continue;
+      const clave = label.toLowerCase();
+      if (vistos.has(clave)) continue;
+      vistos.add(clave);
+      out.push(label);
+    }
+    return out;
+  }, [detalle]);
+
   const planesOrdenados = useMemo(() => {
     const rank = (e: string) => (e === 'RESERVADO' ? 0 : e === 'ACTIVO' ? 1 : 2);
     return [...planes].sort((a, b) => {
@@ -324,10 +339,19 @@ export default function PaquetesActivosPage() {
                         />
                       </div>
                     </div>
+                    {serviciosIncluidos.length > 0 && (
+                      <div className={styles.serviciosIncluidos}>
+                        <span className={styles.serviciosIncluidosLabel}>Servicios incluidos (cada sesión)</span>
+                        <ul className={styles.serviciosIncluidosList}>
+                          {serviciosIncluidos.map((label, i) => (
+                            <li key={i}>{label}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                     {sesiones.map((s) => (
                       <div key={s.numero} className={`${styles.sesionRow} ${s.hecha ? styles.sesionHecha : ''}`}>
                         <span className={styles.sesionNum}>Sesión {s.numero}</span>
-                        <span className={styles.sesionServs}>{s.servicios.map((x) => x.nombre_texto).join(' · ')}</span>
                         <button
                           type="button"
                           className={styles.toggleBtn}
