@@ -1,0 +1,333 @@
+/* Modal Crear/Editar paquete — piezas propias (el resto de campos
+   reutiliza .field de page.module.css). Layout de una sola columna
+   (el footer del FormModal ya queda fijo). */
+
+.formError {
+  padding: 0.6rem 0.85rem;
+  border-radius: var(--admin-radius-md);
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+  font-size: 0.82rem;
+}
+
+.optional {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--admin-text-dim);
+}
+
+.hint {
+  font-size: 0.82rem;
+  color: var(--admin-text-muted);
+  margin: -0.35rem 0 0;
+}
+
+.groupLabel {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--admin-text-dim);
+  padding-bottom: 0.35rem;
+  margin-top: 1rem;
+  border-bottom: 1px solid var(--admin-border-subtle);
+}
+
+.groupLabel:first-child {
+  margin-top: 0;
+}
+
+.pairGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem 1rem;
+}
+
+/* ── Portada del paquete ──────────────────────────────────────── */
+
+.imagenInput {
+  display: none;
+}
+
+.imagenDrop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  width: 100%;
+  padding: 1.4rem 1rem;
+  border: 1.5px dashed var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--admin-text-muted);
+  cursor: pointer;
+  transition: border-color 0.16s ease, color 0.16s ease, background 0.16s ease;
+}
+
+.imagenDrop:hover {
+  border-color: var(--admin-accent-primary);
+  color: var(--admin-accent-primary);
+  background: rgba(236, 0, 140, 0.05);
+}
+
+.imagenDropTitle {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.imagenHint {
+  font-size: 0.7rem;
+  color: var(--admin-text-dim);
+}
+
+.imagenPreview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.imagenThumb {
+  width: 100%;
+  max-width: 300px;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+  border-radius: var(--admin-radius-md);
+  border: 1px solid var(--admin-border-subtle);
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.imagenActions {
+  display: flex;
+  gap: 0.5rem;
+  max-width: 300px;
+}
+
+.imagenBtn,
+.imagenBtnDanger {
+  flex: 1;
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--admin-radius-md);
+  border: 1px solid var(--admin-border-subtle);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--admin-foreground);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.16s ease, color 0.16s ease, background 0.16s ease;
+}
+
+.imagenBtn:hover {
+  border-color: var(--admin-accent-primary);
+  color: var(--admin-accent-primary);
+}
+
+.imagenBtnDanger:hover {
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.08);
+}
+
+/* ── Locales (checkboxes) ──────────────────────────────────────── */
+
+.checkboxGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-input-bg);
+  color: var(--admin-foreground);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.checkbox:hover {
+  border-color: rgba(236, 0, 140, 0.4);
+}
+
+.checkbox input {
+  accent-color: #ec008c;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/* ── Filas genéricas (servicios base / tiers) ────────────────────── */
+
+.rowsList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-top: 0.5rem;
+}
+
+.fieldMini {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.fieldMini label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--admin-text-dim);
+}
+
+.fieldMini input {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-input-bg);
+  color: var(--admin-foreground);
+  font-size: 0.85rem;
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.fieldMini input:focus {
+  outline: none;
+  border-color: #ec008c;
+  box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.14);
+}
+
+.fieldMini input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--admin-surface-2);
+}
+
+.removeBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  align-self: flex-start;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: transparent;
+  color: var(--admin-text-muted);
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.removeBtn:hover:not(:disabled) {
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.removeBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.addBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px dashed var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: transparent;
+  color: var(--admin-accent-primary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.addBtn:hover {
+  border-color: rgba(236, 0, 140, 0.5);
+  background: rgba(236, 0, 140, 0.06);
+}
+
+/* ── Servicios base: select de catálogo + texto libre + quitar ──── */
+
+.serviceRow {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr auto;
+  gap: 0.5rem;
+  align-items: start;
+}
+
+.serviceTextInput {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-input-bg);
+  color: var(--admin-foreground);
+  font-size: 0.85rem;
+  font-family: inherit;
+  width: 100%;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.serviceTextInput:focus {
+  outline: none;
+  border-color: #ec008c;
+  box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.14);
+}
+
+.serviceTextInput:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: var(--admin-surface-2);
+}
+
+/* ── Tiers: grid de 4 campos + quitar ────────────────────────────── */
+
+.tierRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
+  padding: 0.75rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: rgba(255, 255, 255, 0.02);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.tierRow:focus-within {
+  border-color: rgba(236, 0, 140, 0.4);
+  background: rgba(236, 0, 140, 0.03);
+}
+
+.tiersGrid {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.6rem;
+}
+
+@media (max-width: 720px) {
+  .serviceRow {
+    grid-template-columns: 1fr;
+  }
+  .tierRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .tiersGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
