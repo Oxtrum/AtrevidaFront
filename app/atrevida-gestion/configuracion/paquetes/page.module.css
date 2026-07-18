@@ -722,6 +722,33 @@
   color: var(--admin-accent-tertiary);
 }
 
+.tiersRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.1rem;
+}
+
+.tierChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.24rem 0.55rem;
+  border-radius: 9999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(6px);
+  white-space: nowrap;
+}
+
+.tierChip svg {
+  color: var(--admin-accent-tertiary);
+  flex-shrink: 0;
+}
+
 .cardMetaRow {
   display: flex;
   align-items: center;
