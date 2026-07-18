@@ -70,7 +70,6 @@ export default function PaqueteFormModal({ open, mode, paquete, locales, onClose
   const [nombre, setNombre] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [categoriaId, setCategoriaId] = useState('');
-  const [moneda, setMoneda] = useState('BOB');
   const [localIds, setLocalIds] = useState<number[]>([]);
   const [serviciosBase, setServiciosBase] = useState<ServicioBaseForm[]>([nuevoServicioBase()]);
   const [tiers, setTiers] = useState<TierForm[]>([nuevoTier()]);
@@ -137,7 +136,6 @@ export default function PaqueteFormModal({ open, mode, paquete, locales, onClose
       setNombre(paquete.paquete.nombre ?? '');
       setDescripcion(paquete.paquete.descripcion ?? '');
       setCategoriaId(paquete.paquete.categoria_id != null ? String(paquete.paquete.categoria_id) : '');
-      setMoneda(paquete.paquete.moneda ?? 'BOB');
       setLocalIds((paquete.locales ?? []).map((l) => l.id));
 
       const loadedServicios: ServicioBaseForm[] = (paquete.servicios_base ?? []).map((s, i) => ({
@@ -160,7 +158,6 @@ export default function PaqueteFormModal({ open, mode, paquete, locales, onClose
       setNombre('');
       setDescripcion('');
       setCategoriaId('');
-      setMoneda('BOB');
       setLocalIds([]);
       setServiciosBase([nuevoServicioBase()]);
       setTiers([nuevoTier()]);
@@ -248,7 +245,7 @@ export default function PaqueteFormModal({ open, mode, paquete, locales, onClose
       nombre: nombre.trim(),
       descripcion: descripcion.trim() || undefined,
       categoria_id: categoriaId ? Number(categoriaId) : undefined,
-      moneda: (moneda.trim() || 'BOB').toUpperCase(),
+      moneda: 'BOB',
       local_ids: localIds,
       servicios_base: serviciosBase.map((s, i) => ({
         servicio_id: s.servicioId ?? undefined,
@@ -310,7 +307,6 @@ export default function PaqueteFormModal({ open, mode, paquete, locales, onClose
     >
       {error && <div className={styles.formError}>{error}</div>}
 
-      <div className={styles.groupLabel}>Portada <span className={styles.optional}>(opcional)</span></div>
       <input
         ref={fileInputRef}
         type="file"
@@ -318,49 +314,53 @@ export default function PaqueteFormModal({ open, mode, paquete, locales, onClose
         className={styles.imagenInput}
         onChange={(e) => { seleccionarImagen(e.target.files?.[0]); e.target.value = ''; }}
       />
-      {previewSrc ? (
-        <div className={styles.imagenPreview}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={previewSrc} alt="Portada del paquete" className={styles.imagenThumb} />
-          <div className={styles.imagenActions}>
-            <button type="button" className={styles.imagenBtn} onClick={() => fileInputRef.current?.click()}>Cambiar</button>
-            <button type="button" className={styles.imagenBtnDanger} onClick={quitarImagen}>Quitar</button>
+
+      <div className={styles.topGrid}>
+        {/* ── Portada (columna izquierda) ── */}
+        <div className={styles.portadaCol}>
+          <div className={styles.groupLabel}>Portada <span className={styles.optional}>(opcional)</span></div>
+          {previewSrc ? (
+            <div className={styles.imagenPreview}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={previewSrc} alt="Portada del paquete" className={styles.imagenThumb} />
+              <div className={styles.imagenActions}>
+                <button type="button" className={styles.imagenBtn} onClick={() => fileInputRef.current?.click()}>Cambiar</button>
+                <button type="button" className={styles.imagenBtnDanger} onClick={quitarImagen}>Quitar</button>
+              </div>
+            </div>
+          ) : (
+            <button type="button" className={styles.imagenDrop} onClick={() => fileInputRef.current?.click()}>
+              <ImagePlus size={20} strokeWidth={1.8} />
+              <span className={styles.imagenDropTitle}>Subir imagen</span>
+              <span className={styles.imagenHint}>JPG o PNG · máx 5 MB</span>
+            </button>
+          )}
+        </div>
+
+        {/* ── Datos (columna derecha) ── */}
+        <div className={styles.datosCol}>
+          <div className={styles.groupLabel}>Datos</div>
+
+          <div className={fields.field}>
+            <label htmlFor="pq-nombre">Nombre</label>
+            <input id="pq-nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="PAQUETE FIT" />
           </div>
-        </div>
-      ) : (
-        <button type="button" className={styles.imagenDrop} onClick={() => fileInputRef.current?.click()}>
-          <ImagePlus size={20} strokeWidth={1.8} />
-          <span className={styles.imagenDropTitle}>Subir imagen</span>
-          <span className={styles.imagenHint}>JPG o PNG · máx 5 MB</span>
-        </button>
-      )}
 
-      <div className={styles.groupLabel}>Datos</div>
+          <div className={fields.field}>
+            <label htmlFor="pq-desc">Descripción <span className={styles.optional}>(opcional)</span></label>
+            <textarea id="pq-desc" rows={3} value={descripcion} onChange={(e) => setDescripcion(e.target.value)} placeholder="Plan progresivo de sesiones…" />
+          </div>
 
-      <div className={fields.field}>
-        <label htmlFor="pq-nombre">Nombre</label>
-        <input id="pq-nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="PAQUETE FIT" />
-      </div>
-
-      <div className={fields.field}>
-        <label htmlFor="pq-desc">Descripción <span className={styles.optional}>(opcional)</span></label>
-        <textarea id="pq-desc" rows={2} value={descripcion} onChange={(e) => setDescripcion(e.target.value)} placeholder="Plan progresivo de sesiones…" />
-      </div>
-
-      <div className={styles.pairGrid}>
-        <div className={fields.field}>
-          <label id="lbl-pq-cat" htmlFor="pq-cat">Categoría <span className={styles.optional}>(opcional)</span></label>
-          <CustomSelect
-            id="pq-cat"
-            ariaLabelledBy="lbl-pq-cat"
-            value={categoriaId}
-            onChange={setCategoriaId}
-            options={[{ value: '', label: 'Sin categoría' }, ...categorias.map((c) => ({ value: String(c.id), label: c.nombre }))]}
-          />
-        </div>
-        <div className={fields.field}>
-          <label htmlFor="pq-moneda">Moneda</label>
-          <input id="pq-moneda" value={moneda} onChange={(e) => setMoneda(e.target.value)} maxLength={3} placeholder="BOB" />
+          <div className={fields.field}>
+            <label id="lbl-pq-cat" htmlFor="pq-cat">Categoría <span className={styles.optional}>(opcional)</span></label>
+            <CustomSelect
+              id="pq-cat"
+              ariaLabelledBy="lbl-pq-cat"
+              value={categoriaId}
+              onChange={setCategoriaId}
+              options={[{ value: '', label: 'Sin categoría' }, ...categorias.map((c) => ({ value: String(c.id), label: c.nombre }))]}
+            />
+          </div>
         </div>
       </div>
 

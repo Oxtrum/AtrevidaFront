@@ -45,6 +45,23 @@
   gap: 0.75rem 1rem;
 }
 
+/* ── Cabecera: portada (izq) + datos (der) ───────────────────────── */
+
+.topGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.portadaCol,
+.datosCol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
 /* ── Portada del paquete ──────────────────────────────────────── */
 
 .imagenInput {
@@ -345,6 +362,9 @@
 }
 
 @media (max-width: 720px) {
+  .topGrid {
+    grid-template-columns: 1fr;
+  }
   .serviceRow {
     grid-template-columns: 1fr;
   }
