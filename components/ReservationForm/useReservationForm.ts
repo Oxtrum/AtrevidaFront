@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   DiaSemana, SERVICIOS_DISPONIBLES, SUCURSALES,
@@ -20,7 +20,7 @@ import {
   validateReservationForm,
 } from '@/lib/utils/reservationValidation';
 import { type SlotStatus } from '@/lib/utils/hoursAvailability';
-import { HORAS, DIAS_SEMANA, SLOT_MIN, SLOTS_POR_HORA, calcularHoraFin, isSlotOutsideBusinessHours } from '@/lib/constants/reservationForm';
+import { HORAS, DIAS_SEMANA, SLOT_MIN, SLOTS_POR_HORA, calcularHoraFin, tiempoAMinutos, isSlotOutsideBusinessHours } from '@/lib/constants/reservationForm';
 import { CATEGORIAS_ORDEN } from './constants';
 
 export interface ReservationFormInitialData {
@@ -113,15 +113,20 @@ export function useReservationForm(
   const [servicioSolicitado, setServicioSolicitado] = useState('');
   const [horaPreestablecida] = useState(!!initialData?.hora_desde); // Marca si hora vino del URL
 
-  /** Slots de la rejilla que ocupa un servicio del catálogo público. 1 hora si no se conoce. */
-  const slotsDeServicio = (svc: string): number => {
-    const servicioInfo = SERVICIOS_DISPONIBLES.find(s => s.value === svc);
+  /**
+   * Slots de la rejilla que ocupa el servicio elegido. 1 hora si no se conoce.
+   * Busca primero en el catálogo dinámico (`servicios`, igual que
+   * `servicioSeleccionado` más abajo) porque ahí es de donde sale el `value`
+   * real que guarda el select cuando la API responde; el catálogo estático
+   * sólo es la fuente cuando la API falla y el hook cae a su fallback.
+   */
+  const slotsDeServicio = useCallback((svc: string): number => {
+    const servicioInfo = servicios.find(s => s.value === svc) ?? SERVICIOS_DISPONIBLES.find(s => s.value === svc);
     if (!servicioInfo) return SLOTS_POR_HORA;
-    // El catálogo estático expresa la duración en minutos: '50 min', '90 min'.
-    const match = servicioInfo.duracion.match(/(\d+)/);
-    const duracionMin = match ? parseInt(match[1]) : 60;
+    const duracionMin = tiempoAMinutos(servicioInfo.duracion);
+    if (duracionMin <= 0) return SLOTS_POR_HORA;
     return Math.ceil(duracionMin / SLOT_MIN);
-  };
+  }, [servicios]);
 
   // Calcular horaHasta cuando hora viene del URL y se selecciona servicio
   useEffect(() => {
@@ -134,7 +139,7 @@ export function useReservationForm(
       setHoraHasta(fin);
     }, 0);
     return () => window.clearTimeout(timeoutId);
-  }, [horaPreestablecida, horaDesde, servicio, fecha, sucursal]);
+  }, [horaPreestablecida, horaDesde, servicio, fecha, sucursal, slotsDeServicio]);
   // ── Locales dinámicos ─────────────────────────
   // Usar locales dinámicos, si no hay usar SUCURSALES estático
   const sucursalOptions = useMemo(
