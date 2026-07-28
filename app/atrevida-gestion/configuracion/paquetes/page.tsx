@@ -235,14 +235,9 @@ export default function PaquetesPage() {
                           if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openEditar(p); }
                         }}
                       >
-                        {p.paquete.imagen_url ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={p.paquete.imagen_url} alt={p.paquete.nombre} className={styles.cardImg} />
-                        ) : (
-                          <div className={styles.cardPlaceholder}>
-                            <Package2 size={42} strokeWidth={1.2} />
-                          </div>
-                        )}
+                        <div className={styles.cardPlaceholder}>
+                          <Package2 size={42} strokeWidth={1.2} />
+                        </div>
                         <div className={styles.cardOverlay} />
 
                         <div className={styles.cardTopRow}>

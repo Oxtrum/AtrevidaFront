@@ -37,7 +37,6 @@ export interface PaqueteDetalle {
     descripcion?: string;
     categoria_id?: number;
     categoria?: string;
-    imagen_url?: string;
     moneda: string;
     activo: boolean;
   };
@@ -114,53 +113,4 @@ export async function actualizarPaquete(
 /** DELETE /bd/paquetes/{id} — borrado lógico (activo=false). */
 export async function eliminarPaquete(id: number): Promise<ApiResponse<unknown>> {
   return apiClient.delete<ApiResponse<unknown>>(`/bd/paquetes/${id}`);
-}
-
-// ─── Imagen de portada (Supabase Storage) ───────────────────────────
-
-/** Límite de tamaño para la portada del paquete. */
-export const MAX_IMAGEN_PAQUETE_BYTES = 5 * 1024 * 1024; // 5 MB
-
-interface PaqueteImagenUpload {
-  upload_url: string;
-  token: string;
-  path: string;
-}
-
-/** Valida tipo y tamaño de la imagen antes de subirla. Devuelve mensaje de error o null. */
-export function validarImagenPaquete(file: File): string | null {
-  if (!file.type.startsWith('image/')) return 'El archivo debe ser una imagen.';
-  if (file.size > MAX_IMAGEN_PAQUETE_BYTES) return 'La imagen no debe superar 5 MB.';
-  return null;
-}
-
-/**
- * Sube la portada de un paquete en tres pasos: pide URL firmada al backend, sube
- * el archivo directo a Supabase y confirma. Devuelve la URL pública final.
- */
-export async function subirImagenPaquete(id: number, file: File): Promise<string> {
-  const firma = await apiClient.post<ApiResponse<PaqueteImagenUpload>>(
-    `/bd/paquetes/${id}/imagen/upload-url`,
-    {},
-  );
-
-  const res = await fetch(firma.data.upload_url, {
-    method: 'PUT',
-    headers: { 'Content-Type': file.type, 'x-upsert': 'true' },
-    body: file,
-  });
-  if (!res.ok) {
-    throw new Error(`No se pudo subir la imagen (Supabase respondió ${res.status}).`);
-  }
-
-  const confirm = await apiClient.put<ApiResponse<{ imagen_url: string }>>(
-    `/bd/paquetes/${id}/imagen`,
-    {},
-  );
-  return confirm.data.imagen_url;
-}
-
-/** DELETE /bd/paquetes/{id}/imagen — borra la portada del bucket y limpia el path. */
-export async function eliminarImagenPaquete(id: number) {
-  return apiClient.delete(`/bd/paquetes/${id}/imagen`);
 }

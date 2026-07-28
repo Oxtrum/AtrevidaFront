@@ -141,19 +141,10 @@ export default function Paquetes() {
         ) : (
           <div ref={gridRef} className={styles.grid}>
             {paquetes.map((p) => {
-              const cover = p.paquete.imagen_url;
               const servicios = serviciosUnicos(p.servicios_base);
               const tiers = [...p.tiers].sort((a, b) => (a.sesiones_totales ?? 0) - (b.sesiones_totales ?? 0));
               return (
                 <article key={p.paquete.id} className={styles.card}>
-                  {cover ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={cover} alt={p.paquete.nombre} className={styles.cardBg} loading="lazy" />
-                  ) : (
-                    <div className={styles.cardBgFallback} aria-hidden="true" />
-                  )}
-                  <div className={styles.cardOverlay} aria-hidden="true" />
-
                   <div className={styles.detail}>
                     <h3 className={styles.name}>{p.paquete.nombre}</h3>
 

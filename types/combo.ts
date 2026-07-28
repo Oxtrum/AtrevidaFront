@@ -29,8 +29,6 @@ export interface ComboCatalogo {
   moneda: string;
   sesiones_totales: number;
   activo: boolean;
-  /** URL pública de la portada en Supabase Storage; ausente si no tiene imagen. */
-  imagen_url?: string;
   locales: ComboLocal[];
   servicios: ComboServicioDetalle[];
 }

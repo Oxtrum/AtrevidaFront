@@ -23,8 +23,8 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  min-height: 520px;
+  min-height: 340px;
+  background: var(--af-surface-2);
   border: 1px solid var(--af-border);
   border-radius: var(--af-radius-lg);
   overflow: hidden;
@@ -48,62 +48,14 @@
   box-shadow: 0 22px 48px rgba(0, 0, 0, 0.45);
 }
 
-.cardBg {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.5s var(--af-ease);
-}
-
-.card:hover .cardBg {
-  transform: scale(1.06);
-}
-
-.cardBgFallback {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background:
-    radial-gradient(circle at 25% 20%, rgba(236, 0, 140, 0.5), transparent 55%),
-    radial-gradient(circle at 85% 85%, rgba(20, 174, 239, 0.38), transparent 55%),
-    linear-gradient(135deg, #241033, #0f0f16);
-}
-
-.cardOverlay {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: linear-gradient(
-    to top,
-    rgba(9, 9, 11, 0.97) 0%,
-    rgba(9, 9, 11, 0.9) 26%,
-    rgba(9, 9, 11, 0.6) 52%,
-    rgba(9, 9, 11, 0.22) 78%,
-    rgba(9, 9, 11, 0.04) 100%
-  );
-  transition: background 0.3s var(--af-ease);
-}
-
-.card:hover .cardOverlay {
-  background: linear-gradient(
-    to top,
-    rgba(9, 9, 11, 0.97) 0%,
-    rgba(146, 39, 143, 0.5) 42%,
-    rgba(236, 0, 140, 0.14) 76%,
-    rgba(9, 9, 11, 0.04) 100%
-  );
-}
-
 .detail {
   position: relative;
   z-index: 2;
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 0.8rem;
-  padding: 1.5rem 1.4rem 1.4rem;
+  padding: 1.7rem 1.4rem 1.4rem;
 }
 
 .name {
@@ -298,13 +250,11 @@
   .card,
   .tier,
   .tierArrow,
-  .cardBg,
   .follow a {
     transition: none;
   }
 
-  .card:hover,
-  .card:hover .cardBg {
+  .card:hover {
     transform: none;
   }
 

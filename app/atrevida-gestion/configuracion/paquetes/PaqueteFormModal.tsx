@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { ImagePlus, Plus, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Plus, Trash2 } from 'lucide-react';
 import { FormModal } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
@@ -9,9 +9,6 @@ import { getCategoriasDB, getServiciosDB } from '@/lib/api/servicios';
 import {
   crearPaquete,
   actualizarPaquete,
-  subirImagenPaquete,
-  eliminarImagenPaquete,
-  validarImagenPaquete,
   type PaqueteDetalle,
   type CrearPaqueteBody,
 } from '@/lib/api/paquetes';
@@ -78,17 +75,6 @@ export default function PaqueteFormModal({ open, mode, paquete, locales, onClose
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Portada: archivo pendiente (aún no subido), URL actual guardada, y flag de quitar.
-  const [imagenFile, setImagenFile] = useState<File | null>(null);
-  const [imagenPreview, setImagenPreview] = useState<string | null>(null);
-  const [imagenActual, setImagenActual] = useState<string | null>(null);
-  const [imagenQuitar, setImagenQuitar] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // La vista previa muestra el archivo pendiente; si no hay, la imagen guardada
-  // (salvo que se haya marcado para quitar).
-  const previewSrc = imagenPreview ?? (imagenQuitar ? null : imagenActual);
-
   // Cargar categorías al abrir.
   useEffect(() => {
     if (!open) return;
@@ -126,10 +112,6 @@ export default function PaqueteFormModal({ open, mode, paquete, locales, onClose
   useEffect(() => {
     if (!open) return;
     setError(null);
-    setImagenFile(null);
-    setImagenPreview(null);
-    setImagenQuitar(false);
-    setImagenActual(mode === 'editar' && paquete ? (paquete.paquete.imagen_url ?? null) : null);
 
     if (mode === 'editar' && paquete) {
       setNombre(paquete.paquete.nombre ?? '');
@@ -162,28 +144,6 @@ export default function PaqueteFormModal({ open, mode, paquete, locales, onClose
     }
   }, [open, mode, paquete]);
 
-  // Revoca el object URL de la vista previa al reemplazarlo o desmontar.
-  useEffect(() => {
-    return () => { if (imagenPreview) URL.revokeObjectURL(imagenPreview); };
-  }, [imagenPreview]);
-
-  const seleccionarImagen = (file: File | undefined) => {
-    if (!file) return;
-    const err = validarImagenPaquete(file);
-    if (err) { toast.error(err); return; }
-    if (imagenPreview) URL.revokeObjectURL(imagenPreview);
-    setImagenFile(file);
-    setImagenPreview(URL.createObjectURL(file));
-    setImagenQuitar(false);
-  };
-
-  const quitarImagen = () => {
-    if (imagenPreview) URL.revokeObjectURL(imagenPreview);
-    setImagenFile(null);
-    setImagenPreview(null);
-    setImagenQuitar(true);
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
 
   const toggleLocal = (id: number) =>
     setLocalIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
@@ -261,28 +221,13 @@ export default function PaqueteFormModal({ open, mode, paquete, locales, onClose
     };
 
     try {
-      let paqueteId: number | null = null;
       if (mode === 'crear') {
-        const res = await crearPaquete(body);
-        paqueteId = res.data?.id ?? null;
+        await crearPaquete(body);
       } else if (paquete) {
-        paqueteId = paquete.paquete.id;
         await actualizarPaquete(paquete.paquete.id, body);
       }
 
-      const okMsg = mode === 'crear' ? 'Paquete creado' : 'Paquete actualizado';
-      // La imagen se gestiona aparte: un fallo aquí no invalida el paquete guardado.
-      if (paqueteId != null && (imagenFile || (imagenQuitar && imagenActual))) {
-        try {
-          if (imagenFile) await subirImagenPaquete(paqueteId, imagenFile);
-          else await eliminarImagenPaquete(paqueteId);
-          toast.success(okMsg);
-        } catch {
-          toast.error('El paquete se guardó, pero la imagen no se pudo actualizar.');
-        }
-      } else {
-        toast.success(okMsg);
-      }
+      toast.success(mode === 'crear' ? 'Paquete creado' : 'Paquete actualizado');
       onSaved();
       onClose();
     } catch (e) {
@@ -305,37 +250,7 @@ export default function PaqueteFormModal({ open, mode, paquete, locales, onClose
     >
       {error && <div className={styles.formError}>{error}</div>}
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        className={styles.imagenInput}
-        onChange={(e) => { seleccionarImagen(e.target.files?.[0]); e.target.value = ''; }}
-      />
-
       <div className={styles.topGrid}>
-        {/* ── Portada (columna izquierda) ── */}
-        <div className={styles.portadaCol}>
-          <div className={styles.groupLabel}>Portada <span className={styles.optional}>(opcional)</span></div>
-          {previewSrc ? (
-            <div className={styles.imagenPreview}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={previewSrc} alt="Portada del paquete" className={styles.imagenThumb} />
-              <div className={styles.imagenActions}>
-                <button type="button" className={styles.imagenBtn} onClick={() => fileInputRef.current?.click()}>Cambiar</button>
-                <button type="button" className={styles.imagenBtnDanger} onClick={quitarImagen}>Quitar</button>
-              </div>
-            </div>
-          ) : (
-            <button type="button" className={styles.imagenDrop} onClick={() => fileInputRef.current?.click()}>
-              <ImagePlus size={20} strokeWidth={1.8} />
-              <span className={styles.imagenDropTitle}>Subir imagen</span>
-              <span className={styles.imagenHint}>JPG o PNG · máx 5 MB</span>
-            </button>
-          )}
-        </div>
-
-        {/* ── Datos (columna derecha) ── */}
         <div className={styles.datosCol}>
           <div className={styles.groupLabel}>Datos</div>
 

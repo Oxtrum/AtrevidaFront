@@ -584,19 +584,6 @@
   box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.22);
 }
 
-.cardImg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform var(--admin-t-slow) var(--admin-ease);
-}
-
-.card:hover .cardImg {
-  transform: scale(1.06);
-}
-
 .cardPlaceholder {
   position: absolute;
   inset: 0;
@@ -784,6 +771,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   .card:hover { transform: none; }
-  .card:hover .cardImg { transform: none; }
   .cardSkeleton { animation: none; }
 }
