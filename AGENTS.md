@@ -6,8 +6,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Project Commands
 - `npm run dev` - Start dev server at http://localhost:3000
-- `npm run build` - Production build
+- `npm run build` - Production build. **Never run it while `npm run dev` is up** — both write `.next/` and the clash corrupts the cache (Turbopack panic). Stop dev first.
 - `npm run lint` - Run ESLint (uses nextVitals + nextTs configs)
+- `npx tsc --noEmit` - Typecheck. There is no npm script for it, but it catches what lint misses.
 
 ## Tech Stack
 - Next.js 16.2.2 with App Router
@@ -18,10 +19,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Structure
 - `app/` - Main app directory with pages, layouts, and API routes
-- `app/page.tsx` - Home page (Atrevida tourism site)
+- `app/page.tsx` - Landing page (AtrevidaFit wellness center)
 - `app/reservas/` - Public reservation pages
-- `app/admin/` - Admin section (login, dashboard, reservas)
-- `app/api/` - API routes for BD (database), reservas, admin
+- `app/atrevida-gestion/` - Admin panel: login, dashboard, reservas, caja, pagos, reportes, clientes, paquetes-activos, configuracion. **Renamed from `app/admin/`, which no longer exists.**
+- `app/api/` - Next.js proxy routes to the backend. Mostly legacy: real mutations go through `apiClient` (`lib/api/client.ts`) straight to `NEXT_PUBLIC_API_URL`, because only `apiClient` attaches the JWT. Never add a mutating proxy here.
 
 ## Key Notes
 - No TypeScript typecheck command in package.json - only `lint`
@@ -31,9 +32,12 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - ESLint uses flat config (`eslint.config.mjs`)
 
 ## UI/UX Guidance
-- Use the `design-taste-frontend` skill for UI decisions
-- Follow metric-based design rules and component architecture
-- Use CSS hardware acceleration where appropriate
+- Mandatory sequence for UI work: **brainstorm** (`superpowers:brainstorming`) → **implement** (`frontend-design:frontend-design` for anything visual) → **review** (`code-review:code-review`). No freestyle UI.
+- `ui-ux-pro-max` ships with this repo (`.claude/skills/`) for palettes, styles and a11y checks. Its generic recommendations lean light-mode; the site is dark — the existing tokens win over the skill's palette output.
+- Reuse tokens, never hardcode: landing uses `--af-*` (`app/globals.css`), admin uses `--admin-*` scoped under `[data-admin="true"]` (`app/atrevida-gestion/atrevida-gestion.css`).
+- Prefer extending existing components over new ones. `components/AdminConfig/` holds the admin CRUD kit (AdminPanel, PageHeader, DataTable, FormModal, StatCard, RowActionsMenu).
+- Use CSS hardware acceleration where appropriate. GSAP animations go in `gsap.context()` with `ctx.revert()` cleanup, and must respect `prefers-reduced-motion`.
+- **No image uploads anywhere in this app.** Paquete/combo covers were removed on 2026-07-27; there is no `type="file"` input left. Do not reintroduce one without being asked.
 
 ## graphify
 
