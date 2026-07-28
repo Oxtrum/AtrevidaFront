@@ -217,6 +217,10 @@
   overflow-x: auto;
   overflow-y: auto;
   max-height: 70vh;
+  /* Duplicado a propósito con el border-radius de .calendarGrid/.calendarGridMobile:
+     este es ahora el ancestro con scroll, así que es el que necesita clipear las
+     esquinas para el sticky header de abajo. No quitar el de .calendarGrid — sigue
+     redondeando su propio borde/fondo y ambos radios deben coincidir. */
   border-radius: 20px;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
@@ -244,7 +248,7 @@
   min-width: 900px;
   background: rgba(0, 0, 0, 0.8);
   border: 1px solid rgba(146, 39, 143, 0.25);
-  border-radius: 20px;
+  border-radius: 20px; /* redondea el fondo/borde propio; el clip de esquinas ahora lo hace .calendarContainer (ver su comentario) */
   backdrop-filter: blur(20px);
   position: relative;
 }
@@ -265,7 +269,7 @@
   gap: 1px;
   background: rgba(0, 0, 0, 0.8);
   border: 1px solid rgba(146, 39, 143, 0.25);
-  border-radius: 20px;
+  border-radius: 20px; /* idem .calendarGrid: redondea el fondo/borde propio, el clip lo hace .calendarContainer */
   backdrop-filter: blur(20px);
 }
 
@@ -778,7 +782,7 @@ width: 100%;
 
   .timeCell {
     padding: 0.5rem 0.3rem;
-    min-height: 80px; /* increased for 1‑hour rows on mobile */
+    min-height: 48px; /* filas de 30 min; algo menos que el desktop (56px) porque el tipo ya se redujo arriba */
   }
 
   .timeStart {
@@ -790,7 +794,7 @@ width: 100%;
   }
 
   .timeSlot {
-    min-height: 80px;
+    min-height: 48px; /* filas de 30 min */
   }
 
   .reservationCard {
