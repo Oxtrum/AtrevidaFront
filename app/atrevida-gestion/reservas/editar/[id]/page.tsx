@@ -7,6 +7,7 @@ import { Save } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
 import { actualizarReservaDB, actualizarEstadoReservaDB, getReservaByID } from '@/lib/api/reservas';
 import { getServiciosDB } from '@/lib/api/servicios';
+import { getPlanesDB, type PlanItem } from '@/lib/api/planes';
 import { useReservas } from '@/lib/hooks/useReservas';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { DiaSemana, EstadoReserva, ReservaBD, generarSemanas, getFechasDeSemana, esFechaPasada } from '@/types/reserva';
@@ -21,9 +22,11 @@ import styles from './page.module.css';
 const TRANSICIONES_VALIDAS: Record<string, EstadoReserva[]> = {
   PENDIENTE: ['PENDIENTE', 'AGENDADO', 'RECHAZADO'],
   AGENDADO: ['AGENDADO', 'COMPLETADO', 'RECHAZADO'],
-  RECHAZADO: ['RECHAZADO'],
+  RECHAZADO: ['RECHAZADO', 'PENDIENTE'],
   COMPLETADO: ['COMPLETADO'],
 };
+
+const SIN_PAQUETE = '';
 
 const ESTADO_LABELS: Record<string, string> = {
   PENDIENTE: 'Pendiente',
@@ -54,7 +57,17 @@ function EditarReservaContent() {
   const [nuevoPrecio, setNuevoPrecio] = useState('');
   const [nuevoTelefono, setNuevoTelefono] = useState('');
   const [nuevoServicio, setNuevoServicio] = useState('');
+  const [nuevoCliente, setNuevoCliente] = useState('');
+  const [nuevoLocal, setNuevoLocal] = useState('');
+  const [nuevoPlanId, setNuevoPlanId] = useState<string>(SIN_PAQUETE);
   const [serviciosDisponibles, setServiciosDisponibles] = useState<Array<{ nombre: string; categoria: string; tipoEspacio: string; costo: string; tiempo: string }>>([]);
+  const [planesDisponibles, setPlanesDisponibles] = useState<PlanItem[]>([]);
+
+  // El local del formulario manda sobre el guardado: horarios, capacidad y
+  // catálogo de servicios se calculan contra la sucursal destino.
+  const localActual = nuevoLocal || reserva?.local || '';
+  const estadoActual = reserva?.estado || 'PENDIENTE';
+  const bloqueadaPorCompletado = estadoActual === 'COMPLETADO';
 
   const semanasDisponibles = useMemo(() => generarSemanas(6), []);
   const [semanaIndex, setSemanaIndex] = useState(0);
@@ -115,10 +128,30 @@ function EditarReservaContent() {
   }, [serviciosDisponibles, nuevoServicio]);
 
   const estadoOptions = useMemo(() => {
-    const estadoActual = reserva?.estado || 'PENDIENTE';
     const validos = TRANSICIONES_VALIDAS[estadoActual] || [estadoActual];
     return validos.map(e => ({ value: e, label: ESTADO_LABELS[e] || e }));
-  }, [reserva?.estado]);
+  }, [estadoActual]);
+
+  const localOptions = useMemo(
+    () => locales.filter(l => l.activo).map(l => ({ value: l.nombre, label: l.nombre })),
+    [locales],
+  );
+
+  const paqueteOptions = useMemo(() => {
+    const options = [{ value: SIN_PAQUETE, label: 'Sin paquete' }];
+    for (const plan of planesDisponibles) {
+      options.push({
+        value: String(plan.id),
+        label: `${plan.combo_nombre_texto || plan.codigo} — ${plan.sesiones_usadas}/${plan.sesiones_totales} sesiones`,
+      });
+    }
+    // El paquete ya imputado puede no estar activo hoy; se muestra igual para
+    // que el admin vea a qué está vinculada la reserva antes de cambiarlo.
+    if (nuevoPlanId !== SIN_PAQUETE && !options.some(o => o.value === nuevoPlanId)) {
+      options.push({ value: nuevoPlanId, label: `Paquete #${nuevoPlanId}` });
+    }
+    return options;
+  }, [planesDisponibles, nuevoPlanId]);
 
   const hoursAvailability = useMemo(() => {
     const map = new Map<string, SlotStatus>();
@@ -135,7 +168,7 @@ function EditarReservaContent() {
       const fechaDiaStr = nuevaFecha;
       const hoyStr = new Date().toLocaleDateString('en-CA');
 
-      if (reserva?.local && fechaSeleccionada && isSlotOutsideBusinessHours(reserva.local, fechaSeleccionada, hora)) {
+      if (localActual && fechaSeleccionada && isSlotOutsideBusinessHours(localActual, fechaSeleccionada, hora)) {
         map.set(hora, 'closed');
       } else if (fechaDiaStr < hoyStr || (fechaDiaStr === hoyStr && slotMin < ahoraMin)) {
         map.set(hora, 'past');
@@ -146,7 +179,7 @@ function EditarReservaContent() {
 
     // 2. Marcar ocupados
     if (reservasData?.data?.reservas && nuevaFecha && reserva && locales.length > 0) {
-      const currentLocal = locales.find((l) => l.nombre === reserva.local);
+      const currentLocal = locales.find((l) => l.nombre === localActual);
       const tipoRaw = (reserva.tipo || 'M').toLowerCase();
       const tipo = tipoRaw === 'b' || tipoRaw === 'bicicleta' ? 'B' : 'M';
       const capacidadMaxima = tipo === 'M'
@@ -183,7 +216,7 @@ function EditarReservaContent() {
     }
 
     return map;
-  }, [nuevaFecha, reservasData, reserva, locales]);
+  }, [nuevaFecha, reservasData, reserva, locales, localActual]);
 
   useEffect(() => {
     const loadReserva = async () => {
@@ -202,6 +235,9 @@ function EditarReservaContent() {
           setNuevoPrecio(found.precio != null ? String(found.precio) : '');
           setNuevoTelefono(found.numero_telefono || '');
           setNuevoServicio(found.servicio || '');
+          setNuevoCliente(found.cliente || '');
+          setNuevoLocal(found.local || '');
+          setNuevoPlanId(found.plan_id != null ? String(found.plan_id) : SIN_PAQUETE);
 
           // Buscar en qué semana está la reserva
           const reservaDate = new Date(found.fecha + 'T00:00:00');
@@ -228,28 +264,43 @@ function EditarReservaContent() {
 
   // FETCH servicios disponibles cuando se conoce el local
   useEffect(() => {
-    if (!reserva?.local) return;
+    if (!localActual) return;
     const fetchServicios = async () => {
       try {
-        const res = await getServiciosDB({ local: reserva.local }) as { data?: { servicios?: Array<{ nombre: string; categoria: string; tipoEspacio: string; costo: string; tiempo: string }> } };
+        const res = await getServiciosDB({ local: localActual }) as { data?: { servicios?: Array<{ nombre: string; categoria: string; tipoEspacio: string; costo: string; tiempo: string }> } };
         setServiciosDisponibles(res?.data?.servicios ?? []);
       } catch {
         setServiciosDisponibles([]);
       }
     };
     fetchServicios();
-  }, [reserva?.local]);
+  }, [localActual]);
+
+  // FETCH paquetes activos del cliente en el local destino
+  useEffect(() => {
+    const cliente = reserva?.cliente;
+    if (!cliente || !localActual) return;
+    const fetchPlanes = async () => {
+      try {
+        const res = await getPlanesDB({ cliente, estado: 'ACTIVO', local: localActual });
+        setPlanesDisponibles(res?.data?.planes ?? []);
+      } catch {
+        setPlanesDisponibles([]);
+      }
+    };
+    fetchPlanes();
+  }, [reserva?.cliente, localActual]);
 
   // FETCH reservas reales cuando cambia local o fecha
   useEffect(() => {
-    if (reserva?.local && nuevaFecha) {
+    if (localActual && nuevaFecha) {
       fetchReservas({
-        local: reserva.local,
+        local: localActual,
         fecha_desde: nuevaFecha,
         fecha_hasta: nuevaFecha,
       });
     }
-  }, [reserva?.local, nuevaFecha, fetchReservas]);
+  }, [localActual, nuevaFecha, fetchReservas]);
 
   useEffect(() => {
     if (contentRef.current) {
@@ -284,6 +335,15 @@ function EditarReservaContent() {
     setNuevaHoraHasta('');
   };
 
+  // Reprogramar una reserva ya confirmada obliga a reavisar al cliente: el
+  // backend la devuelve al feed de notificaciones al guardar.
+  const reprogramacionAvisada = Boolean(reserva?.notificado)
+    && estadoActual === 'AGENDADO'
+    && (nuevaFecha !== reserva?.fecha
+      || nuevaHoraDesde !== reserva?.hora_desde
+      || nuevaHoraHasta !== reserva?.hora_hasta
+      || (nuevoLocal !== '' && nuevoLocal !== reserva?.local));
+
   const handleSlotSelect = (desde: string, hasta: string) => {
     setNuevaHoraDesde(desde);
     setNuevaHoraHasta(hasta);
@@ -301,20 +361,29 @@ function EditarReservaContent() {
       const fechaChanged = nuevaFecha && nuevaFecha !== reserva.fecha;
       const desdeChanged = nuevaHoraDesde && nuevaHoraDesde !== reserva.hora_desde;
       const hastaChanged = nuevaHoraHasta && nuevaHoraHasta !== reserva.hora_hasta;
-      const estadoActual = reserva.estado || 'PENDIENTE';
       const estadoChanged = nuevoEstado !== estadoActual;
       const notasChanged = nuevasNotas !== (reserva.notas || '');
       const precioChanged = nuevoPrecio !== (reserva.precio != null ? String(reserva.precio) : '');
       const telefonoOriginal = reserva.numero_telefono|| '';
       const telefonoChanged = nuevoTelefono !== telefonoOriginal;
       const servicioChanged = nuevoServicio !== (reserva.servicio || '');
+      const clienteChanged = nuevoCliente.trim() !== '' && nuevoCliente.trim() !== reserva.cliente;
+      const localChanged = nuevoLocal !== '' && nuevoLocal !== reserva.local;
+      const planOriginal = reserva.plan_id != null ? String(reserva.plan_id) : SIN_PAQUETE;
+      const planChanged = nuevoPlanId !== planOriginal;
 
-      const reservaChanged = fechaChanged || desdeChanged || hastaChanged || notasChanged || precioChanged || telefonoChanged || servicioChanged;
+      const reservaChanged = fechaChanged || desdeChanged || hastaChanged || notasChanged || precioChanged
+        || telefonoChanged || servicioChanged || clienteChanged || localChanged || planChanged;
 
       if (!reservaChanged && !estadoChanged) {
         setMessage({ type: 'error', text: 'No hay cambios para guardar' });
         return;
       }
+
+      // Cambiar de servicio arrastra el servicio confirmado y el tipo de
+      // espacio: dejarlos atrás apunta la reserva al espacio equivocado.
+      const servicioInfo = serviciosDisponibles.find(s => s.nombre === nuevoServicio);
+      const tipoDeServicio = servicioInfo?.tipoEspacio === 'B' ? 'B' : 'M';
 
       // Estado first — if transition is invalid, nothing gets changed
       if (estadoChanged) {
@@ -322,9 +391,11 @@ function EditarReservaContent() {
           id: reserva.id,
           estado: nuevoEstado,
           ...(nuevoEstado === 'AGENDADO' && {
-            servicio_confirmado: reserva.servicio_confirmado || reserva.servicio,
+            servicio_confirmado: servicioChanged ? nuevoServicio : (reserva.servicio_confirmado || reserva.servicio),
             precio: nuevoPrecio !== '' ? Number(nuevoPrecio) : reserva.precio,
-            tipo: (reserva.tipo === 'M' || reserva.tipo === 'B' ? reserva.tipo : 'M') as 'M' | 'B',
+            tipo: (servicioChanged && servicioInfo
+              ? tipoDeServicio
+              : (reserva.tipo === 'M' || reserva.tipo === 'B' ? reserva.tipo : 'M')) as 'M' | 'B',
           }),
         });
       }
@@ -339,7 +410,16 @@ function EditarReservaContent() {
           ...(notasChanged && { nuevas_notas: nuevasNotas }),
           ...(precioChanged && nuevoPrecio !== '' && { nuevo_precio: Number(nuevoPrecio) }),
           ...(telefonoChanged && nuevoTelefono && { nuevo_numero_telefono: nuevoTelefono.replace(/\D/g, '') }),
-          ...(servicioChanged && nuevoServicio && { nuevo_servicio: nuevoServicio }),
+          ...(servicioChanged && nuevoServicio && {
+            nuevo_servicio: nuevoServicio,
+            nuevo_servicio_confirmado: nuevoServicio,
+            ...(servicioInfo && { nuevo_tipo: tipoDeServicio as 'M' | 'B' }),
+          }),
+          ...(clienteChanged && { nuevo_cliente: nuevoCliente.trim() }),
+          ...(localChanged && { nuevo_local: nuevoLocal }),
+          ...(planChanged && (nuevoPlanId === SIN_PAQUETE
+            ? { limpiar_plan_id: true }
+            : { nuevo_plan_id: Number(nuevoPlanId) })),
         });
       }
 
@@ -352,7 +432,14 @@ function EditarReservaContent() {
         ...(notasChanged && { notas: nuevasNotas }),
         ...(precioChanged && nuevoPrecio !== '' && { precio: Number(nuevoPrecio) }),
         ...(telefonoChanged && nuevoTelefono && { numero_telefono: nuevoTelefono.replace(/\D/g, '') }),
-        ...(servicioChanged && nuevoServicio && { servicio: nuevoServicio }),
+        ...(servicioChanged && nuevoServicio && {
+          servicio: nuevoServicio,
+          servicio_confirmado: nuevoServicio,
+          ...(servicioInfo && { tipo: tipoDeServicio }),
+        }),
+        ...(clienteChanged && { cliente: nuevoCliente.trim() }),
+        ...(localChanged && { local: nuevoLocal }),
+        ...(planChanged && { plan_id: nuevoPlanId === SIN_PAQUETE ? undefined : Number(nuevoPlanId) }),
       } : prev);
       setMessage({ type: 'success', text: 'Reserva actualizada correctamente' });
       window.setTimeout(() => router.push('/atrevida-gestion/reservas'), 1500);
@@ -417,11 +504,23 @@ function EditarReservaContent() {
           </div>
           <div className={styles.infoRow}>
             <span className={styles.infoLabel}>Estado</span>
-            <span className={styles.infoValue}>{reserva.estado || 'PENDIENTE'}</span>
+            <span className={styles.infoValue}>{ESTADO_LABELS[estadoActual] || estadoActual}</span>
           </div>
         </div>
       </div>
 
+      {bloqueadaPorCompletado ? (
+        <div className={styles.editForm}>
+          <div className={`${styles.message} ${styles.error}`}>
+            Esta reserva ya está completada y cobrada. Para corregirla, registra una reserva nueva.
+          </div>
+          <div className={styles.formActions}>
+            <button type="button" className={styles.cancelButton} onClick={() => router.push('/atrevida-gestion/reservas')}>
+              Volver a Reservas
+            </button>
+          </div>
+        </div>
+      ) : (
       <form onSubmit={handleSubmit} className={styles.editForm}>
         <div className={styles.formGrid}>
           <div className={`${styles.formGroup} ${styles.fullWidth}`}>
@@ -451,6 +550,12 @@ function EditarReservaContent() {
               hoursAvailability={hoursAvailability}
               onSelect={handleSlotSelect}
             />
+            {reprogramacionAvisada && (
+              <p className={styles.fieldHint}>
+                Al cliente ya se le confirmó este horario. Al guardar, la reserva vuelve a
+                pendientes de aviso para reconfirmarla.
+              </p>
+            )}
           </div>
 
           <div className={styles.formGroup}>
@@ -490,6 +595,37 @@ function EditarReservaContent() {
             />
           </div>
 
+
+          <div className={styles.formGroup}>
+            <label>Cliente</label>
+            <input
+              type="text"
+              value={nuevoCliente}
+              onChange={e => setNuevoCliente(e.target.value)}
+              placeholder="Nombre del cliente"
+              className={styles.inputField}
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label>Local</label>
+            <CustomSelect
+              value={nuevoLocal}
+              onChange={setNuevoLocal}
+              options={localOptions}
+              hasError={false}
+            />
+          </div>
+
+          <div className={`${styles.formGroup} ${styles.fullWidth}`}>
+            <label>Paquete</label>
+            <CustomSelect
+              value={nuevoPlanId}
+              onChange={setNuevoPlanId}
+              options={paqueteOptions}
+              hasError={false}
+            />
+          </div>
 
           <div className={`${styles.formGroup} ${styles.fullWidth}`}>
             <label>Teléfono</label>
@@ -536,6 +672,7 @@ function EditarReservaContent() {
           </button>
         </div>
       </form>
+      )}
     </div>
   );
 }

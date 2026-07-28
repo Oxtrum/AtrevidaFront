@@ -136,6 +136,13 @@
   box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.16);
 }
 
+.fieldHint {
+  margin: 0.5rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--admin-accent-warning);
+}
+
 .phoneWrapper {
   display: flex;
   align-items: center;

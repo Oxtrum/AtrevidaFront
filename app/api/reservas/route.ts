@@ -68,16 +68,5 @@ export async function POST(request: NextRequest) {
   return NextResponse.json(data, { status: res.status });
 }
 
-export async function PATCH(request: NextRequest) {
-  const body = await request.json();
-  const url = `${BACKEND_URL}/bd/reservas`;
-
-  const res = await fetch(url, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-
-  const data = await res.json();
-  return NextResponse.json(data, { status: res.status });
-}
+// Sin proxy PATCH: editar una reserva requiere token y las mutaciones van
+// directo al backend vía apiClient (lib/api/reservas.ts), que sí lo adjunta.

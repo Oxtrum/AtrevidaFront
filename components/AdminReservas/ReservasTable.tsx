@@ -174,14 +174,16 @@ export function ReservasTable({
 
                 <div className={styles.cell} data-label="Acciones">
                   <div className={styles.actionGroup}>
-                    <a
-                      href={`/atrevida-gestion/reservas/editar/${reserva.id}`}
-                      className={styles.editButton}
-                      title="Editar reserva"
-                      aria-label={`Editar reserva de ${reserva.cliente || reserva.id}`}
-                    >
-                      <Pencil size={13} strokeWidth={1.8} />
-                    </a>
+                    {reserva.estado !== 'COMPLETADO' && (
+                      <a
+                        href={`/atrevida-gestion/reservas/editar/${reserva.id}`}
+                        className={styles.editButton}
+                        title="Editar reserva"
+                        aria-label={`Editar reserva de ${reserva.cliente || reserva.id}`}
+                      >
+                        <Pencil size={13} strokeWidth={1.8} />
+                      </a>
+                    )}
                     {onDelete && (
                       <button
                         type="button"

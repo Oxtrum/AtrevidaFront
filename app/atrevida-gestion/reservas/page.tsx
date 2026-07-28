@@ -312,7 +312,9 @@ export default function AdminReservasPage() {
       render: (_v, row) => (
         <div onClick={e => e.stopPropagation()}>
           <RowActionsMenu actions={[
-            { label: 'Editar', icon: <Pencil size={12} strokeWidth={2} />, onClick: () => router.push(`/atrevida-gestion/reservas/editar/${row.id}`) },
+            ...(row.estado !== 'COMPLETADO'
+              ? [{ label: 'Editar', icon: <Pencil size={12} strokeWidth={2} />, onClick: () => router.push(`/atrevida-gestion/reservas/editar/${row.id}`) }]
+              : []),
             { label: 'Eliminar', icon: <Trash2 size={12} strokeWidth={2} />, onClick: () => requestDeleteReserva(row as unknown as ReservaBD), variant: 'danger', disabled: deletingId === (row.id as number) },
           ]} />
         </div>

@@ -102,9 +102,10 @@ export interface CrearReservaDBData {
 }
 
 /**
- * PATCH /bd/reservas — body spec: id, local, nueva_fecha, nueva_hora_desde,
- * nueva_hora_hasta, nuevas_notas, nuevo_precio, nuevo_servicio, nuevo_tipo.
- * No envía `fecha`/`hora`/`cliente` actuales (backend localiza por id+local).
+ * PATCH /bd/reservas — sólo se envían los campos que cambian; el backend
+ * localiza la reserva por id + local. Editable en estado PENDIENTE, RECHAZADO
+ * y AGENDADO; una reserva COMPLETADO responde 409.
+ * No cambia `estado` — para eso está `actualizarEstadoReservaDB`.
  */
 export interface ActualizarReservaDBData {
   id: number;
@@ -113,12 +114,19 @@ export interface ActualizarReservaDBData {
   nueva_hora_desde?: string;
   nueva_hora_hasta?: string;
   nuevas_notas?: string;
+  nuevo_cliente?: string;
   nuevo_numero_telefono?: string;
   nuevo_precio?: number;
   nuevo_servicio?: string;
   nuevo_servicio_solicitado?: string | null;
   nuevo_servicio_confirmado?: string | null;
   nuevo_tipo?: ReservaTipoBody;
+  /** Local destino cuando se mueve la reserva de sucursal. */
+  nuevo_local?: string;
+  /** Plan o paquete al que se imputa la reserva. */
+  nuevo_plan_id?: number;
+  /** Desvincula la reserva de su plan actual; tiene prioridad sobre `nuevo_plan_id`. */
+  limpiar_plan_id?: boolean;
 }
 
 export interface ActualizarEstadoReservaDBData {

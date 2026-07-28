@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { getReservasDB, actualizarReservaDB, type GetReservasDBParams, type ActualizarReservaDBData } from '@/lib/api/reservas';
+import { getReservasDB, type GetReservasDBParams } from '@/lib/api/reservas';
 import { shouldScopeAdminToLocal } from '@/lib/auth/adminSession';
 import type { ReservaBD, ReservasBDApiResponse } from '@/types/reserva';
 
@@ -11,7 +11,6 @@ interface UseReservasFiltradasReturn {
   loading: boolean;
   error: string | null;
   fetch: (params: GetReservasDBParams) => Promise<void>;
-  actualizarReserva: (data: ActualizarReservaDBData) => Promise<{ success: boolean; message: string }>;
 }
 
 export function useReservasFiltradas(): UseReservasFiltradasReturn {
@@ -51,26 +50,5 @@ export function useReservasFiltradas(): UseReservasFiltradasReturn {
     }
   }, []);
 
-  const actualizarReserva = useCallback(async (data: ActualizarReservaDBData) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const result = await actualizarReservaDB(data);
-      
-      if (result.mensaje?.toLowerCase().includes('error') || result.mensaje?.toLowerCase().includes('no encontrada')) {
-        return { success: false, message: result.mensaje };
-      }
-
-      return { success: true, message: result.mensaje || 'Reserva actualizada correctamente' };
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Error al actualizar reserva';
-      setError(message);
-      return { success: false, message };
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  return { reservas, total, loading, error, fetch, actualizarReserva };
+  return { reservas, total, loading, error, fetch };
 }

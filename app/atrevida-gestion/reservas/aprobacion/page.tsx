@@ -954,6 +954,16 @@ export default function AdminReservasAprobacionPage() {
                               Marcar como completada
                             </button>
                           )}
+                          {!isCompleted && (
+                            <button
+                              type="button"
+                              role="menuitem"
+                              onClick={() => router.push(`/atrevida-gestion/reservas/editar/${reserva.id}`)}
+                              disabled={actionId === reserva.id}
+                            >
+                              Editar o reprogramar
+                            </button>
+                          )}
                           <button
                             type="button"
                             role="menuitem"

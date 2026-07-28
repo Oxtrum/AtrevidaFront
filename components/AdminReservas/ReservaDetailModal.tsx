@@ -222,10 +222,12 @@ export function ReservaDetailModal({
             <Trash2 size={14} strokeWidth={2} />
             {deleting ? 'Eliminando...' : 'Eliminar'}
           </button>
-          <button className={styles.editButton} onClick={() => onEdit(reserva)}>
-            <Pencil size={14} strokeWidth={2} />
-            Editar
-          </button>
+          {reserva.estado !== 'COMPLETADO' && (
+            <button className={styles.editButton} onClick={() => onEdit(reserva)}>
+              <Pencil size={14} strokeWidth={2} />
+              Editar
+            </button>
+          )}
         </div>
       </div>
     </div>
