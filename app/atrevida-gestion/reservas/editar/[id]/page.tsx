@@ -11,7 +11,7 @@ import { getPlanesDB, type PlanItem } from '@/lib/api/planes';
 import { useReservas } from '@/lib/hooks/useReservas';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { DiaSemana, EstadoReserva, ReservaBD, generarSemanas, getFechasDeSemana, esFechaPasada } from '@/types/reserva';
-import { HORAS, DIAS_SEMANA, isSlotOutsideBusinessHours } from '@/lib/constants/reservationForm';
+import { HORAS, DIAS_SEMANA, SLOTS_POR_HORA, calcularHoraFin, isSlotOutsideBusinessHours } from '@/lib/constants/reservationForm';
 import { DaySelector } from '@/components/AdminReservationForm/DaySelector';
 import { TimeSlotPicker } from '@/components/AdminReservationForm/TimeSlotPicker';
 import { ServiceSelect } from '@/components/AdminReservationForm/ServiceSelect';
@@ -344,9 +344,11 @@ function EditarReservaContent() {
       || nuevaHoraHasta !== reserva?.hora_hasta
       || (nuevoLocal !== '' && nuevoLocal !== reserva?.local));
 
-  const handleSlotSelect = (desde: string, hasta: string) => {
+  const handleSlotSelect = (desde: string) => {
     setNuevaHoraDesde(desde);
-    setNuevaHoraHasta(hasta);
+    // Duración por defecto: 1 hora, recortada al cierre del local.
+    const fechaDia = nuevaFecha ? new Date(`${nuevaFecha}T00:00:00`) : new Date();
+    setNuevaHoraHasta(calcularHoraFin(desde, SLOTS_POR_HORA, localActual, fechaDia));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

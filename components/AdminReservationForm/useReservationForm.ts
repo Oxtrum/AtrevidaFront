@@ -16,7 +16,7 @@ import { toast } from '../Shared/Toast';
 import { getPlanesDB } from '@/lib/api/planes';
 import { validateReservationForm, } from '@/lib/utils/reservationValidation';
 import { type SlotStatus } from '@/lib/utils/hoursAvailability';
-import { HORAS, DIAS_SEMANA, isSlotOutsideBusinessHours } from '@/lib/constants/reservationForm';
+import { HORAS, DIAS_SEMANA, SLOT_MIN, SLOTS_POR_HORA, calcularHoraFin, tiempoAMinutos, isSlotOutsideBusinessHours } from '@/lib/constants/reservationForm';
 
 export interface ReservationFormInitialData {
   local?: string;
@@ -96,12 +96,13 @@ export function useReservationForm(
     const servicioInfo = serviciosAPI.find(s => s.nombre === svc);
     if (!servicioInfo) return '';
 
-    const [hh = 0, mm = 0] = (servicioInfo.tiempo || '01:00').split(':').map(Number);
-    const duracionSlots = Math.ceil((hh * 60 + mm) / 60);
-    const idxInicio = HORAS.indexOf(desde);
-    if (idxInicio === -1) return '';
-    const idxFin = Math.min(idxInicio + duracionSlots, HORAS.length - 1);
-    return HORAS[idxFin];
+    // `tiempo` llega como texto humano ('50 min', '1 hora y 30 min').
+    const duracionMin = tiempoAMinutos(servicioInfo.tiempo);
+    if (duracionMin <= 0) return '';
+
+    const duracionSlots = Math.ceil(duracionMin / SLOT_MIN);
+    const fechaDia = fechasSemana?.get(dia)?.fecha ?? new Date();
+    return calcularHoraFin(desde, duracionSlots, effectiveSucursal, fechaDia);
   };
   // ── Locales dinámicos ─────────────────────────
   // Usar locales dinámicos, si no hay usar SUCURSALES estático
@@ -376,8 +377,9 @@ export function useReservationForm(
       }
     }
 
-    const idxInicio = HORAS.indexOf(desde);
-    setHoraHasta(idxInicio !== -1 && idxInicio + 1 < HORAS.length ? HORAS[idxInicio + 1] : desde);
+    // Sin servicio elegido: duración por defecto de 1 hora, recortada al cierre.
+    const fechaDia = fechasSemana?.get(dia)?.fecha ?? new Date();
+    setHoraHasta(calcularHoraFin(desde, SLOTS_POR_HORA, effectiveSucursal, fechaDia));
     setSlotWarning(null);
   };
 

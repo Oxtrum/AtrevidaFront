@@ -20,7 +20,7 @@ import {
   validateReservationForm,
 } from '@/lib/utils/reservationValidation';
 import { type SlotStatus } from '@/lib/utils/hoursAvailability';
-import { HORAS, DIAS_SEMANA, isSlotOutsideBusinessHours } from '@/lib/constants/reservationForm';
+import { HORAS, DIAS_SEMANA, SLOT_MIN, SLOTS_POR_HORA, calcularHoraFin, isSlotOutsideBusinessHours } from '@/lib/constants/reservationForm';
 import { CATEGORIAS_ORDEN } from './constants';
 
 export interface ReservationFormInitialData {
@@ -120,19 +120,19 @@ export function useReservationForm(
     const servicioInfo = SERVICIOS_DISPONIBLES.find(s => s.value === servicio);
     if (!servicioInfo) return;
 
+    // El catálogo estático expresa la duración en minutos: '50 min', '90 min'.
     const match = servicioInfo.duracion.match(/(\d+)/);
     const duracionMin = match ? parseInt(match[1]) : 60;
-    const duracionSlots = Math.ceil(duracionMin / 60);
+    const duracionSlots = Math.ceil(duracionMin / SLOT_MIN);
 
-    const idxInicio = HORAS.indexOf(horaDesde);
-    if (idxInicio !== -1) {
-      const idxFin = Math.min(idxInicio + duracionSlots, HORAS.length - 1);
-      const timeoutId = window.setTimeout(() => {
-        setHoraHasta(HORAS[idxFin]);
-      }, 0);
-      return () => window.clearTimeout(timeoutId);
-    }
-  }, [horaPreestablecida, horaDesde, servicio]);
+    const fechaDia = fecha ? new Date(`${fecha}T00:00:00`) : new Date();
+    const fin = calcularHoraFin(horaDesde, duracionSlots, sucursal, fechaDia);
+
+    const timeoutId = window.setTimeout(() => {
+      setHoraHasta(fin);
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [horaPreestablecida, horaDesde, servicio, fecha, sucursal]);
   // ── Locales dinámicos ─────────────────────────
   // Usar locales dinámicos, si no hay usar SUCURSALES estático
   const sucursalOptions = useMemo(
@@ -443,17 +443,12 @@ export function useReservationForm(
   const handleSlotSelect = (desde: string) => {
     setHoraDesde(desde);
 
-    // Auto‑calcular hora fin como la siguiente hora disponible
-    const idxInicio = HORAS.indexOf(desde);
-    if (idxInicio !== -1 && idxInicio + 1 < HORAS.length) {
-        setHoraHasta(HORAS[idxInicio + 1]);
-    } else {
-        // Si no hay siguiente, usar el mismo valor (no cambia)
-        setHoraHasta(desde);
-    }
+    // Duración por defecto: 1 hora, recortada al cierre del local.
+    const fechaDia = fecha ? new Date(`${fecha}T00:00:00`) : new Date();
+    setHoraHasta(calcularHoraFin(desde, SLOTS_POR_HORA, sucursal, fechaDia));
 
     setSlotWarning(null);
-};
+  };
 
   // ── Validación y submit ────────────────────────────────
   const validate = (): boolean => {

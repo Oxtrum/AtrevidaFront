@@ -8,7 +8,7 @@ interface TimeSlotPickerProps {
   horaDesde: string;
   horaHasta: string;
   hoursAvailability: Map<string, SlotStatus>;
-  onSelect: (desde: string, hasta: string) => void;
+  onSelect: (desde: string) => void;
 }
 
 export function TimeSlotPicker({
@@ -24,10 +24,8 @@ export function TimeSlotPicker({
     // No permitir seleccionar horas pasadas, ocupadas o fuera de atención
     if (status === 'past' || status === 'occupied' || status === 'closed') return;
 
-    // Selección inmediata de 1 hora
-    const idx = HORAS.indexOf(hora);
-    const siguiente = HORAS[idx + 1] || hora;
-    onSelect(hora, siguiente);
+    // El hook calcula la hora de fin: depende del servicio y del cierre del local.
+    onSelect(hora);
   };
 
   const isInRange = (hora: string): boolean => {

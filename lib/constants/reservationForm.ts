@@ -71,7 +71,9 @@ export function isSlotOutsideBusinessHours(local: string, date: Date, horaDesde:
 /**
  * Calcula la hora de fin de una reserva a partir de su inicio y su duración en
  * slots, recortada al cierre del local. Click en 19:30 con duración de 1 hora
- * produce 20:00, no 20:30.
+ * produce 20:00, no 20:30. Si el local está cerrado ese día (domingo), no hay
+ * hora de fin válida y se devuelve `desde` (rango de largo cero), igual que
+ * cuando `desde` no pertenece a `HORAS`.
  */
 export function calcularHoraFin(desde: string, slots: number, local: string, fecha: Date): string {
     const idxInicio = HORAS.indexOf(desde);
@@ -80,8 +82,10 @@ export function calcularHoraFin(desde: string, slots: number, local: string, fec
     const idxFin = Math.min(idxInicio + Math.max(slots, 1), HORAS.length - 1);
     const fin = HORAS[idxFin];
 
+    // Local cerrado ese día (domingo): no hay hora de fin válida.
     const cierre = getBusinessClosingTime(local, fecha);
-    if (cierre && timeToMinutes(fin) > timeToMinutes(cierre)) return cierre;
+    if (!cierre) return desde;
+    if (timeToMinutes(fin) > timeToMinutes(cierre)) return cierre;
     return fin;
 }
 
