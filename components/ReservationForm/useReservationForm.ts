@@ -113,20 +113,22 @@ export function useReservationForm(
   const [servicioSolicitado, setServicioSolicitado] = useState('');
   const [horaPreestablecida] = useState(!!initialData?.hora_desde); // Marca si hora vino del URL
 
+  /** Slots de la rejilla que ocupa un servicio del catálogo público. 1 hora si no se conoce. */
+  const slotsDeServicio = (svc: string): number => {
+    const servicioInfo = SERVICIOS_DISPONIBLES.find(s => s.value === svc);
+    if (!servicioInfo) return SLOTS_POR_HORA;
+    // El catálogo estático expresa la duración en minutos: '50 min', '90 min'.
+    const match = servicioInfo.duracion.match(/(\d+)/);
+    const duracionMin = match ? parseInt(match[1]) : 60;
+    return Math.ceil(duracionMin / SLOT_MIN);
+  };
+
   // Calcular horaHasta cuando hora viene del URL y se selecciona servicio
   useEffect(() => {
     if (!horaPreestablecida || !horaDesde || !servicio) return;
 
-    const servicioInfo = SERVICIOS_DISPONIBLES.find(s => s.value === servicio);
-    if (!servicioInfo) return;
-
-    // El catálogo estático expresa la duración en minutos: '50 min', '90 min'.
-    const match = servicioInfo.duracion.match(/(\d+)/);
-    const duracionMin = match ? parseInt(match[1]) : 60;
-    const duracionSlots = Math.ceil(duracionMin / SLOT_MIN);
-
     const fechaDia = fecha ? new Date(`${fecha}T00:00:00`) : new Date();
-    const fin = calcularHoraFin(horaDesde, duracionSlots, sucursal, fechaDia);
+    const fin = calcularHoraFin(horaDesde, slotsDeServicio(servicio), sucursal, fechaDia);
 
     const timeoutId = window.setTimeout(() => {
       setHoraHasta(fin);
@@ -443,9 +445,9 @@ export function useReservationForm(
   const handleSlotSelect = (desde: string) => {
     setHoraDesde(desde);
 
-    // Duración por defecto: 1 hora, recortada al cierre del local.
+    // La duración sale del servicio elegido; 1 hora si todavía no hay ninguno.
     const fechaDia = fecha ? new Date(`${fecha}T00:00:00`) : new Date();
-    setHoraHasta(calcularHoraFin(desde, SLOTS_POR_HORA, sucursal, fechaDia));
+    setHoraHasta(calcularHoraFin(desde, slotsDeServicio(servicio), sucursal, fechaDia));
 
     setSlotWarning(null);
   };

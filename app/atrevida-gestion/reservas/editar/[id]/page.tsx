@@ -11,7 +11,7 @@ import { getPlanesDB, type PlanItem } from '@/lib/api/planes';
 import { useReservas } from '@/lib/hooks/useReservas';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { DiaSemana, EstadoReserva, ReservaBD, generarSemanas, getFechasDeSemana, esFechaPasada } from '@/types/reserva';
-import { HORAS, DIAS_SEMANA, SLOTS_POR_HORA, calcularHoraFin, isSlotOutsideBusinessHours } from '@/lib/constants/reservationForm';
+import { HORAS, DIAS_SEMANA, SLOT_MIN, SLOTS_POR_HORA, calcularHoraFin, tiempoAMinutos, isSlotOutsideBusinessHours } from '@/lib/constants/reservationForm';
 import { DaySelector } from '@/components/AdminReservationForm/DaySelector';
 import { TimeSlotPicker } from '@/components/AdminReservationForm/TimeSlotPicker';
 import { ServiceSelect } from '@/components/AdminReservationForm/ServiceSelect';
@@ -344,11 +344,28 @@ function EditarReservaContent() {
       || nuevaHoraHasta !== reserva?.hora_hasta
       || (nuevoLocal !== '' && nuevoLocal !== reserva?.local));
 
+  /** Slots de la rejilla que ocupa un servicio del catálogo. 1 hora si no se conoce. */
+  const slotsDeServicio = (svc: string): number => {
+    const servicioInfo = serviciosDisponibles.find(s => s.nombre === svc);
+    if (!servicioInfo) return SLOTS_POR_HORA;
+    const duracionMin = tiempoAMinutos(servicioInfo.tiempo);
+    if (duracionMin <= 0) return SLOTS_POR_HORA;
+    return Math.ceil(duracionMin / SLOT_MIN);
+  };
+
   const handleSlotSelect = (desde: string) => {
     setNuevaHoraDesde(desde);
-    // Duración por defecto: 1 hora, recortada al cierre del local.
+    // La duración sale del servicio elegido; 1 hora si todavía no hay ninguno.
     const fechaDia = nuevaFecha ? new Date(`${nuevaFecha}T00:00:00`) : new Date();
-    setNuevaHoraHasta(calcularHoraFin(desde, SLOTS_POR_HORA, localActual, fechaDia));
+    setNuevaHoraHasta(calcularHoraFin(desde, slotsDeServicio(nuevoServicio), localActual, fechaDia));
+  };
+
+  const handleServicioChange = (value: string) => {
+    setNuevoServicio(value);
+    if (nuevaHoraDesde) {
+      const fechaDia = nuevaFecha ? new Date(`${nuevaFecha}T00:00:00`) : new Date();
+      setNuevaHoraHasta(calcularHoraFin(nuevaHoraDesde, slotsDeServicio(value), localActual, fechaDia));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -590,7 +607,7 @@ function EditarReservaContent() {
               groups={servicioGroups}
               hasError={false}
               onChange={(value) => {
-                setNuevoServicio(value);
+                handleServicioChange(value);
                 const svc = serviciosDisponibles.find(s => s.nombre === value);
                 if (svc?.costo) setNuevoPrecio(String(svc.costo));
               }}
