@@ -5,12 +5,21 @@
 
 import type { DiaSemana } from '@/types/reserva';
 
+/** Granularidad de la rejilla de la agenda, en minutos. */
+export const SLOT_MIN = 30;
+
+/** Cuántos slots de la rejilla ocupa una hora. Duración por defecto de una reserva. */
+export const SLOTS_POR_HORA = 60 / SLOT_MIN;
+
 export const HORAS: string[] = [
-    '08:00', '09:00', '10:00', '11:00', '12:00', '13:00',
-    '14:00', '15:00', '16:00', '17:00', '18:00', '19:00',
+    '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
+    '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
+    '14:00', '14:30', '15:00', '15:30', '16:00', '16:30',
+    '17:00', '17:30', '18:00', '18:30', '19:00', '19:30',
     '20:00',
 ];
 
+/** Horas donde se puede *empezar* una reserva: todas menos el cierre. */
 export const HORAS_INICIO: string[] = HORAS.slice(0, -1);
 
 export const DIAS_SEMANA: readonly { value: DiaSemana; label: string }[] = [
@@ -52,7 +61,45 @@ export function isSlotOutsideBusinessHours(local: string, date: Date, horaDesde:
 
     const closingMinutes = timeToMinutes(closingTime);
     const desdeMinutes = timeToMinutes(horaDesde);
-    const hastaMinutes = horaHasta ? timeToMinutes(horaHasta) : desdeMinutes + 60;
+    // Sin horaHasta la pregunta es "¿cabe algo empezando acá?", así que se usa
+    // el bloque más corto posible. Con horaHasta se valida el rango real.
+    const hastaMinutes = horaHasta ? timeToMinutes(horaHasta) : desdeMinutes + SLOT_MIN;
 
     return desdeMinutes >= closingMinutes || hastaMinutes > closingMinutes;
+}
+
+/**
+ * Calcula la hora de fin de una reserva a partir de su inicio y su duración en
+ * slots, recortada al cierre del local. Click en 19:30 con duración de 1 hora
+ * produce 20:00, no 20:30.
+ */
+export function calcularHoraFin(desde: string, slots: number, local: string, fecha: Date): string {
+    const idxInicio = HORAS.indexOf(desde);
+    if (idxInicio === -1) return desde;
+
+    const idxFin = Math.min(idxInicio + Math.max(slots, 1), HORAS.length - 1);
+    const fin = HORAS[idxFin];
+
+    const cierre = getBusinessClosingTime(local, fecha);
+    if (cierre && timeToMinutes(fin) > timeToMinutes(cierre)) return cierre;
+    return fin;
+}
+
+/**
+ * Parsea el campo `tiempo` de un servicio a minutos. Se guarda como texto
+ * humano ("50 min", "1 hora", "1 hora y 30 min") desde el panel de
+ * configuración, y en datos viejos aparece como número suelto ("50").
+ */
+export function tiempoAMinutos(texto: string | null | undefined): number {
+    if (!texto) return 0;
+
+    const raw = Number(texto.trim());
+    if (!isNaN(raw) && raw > 0) return raw;
+
+    let total = 0;
+    const horasMatch = texto.match(/(\d+)\s*hora/);
+    const minsMatch = texto.match(/(\d+)\s*min/);
+    if (horasMatch) total += parseInt(horasMatch[1], 10) * 60;
+    if (minsMatch) total += parseInt(minsMatch[1], 10);
+    return total;
 }

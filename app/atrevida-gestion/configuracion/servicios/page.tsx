@@ -20,6 +20,7 @@ import {
   togglePacienteNuevo,
 } from '@/lib/api/servicios';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
+import { tiempoAMinutos } from '@/lib/constants/reservationForm';
 import styles from './page.module.css';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -118,17 +119,6 @@ function minutosATexto(minutos: number): string {
   if (h === 0) return `${m} min`;
   if (m === 0) return h === 1 ? '1 hora' : `${h} horas`;
   return h === 1 ? `1 hora y ${m} min` : `${h} horas y ${m} min`;
-}
-
-function textoAMinutos(texto: string): number {
-  const raw = Number(texto.trim());
-  if (!isNaN(raw) && raw > 0) return raw;
-  let total = 0;
-  const horasMatch = texto.match(/(\d+)\s*hora/);
-  const minsMatch = texto.match(/(\d+)\s*min/);
-  if (horasMatch) total += parseInt(horasMatch[1], 10) * 60;
-  if (minsMatch) total += parseInt(minsMatch[1], 10);
-  return total || 0;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -339,7 +329,7 @@ export default function ServiciosPage() {
     setForm({
       nombre: row.nombre,
       categoria: row.categoria,
-      tiempo: String(textoAMinutos(String(row.tiempo ?? ''))),
+      tiempo: String(tiempoAMinutos(String(row.tiempo ?? ''))),
       costo: String(row.costo ?? ''),
       sesiones: row.sesiones,
       tipo_espacio_requerido:
