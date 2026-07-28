@@ -66,6 +66,8 @@
 .calendarContainer {
   width: 100%;
   overflow-x: auto;
+  overflow-y: auto;
+  max-height: 70vh;
   background: linear-gradient(180deg, var(--admin-surface-1), var(--admin-surface-2));
   border-radius: var(--admin-radius-xl);
   border: 1px solid var(--admin-border-subtle);
@@ -92,6 +94,13 @@
 .calendarHeader,
 .timeCell {
   background: var(--admin-bg-secondary);
+}
+
+.cornerCell,
+.calendarHeader {
+  position: sticky;
+  top: 0;
+  z-index: 3;
 }
 
 /* ─── Header cells ─────────────────────────────────────────────────────────── */
@@ -127,7 +136,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100px;
+  min-height: 56px; /* filas de 30 min */
 }
 
 .timeStart {
@@ -141,12 +150,21 @@
   color: var(--admin-text-muted);
 }
 
+/* Filas de media hora: menos peso visual que las horas en punto (estilo agenda). */
+.timeCellMedia {
+  opacity: 0.62;
+}
+
+.timeCellMedia .timeStart {
+  font-weight: 500;
+}
+
 /* ─── Time slots ───────────────────────────────────────────────────────────── */
 
 .timeSlot {
   background: var(--admin-bg-secondary);
   border-right: 1px solid var(--admin-border-subtle);
-  min-height: 100px;
+  min-height: 56px; /* filas de 30 min */
   transition:
     background var(--admin-t-normal) var(--admin-ease),
     border-color var(--admin-t-normal) var(--admin-ease),
@@ -282,7 +300,6 @@
   background: var(--admin-border-subtle);
   border: 1px solid var(--admin-border-subtle);
   border-radius: var(--admin-radius-xl);
-  overflow: hidden;
 }
 
 .dayButton {

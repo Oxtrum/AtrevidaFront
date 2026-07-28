@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, Fragment } from 'react';
 import { DiaSemana, ApiResponse, FechaDia, ReservaPorHora, type ReservaDetalle } from '@/types/reserva';
-import { HORAS, HORAS_INICIO } from '@/lib/constants/reservationForm';
+import { HORAS, HORAS_INICIO, SLOT_MIN } from '@/lib/constants/reservationForm';
 import TimeSlotPublico from './TimeSlotPublico';
 import TimeSlotAdmin from './TimeSlotAdminAdmin';
 import styles from './CalendarAdmin.module.css';
@@ -34,7 +34,7 @@ interface CalendarGridProps {
  * Extrae las horas de reserva de la API (solo las que existen, no hardcodeadas)
  */
 function obtenerHorasFijas(data: ApiResponse | null): ReservaPorHora[] {
-  // Crear el esqueleto basado en HORAS (que ahora son de hora en hora)
+  // Esqueleto de la semana: una fila por cada slot de la rejilla (30 min).
   const grid: ReservaPorHora[] = [];
   for (let i = 0; i < HORAS_INICIO.length; i++) {
     const start = HORAS[i];
@@ -42,7 +42,8 @@ function obtenerHorasFijas(data: ApiResponse | null): ReservaPorHora[] {
 
     if (!end) {
       const [hh, mm] = start.split(':').map(Number);
-      end = `${(hh + 1).toString().padStart(2, '0')}:${mm.toString().padStart(2, '0')}`;
+      const finMin = hh * 60 + mm + SLOT_MIN;
+      end = `${Math.floor(finMin / 60).toString().padStart(2, '0')}:${(finMin % 60).toString().padStart(2, '0')}`;
     }
 
     grid.push({
@@ -210,7 +211,12 @@ export default function CalendarGrid({
           return (
             <Fragment key={rowIdx}>
               {/* Celda de tiempo — columna 1 */}
-              <div className={styles.timeCell}>
+              <div
+                className={[
+                  styles.timeCell,
+                  horaInicio.endsWith(':30') ? styles.timeCellMedia : '',
+                ].filter(Boolean).join(' ')}
+              >
                 <span className={styles.timeStart}>{horaInicio}</span>
                 <span className={styles.timeEnd}>{horaFin}</span>
               </div>

@@ -215,6 +215,9 @@
 .calendarContainer {
   width: 100%;
   overflow-x: auto;
+  overflow-y: auto;
+  max-height: 70vh;
+  border-radius: 20px;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: rgba(146, 39, 143, 0.4) transparent;
@@ -223,6 +226,7 @@
 }
 
 .calendarContainer::-webkit-scrollbar {
+  width: 6px;
   height: 4px;
 }
 
@@ -241,7 +245,6 @@
   background: rgba(0, 0, 0, 0.8);
   border: 1px solid rgba(146, 39, 143, 0.25);
   border-radius: 20px;
-  overflow: hidden;
   backdrop-filter: blur(20px);
   position: relative;
 }
@@ -263,7 +266,6 @@
   background: rgba(0, 0, 0, 0.8);
   border: 1px solid rgba(146, 39, 143, 0.25);
   border-radius: 20px;
-  overflow: hidden;
   backdrop-filter: blur(20px);
 }
 
@@ -272,6 +274,9 @@
 .cornerCell {
   background: rgba(0, 0, 0, 0.9);
   border-bottom: 1px solid rgba(20, 174, 239, 0.15);
+  position: sticky;
+  top: 0;
+  z-index: 3;
 }
 
 .calendarHeader {
@@ -284,6 +289,9 @@
   align-items: center;
   justify-content: center;
   gap: 0.2rem;
+  position: sticky;
+  top: 0;
+  z-index: 3;
 }
 
 .headerDay {
@@ -358,7 +366,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 96px; /* increased for 1‑hour rows */
+  min-height: 56px; /* filas de 30 min */
   line-height: 1.2;
 }
 
@@ -376,12 +384,27 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Filas de media hora: menos peso visual que las horas en punto (estilo agenda). */
+.timeCellMedia {
+  background: rgba(0, 0, 0, 0.7);
+  border-bottom: 1px solid rgba(146, 39, 143, 0.05);
+}
+
+.timeCellMedia .timeStart {
+  color: rgba(20, 174, 239, 0.5);
+  font-weight: 500;
+}
+
+.timeCellMedia .timeEnd {
+  color: rgba(255, 255, 255, 0.28);
+}
+
 /* ─── Time slots ───────────────────────────────────────────────────────────── */
 
 .timeSlot {
   background: rgba(0, 0, 0, 0.65);
   border-right: 1px solid rgba(146, 39, 143, 0.08);
-  min-height: 96px; /* increased for 1‑hour rows */
+  min-height: 56px; /* filas de 30 min */
   transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
   display: flex;
   align-items: stretch;
