@@ -33,6 +33,39 @@ const MAX_SERVICIOS = 4;
 const whatsappUrl = (nombre: string) =>
   `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Hola, me interesa el paquete ${nombre}.`)}`;
 
+/**
+ * Marca el tier con el precio por sesión más bajo. Se calcula en vez de asumir
+ * que "más sesiones = más barato": un tier grande puede estar mal cargado y
+ * salir más caro por sesión que uno chico. Devuelve null si hay un solo tier,
+ * si faltan datos para comparar o si hay empate — sin un ganador claro el
+ * badge desinforma.
+ */
+function tierMejorPrecio(tiers: PaqueteDetalle['tiers']): number | null {
+  if (tiers.length < 2) return null;
+
+  let mejorId: number | null = null;
+  let mejorRatio = Infinity;
+  let empatado = false;
+
+  for (const tier of tiers) {
+    const sesiones = tier.sesiones_totales ?? 0;
+    const precio = tier.precio_final ?? 0;
+    // Sin id no hay forma de marcarlo en el render.
+    if (tier.id == null || sesiones <= 0 || precio <= 0) continue;
+
+    const ratio = precio / sesiones;
+    if (ratio < mejorRatio) {
+      mejorRatio = ratio;
+      mejorId = tier.id;
+      empatado = false;
+    } else if (ratio === mejorRatio) {
+      empatado = true;
+    }
+  }
+
+  return empatado ? null : mejorId;
+}
+
 function serviciosUnicos(base: PaqueteDetalle['servicios_base']): string[] {
   const vistos = new Set<string>();
   const out: string[] = [];
@@ -143,8 +176,15 @@ export default function Paquetes() {
             {paquetes.map((p) => {
               const servicios = serviciosUnicos(p.servicios_base);
               const tiers = [...p.tiers].sort((a, b) => (a.sesiones_totales ?? 0) - (b.sesiones_totales ?? 0));
+              const tierDestacado = tierMejorPrecio(tiers);
               return (
                 <article key={p.paquete.id} className={styles.card}>
+                  <div className={styles.glow} aria-hidden="true" />
+
+                  {p.paquete.categoria && (
+                    <span className={styles.categoria}>{p.paquete.categoria}</span>
+                  )}
+
                   <div className={styles.detail}>
                     <h3 className={styles.name}>{p.paquete.nombre}</h3>
 
@@ -173,7 +213,7 @@ export default function Paquetes() {
                           {tiers.map((tier) => (
                             <a
                               key={tier.id}
-                              className={styles.tier}
+                              className={`${styles.tier} ${tier.id === tierDestacado ? styles.tierDestacado : ''}`}
                               href={whatsappUrl(tier.nombre ?? p.paquete.nombre)}
                               target="_blank"
                               rel="noopener noreferrer"
@@ -185,6 +225,9 @@ export default function Paquetes() {
                                 )}
                                 {moneda(tier.precio_final ?? 0, tier.moneda)}
                               </span>
+                              {tier.id === tierDestacado && (
+                                <span className={styles.tierBadge}>Mejor precio</span>
+                              )}
                             </a>
                           ))}
                         </div>

@@ -24,7 +24,9 @@
   display: flex;
   flex-direction: column;
   min-height: 340px;
-  background: var(--af-surface-2);
+  /* Mismo ambiente que las cards del panel: gradiente diagonal de base y el
+     glow de marca encima, para que la tarjeta tenga profundidad sin foto. */
+  background: linear-gradient(135deg, #1a1a24, #0f0f16);
   border: 1px solid var(--af-border);
   border-radius: var(--af-radius-lg);
   overflow: hidden;
@@ -32,14 +34,42 @@
   transition: transform 0.25s var(--af-ease), box-shadow 0.25s var(--af-ease), border-color 0.25s var(--af-ease);
 }
 
-.card::before {
-  content: '';
+.glow {
   position: absolute;
-  inset: 0 0 auto 0;
-  z-index: 3;
-  height: 3px;
-  background: var(--af-grad-brand);
-  opacity: 0.9;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(circle at 30% 18%, rgba(236, 0, 140, 0.3), transparent 55%),
+    radial-gradient(circle at 84% 88%, rgba(20, 174, 239, 0.22), transparent 55%);
+  transition: opacity 0.25s var(--af-ease);
+}
+
+.card:hover .glow {
+  opacity: 0.75;
+}
+
+/* Ancla superior de la tarjeta: ubica el paquete antes de leer el nombre. */
+.categoria {
+  position: absolute;
+  top: 0.95rem;
+  left: 1.1rem;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  max-width: calc(100% - 2.2rem);
+  padding: 0.3rem 0.72rem;
+  border-radius: var(--af-radius-pill);
+  font-size: 0.64rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(236, 0, 140, 0.94), rgba(146, 39, 143, 0.94));
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 6px 16px rgba(236, 0, 140, 0.3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .card:hover {
@@ -50,7 +80,7 @@
 
 .detail {
   position: relative;
-  z-index: 2;
+  z-index: 1;
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -58,16 +88,19 @@
   padding: 1.7rem 1.4rem 1.4rem;
 }
 
+/* Deja sitio a la píldora de categoría solo cuando existe. */
+.card:has(.categoria) .detail {
+  padding-top: 3.3rem;
+}
+
+/* Blanco sólido: el acento de marca ya vive en la píldora y en la linea
+   superior, y compitiendo los tres el nombre perdia legibilidad. */
 .name {
   font-size: clamp(1.3rem, 2.8vw, 1.6rem);
-  font-weight: 900;
-  line-height: 1.12;
+  font-weight: 800;
+  line-height: 1.15;
   letter-spacing: -0.4px;
-  background: var(--af-grad-brand);
-  background-size: 200% 200%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #fff;
 }
 
 .services {
@@ -129,15 +162,20 @@
 }
 
 .tier {
+  position: relative;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 0.05rem;
+  /* Objetivo tactil comodo: cada tier es un CTA a WhatsApp. */
+  min-height: 46px;
   padding: 0.5rem 0.7rem;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: var(--af-radius-md);
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(6px);
   text-decoration: none;
+  cursor: pointer;
   transition: border-color 0.2s var(--af-ease), background 0.2s var(--af-ease), transform 0.2s var(--af-ease);
 }
 
@@ -145,6 +183,27 @@
   border-color: rgba(236, 0, 140, 0.5);
   background: rgba(236, 0, 140, 0.12);
   transform: translateY(-2px);
+}
+
+/* A mas sesiones, menor precio por sesion: se marca cual conviene. */
+.tierDestacado {
+  border-color: rgba(236, 0, 140, 0.55);
+  background: rgba(236, 0, 140, 0.14);
+}
+
+.tierBadge {
+  position: absolute;
+  top: -0.55rem;
+  right: 0.45rem;
+  padding: 0.1rem 0.42rem;
+  border-radius: var(--af-radius-pill);
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #fff;
+  background: linear-gradient(135deg, #ec008c, #92278f);
+  box-shadow: 0 4px 10px rgba(236, 0, 140, 0.35);
 }
 
 .tier:focus-visible {
