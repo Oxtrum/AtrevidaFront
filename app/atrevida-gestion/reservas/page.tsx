@@ -4,7 +4,8 @@ import { useRef, useEffect, useState, useMemo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import gsap from 'gsap';
 import { CalendarRange, Pencil, Trash2 } from 'lucide-react';
-import { DiaSemana, EstadoReserva, ReservaBD, ReservaDetalle } from '@/types/reserva';
+import { DiaSemana, EstadoReserva, ReservaBD, ReservaDetalle, generarSemanas, getFechasDeSemana } from '@/types/reserva';
+import { SLOTS_POR_HORA, calcularHoraFin } from '@/lib/constants/reservationForm';
 import { CalendarAdmin } from '@/components/Calendar';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { useReservasFiltradas } from '@/lib/hooks/useReservasFiltradas';
@@ -82,6 +83,17 @@ export default function AdminReservasPage() {
   const [filtroFechaDesde, setFiltroFechaDesde] = useState(getInitialFechaDesde);
   const [filtroFechaHasta, setFiltroFechaHasta] = useState(getInitialFechaHasta);
 
+  // Fechas de la semana que muestra el calendario. Se derivan igual que en
+  // CalendarAdmin (generarSemanas(6) + getFechasDeSemana), y `semanaActiva` se
+  // mantiene sincronizada vía onSemanaChange. Sirven para recortar la hora de
+  // fin al cierre del local al prellenar el formulario de creación.
+  const fechasCalendario = useMemo(() => {
+    const semanas = generarSemanas(6);
+    const idx = Number(semanaActiva);
+    const semana = semanas[Number.isFinite(idx) ? idx : 0] ?? semanas[0];
+    return semana ? getFechasDeSemana(semana.fechaInicio) : null;
+  }, [semanaActiva]);
+
   // Fetch reservas filtradas cuando cambian los filtros
   useEffect(() => {
     if (effectiveFiltroLocal && filtroFechaDesde && filtroFechaHasta) {
@@ -121,22 +133,14 @@ export default function AdminReservasPage() {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleSlotClick = (hora: string, dia: DiaSemana, slots: unknown) => {
-    let hora_desde: string, hora_hasta: string;
+    // La etiqueta de la fila es "16:00 a 16:30": su fin es el fin del *slot* de
+    // la rejilla (30 min), no la duración por defecto de una reserva (60 min).
+    // Usarla como hora_hasta prellenaría el formulario con media hora.
+    const inicio = (hora.includes(' a ') ? hora.split(' a ')[0] : hora).trim();
+    const hora_desde = inicio.includes(':') ? inicio : `${inicio}:00`;
 
-    if (hora.includes(' a ')) {
-      const partes = hora.split(' a ').map(h => h.trim());
-      hora_desde = partes[0] || '';
-      hora_hasta = partes[1] || '';
-    } else {
-      hora_desde = hora.includes(':') ? hora : `${hora}:00`;
-      const [hh, mm] = hora_desde.split(':').map(Number);
-      const minutos = (mm || 0) + 60;
-      if (minutos >= 60) {
-        hora_hasta = `${(hh + 1).toString().padStart(2, '0')}:00`;
-      } else {
-        hora_hasta = `${hh.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}`;
-      }
-    }
+    const fechaDia = fechasCalendario?.get(dia)?.fecha ?? new Date();
+    const hora_hasta = calcularHoraFin(hora_desde, SLOTS_POR_HORA, effectiveSucursalActiva, fechaDia);
 
     const params = new URLSearchParams({
       local: effectiveSucursalActiva,

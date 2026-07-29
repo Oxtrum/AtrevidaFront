@@ -354,8 +354,13 @@ export function useReservationForm(
   const handleServicioChange = (value: string) => {
     setServicio(value);
     if (horaDesde) {
+      // `calcularHoraHasta` devuelve '' si el servicio no está en el catálogo o
+      // si su `tiempo` (texto libre) no parsea. Sin el fallback quedaría pegada
+      // la horaHasta del servicio anterior: se cae a 1 hora, igual que
+      // `handleSlotSelect`.
       const hasta = calcularHoraHasta(horaDesde, value);
-      if (hasta) setHoraHasta(hasta);
+      const fechaDia = fechasSemana?.get(dia)?.fecha ?? new Date();
+      setHoraHasta(hasta || calcularHoraFin(horaDesde, SLOTS_POR_HORA, effectiveSucursal, fechaDia));
     }
     setSlotWarning(null);
   };
