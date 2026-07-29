@@ -112,6 +112,10 @@ export interface ReservaDetalle {
   fecha?: string;
   hora_desde?: string;
   hora_hasta?: string;
+  // hora_hasta real de la reserva cuando se parte en slots de 30 min para la
+  // rejilla. hora_hasta contiene el fin del slot (p.ej. "16:30"),
+  // reserva_hora_hasta contiene el fin real (p.ej. "17:00").
+  reserva_hora_hasta?: string;
   estado?: EstadoReserva;
   plan_id?: number;
 }

@@ -101,8 +101,8 @@ export function tiempoAMinutos(texto: string | null | undefined): number {
     if (!isNaN(raw) && raw > 0) return raw;
 
     let total = 0;
-    const horasMatch = texto.match(/(\d+)\s*hora/);
-    const minsMatch = texto.match(/(\d+)\s*min/);
+    const horasMatch = texto.match(/(\d+)\s*hora/i);
+    const minsMatch = texto.match(/(\d+)\s*min/i);
     if (horasMatch) total += parseInt(horasMatch[1], 10) * 60;
     if (minsMatch) total += parseInt(minsMatch[1], 10);
     return total;
