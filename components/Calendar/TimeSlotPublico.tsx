@@ -16,6 +16,11 @@ interface TimeSlotPublicoProps {
   onClick?: () => void;
   /** No usado en público; presente para compatibilidad con TimeSlotAdmin. */
   onReservaClick?: (reserva: ReservaDetalle) => void;
+  /**
+   * No usado en público (esta vista no dibuja tarjetas por reserva, solo el
+   * resumen de disponibilidad); presente para compatibilidad con TimeSlotAdmin.
+   */
+  idsContinuacion?: Set<number>;
   esPasado?: boolean;
 }
 

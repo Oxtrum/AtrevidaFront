@@ -12,6 +12,12 @@ interface TimeSlotAdminProps {
   fecha: Date;
   onClick?: () => void;
   onReservaClick?: (reserva: ReservaDetalle) => void;
+  /**
+   * Ids de reservas que en esta fila son *continuación* de una fila anterior
+   * (una reserva de 1 h ocupa dos filas de 30 min y llega duplicada con el mismo
+   * id). Siguen ocupando el slot; simplemente no repiten la tarjeta.
+   */
+  idsContinuacion?: Set<number>;
   esPasado?: boolean;
 }
 
@@ -26,10 +32,18 @@ export default function TimeSlotAdmin({
   fecha,
   onClick,
   onReservaClick,
+  idsContinuacion,
   esPasado = false,
 }: TimeSlotAdminProps) {
   const slotsOcupados = slots?.filter(s => s.cliente && s.cliente.trim() !== '') || [];
   const slotsLibres = slots?.filter(s => !s.cliente || s.cliente.trim() === '') || [];
+
+  // Solo la fila donde empieza la reserva dibuja su tarjeta. `slotsOcupados` y
+  // `slotsLibres` no se tocan: la capacidad, los badges y el "no hay lugar acá"
+  // se siguen calculando sobre todas las filas que la reserva ocupa.
+  const slotsConTarjeta = idsContinuacion?.size
+    ? slotsOcupados.filter(s => s.id == null || !idsContinuacion.has(s.id))
+    : slotsOcupados;
 
   // Clickeable SOLO si hay slots libres disponibles y no es pasado
   const esClickeable = !esPasado && esHoraDisponible(fecha) && slotsLibres.length > 0;
@@ -41,8 +55,8 @@ export default function TimeSlotAdmin({
     }
   };
 
-  // Agrupar reservas ocupadas por tipo
-  const slotsPorTipo = slotsOcupados.reduce(
+  // Agrupar por tipo solo las reservas que dibujan tarjeta en esta fila
+  const slotsPorTipo = slotsConTarjeta.reduce(
     (acc, slot) => {
       // Normalizar tipo: asegurar que 'b', 'B', 'bicicleta' se agrupen como 'b'
       const tipoRaw = slot.tipo?.toLowerCase() || 'm';
@@ -75,6 +89,10 @@ export default function TimeSlotAdmin({
       title={esClickeable ? 'Hacer clic para crear reserva' : slotsOcupados.length > 0 ? 'Reservas (no hay disponibilidad)' : ''}
     >
       <div className={styles.timeSlotContent}>
+        {/* La rama la sigue eligiendo `slotsOcupados` (ocupación real), no
+            `slotsConTarjeta`: así los badges y el placeholder de slot libre se
+            comportan igual que antes. Lo único que cambia es la lista de
+            tarjetas, que en una fila de continuación queda vacía. */}
         {slotsOcupados.length > 0 ? (
           // Mostrar reservas ocupadas
           <div className={styles.reservationList}>

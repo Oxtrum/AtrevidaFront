@@ -114,6 +114,46 @@ export default function CalendarGrid({
   // Usar horas fijas basadas en la constante HORAS
   const horasGrid = useMemo(() => obtenerHorasFijas(data), [data]);
 
+  // Una reserva que dura más de un slot llega repetida en cada fila que ocupa,
+  // siempre con el mismo `id`. Recorriendo las filas en orden cronológico, la
+  // primera aparición de un id en cada día es la que dibuja la tarjeta; las
+  // siguientes son continuación (siguen ocupando el slot, pero no repiten la
+  // tarjeta). El dedupe es por columna/día, nunca entre días.
+  const continuacionesPorFila = useMemo(() => {
+    const vistosPorDia = new Map<DiaSemana, Set<number>>();
+
+    return horasGrid.map(horaObj => {
+      const porDia: Partial<Record<DiaSemana, Set<number>>> = {};
+
+      for (const dia of DIAS) {
+        const slots = horaObj.dias[dia];
+        if (!slots?.length) continue;
+
+        let vistos = vistosPorDia.get(dia);
+        if (!vistos) {
+          vistos = new Set<number>();
+          vistosPorDia.set(dia, vistos);
+        }
+
+        const continuacion = new Set<number>();
+        const nuevos: number[] = [];
+        for (const slot of slots) {
+          // Sin id no hay nada que deduplicar: placeholders de slot libre y feriados.
+          if (slot.id == null) continue;
+          if (vistos.has(slot.id)) continuacion.add(slot.id);
+          else nuevos.push(slot.id);
+        }
+        // Se registran después del bucle para que un id repetido dentro de la
+        // misma fila no se marque a sí mismo como continuación.
+        for (const id of nuevos) vistos.add(id);
+
+        if (continuacion.size > 0) porDia[dia] = continuacion;
+      }
+
+      return porDia;
+    });
+  }, [horasGrid]);
+
   const diaActual = selectedDay ?? activeDay;
   const diasVisibles = mobile ? [diaActual] : DIAS;
 
@@ -156,8 +196,10 @@ export default function CalendarGrid({
   const TimeSlotComponent = isAdmin ? TimeSlotAdmin : TimeSlotPublico;
 
   return (
-    <div className={styles.calendarContainer}>
-      {/* Selector de días para mobile */}
+    <>
+      {/* Selector de días para mobile. Va FUERA de .calendarContainer: ese
+          contenedor scrollea (max-height: 70vh) y en mobile el selector es la
+          única forma de cambiar de día, así que no puede irse con el scroll. */}
       {mobile && (
         <div className={styles.daySelectorMobile}>
           {DIAS.map(dia => {
@@ -180,69 +222,72 @@ export default function CalendarGrid({
         </div>
       )}
 
-      {/* Grid principal */}
-      <div className={mobile ? styles.calendarGridMobile : styles.calendarGrid}>
-        {/* Esquina superior izquierda */}
-        <div className={styles.cornerCell} />
+      <div className={styles.calendarContainer}>
+        {/* Grid principal */}
+        <div className={mobile ? styles.calendarGridMobile : styles.calendarGrid}>
+          {/* Esquina superior izquierda */}
+          <div className={styles.cornerCell} />
 
-        {/* Headers con días */}
-        {diasVisibles.map(dia => {
-          const info = fechas?.get(dia);
-          const esPasado = info?.esPasado || false;
-          return (
-            <div key={dia} className={`${styles.calendarHeader} ${esPasado ? styles.headerPasado : ''}`}>
-              <span className={styles.headerDay}>{DIA_CORTO[dia]}</span>
-              {info && (
-                <span className={styles.headerDate}>
-                  {info.dia}
-                  <span className={styles.headerMonth}>{info.mes}</span>
-                </span>
-              )}
-            </div>
-          );
-        })}
-
-        {/* Filas de horas — cada celda va directo al grid, sin wrapper */}
-        {horasGrid.map((horaObj, rowIdx) => {
-          const horaPartes = horaObj.hora.split(' a ').map(h => h.trim());
-          const horaInicio = horaPartes[0] || '';
-          const horaFin = horaPartes[1] || '';
-
-          return (
-            <Fragment key={rowIdx}>
-              {/* Celda de tiempo — columna 1 */}
-              <div
-                className={[
-                  styles.timeCell,
-                  horaInicio.endsWith(':30') ? styles.timeCellMedia : '',
-                ].filter(Boolean).join(' ')}
-              >
-                <span className={styles.timeStart}>{horaInicio}</span>
-                <span className={styles.timeEnd}>{horaFin}</span>
+          {/* Headers con días */}
+          {diasVisibles.map(dia => {
+            const info = fechas?.get(dia);
+            const esPasado = info?.esPasado || false;
+            return (
+              <div key={dia} className={`${styles.calendarHeader} ${esPasado ? styles.headerPasado : ''}`}>
+                <span className={styles.headerDay}>{DIA_CORTO[dia]}</span>
+                {info && (
+                  <span className={styles.headerDate}>
+                    {info.dia}
+                    <span className={styles.headerMonth}>{info.mes}</span>
+                  </span>
+                )}
               </div>
+            );
+          })}
 
-              {/* Slots — columnas 2 a 7 */}
-              {(mobile ? diasVisibles : DIAS).map(dia => {
-                const fechaInfo = fechas?.get(dia);
-                const esPasado = fechaInfo?.esPasado || false;
+          {/* Filas de horas — cada celda va directo al grid, sin wrapper */}
+          {horasGrid.map((horaObj, rowIdx) => {
+            const horaPartes = horaObj.hora.split(' a ').map(h => h.trim());
+            const horaInicio = horaPartes[0] || '';
+            const horaFin = horaPartes[1] || '';
 
-                return (
-                  <TimeSlotComponent
-                    key={`${rowIdx}-${dia}`}
-                    dia={dia}
-                    slots={horaObj.dias[dia]}
-                    hora={horaObj.hora}
-                    fecha={fechaInfo?.fecha || new Date()}
-                    onClick={() => handleSlotClick(horaObj.hora, dia, horaObj)}
-                    onReservaClick={onReservaClick}
-                    esPasado={esPasado}
-                  />
-                );
-              })}
-            </Fragment>
-          );
-        })}
+            return (
+              <Fragment key={rowIdx}>
+                {/* Celda de tiempo — columna 1 */}
+                <div
+                  className={[
+                    styles.timeCell,
+                    horaInicio.endsWith(':30') ? styles.timeCellMedia : '',
+                  ].filter(Boolean).join(' ')}
+                >
+                  <span className={styles.timeStart}>{horaInicio}</span>
+                  <span className={styles.timeEnd}>{horaFin}</span>
+                </div>
+
+                {/* Slots — columnas 2 a 7 */}
+                {(mobile ? diasVisibles : DIAS).map(dia => {
+                  const fechaInfo = fechas?.get(dia);
+                  const esPasado = fechaInfo?.esPasado || false;
+
+                  return (
+                    <TimeSlotComponent
+                      key={`${rowIdx}-${dia}`}
+                      dia={dia}
+                      slots={horaObj.dias[dia]}
+                      hora={horaObj.hora}
+                      fecha={fechaInfo?.fecha || new Date()}
+                      onClick={() => handleSlotClick(horaObj.hora, dia, horaObj)}
+                      onReservaClick={onReservaClick}
+                      esPasado={esPasado}
+                      idsContinuacion={continuacionesPorFila[rowIdx]?.[dia]}
+                    />
+                  );
+                })}
+              </Fragment>
+            );
+          })}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

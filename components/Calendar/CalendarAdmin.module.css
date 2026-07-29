@@ -150,13 +150,17 @@
   color: var(--admin-text-muted);
 }
 
-/* Filas de media hora: menos peso visual que las horas en punto (estilo agenda). */
-.timeCellMedia {
-  opacity: 0.62;
-}
-
+/* Filas de media hora: menos peso visual que las horas en punto (estilo agenda).
+   Se atenúa el texto y no la celda: `opacity` sobre .timeCell también apagaba su
+   fondo y dejaba ver el color de `gap` de .calendarGridMobile. El fondo queda
+   igual al de las horas en punto. */
 .timeCellMedia .timeStart {
   font-weight: 500;
+  color: rgba(236, 0, 140, 0.6); /* --admin-accent-primary atenuado */
+}
+
+.timeCellMedia .timeEnd {
+  color: var(--admin-text-dim);
 }
 
 /* ─── Time slots ───────────────────────────────────────────────────────────── */

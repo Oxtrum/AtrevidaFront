@@ -388,9 +388,11 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Filas de media hora: menos peso visual que las horas en punto (estilo agenda). */
+/* Filas de media hora: menos peso visual que las horas en punto (estilo agenda).
+   El fondo se hereda de .timeCell a propósito: bajarle el alfa al negro dejaba
+   pasar más del fondo (más claro) y la fila terminaba resaltando en vez de
+   apagarse. La jerarquía la marcan el texto atenuado y el borde más suave. */
 .timeCellMedia {
-  background: rgba(0, 0, 0, 0.7);
   border-bottom: 1px solid rgba(146, 39, 143, 0.05);
 }
 
