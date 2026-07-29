@@ -34,7 +34,6 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--admin-text-muted);
 }
 
 /* ─── Loading / Empty ──────────────────────────────────────────────────────── */
@@ -147,7 +146,7 @@
 
 .timeEnd {
   font-size: 0.75rem;
-  color: var(--admin-text-muted);
+    color: var(--admin-text-muted);
 }
 
 /* Filas de media hora: menos peso visual que las horas en punto (estilo agenda).
@@ -156,12 +155,9 @@
    igual al de las horas en punto. */
 .timeCellMedia .timeStart {
   font-weight: 500;
-  color: rgba(236, 0, 140, 0.6); /* --admin-accent-primary atenuado */
 }
 
-.timeCellMedia .timeEnd {
-  color: var(--admin-text-dim);
-}
+
 
 /* ─── Time slots ───────────────────────────────────────────────────────────── */
 

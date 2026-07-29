@@ -1,50 +1,9 @@
 /**
- * buildHoursAvailability
- * ─────────────────────
- * SIEMPRE muestra 8:00-20:00
- * Marca 'occupied' si hay reservas, 'free' si no, 'past' si ya pasó
+ * Estado de un slot en el selector de horas.
+ *
+ * Cada formulario (público, admin crear, admin editar) arma su propio
+ * `Map<string, SlotStatus>`: las reglas de capacidad dependen del local, del
+ * tipo de espacio y de las reservas ya cargadas. Acá vive únicamente el tipo
+ * compartido entre esos formularios y `TimeSlotPicker`.
  */
-
-import { HORAS } from '@/lib/constants/reservationForm';
-
 export type SlotStatus = 'free' | 'occupied' | 'past' | 'closed';
-
-export type HoursAvailability = Map<string, SlotStatus>;
-
-interface Params {
-  fechaDia: Date | null;
-}
-
-function calcPastStatus(hora: string, fechaDia: Date | null): boolean {
-  if (!fechaDia) return false;
-
-  const hoy = new Date();
-  const diaFecha = new Date(fechaDia);
-  diaFecha.setHours(0, 0, 0, 0);
-  const hoyMid = new Date(hoy);
-  hoyMid.setHours(0, 0, 0, 0);
-
-  if (diaFecha < hoyMid) return true;
-
-  if (diaFecha.getTime() === hoyMid.getTime()) {
-    const [hh, mm] = hora.split(':').map(Number);
-    const slotMin = hh * 60 + mm;
-    const ahoraMin = hoy.getHours() * 60 + hoy.getMinutes();
-    return slotMin <= ahoraMin;
-  }
-
-  return false;
-}
-
-export function buildHoursAvailability({
-  fechaDia,
-}: Params): HoursAvailability {
-  const result: HoursAvailability = new Map();
-
-  for (const hora of HORAS) {
-    const isPast = calcPastStatus(hora, fechaDia);
-    result.set(hora, isPast ? 'past' : 'free');
-  }
-
-  return result;
-}
