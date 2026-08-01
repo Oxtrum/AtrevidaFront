@@ -28,6 +28,7 @@ import { crearPlan, cobrarPlan, getPlanesDB } from '@/lib/api/planes';
 import type { PlanItem } from '@/lib/api/planes';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
+import { formatDateTime } from '@/lib/utils/formatDateTime';
 import styles from './page.module.css';
 
 interface LocalOption {
@@ -689,6 +690,12 @@ export default function CajaPage() {
       render: (value) => formatMoney(Number(value ?? 0)),
     },
     {
+      key: 'fecha_creacion',
+      label: 'Fecha y hora',
+      searchable: false,
+      render: (value) => formatDateTime(value as string),
+    },
+    {
       key: 'estado',
       label: 'Estado',
       searchable: false,
@@ -1139,7 +1146,7 @@ export default function CajaPage() {
                 </section>
 
                 <section className={styles.historyPanel}>
-                  <div className={styles.panelHeader}>
+                  <div className={`${styles.historyHeaderCard} ${styles.panelHeader}`}>
                     <div>
                       <span className={styles.kicker}>Historial local</span>
                       <h2>Pagos registrados en {selectedLocal.nombre}</h2>

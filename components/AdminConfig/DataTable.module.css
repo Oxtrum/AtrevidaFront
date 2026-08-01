@@ -11,6 +11,7 @@
   border: 1px solid var(--admin-border-subtle);
   box-shadow: var(--admin-shadow-sm);
   position: relative;
+  overflow: hidden;
 }
 
 /* Línea de acento superior */

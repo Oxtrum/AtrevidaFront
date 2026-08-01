@@ -11,11 +11,15 @@ import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { getPagosDB } from '@/lib/api/pagos';
 import type { Pago } from '@/lib/api/pagos';
 import { canViewAdminPayments } from '@/lib/auth/adminSession';
+import { formatDateTime } from '@/lib/utils/formatDateTime';
 import styles from './page.module.css';
 
 interface PagoRow extends Pago, Record<string, unknown> {}
 
-const ESTADO_OPTIONS = ['PAGADO', 'PENDIENTE', 'CANCELADO', 'DEVUELTO'];
+const ESTADO_OPTIONS = ['PAGADO', 'PENDIENTE', 'BORRADOR'];
+const ESTADO_LABELS: Record<string, string> = {
+  BORRADOR: 'POR CONFIRMAR',
+};
 
 const formatMoney = (value: unknown) => `Bs. ${Number(value ?? 0).toLocaleString('es-BO', {
   minimumFractionDigits: 2,
@@ -117,12 +121,18 @@ export default function PagosPage() {
       render: formatMoney,
     },
     {
+      key: 'fecha_creacion',
+      label: 'Fecha y hora',
+      searchable: false,
+      render: (val) => formatDateTime(val as string),
+    },
+    {
       key: 'estado',
       label: 'Estado',
       searchable: false,
       render: (val) => (
         <span className={val === 'PAGADO' ? 'admin-status-active' : 'admin-status-pending'}>
-          {String(val)}
+          {ESTADO_LABELS[String(val)] ?? String(val)}
         </span>
       ),
     },
@@ -192,10 +202,7 @@ export default function PagosPage() {
                       id="pagos-estado"
                       value={filterEstado}
                       onChange={setFilterEstado}
-                      options={[
-                        { value: '', label: 'Todos los estados' },
-                        ...ESTADO_OPTIONS.map((estado) => ({ value: estado, label: estado })),
-                      ]}
+                      options={ESTADO_OPTIONS.map((estado) => ({ value: estado, label: ESTADO_LABELS[estado] ?? estado }))}
                       placeholder="Todos los estados"
                     />
                   </div>
@@ -208,7 +215,7 @@ export default function PagosPage() {
                   error={error}
                   onRefresh={fetchData}
                   getRowKey={(p) => p.codigo_pago}
-                  searchPlaceholder="Buscar en esta tabla..."
+                  hideSearch
                   emptyMessage="No se encontraron pagos"
                 />
               </>

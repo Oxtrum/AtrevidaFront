@@ -10,6 +10,7 @@ import {
   CalendarCheck,
   Check,
   Clock,
+  History,
   MapPin,
   MoreHorizontal,
   Phone,
@@ -28,6 +29,7 @@ import { CATEGORIAS_ORDEN } from '@/components/AdminReservationForm/constants';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { actualizarEstadoReservaDB, actualizarReservaDB, actualizarReservaNotificadoDB, eliminarReservaDB, getReservasDB } from '@/lib/api/reservas';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
+import { formatDateTime } from '@/lib/utils/formatDateTime';
 import {
   SERVICIOS_ADMIN_DISPONIBLES,
   getServiciosAdminPorCategoria,
@@ -1035,6 +1037,13 @@ export default function AdminReservasAprobacionPage() {
                           </span>
                         )}
                       </div>
+
+                      {reserva.creado_en && (
+                        <div className={styles.pendingMetaAudit}>
+                          <History size={13} strokeWidth={1.6} />
+                          Solicitada: {formatDateTime(reserva.creado_en)}
+                        </div>
+                      )}
 
                       {reserva.notas && (
                         <p className={styles.pendingNotes}>{reserva.notas}</p>

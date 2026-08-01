@@ -38,7 +38,6 @@
 .localPicker,
 .catalogPanel,
 .ticketPanel,
-.historyPanel,
 .cashSummary {
   background: var(--admin-panel-bg);
   border: 1px solid var(--admin-border-subtle);
@@ -57,6 +56,15 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
+}
+
+.historyHeaderCard {
+  padding: 1rem 1.25rem;
+  background: var(--admin-panel-bg);
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-xl);
+  box-shadow: var(--admin-shadow-sm);
+  backdrop-filter: blur(18px);
 }
 
 .localPickerHeader h2,
@@ -183,8 +191,7 @@
 }
 
 .catalogPanel,
-.ticketPanel,
-.historyPanel {
+.ticketPanel {
   padding: 1rem;
 }
 

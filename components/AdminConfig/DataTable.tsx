@@ -22,6 +22,7 @@ interface DataTableProps<T> {
   getRowKey: (item: T) => string | number;
   searchPlaceholder?: string;
   emptyMessage?: string;
+  hideSearch?: boolean;
 }
 
 const SKELETON_ROWS = 5;
@@ -37,6 +38,7 @@ export function DataTable<T extends Record<string, unknown>>({
   getRowKey,
   searchPlaceholder = 'Buscar...',
   emptyMessage = 'No hay datos disponibles',
+  hideSearch = false,
 }: DataTableProps<T>) {
   const [query, setQuery] = useState('');
 
@@ -61,28 +63,30 @@ export function DataTable<T extends Record<string, unknown>>({
 
       {/* ── Toolbar ── */}
       <div className={styles.toolbar}>
-        <div className={styles.searchBox}>
-          <Search size={13} strokeWidth={2} className={styles.searchIcon} />
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={searchPlaceholder}
-            className={styles.searchInput}
-            disabled={Boolean(loading) || Boolean(error)}
-            aria-label="Filtrar resultados"
-          />
-          {isFiltering && (
-            <button
-              type="button"
-              className={styles.clearSearchInline}
-              onClick={() => setQuery('')}
-              aria-label="Limpiar búsqueda"
-            >
-              <X size={11} strokeWidth={2.5} />
-            </button>
-          )}
-        </div>
+        {!hideSearch && (
+          <div className={styles.searchBox}>
+            <Search size={13} strokeWidth={2} className={styles.searchIcon} />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={searchPlaceholder}
+              className={styles.searchInput}
+              disabled={Boolean(loading) || Boolean(error)}
+              aria-label="Filtrar resultados"
+            />
+            {isFiltering && (
+              <button
+                type="button"
+                className={styles.clearSearchInline}
+                onClick={() => setQuery('')}
+                aria-label="Limpiar búsqueda"
+              >
+                <X size={11} strokeWidth={2.5} />
+              </button>
+            )}
+          </div>
+        )}
 
         <div className={styles.toolbarRight}>
           {hasData && (

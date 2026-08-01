@@ -699,6 +699,16 @@
   flex-shrink: 0;
 }
 
+.pendingMetaAudit {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: -0.3rem 0 0.88rem;
+  color: var(--admin-text-dim);
+  font-size: 0.73rem;
+  font-weight: 600;
+}
+
 .pendingNotes {
   margin: 0 0 0.9rem;
   padding: 0.78rem 0.86rem;
