@@ -1659,3 +1659,35 @@
   flex-shrink: 0;
   margin-top: 0.05rem;
 }
+
+/* ─── Rango por bloques: fin del rango y ayuda ────────────────── */
+
+/* Último bloque incluido en la reserva */
+.timeChipEnd {
+  box-shadow: inset -3px 0 0 rgba(255, 230, 0, 0.85), 0 0 12px rgba(236, 0, 140, 0.25);
+}
+
+/* Chip donde termina la reserva: es el borde, no un bloque reservado */
+.timeChipBoundary {
+  border-color: rgba(255, 230, 0, 0.55) !important;
+  border-style: dashed !important;
+  color: rgba(255, 230, 0, 0.85) !important;
+}
+
+.selectedRangeDuration {
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 50px;
+  background: rgba(0, 0, 0, 0.28);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: rgba(245, 245, 245, 0.85);
+}
+
+.slotHint {
+  margin: 0 1rem 0.9rem;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: rgba(245, 245, 245, 0.45);
+}

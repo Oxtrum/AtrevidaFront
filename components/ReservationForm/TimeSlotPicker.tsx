@@ -2,6 +2,7 @@
 
 import { SlotStatus } from '@/lib/utils/hoursAvailability';
 import { HORAS, HORAS_INICIO } from '@/lib/constants/reservationForm';
+import { duracionRango, formatearDuracion } from '@/lib/utils/slotRange';
 import styles from './ReservationForm.module.css';
 
 interface TimeSlotPickerProps {
@@ -24,18 +25,30 @@ export function TimeSlotPicker({
     // No permitir seleccionar horas pasadas, ocupadas o fuera de atención
     if (status === 'past' || status === 'occupied' || status === 'closed') return;
 
-    // El hook calcula la hora de fin: depende del servicio y del cierre del local.
+    // El hook arma el rango: el primer click abre la reserva y los siguientes
+    // la estiran o la recortan.
     onSelect(hora);
   };
 
+  const idxDesde = HORAS.indexOf(horaDesde);
+  const idxHasta = HORAS.indexOf(horaHasta);
+  const rangoValido = Boolean(horaDesde && horaHasta) && idxDesde !== -1 && idxHasta !== -1;
+
   const isInRange = (hora: string): boolean => {
-    if (!horaDesde || !horaHasta) return false;
+    if (!rangoValido) return false;
     const idxHora = HORAS.indexOf(hora);
-    const idxDesde = HORAS.indexOf(horaDesde);
-    const idxHasta = HORAS.indexOf(horaHasta);
-    if (idxHora === -1 || idxDesde === -1 || idxHasta === -1) return false;
+    if (idxHora === -1) return false;
     return idxHora >= idxDesde && idxHora < idxHasta;
   };
+
+  /** Último bloque incluido: el click siguiente sobre él suma media hora. */
+  const isLastInRange = (hora: string): boolean =>
+    rangoValido && HORAS.indexOf(hora) === idxHasta - 1;
+
+  /** Chip donde termina la reserva: se muestra como borde, no como bloque. */
+  const isEndBoundary = (hora: string): boolean => rangoValido && hora === horaHasta;
+
+  const duracion = formatearDuracion(duracionRango(horaDesde, horaHasta));
 
   const getStatus = (hora: string): SlotStatus => {
     return hoursAvailability.get(hora) ?? 'free';
@@ -81,6 +94,8 @@ export function TimeSlotPicker({
           const status = getStatus(hora);
           const inRange = isInRange(hora);
           const isStart = hora === horaDesde;
+          const isEnd = isLastInRange(hora);
+          const isBoundary = isEndBoundary(hora);
           const isPast = status === 'past';
           const isOccupied = status === 'occupied';
           const isClosed = status === 'closed';
@@ -96,6 +111,8 @@ export function TimeSlotPicker({
                 isClosed ? styles.timeChipClosed : '',
                 inRange ? styles.timeChipSelected : '',
                 isStart ? styles.timeChipStart : '',
+                isEnd ? styles.timeChipEnd : '',
+                isBoundary ? styles.timeChipBoundary : '',
               ].filter(Boolean).join(' ')}
               onClick={() => handleClick(hora)}
               disabled={isPast || isOccupied || isClosed}
@@ -103,7 +120,9 @@ export function TimeSlotPicker({
                 isPast ? `${hora} — Pasado`
                   : isOccupied ? `${hora} — Ocupado`
                     : isClosed ? `${hora} — No atiende`
-                    : hora
+                      : isBoundary ? `${hora} — Fin de la reserva (toca para sumar 30 min)`
+                        : isEnd ? `${hora} — Último bloque`
+                          : hora
               }
             >
               {hora}
@@ -117,8 +136,16 @@ export function TimeSlotPicker({
         <div className={styles.selectedRange}>
           <span className={styles.selectedRangeIcon}>✦</span>
           {horaDesde} → {horaHasta}
+          {duracion && <span className={styles.selectedRangeDuration}>{duracion}</span>}
         </div>
       )}
+
+      {/* Ayuda: la selección se arma con varios toques */}
+      <p className={styles.slotHint}>
+        {horaDesde
+          ? 'Toca otra hora para alargar la reserva (cada bloque suma 30 min) o una hora anterior para empezar de nuevo.'
+          : 'Toca una hora para empezar y sigue tocando para alargar la reserva.'}
+      </p>
     </div>
   );
 }

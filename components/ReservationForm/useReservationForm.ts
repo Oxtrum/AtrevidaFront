@@ -21,6 +21,7 @@ import {
 } from '@/lib/utils/reservationValidation';
 import { type SlotStatus } from '@/lib/utils/hoursAvailability';
 import { HORAS, DIAS_SEMANA, SLOT_MIN, SLOTS_POR_HORA, calcularHoraFin, tiempoAMinutos, isSlotOutsideBusinessHours } from '@/lib/constants/reservationForm';
+import { seleccionarSlot } from '@/lib/utils/slotRange';
 import { CATEGORIAS_ORDEN } from './constants';
 
 export interface ReservationFormInitialData {
@@ -447,14 +448,25 @@ export function useReservationForm(
     setSlotWarning(null);
   };
 
-  const handleSlotSelect = (desde: string) => {
-    setHoraDesde(desde);
-
-    // La duración sale del servicio elegido; 1 hora si todavía no hay ninguno.
+  /**
+   * Los clicks se acumulan: el primero abre la reserva con la duración del
+   * servicio y los siguientes la estiran o la recortan (ver `seleccionarSlot`).
+   */
+  const handleSlotSelect = (hora: string) => {
     const fechaDia = fecha ? new Date(`${fecha}T00:00:00`) : new Date();
-    setHoraHasta(calcularHoraFin(desde, slotsDeServicio(servicio), sucursal, fechaDia));
+    const { desde, hasta, warning } = seleccionarSlot({
+      hora,
+      horaDesde,
+      horaHasta,
+      slotsPorDefecto: slotsDeServicio(servicio),
+      local: sucursal,
+      fecha: fechaDia,
+      esSlotLibre: (h) => (hoursAvailability.get(h) ?? 'free') === 'free',
+    });
 
-    setSlotWarning(null);
+    setHoraDesde(desde);
+    setHoraHasta(hasta);
+    setSlotWarning(warning);
   };
 
   // ── Validación y submit ────────────────────────────────

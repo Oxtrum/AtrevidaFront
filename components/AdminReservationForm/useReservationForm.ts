@@ -17,6 +17,7 @@ import { getPlanesDB } from '@/lib/api/planes';
 import { validateReservationForm, } from '@/lib/utils/reservationValidation';
 import { type SlotStatus } from '@/lib/utils/hoursAvailability';
 import { HORAS, DIAS_SEMANA, SLOT_MIN, SLOTS_POR_HORA, calcularHoraFin, tiempoAMinutos, isSlotOutsideBusinessHours } from '@/lib/constants/reservationForm';
+import { seleccionarSlot } from '@/lib/utils/slotRange';
 
 export interface ReservationFormInitialData {
   local?: string;
@@ -91,6 +92,17 @@ export function useReservationForm(
   // envía a aprobación (PENDIENTE).
   const [agendarDirecto, setAgendarDirecto] = useState(true);
   const [serviciosAPI, setServiciosAPI] = useState<Array<{ nombre: string; categoria: string; tipoEspacio: string; costo: string; tiempo: string; requiere_evaluacion: boolean }>>([]);
+
+  /** Slots que ocupa el servicio elegido. 1 hora si no se conoce su duración. */
+  const slotsDeServicio = (svc: string): number => {
+    const servicioInfo = serviciosAPI.find(s => s.nombre === svc);
+    if (!servicioInfo) return SLOTS_POR_HORA;
+
+    // `tiempo` llega como texto humano ('50 min', '1 hora y 30 min').
+    const duracionMin = tiempoAMinutos(servicioInfo.tiempo);
+    if (duracionMin <= 0) return SLOTS_POR_HORA;
+    return Math.ceil(duracionMin / SLOT_MIN);
+  };
 
   const calcularHoraHasta = (desde: string, svc: string): string => {
     const servicioInfo = serviciosAPI.find(s => s.nombre === svc);
@@ -370,22 +382,25 @@ export function useReservationForm(
     setSlotWarning(null);
   };
 
-  const handleSlotSelect = (desde: string) => {
-    setHoraDesde(desde);
-
-    if (servicio) {
-      const hasta = calcularHoraHasta(desde, servicio);
-      if (hasta) {
-        setHoraHasta(hasta);
-        setSlotWarning(null);
-        return;
-      }
-    }
-
-    // Sin servicio elegido: duración por defecto de 1 hora, recortada al cierre.
+  /**
+   * Los clicks se acumulan: el primero abre la reserva con la duración del
+   * servicio y los siguientes la estiran o la recortan (ver `seleccionarSlot`).
+   */
+  const handleSlotSelect = (hora: string) => {
     const fechaDia = fechasSemana?.get(dia)?.fecha ?? new Date();
-    setHoraHasta(calcularHoraFin(desde, SLOTS_POR_HORA, effectiveSucursal, fechaDia));
-    setSlotWarning(null);
+    const { desde, hasta, warning } = seleccionarSlot({
+      hora,
+      horaDesde,
+      horaHasta,
+      slotsPorDefecto: slotsDeServicio(servicio),
+      local: effectiveSucursal,
+      fecha: fechaDia,
+      esSlotLibre: (h) => (hoursAvailability.get(h) ?? 'free') === 'free',
+    });
+
+    setHoraDesde(desde);
+    setHoraHasta(hasta);
+    setSlotWarning(warning);
   };
 
   // ── Validación y submit ────────────────────────────────

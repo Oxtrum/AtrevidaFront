@@ -17,6 +17,7 @@ import { TimeSlotPicker } from '@/components/AdminReservationForm/TimeSlotPicker
 import { ServiceSelect } from '@/components/AdminReservationForm/ServiceSelect';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import type { SlotStatus } from '@/lib/utils/hoursAvailability';
+import { seleccionarSlot } from '@/lib/utils/slotRange';
 import styles from './page.module.css';
 
 const TRANSICIONES_VALIDAS: Record<string, EstadoReserva[]> = {
@@ -60,6 +61,7 @@ function EditarReservaContent() {
   const [nuevoCliente, setNuevoCliente] = useState('');
   const [nuevoLocal, setNuevoLocal] = useState('');
   const [nuevoPlanId, setNuevoPlanId] = useState<string>(SIN_PAQUETE);
+  const [slotWarning, setSlotWarning] = useState<string | null>(null);
   const [serviciosDisponibles, setServiciosDisponibles] = useState<Array<{ nombre: string; categoria: string; tipoEspacio: string; costo: string; tiempo: string }>>([]);
   const [planesDisponibles, setPlanesDisponibles] = useState<PlanItem[]>([]);
 
@@ -333,6 +335,7 @@ function EditarReservaContent() {
     }
     setNuevaHoraDesde('');
     setNuevaHoraHasta('');
+    setSlotWarning(null);
   };
 
   // Reprogramar una reserva ya confirmada obliga a reavisar al cliente: el
@@ -353,11 +356,25 @@ function EditarReservaContent() {
     return Math.ceil(duracionMin / SLOT_MIN);
   };
 
-  const handleSlotSelect = (desde: string) => {
-    setNuevaHoraDesde(desde);
-    // La duración sale del servicio elegido; 1 hora si todavía no hay ninguno.
+  /**
+   * Los clicks se acumulan: el primero abre la reserva con la duración del
+   * servicio y los siguientes la estiran o la recortan (ver `seleccionarSlot`).
+   */
+  const handleSlotSelect = (hora: string) => {
     const fechaDia = nuevaFecha ? new Date(`${nuevaFecha}T00:00:00`) : new Date();
-    setNuevaHoraHasta(calcularHoraFin(desde, slotsDeServicio(nuevoServicio), localActual, fechaDia));
+    const { desde, hasta, warning } = seleccionarSlot({
+      hora,
+      horaDesde: nuevaHoraDesde,
+      horaHasta: nuevaHoraHasta,
+      slotsPorDefecto: slotsDeServicio(nuevoServicio),
+      local: localActual,
+      fecha: fechaDia,
+      esSlotLibre: (h) => (hoursAvailability.get(h) ?? 'free') === 'free',
+    });
+
+    setNuevaHoraDesde(desde);
+    setNuevaHoraHasta(hasta);
+    setSlotWarning(warning);
   };
 
   const handleServicioChange = (value: string) => {
@@ -365,6 +382,7 @@ function EditarReservaContent() {
     if (nuevaHoraDesde) {
       const fechaDia = nuevaFecha ? new Date(`${nuevaFecha}T00:00:00`) : new Date();
       setNuevaHoraHasta(calcularHoraFin(nuevaHoraDesde, slotsDeServicio(value), localActual, fechaDia));
+      setSlotWarning(null);
     }
   };
 
@@ -569,6 +587,9 @@ function EditarReservaContent() {
               hoursAvailability={hoursAvailability}
               onSelect={handleSlotSelect}
             />
+            {slotWarning && (
+              <p className={styles.fieldHint}>{slotWarning}</p>
+            )}
             {reprogramacionAvisada && (
               <p className={styles.fieldHint}>
                 Al cliente ya se le confirmó este horario. Al guardar, la reserva vuelve a

@@ -614,3 +614,34 @@
 .clientDropdownStatus {
   padding: 0.8rem 0.9rem;
 }
+
+/* ─── Rango por bloques: fin del rango y ayuda ────────────────── */
+
+/* Último bloque incluido en la reserva */
+.timeChipEnd {
+  box-shadow: inset -3px 0 0 var(--admin-accent-tertiary);
+}
+
+/* Chip donde termina la reserva: es el borde, no un bloque reservado */
+.timeChipBoundary {
+  border-color: var(--admin-accent-primary) !important;
+  border-style: dashed !important;
+  color: var(--admin-accent-primary) !important;
+}
+
+.selectedRangeDuration {
+  margin-left: 0.4rem;
+  padding: 0.05rem 0.45rem;
+  border-radius: var(--admin-radius-sm);
+  background: rgba(236, 0, 140, 0.14);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--admin-foreground);
+}
+
+.slotHint {
+  margin: 0.5rem 0 0;
+  font-size: 0.74rem;
+  line-height: 1.45;
+  color: var(--admin-text-dim);
+}
