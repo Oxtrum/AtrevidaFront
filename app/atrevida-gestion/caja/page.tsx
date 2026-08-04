@@ -150,6 +150,7 @@ export default function CajaPage() {
   const [pagosError, setPagosError] = useState<string | null>(null);
 
   const [clienteNit, setClienteNit] = useState('');
+  const [nitPropuesto, setNitPropuesto] = useState(false);
   const [clienteNombre, setClienteNombre] = useState('');
   const [selectedClienteId, setSelectedClienteId] = useState<number | null>(null);
   const [clientesSugeridos, setClientesSugeridos] = useState<ClienteOption[]>([]);
@@ -453,6 +454,7 @@ export default function CajaPage() {
 
   const resetSale = () => {
     setClienteNit('');
+    setNitPropuesto(false);
     setClienteNombre('');
     setSelectedClienteId(null);
     setClientesSugeridos([]);
@@ -518,6 +520,9 @@ export default function CajaPage() {
     // NIT del cliente A se quedaria pegado al elegir despues al cliente B, y se
     // facturaria mal sin que nadie lo note.
     setClienteNit(cliente.nit ?? '');
+    // El hint solo es verdad mientras el valor en el campo sea el propuesto:
+    // se marca aqui y se apaga en cuanto el operador edita el input a mano.
+    setNitPropuesto(!!cliente.nit);
     setClienteDropdownOpen(false);
     setClientesSugeridos([]);
     clearFieldError('cliente_nombre');
@@ -984,12 +989,13 @@ export default function CajaPage() {
                           value={clienteNit}
                           onChange={(e) => {
                             setClienteNit(e.target.value);
+                            setNitPropuesto(false);
                             clearFieldError('cliente_nit');
                           }}
                           className={formErrors.cliente_nit ? styles.inputError : ''}
                           placeholder="NIT o CI si corresponde"
                         />
-                        {selectedClienteId !== null && clienteNit.trim() !== '' && (
+                        {nitPropuesto && (
                           <small className={styles.nitHint}>
                             Propuesto desde el cliente. Editable para esta venta.
                           </small>
