@@ -614,3 +614,57 @@
 .clientDropdownStatus {
   padding: 0.8rem 0.9rem;
 }
+
+/* ────────────────────────────────────────────────────────────────
+   LABEL ROW + ACCION INLINE
+   ──────────────────────────────────────────────────────────────── */
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.inlineAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.28rem 0.6rem;
+  border-radius: var(--admin-radius-sm);
+  border: 1px solid var(--admin-border-subtle);
+  background: transparent;
+  color: var(--admin-accent-primary);
+  font-size: 0.74rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.inlineAction:hover {
+  background: rgba(236, 0, 140, 0.1);
+  border-color: var(--admin-accent-primary);
+}
+
+.clientRegisterOption {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border: none;
+  border-top: 1px solid var(--admin-border-subtle);
+  background: transparent;
+  color: var(--admin-accent-primary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.clientRegisterOption:hover {
+  background: rgba(236, 0, 140, 0.1);
+}
