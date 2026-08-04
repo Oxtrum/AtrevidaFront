@@ -514,9 +514,14 @@ export default function CajaPage() {
   const selectCliente = (cliente: ClienteOption) => {
     setSelectedClienteId(cliente.id);
     setClienteNombre(getClienteNombreCompleto(cliente));
+    // Sobrescribe siempre, no "solo si esta vacio": con la regla condicional el
+    // NIT del cliente A se quedaria pegado al elegir despues al cliente B, y se
+    // facturaria mal sin que nadie lo note.
+    setClienteNit(cliente.nit ?? '');
     setClienteDropdownOpen(false);
     setClientesSugeridos([]);
     clearFieldError('cliente_nombre');
+    clearFieldError('cliente_nit');
   };
 
   const openNewClientModal = () => {
@@ -650,6 +655,9 @@ export default function CajaPage() {
         nombre: newClientForm.nombre.trim(),
         apellido: newClientForm.apellido.trim(),
         numero_telefono: newClientForm.numero_telefono.trim(),
+        // El NIT tecleado en el ticket pasa a ser el NIT por defecto del
+        // cliente nuevo: es el momento natural de capturarlo.
+        nit: clienteNit.trim(),
       };
       const res = await crearClienteDB(cleanClient);
       if (!res.data?.id) throw new Error('No se recibió el ID del cliente creado');
@@ -970,7 +978,7 @@ export default function CajaPage() {
 
                     <div className={styles.clientGrid}>
                       <label>
-                        <span>NIT cliente (opcional)</span>
+                        <span>NIT / CI de factura (opcional)</span>
                         <input
                           type="text"
                           value={clienteNit}
@@ -981,6 +989,11 @@ export default function CajaPage() {
                           className={formErrors.cliente_nit ? styles.inputError : ''}
                           placeholder="NIT o CI si corresponde"
                         />
+                        {selectedClienteId !== null && clienteNit.trim() !== '' && (
+                          <small className={styles.nitHint}>
+                            Propuesto desde el cliente. Editable para esta venta.
+                          </small>
+                        )}
                         {formErrors.cliente_nit && <small className={styles.fieldError}>{formErrors.cliente_nit}</small>}
                       </label>
                       <label className={styles.clientAutocomplete}>
