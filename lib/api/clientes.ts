@@ -6,6 +6,10 @@ export interface ClientePG {
   nombre: string;
   apellido: string;
   numero_telefono: string;
+  /** Cedula de identidad. Cadena vacia si no se registro. */
+  ci?: string;
+  /** NIT de facturacion por defecto. Cadena vacia si no se registro. */
+  nit?: string;
 }
 
 export interface GetClientesParams {
@@ -28,12 +32,18 @@ export interface CrearClienteData {
   nombre: string;
   apellido: string;
   numero_telefono: string;
+  ci?: string;
+  nit?: string;
 }
 
 export interface ActualizarClienteData {
   nombre?: string;
   apellido?: string;
   numero_telefono?: string;
+  /** Cadena vacia borra el dato. */
+  ci?: string;
+  /** Cadena vacia borra el dato. */
+  nit?: string;
 }
 
 export async function getClientesDB(params: GetClientesParams): Promise<ApiResponse<ClientesListResponse>> {
