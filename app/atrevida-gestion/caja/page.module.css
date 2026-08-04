@@ -954,3 +954,9 @@
   font-weight: 700;
   font-size: 0.85rem;
 }
+
+.nitHint {
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--admin-text-dim);
+}

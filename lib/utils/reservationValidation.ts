@@ -113,8 +113,8 @@ export function validateReservationForm(
     const phoneDigits = numeroTelefono.replace(/\D/g, '');
     if (!phoneDigits) {
         errors.numeroTelefono = 'Ingresa el teléfono del cliente';
-    } else if (!/^\d{8}$/.test(phoneDigits)) {
-        errors.numeroTelefono = 'Ingresa 8 dígitos del teléfono';
+    } else if (!/^\d{7,}$/.test(phoneDigits)) {
+        errors.numeroTelefono = 'Ingresa al menos 7 dígitos del teléfono';
     }
 
     if (!servicio) {

@@ -3,18 +3,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
-import { Pencil, Plus, Search, Trash2, Users } from 'lucide-react';
+import { Pencil, Plus, Trash2, Users } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
 import { PageHeader, DataTable, FormModal, RowActionsMenu } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import { toast } from '@/components/Shared/Toast';
-import {
-  getClientesDB,
-  crearClienteDB,
-  actualizarClienteDB,
-  eliminarClienteDB,
-} from '@/lib/api/clientes';
+import { getClientesDB, eliminarClienteDB } from '@/lib/api/clientes';
 import type { ClientePG } from '@/lib/api/clientes';
+import { ClienteFormModal } from '@/components/AdminClientes';
 import styles from './page.module.css';
 
 interface ClienteRow extends Record<string, unknown> {
@@ -22,19 +18,8 @@ interface ClienteRow extends Record<string, unknown> {
   nombre: string;
   apellido: string;
   numero_telefono: string;
-}
-
-interface FormState {
-  nombre: string;
-  apellido: string;
-  numero_telefono: string;
-}
-
-interface FormErrors {
-  nombre?: string;
-  apellido?: string;
-  numero_telefono?: string;
-  submit?: string;
+  ci?: string;
+  nit?: string;
 }
 
 interface ConfirmState {
@@ -42,48 +27,33 @@ interface ConfirmState {
   onConfirm: () => void;
 }
 
-const FORM_INITIAL: FormState = { nombre: '', apellido: '', numero_telefono: '' };
-
 export default function ClientesPage() {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
   const [clientes, setClientes] = useState<ClienteRow[]>([]);
-  const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [search, setSearch] = useState('');
-  const [searchDebounced, setSearchDebounced] = useState('');
-
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [form, setForm] = useState<FormState>(FORM_INITIAL);
-  const [formErrors, setFormErrors] = useState<FormErrors>({});
-  const [saving, setSaving] = useState(false);
+  const [editingCliente, setEditingCliente] = useState<ClientePG | undefined>(undefined);
 
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setSearchDebounced(search), 350);
-    return () => clearTimeout(timer);
-  }, [search]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await getClientesDB({ nombre: searchDebounced || undefined });
-      const data = (res as { data?: { clientes?: ClientePG[]; total?: number } }).data;
+      const res = await getClientesDB({});
+      const data = (res as { data?: { clientes?: ClientePG[] } }).data;
       setClientes((data?.clientes ?? []) as ClienteRow[]);
-      setTotal(data?.total ?? 0);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al cargar clientes');
     } finally {
       setLoading(false);
     }
-  }, [searchDebounced]);
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -102,60 +72,11 @@ export default function ClientesPage() {
     return () => ctx.revert();
   }, []);
 
-  const patchForm = (patch: Partial<FormState>) => setForm((prev) => ({ ...prev, ...patch }));
-
-  const resetModal = () => {
-    setForm(FORM_INITIAL);
-    setFormErrors({});
-    setEditingId(null);
-  };
-
-  const openCreate = () => { resetModal(); setModalOpen(true); };
+  const openCreate = () => { setEditingCliente(undefined); setModalOpen(true); };
 
   const openEdit = (row: ClienteRow) => {
-    setEditingId(row.id);
-    setForm({ nombre: row.nombre, apellido: row.apellido, numero_telefono: row.numero_telefono });
-    setFormErrors({});
+    setEditingCliente(row as unknown as ClientePG);
     setModalOpen(true);
-  };
-
-  const validate = (): boolean => {
-    const errors: FormErrors = {};
-    if (!form.nombre.trim()) errors.nombre = 'El nombre es obligatorio';
-    if (!form.apellido.trim()) errors.apellido = 'Los apellidos son obligatorios';
-    if (!form.numero_telefono.trim()) errors.numero_telefono = 'El teléfono es obligatorio';
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleSubmit = async () => {
-    if (!validate()) return;
-    setSaving(true);
-    setFormErrors({});
-    try {
-      if (editingId !== null) {
-        await actualizarClienteDB(editingId, {
-          nombre: form.nombre.trim(),
-          apellido: form.apellido.trim(),
-          numero_telefono: form.numero_telefono.trim(),
-        });
-        toast.success('Cliente actualizado correctamente');
-      } else {
-        await crearClienteDB({
-          nombre: form.nombre.trim(),
-          apellido: form.apellido.trim(),
-          numero_telefono: form.numero_telefono.trim(),
-        });
-        toast.success('Cliente creado correctamente');
-      }
-      setModalOpen(false);
-      resetModal();
-      await fetchData();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Error al guardar cliente');
-    } finally {
-      setSaving(false);
-    }
   };
 
   const handleDelete = (row: ClienteRow) => {
@@ -178,6 +99,12 @@ export default function ClientesPage() {
     { key: 'nombre', label: 'Nombre' },
     { key: 'apellido', label: 'Apellidos' },
     { key: 'numero_telefono', label: 'Teléfono', searchable: false },
+    {
+      key: 'ci',
+      label: 'CI',
+      searchable: false,
+      render: (_val, row) => <span>{(row.ci as string) || '—'}</span>,
+    },
     {
       key: 'acciones',
       label: '',
@@ -229,61 +156,12 @@ export default function ClientesPage() {
       </main>
 
       {/* Modal crear / editar */}
-      <FormModal
+      <ClienteFormModal
         isOpen={modalOpen}
-        onClose={() => { setModalOpen(false); resetModal(); }}
-        title={editingId !== null ? 'Editar Cliente' : 'Nuevo Cliente'}
-        onSubmit={handleSubmit}
-        loading={saving}
-        submitLabel={editingId !== null ? 'Guardar cambios' : 'Crear cliente'}
-      >
-        <div className={styles.formGrid}>
-          <div className={styles.field}>
-            <label htmlFor="cli-nombre">Nombre</label>
-            <input
-              id="cli-nombre"
-              type="text"
-              value={form.nombre}
-              onChange={(e) => { patchForm({ nombre: e.target.value }); if (formErrors.nombre) setFormErrors((p) => ({ ...p, nombre: undefined })); }}
-              placeholder="Ej: María"
-              autoFocus
-              aria-invalid={!!formErrors.nombre}
-              className={formErrors.nombre ? styles.inputError : ''}
-            />
-            {formErrors.nombre && <span className={styles.fieldError}>{formErrors.nombre}</span>}
-          </div>
-
-          <div className={styles.field}>
-            <label htmlFor="cli-apellido">Apellidos</label>
-            <input
-              id="cli-apellido"
-              type="text"
-              value={form.apellido}
-              onChange={(e) => { patchForm({ apellido: e.target.value }); if (formErrors.apellido) setFormErrors((p) => ({ ...p, apellido: undefined })); }}
-              placeholder="Ej: López"
-              aria-invalid={!!formErrors.apellido}
-              className={formErrors.apellido ? styles.inputError : ''}
-            />
-            {formErrors.apellido && <span className={styles.fieldError}>{formErrors.apellido}</span>}
-          </div>
-
-          <div className={`${styles.field} ${styles.colSpan2}`}>
-            <label htmlFor="cli-telefono">Teléfono</label>
-            <input
-              id="cli-telefono"
-              type="tel"
-              value={form.numero_telefono}
-              onChange={(e) => { patchForm({ numero_telefono: e.target.value }); if (formErrors.numero_telefono) setFormErrors((p) => ({ ...p, numero_telefono: undefined })); }}
-              placeholder="Ej: 70011223"
-              aria-invalid={!!formErrors.numero_telefono}
-              className={formErrors.numero_telefono ? styles.inputError : ''}
-            />
-            {formErrors.numero_telefono && <span className={styles.fieldError}>{formErrors.numero_telefono}</span>}
-          </div>
-        </div>
-
-        {formErrors.submit && <div className={styles.submitError}>{formErrors.submit}</div>}
-      </FormModal>
+        onClose={() => setModalOpen(false)}
+        cliente={editingCliente}
+        onSaved={fetchData}
+      />
 
       {/* Modal confirmar eliminación */}
       <FormModal

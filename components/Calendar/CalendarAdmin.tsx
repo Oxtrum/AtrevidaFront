@@ -14,6 +14,10 @@ interface CalendarAdminProps {
   /** Sucursal controlada por el padre. Si se pasa, es la única fuente de verdad. */
   sucursal?: string;
   semanaInicial?: string;
+  /** Índice de semana controlado por el padre. Mismo contrato que `sucursal`. */
+  semanaIndex?: number;
+  /** Oculta la barra interna de sucursal/semana cuando el padre ya la renderiza. */
+  hideControls?: boolean;
   onSlotClick?: (hora: string, dia: DiaSemana, slots: ReservaDetalle[] | undefined) => void;
   onReservaClick?: (reserva: ReservaDetalle) => void;
   onSucursalChange?: (sucursal: string) => void;
@@ -29,6 +33,8 @@ interface CalendarAdminProps {
 export default function CalendarAdmin({
   localInicial = '',
   sucursal: sucursalProp,
+  semanaIndex: semanaIndexProp,
+  hideControls = false,
   onSlotClick,
   onReservaClick,
   onSucursalChange,
@@ -38,13 +44,15 @@ export default function CalendarAdmin({
   // Evita el desync entre lo mostrado y la sucursal enviada al crear reservas.
   const controlada = sucursalProp !== undefined;
   const [sucursalSeleccionada, setSucursalSeleccionada] = useState('');
-  const [semanaIndex, setSemanaIndex] = useState(0);
+  const [semanaIndexInterno, setSemanaIndexInterno] = useState(0);
   const [selectedDay, setSelectedDay] = useState<DiaSemana | null>(null);
 
   const { data, loading, error, fetch: fetchReservas } = useReservasCalendario();
   const { locales } = useLocales();
   const sucursal = controlada ? sucursalProp : (sucursalSeleccionada || localInicial);
   const sucursalEfectiva = sucursal || locales[0]?.nombre || '';
+  // Mismo contrato que `sucursal`: si el padre lo pasa, manda el padre.
+  const semanaIndex = semanaIndexProp ?? semanaIndexInterno;
 
   const controlsRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -113,7 +121,7 @@ export default function CalendarAdmin({
   }, [loading, data]);
 
   const handleSemanaChange = (value: string) => {
-    setSemanaIndex(Number(value));
+    setSemanaIndexInterno(Number(value));
     onSemanaChange?.(value);
   };
 
@@ -136,29 +144,31 @@ export default function CalendarAdmin({
         <div className={`${styles.orb} ${styles.orb3} calendarOrb`} />
       </div> */}
 
-      <div ref={controlsRef} className={styles.controls}>
-        <div className={styles.controlGroup}>
-          <label>Sucursal</label>
-          <CustomSelect
-            onChange={handleSucursalChange}
-            value={sucursalEfectiva}
-            options={sucursalOptions}
-            placeholder="Seleccionar sucursal"
-          />
-        </div>
+      {!hideControls && (
+        <div ref={controlsRef} className={styles.controls}>
+          <div className={styles.controlGroup}>
+            <label>Sucursal</label>
+            <CustomSelect
+              onChange={handleSucursalChange}
+              value={sucursalEfectiva}
+              options={sucursalOptions}
+              placeholder="Seleccionar sucursal"
+            />
+          </div>
 
-        <div className={styles.controlGroup}>
-          <label htmlFor="semana-select">Semana</label>
-          <CustomSelect
-            onChange={handleSemanaChange}
-            value={semanaIndex.toString()}
-            options={semanasDisponibles.map((semana, idx) => ({
-              value: idx.toString(),
-              label: semana.titulo,
-            }))}
-          />
+          <div className={styles.controlGroup}>
+            <label htmlFor="semana-select">Semana</label>
+            <CustomSelect
+              onChange={handleSemanaChange}
+              value={semanaIndex.toString()}
+              options={semanasDisponibles.map((semana, idx) => ({
+                value: idx.toString(),
+                label: semana.titulo,
+              }))}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {loading ? (
         <div className={styles.loadingContainer}>

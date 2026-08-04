@@ -36,17 +36,17 @@ export function FormModal({
       >
         <div className={styles.header}>
           <h2 className={styles.title}>{title}</h2>
-          <button className={styles.closeButton} onClick={onClose} aria-label="Cerrar">
+          <button type="button" className={styles.closeButton} onClick={onClose} aria-label="Cerrar">
             <X size={20} strokeWidth={1.5} />
           </button>
         </div>
         <div className={styles.body}>{children}</div>
         {!hideFooter && (
           <div className={styles.footer}>
-            <button className={styles.cancelButton} onClick={onClose} disabled={loading}>
+            <button type="button" className={styles.cancelButton} onClick={onClose} disabled={loading}>
               Cancelar
             </button>
-            <button className={styles.submitButton} onClick={onSubmit} disabled={loading}>
+            <button type="button" className={styles.submitButton} onClick={onSubmit} disabled={loading}>
               {loading ? 'Guardando...' : submitLabel}
             </button>
           </div>

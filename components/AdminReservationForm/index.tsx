@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle, CalendarPlus } from 'lucide-react';
+import { AlertTriangle, CalendarPlus, UserPlus } from 'lucide-react';
 import { CustomSelect } from '../Custom/CustomSelectAdmin';
 import { TimeSlotPicker } from './TimeSlotPicker';
 import { DaySelector } from './DaySelector';
@@ -10,6 +10,7 @@ import PlanSelector from './PlanSelector';
 import { ServiceSelect } from './ServiceSelect';
 import { useReservationForm, type ReservationFormInitialData } from './useReservationForm';
 import { getClientesDB, type ClientePG } from '@/lib/api/clientes';
+import { ClienteFormModal } from '@/components/AdminClientes';
 import { normalizeBolivianPhone } from '@/lib/utils/reservationValidation';
 import styles from './ReservationForm.module.css';
 
@@ -36,6 +37,7 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
   const [clientesLoading, setClientesLoading] = useState(() => Boolean(initialData?.isAdmin));
   const [clientesError, setClientesError] = useState<string | null>(null);
   const [clienteDropdownOpen, setClienteDropdownOpen] = useState(false);
+  const [clienteModalOpen, setClienteModalOpen] = useState(false);
   const {
     sucursal, setSucursal,
     semanaIndex,
@@ -110,6 +112,15 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
   const selectClienteSugerido = (clienteItem: ClientePG) => {
     setCliente(getClienteNombreCompleto(clienteItem));
     setNumeroTelefono(normalizeClientPhone(clienteItem.numero_telefono));
+    setClienteDropdownOpen(false);
+  };
+
+  const handleClienteCreado = (nuevo: ClientePG) => {
+    setCliente(getClienteNombreCompleto(nuevo));
+    setNumeroTelefono(normalizeClientPhone(nuevo.numero_telefono));
+    // El directorio se carga una sola vez al montar. Sin este push, el cliente
+    // recien creado no aparece al volver a buscarlo en la misma sesion.
+    setClientesDirectorio((prev) => [nuevo, ...prev]);
     setClienteDropdownOpen(false);
   };
 
@@ -215,8 +226,21 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
 
           {/* Cliente */}
           <div className={`${styles.formGroup} ${styles.fullWidth} ${styles.clientAutocomplete}`}>
-            <label>Cliente</label>
+            <div className={styles.labelRow}>
+              <label htmlFor="reserva-cliente">Cliente</label>
+              {initialData?.isAdmin && (
+                <button
+                  type="button"
+                  className={styles.inlineAction}
+                  onClick={() => setClienteModalOpen(true)}
+                >
+                  <UserPlus size={13} strokeWidth={2} />
+                  Nuevo
+                </button>
+              )}
+            </div>
             <input
+              id="reserva-cliente"
               type="text"
               value={cliente}
               onChange={(e) => {
@@ -253,7 +277,20 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
                     </button>
                   ))
                 ) : (
-                  <div className={styles.clientDropdownStatus}>Sin coincidencias registradas</div>
+                  <>
+                    <div className={styles.clientDropdownStatus}>Sin coincidencias registradas</div>
+                    <button
+                      type="button"
+                      className={styles.clientRegisterOption}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        setClienteModalOpen(true);
+                      }}
+                    >
+                      <UserPlus size={14} strokeWidth={2} />
+                      Registrar «{cliente.trim()}» como cliente nuevo
+                    </button>
+                  </>
                 )}
               </div>
             )}
@@ -340,6 +377,13 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
         </div>
 
       </div>
+
+      <ClienteFormModal
+        isOpen={clienteModalOpen}
+        onClose={() => setClienteModalOpen(false)}
+        initialNombre={cliente}
+        onSaved={handleClienteCreado}
+      />
     </form>
   );
 }

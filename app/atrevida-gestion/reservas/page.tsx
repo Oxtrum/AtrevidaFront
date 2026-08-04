@@ -17,7 +17,7 @@ import { Input } from '@/components/Shared';
 import Header from '@/components/AdminHeader/Header';
 import { eliminarReservaDB } from '@/lib/api/reservas';
 import { toast } from '@/components/Shared/Toast';
-import { ReservaDetailModal } from '@/components/AdminReservas';
+import { ReservaDetailModal, ReservasToolbar } from '@/components/AdminReservas';
 import styles from './page.module.css';
 
 interface ReservaRow extends Record<string, unknown> {
@@ -215,6 +215,11 @@ export default function AdminReservasPage() {
     [adminLocalScope.ready, locales, scopedLocalName]
   );
 
+  const semanaOptions = useMemo(
+    () => generarSemanas(6).map((semana, idx) => ({ value: String(idx), label: semana.titulo })),
+    []
+  );
+
   const tipoOptions: Array<{ value: ReservaTipoBackend | ''; label: string }> = [
     { value: '', label: 'Todos' },
     { value: 'mesa', label: 'Mesa' },
@@ -344,86 +349,76 @@ export default function AdminReservasPage() {
               accentWord="Reservas"
               subtitle="Vista detallada de reservas. Filtra por local, fecha, estado y tipo."
               actions={
-                <>
-                  <button
-                    className={styles.createButton}
-                    onClick={() => {
-                      const params = new URLSearchParams({
-                        local: effectiveSucursalActiva,
-                        semana: semanaActiva,
-                      });
-                      router.push(`/atrevida-gestion/reservas/crear?${params.toString()}`);
-                    }}
-                  >
-                    <span>+</span>
-                    <span>Nueva Reserva</span>
-                  </button>
-                  <div className={styles.vistaToggle}>
-                    <button
-                      className={`${styles.vistaButton} ${vistaActiva === 'calendario' ? styles.vistaActive : ''}`}
-                      onClick={() => setVistaActiva('calendario')}
-                    >
-                      Calendario
-                    </button>
-                    <button
-                      className={`${styles.vistaButton} ${vistaActiva === 'lista' ? styles.vistaActive : ''}`}
-                      onClick={() => setVistaActiva('lista')}
-                    >
-                      Lista
-                    </button>
-                  </div>
-                </>
+                <button
+                  className={styles.createButton}
+                  onClick={() => {
+                    const params = new URLSearchParams({
+                      local: effectiveSucursalActiva,
+                      semana: semanaActiva,
+                    });
+                    router.push(`/atrevida-gestion/reservas/crear?${params.toString()}`);
+                  }}
+                >
+                  <span>+</span>
+                  <span>Nueva Reserva</span>
+                </button>
               }
             />
           </div>
 
+          <ReservasToolbar
+            vista={vistaActiva}
+            onVistaChange={setVistaActiva}
+            localValue={effectiveSucursalActiva}
+            localOptions={localesOptions}
+            onLocalChange={(value) => {
+              handleSucursalChange(value);
+              setFiltroLocal(scopedLocalName || value);
+            }}
+            localLocked={!!scopedLocalName}
+            semanaIndex={Number(semanaActiva)}
+            semanaOptions={semanaOptions}
+            onSemanaChange={handleSemanaChange}
+            filtros={
+              <>
+                <div className={styles.filtroGroup}>
+                  <label>Fecha desde</label>
+                  <Input
+                    type="date"
+                    value={filtroFechaDesde}
+                    onChange={(e) => setFiltroFechaDesde(e.target.value)}
+                  />
+                </div>
+                <div className={styles.filtroGroup}>
+                  <label>Fecha hasta</label>
+                  <Input
+                    type="date"
+                    value={filtroFechaHasta}
+                    onChange={(e) => setFiltroFechaHasta(e.target.value)}
+                  />
+                </div>
+                <div className={styles.filtroGroup}>
+                  <label>Tipo</label>
+                  <CustomSelect
+                    value={filtroTipo}
+                    onChange={handleTipoFiltroChange}
+                    options={tipoOptions}
+                  />
+                </div>
+                <div className={styles.filtroGroup}>
+                  <label>Estado</label>
+                  <CustomSelect
+                    value={filtroEstado}
+                    onChange={(v) => setFiltroEstado(v as EstadoReserva | '')}
+                    options={estadoOptions}
+                  />
+                </div>
+              </>
+            }
+          />
+
           {vistaActiva === 'lista' && (
             <AdminPanel>
-              <div className={styles.controls}>
-                <div className={styles.filtrosRow}>
-                  <div className={styles.filtroGroup}>
-                    <label>Local</label>
-                    <CustomSelect
-                      value={effectiveFiltroLocal || LOCAL_SCOPE_PENDING}
-                      onChange={(value) => setFiltroLocal(scopedLocalName || value)}
-                      options={localesOptions}
-                    />
-                  </div>
-                  <div className={styles.filtroGroup}>
-                    <label>Fecha desde</label>
-                    <Input
-                      type="date"
-                      value={filtroFechaDesde}
-                      onChange={(e) => setFiltroFechaDesde(e.target.value)}
-                    />
-                  </div>
-                  <div className={styles.filtroGroup}>
-                    <label>Fecha hasta</label>
-                    <Input
-                      type="date"
-                      value={filtroFechaHasta}
-                      onChange={(e) => setFiltroFechaHasta(e.target.value)}
-                    />
-                  </div>
-                  <div className={styles.filtroGroup}>
-                    <label>Tipo</label>
-                    <CustomSelect
-                      value={filtroTipo}
-                      onChange={handleTipoFiltroChange}
-                      options={tipoOptions}
-                    />
-                  </div>
-                  <div className={styles.filtroGroup}>
-                    <label>Estado</label>
-                    <CustomSelect
-                      value={filtroEstado}
-                      onChange={(v) => setFiltroEstado(v as EstadoReserva | '')}
-                      options={estadoOptions}
-                    />
-                  </div>
-                </div>
-
-              </div>
               <DataTable<ReservaRow>
                 columns={columns}
                 data={reservas as unknown as ReservaRow[]}
@@ -472,7 +467,9 @@ export default function AdminReservasPage() {
 
             <CalendarAdmin
               key={pathname}
+              hideControls
               sucursal={effectiveSucursalActiva}
+              semanaIndex={Number(semanaActiva)}
               onSlotClick={handleSlotClick}
               onReservaClick={abrirDetalleDesdeCalendario}
               onSucursalChange={handleSucursalChange}
