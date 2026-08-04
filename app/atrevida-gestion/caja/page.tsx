@@ -546,7 +546,7 @@ export default function CajaPage() {
     if (!clienteNombre.trim()) errors.cliente_nombre = 'El nombre del cliente es obligatorio';
     if (detalle.length === 0) {
       errors.detalle = modo === 'cobrarReserva'
-        ? 'Selecciona una reserva pendiente para cobrar'
+        ? 'Selecciona un paquete reservado para cobrar'
         : 'Agrega al menos un servicio';
     }
     setFormErrors(errors);
@@ -557,7 +557,11 @@ export default function CajaPage() {
     const errors: NewClientErrors = {};
     if (!newClientForm.nombre.trim()) errors.nombre = 'El nombre es obligatorio';
     if (!newClientForm.apellido.trim()) errors.apellido = 'Los apellidos son obligatorios';
-    if (!newClientForm.numero_telefono.trim()) errors.numero_telefono = 'El celular es obligatorio';
+    if (!newClientForm.numero_telefono.trim()) {
+      errors.numero_telefono = 'El celular es obligatorio';
+    } else if (!/^\d{7,}$/.test(newClientForm.numero_telefono.replace(/\D/g, ''))) {
+      errors.numero_telefono = 'Ingresa al menos 7 dígitos del teléfono';
+    }
     setNewClientErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -565,7 +569,7 @@ export default function CajaPage() {
   const registerPayment = async (clienteId: number | null) => {
     if (!selectedLocal) return;
     if (modo === 'cobrarReserva' && !planReservado) {
-      toast.error('Selecciona una reserva pendiente para cobrar.');
+      toast.error('Selecciona un paquete reservado para cobrar.');
       return;
     }
     // Un paquete nuevo es una membresía: necesita un cliente registrado como dueño.
@@ -620,7 +624,7 @@ export default function CajaPage() {
         }
       }
 
-      toast.success(modo === 'cobrarReserva' ? 'Reserva cobrada y activada' : 'Pago registrado en caja');
+      toast.success(modo === 'cobrarReserva' ? 'Paquete cobrado y activado' : 'Pago registrado en caja');
       resetSale();
       await fetchPagos(selectedLocal);
     } catch (err) {
@@ -807,7 +811,7 @@ export default function CajaPage() {
                     onClick={() => handleModoChange('cobrarReserva')}
                   >
                     <CheckCircle2 size={16} strokeWidth={1.8} />
-                    Cobrar reserva
+                    Cobrar paquete reservado
                   </button>
                 </div>
 
@@ -815,8 +819,8 @@ export default function CajaPage() {
                   <div className={styles.catalogPanel}>
                     <div className={styles.panelHeader}>
                       <div>
-                        <span className={styles.kicker}>{modo === 'venta' ? 'Catálogo' : 'Cobrar reserva'}</span>
-                        <h2>{modo === 'venta' ? 'Agregar al pago' : 'Reserva seleccionada'}</h2>
+                        <span className={styles.kicker}>{modo === 'venta' ? 'Catálogo' : 'Cobrar paquete reservado'}</span>
+                        <h2>{modo === 'venta' ? 'Agregar al pago' : 'Paquete seleccionado'}</h2>
                       </div>
                       {modo === 'venta'
                         ? (loadingServicios || loadingCombos) && <span className="admin-badge">Cargando</span>
@@ -846,7 +850,7 @@ export default function CajaPage() {
                           </div>
                         ) : (
                           <p className={styles.mutedText}>
-                            Escribe el nombre del cliente en el panel derecho y elige su reserva pendiente para cargarla al ticket.
+                            Escribe el nombre del cliente en el panel derecho y elige su paquete reservado para cargarlo al ticket.
                           </p>
                         )}
                       </div>
@@ -975,8 +979,8 @@ export default function CajaPage() {
                   <div className={styles.ticketPanel}>
                     <div className={styles.panelHeader}>
                       <div>
-                        <span className={styles.kicker}>{modo === 'venta' ? 'Nuevo pago' : 'Cobrar reserva'}</span>
-                        <h2>{modo === 'venta' ? 'Detalle de caja' : 'Reserva a cobrar'}</h2>
+                        <span className={styles.kicker}>{modo === 'venta' ? 'Nuevo pago' : 'Cobrar paquete reservado'}</span>
+                        <h2>{modo === 'venta' ? 'Detalle de caja' : 'Paquete a cobrar'}</h2>
                       </div>
                       <ReceiptText size={22} strokeWidth={1.7} />
                     </div>
@@ -1050,19 +1054,19 @@ export default function CajaPage() {
 
                     {modo === 'cobrarReserva' && (
                       <div className={styles.modalField}>
-                        <span>Reserva pendiente</span>
+                        <span>Paquete reservado</span>
                         {loadingPlanesReservados ? (
-                          <p className={styles.mutedText}>Buscando reservas...</p>
+                          <p className={styles.mutedText}>Buscando paquetes...</p>
                         ) : clienteNombre.trim().length < 2 ? (
-                          <p className={styles.mutedText}>Escribe el nombre del cliente para buscar sus reservas pendientes.</p>
+                          <p className={styles.mutedText}>Escribe el nombre del cliente para buscar sus paquetes reservados.</p>
                         ) : planesReservados.length === 0 ? (
-                          <p className={styles.mutedText}>Este cliente no tiene reservas pendientes de cobro.</p>
+                          <p className={styles.mutedText}>Este cliente no tiene paquetes reservados pendientes de cobro.</p>
                         ) : (
                           <CustomSelect
                             id="plan-reservado-select"
                             value={planReservado ? String(planReservado.id) : ''}
                             onChange={handleSelectPlanReservado}
-                            placeholder="Selecciona la reserva"
+                            placeholder="Selecciona el paquete"
                             hasError={!!formErrors.detalle}
                             options={planesReservados.map((p) => ({
                               value: String(p.id),
@@ -1158,7 +1162,7 @@ export default function CajaPage() {
                       </button>
                       <button type="button" className="admin-button admin-button-primary" onClick={handleSubmit} disabled={saving}>
                         <CheckCircle2 size={17} strokeWidth={2} />
-                        {saving ? 'Registrando...' : modo === 'cobrarReserva' ? 'Cobrar reserva' : 'Registrar pago'}
+                        {saving ? 'Registrando...' : modo === 'cobrarReserva' ? 'Cobrar paquete' : 'Registrar pago'}
                       </button>
                     </div>
                   </div>

@@ -89,7 +89,11 @@ export function ClienteFormModal({
     const next: FormErrors = {};
     if (!form.nombre.trim()) next.nombre = 'El nombre es obligatorio';
     if (!form.apellido.trim()) next.apellido = 'Los apellidos son obligatorios';
-    if (!form.numero_telefono.trim()) next.numero_telefono = 'El teléfono es obligatorio';
+    if (!form.numero_telefono.trim()) {
+      next.numero_telefono = 'El teléfono es obligatorio';
+    } else if (!/^\d{7,}$/.test(form.numero_telefono.replace(/\D/g, ''))) {
+      next.numero_telefono = 'Ingresa al menos 7 dígitos del teléfono';
+    }
     setErrors(next);
     return Object.keys(next).length === 0;
   };
