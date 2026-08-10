@@ -2,20 +2,35 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle, CalendarPlus } from 'lucide-react';
+import { AlertTriangle, CalendarPlus, UserPlus } from 'lucide-react';
 import { CustomSelect } from '../Custom/CustomSelectAdmin';
 import { TimeSlotPicker } from './TimeSlotPicker';
 import { DaySelector } from './DaySelector';
 import PlanSelector from './PlanSelector';
 import { ServiceSelect } from './ServiceSelect';
 import { useReservationForm, type ReservationFormInitialData } from './useReservationForm';
-import { getClientesDB, type ClientePG } from '@/lib/api/clientes';
+import { FormModal } from '@/components/AdminConfig';
+import { toast } from '@/components/Shared/Toast';
+import { crearClienteDB, getClientesDB, type ClientePG } from '@/lib/api/clientes';
 import { normalizeBolivianPhone } from '@/lib/utils/reservationValidation';
 import styles from './ReservationForm.module.css';
 
 interface ReservationFormProps {
   initialData?: ReservationFormInitialData;
   onSuccess?: () => void;
+}
+
+interface NuevoClienteForm {
+  nombre: string;
+  apellido: string;
+  numero_telefono: string;
+}
+
+interface NuevoClienteErrors {
+  nombre?: string;
+  apellido?: string;
+  numero_telefono?: string;
+  submit?: string;
 }
 
 const MIN_CLIENT_SEARCH_LENGTH = 2;
@@ -30,12 +45,29 @@ const normalizeClientPhone = (value: string) => {
   return normalizeBolivianPhone(digits.length > 8 ? digits.slice(-8) : digits);
 };
 
+// El formulario solo pide un campo "Cliente" (nombre completo), pero crear un
+// cliente en BD exige nombre y apellido por separado: se parte por la última
+// palabra, igual que en Caja.
+const splitNombreCompleto = (nombreCompleto: string): Pick<NuevoClienteForm, 'nombre' | 'apellido'> => {
+  const partes = nombreCompleto.trim().split(/\s+/).filter(Boolean);
+  if (partes.length <= 1) return { nombre: partes[0] ?? '', apellido: '' };
+  return {
+    nombre: partes.slice(0, -1).join(' '),
+    apellido: partes.at(-1) ?? '',
+  };
+};
+
 export default function AdminReservationForm({ initialData, onSuccess }: ReservationFormProps) {
   const router = useRouter();
   const [clientesDirectorio, setClientesDirectorio] = useState<ClientePG[]>([]);
   const [clientesLoading, setClientesLoading] = useState(() => Boolean(initialData?.isAdmin));
   const [clientesError, setClientesError] = useState<string | null>(null);
   const [clienteDropdownOpen, setClienteDropdownOpen] = useState(false);
+  const [clienteEncontradoPorTelefono, setClienteEncontradoPorTelefono] = useState<ClientePG | null>(null);
+  const [nuevoClienteModalOpen, setNuevoClienteModalOpen] = useState(false);
+  const [nuevoClienteForm, setNuevoClienteForm] = useState<NuevoClienteForm>({ nombre: '', apellido: '', numero_telefono: '' });
+  const [nuevoClienteErrors, setNuevoClienteErrors] = useState<NuevoClienteErrors>({});
+  const [creandoCliente, setCreandoCliente] = useState(false);
   const {
     sucursal, setSucursal,
     semanaIndex,
@@ -86,6 +118,86 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
     };
   }, [initialData?.isAdmin]);
 
+  // Cuando el teléfono queda completo (8 dígitos), busca en el directorio ya
+  // cargado un cliente con ese número y autocompleta el nombre si aún está vacío.
+  useEffect(() => {
+    if (!initialData?.isAdmin || numeroTelefono.length !== 8) {
+      setClienteEncontradoPorTelefono(null);
+      return;
+    }
+
+    const match = clientesDirectorio.find(
+      (clienteItem) => normalizeClientPhone(clienteItem.numero_telefono) === numeroTelefono,
+    );
+    setClienteEncontradoPorTelefono(match ?? null);
+
+    if (match && !cliente.trim()) {
+      setCliente(getClienteNombreCompleto(match));
+    }
+  }, [numeroTelefono, clientesDirectorio, initialData?.isAdmin, cliente, setCliente]);
+
+  const mostrarOfertaCrearCliente = Boolean(
+    initialData?.isAdmin
+    && !clientesLoading
+    && numeroTelefono.length === 8
+    && cliente.trim().length > 0
+    && !clienteEncontradoPorTelefono,
+  );
+
+  const abrirModalNuevoCliente = () => {
+    const { nombre, apellido } = splitNombreCompleto(cliente);
+    setNuevoClienteForm({ nombre, apellido, numero_telefono: numeroTelefono });
+    setNuevoClienteErrors({});
+    setNuevoClienteModalOpen(true);
+  };
+
+  const cerrarModalNuevoCliente = () => {
+    if (creandoCliente) return;
+    setNuevoClienteModalOpen(false);
+    setNuevoClienteErrors({});
+  };
+
+  const validarNuevoCliente = (): boolean => {
+    const errs: NuevoClienteErrors = {};
+    if (!nuevoClienteForm.nombre.trim()) errs.nombre = 'El nombre es obligatorio';
+    if (!nuevoClienteForm.apellido.trim()) errs.apellido = 'El apellido es obligatorio';
+    if (!/^\d{8}$/.test(nuevoClienteForm.numero_telefono.replace(/\D/g, ''))) {
+      errs.numero_telefono = 'Ingresa 8 dígitos del teléfono';
+    }
+    setNuevoClienteErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const handleCrearCliente = async () => {
+    if (!validarNuevoCliente()) return;
+
+    setCreandoCliente(true);
+    setNuevoClienteErrors({});
+    try {
+      const payload = {
+        nombre: nuevoClienteForm.nombre.trim(),
+        apellido: nuevoClienteForm.apellido.trim(),
+        numero_telefono: nuevoClienteForm.numero_telefono.replace(/\D/g, ''),
+      };
+      const res = await crearClienteDB(payload);
+      if (!res.data?.id) throw new Error('No se recibió el ID del cliente creado');
+
+      const nuevoCliente: ClientePG = { id: res.data.id, ...payload };
+      setClientesDirectorio((prev) => [...prev, nuevoCliente]);
+      setCliente(getClienteNombreCompleto(nuevoCliente));
+      setNumeroTelefono(normalizeClientPhone(nuevoCliente.numero_telefono));
+      setClienteEncontradoPorTelefono(nuevoCliente);
+      setNuevoClienteModalOpen(false);
+      toast.success('Cliente creado correctamente');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al crear cliente';
+      setNuevoClienteErrors({ submit: message });
+      toast.error(message);
+    } finally {
+      setCreandoCliente(false);
+    }
+  };
+
   const clienteQuery = normalizeSearch(cliente);
   const clientesSugeridos = useMemo(() => {
     if (!initialData?.isAdmin || clienteQuery.length < MIN_CLIENT_SEARCH_LENGTH) return [];
@@ -114,6 +226,7 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
   };
 
   return (
+    <>
     <form onSubmit={handleSubmit} className={styles.form}>
       <div className={styles.formBody}>
 
@@ -271,6 +384,20 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
               className={errors.numeroTelefono ? styles.inputError : ''}
             />
             {errors.numeroTelefono && <span className={styles.errorText}>{errors.numeroTelefono}</span>}
+            {clienteEncontradoPorTelefono && (
+              <p className={styles.clienteFoundHint}>
+                Cliente registrado encontrado: <strong>{getClienteNombreCompleto(clienteEncontradoPorTelefono)}</strong>
+              </p>
+            )}
+            {mostrarOfertaCrearCliente && (
+              <div className={styles.clienteNuevoHint}>
+                <span>Este teléfono no corresponde a ningún cliente registrado.</span>
+                <button type="button" className={styles.clienteNuevoButton} onClick={abrirModalNuevoCliente}>
+                  <UserPlus size={14} strokeWidth={2} />
+                  Crear ficha de cliente
+                </button>
+              </div>
+            )}
           </div>
 
           {initialData?.isAdmin && (
@@ -341,5 +468,68 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
 
       </div>
     </form>
+
+    <FormModal
+      isOpen={nuevoClienteModalOpen}
+      onClose={cerrarModalNuevoCliente}
+      title="Cliente no registrado"
+      onSubmit={handleCrearCliente}
+      loading={creandoCliente}
+      submitLabel="Crear cliente"
+    >
+      <div className={styles.modalFormGrid}>
+        <label className={styles.modalField}>
+          <span>Nombre</span>
+          <input
+            type="text"
+            value={nuevoClienteForm.nombre}
+            onChange={(e) => {
+              setNuevoClienteForm((prev) => ({ ...prev, nombre: e.target.value }));
+              if (nuevoClienteErrors.nombre) setNuevoClienteErrors((prev) => ({ ...prev, nombre: undefined }));
+            }}
+            className={nuevoClienteErrors.nombre ? styles.inputError : ''}
+            autoFocus
+          />
+          {nuevoClienteErrors.nombre && <small className={styles.fieldError}>{nuevoClienteErrors.nombre}</small>}
+        </label>
+
+        <label className={styles.modalField}>
+          <span>Apellido</span>
+          <input
+            type="text"
+            value={nuevoClienteForm.apellido}
+            onChange={(e) => {
+              setNuevoClienteForm((prev) => ({ ...prev, apellido: e.target.value }));
+              if (nuevoClienteErrors.apellido) setNuevoClienteErrors((prev) => ({ ...prev, apellido: undefined }));
+            }}
+            className={nuevoClienteErrors.apellido ? styles.inputError : ''}
+          />
+          {nuevoClienteErrors.apellido && <small className={styles.fieldError}>{nuevoClienteErrors.apellido}</small>}
+        </label>
+
+        <label className={`${styles.modalField} ${styles.modalFieldFull}`}>
+          <span>Teléfono</span>
+          <input
+            type="tel"
+            inputMode="numeric"
+            value={nuevoClienteForm.numero_telefono}
+            onChange={(e) => {
+              setNuevoClienteForm((prev) => ({ ...prev, numero_telefono: normalizeBolivianPhone(e.target.value) }));
+              if (nuevoClienteErrors.numero_telefono) {
+                setNuevoClienteErrors((prev) => ({ ...prev, numero_telefono: undefined }));
+              }
+            }}
+            className={nuevoClienteErrors.numero_telefono ? styles.inputError : ''}
+            placeholder="77777777"
+          />
+          {nuevoClienteErrors.numero_telefono && (
+            <small className={styles.fieldError}>{nuevoClienteErrors.numero_telefono}</small>
+          )}
+        </label>
+      </div>
+
+      {nuevoClienteErrors.submit && <div className={styles.submitError}>{nuevoClienteErrors.submit}</div>}
+    </FormModal>
+    </>
   );
 }
