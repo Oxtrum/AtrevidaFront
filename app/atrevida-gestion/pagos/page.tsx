@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
 import { CreditCard, LockKeyhole, Search } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
-import { PageHeader, DataTable } from '@/components/AdminConfig';
+import { PageHeader, DataTable, CursorPagination } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { getPagosDB } from '@/lib/api/pagos';
@@ -13,6 +13,8 @@ import type { Pago } from '@/lib/api/pagos';
 import { canViewAdminPayments } from '@/lib/auth/adminSession';
 import { formatDateTime } from '@/lib/utils/formatDateTime';
 import styles from './page.module.css';
+import { PAGE_LIMIT } from '@/lib/api/pagination';
+import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
 
 interface PagoRow extends Pago, Record<string, unknown> {}
 
@@ -43,6 +45,10 @@ export default function PagosPage() {
   const [searchNit, setSearchNit] = useState('');
   const [searchNitDebounced, setSearchNitDebounced] = useState('');
   const [filterEstado, setFilterEstado] = useState('PAGADO');
+	const filterKey = `${searchClienteDebounced}|${searchNitDebounced}|${filterEstado}`;
+	const pagination = useCursorPagination(filterKey);
+	const { cursor: paginationCursor, includeTotal, setMetadata: setPaginationMetadata } = pagination;
+	const requestRef = useRef(0);
 
   useEffect(() => {
     const timer = setTimeout(() => setSearchClienteDebounced(searchCliente), 350);
@@ -55,6 +61,7 @@ export default function PagosPage() {
   }, [searchNit]);
 
   const fetchData = useCallback(async () => {
+	const requestId = ++requestRef.current;
     setLoading(true);
     setError(null);
     try {
@@ -63,15 +70,21 @@ export default function PagosPage() {
         cliente_nit: searchNitDebounced || undefined,
         estado: filterEstado || undefined,
         activo: true,
+		limit: PAGE_LIMIT,
+		cursor: paginationCursor,
+		include_total: includeTotal,
       });
+	  if (requestId !== requestRef.current) return;
       setPagos((res.data?.pagos ?? []) as PagoRow[]);
       setTotal(res.data?.total ?? 0);
+	  setPaginationMetadata(res.data?.paginacion);
     } catch (err) {
+	  if (requestId !== requestRef.current) return;
       setError(err instanceof Error ? err.message : 'Error al cargar pagos');
     } finally {
       setLoading(false);
     }
-  }, [searchClienteDebounced, searchNitDebounced, filterEstado]);
+  }, [searchClienteDebounced, searchNitDebounced, filterEstado, paginationCursor, includeTotal, setPaginationMetadata]);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -218,6 +231,7 @@ export default function PagosPage() {
                   hideSearch
                   emptyMessage="No se encontraron pagos"
                 />
+				<CursorPagination page={pagination.page} totalPages={pagination.totalPages} hasNext={pagination.hasNext} loading={loading} onPrevious={pagination.previous} onNext={pagination.next} />
               </>
             )}
           </div>

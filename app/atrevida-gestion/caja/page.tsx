@@ -16,7 +16,7 @@ import {
   WalletCards,
 } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
-import { PageHeader, DataTable, FormModal } from '@/components/AdminConfig';
+import { PageHeader, DataTable, FormModal, CursorPagination } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import { toast } from '@/components/Shared/Toast';
 import { crearClienteDB, getClientesDB } from '@/lib/api/clientes';
@@ -30,6 +30,8 @@ import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import { formatDateTime } from '@/lib/utils/formatDateTime';
 import styles from './page.module.css';
+import { PAGE_LIMIT } from '@/lib/api/pagination';
+import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
 
 interface LocalOption {
   id: number;
@@ -148,6 +150,9 @@ export default function CajaPage() {
   const [pagos, setPagos] = useState<PagoRow[]>([]);
   const [loadingPagos, setLoadingPagos] = useState(false);
   const [pagosError, setPagosError] = useState<string | null>(null);
+	const pagosPagination = useCursorPagination(String(selectedLocal?.id ?? ''));
+	const { cursor: pagosCursor, includeTotal: includePagosTotal, setMetadata: setPagosMetadata } = pagosPagination;
+	const pagosRequestRef = useRef(0);
 
   const [clienteNit, setClienteNit] = useState('');
   const [nitPropuesto, setNitPropuesto] = useState(false);
@@ -240,19 +245,26 @@ export default function CajaPage() {
     if (!local) return;
     setLoadingPagos(true);
     setPagosError(null);
+	const requestId = ++pagosRequestRef.current;
     try {
       const res = await getPagosDB({
         local_nombre: local.nombre,
         estado: 'PAGADO',
         activo: true,
+		limit: PAGE_LIMIT,
+		cursor: pagosCursor,
+		include_total: includePagosTotal,
       });
+	  if (requestId !== pagosRequestRef.current) return;
       setPagos((res.data?.pagos ?? []) as PagoRow[]);
+	  setPagosMetadata(res.data?.paginacion);
     } catch (err) {
+	  if (requestId !== pagosRequestRef.current) return;
       setPagosError(err instanceof Error ? err.message : 'Error al cargar pagos');
     } finally {
       setLoadingPagos(false);
     }
-  }, [selectedLocal]);
+  }, [selectedLocal, pagosCursor, includePagosTotal, setPagosMetadata]);
 
   useEffect(() => {
     if (!adminLocalScope.ready) return;
@@ -284,7 +296,7 @@ export default function CajaPage() {
     const timer = window.setTimeout(async () => {
       setLoadingClientes(true);
       try {
-        const res = await getClientesDB({ nombre: query });
+		const res = await getClientesDB({ busqueda: query, limit: PAGE_LIMIT });
         if (cancelled) return;
         setClientesSugeridos((res.data?.clientes ?? []) as ClienteOption[]);
         setClienteDropdownOpen(true);
@@ -313,7 +325,7 @@ export default function CajaPage() {
     const timer = window.setTimeout(async () => {
       setLoadingPlanesReservados(true);
       try {
-        const res = await getPlanesDB({ cliente: nombre, estado: 'RESERVADO', local: selectedLocal.nombre });
+		const res = await getPlanesDB({ cliente: nombre, estado: 'RESERVADO', local: selectedLocal.nombre, limit: PAGE_LIMIT });
         if (cancelled) return;
         setPlanesReservados(res.data?.planes ?? []);
       } catch {
@@ -1186,6 +1198,7 @@ export default function CajaPage() {
                     searchPlaceholder="Buscar pagos del local..."
                     emptyMessage="Todavía no hay pagos en este local"
                   />
+				  <CursorPagination page={pagosPagination.page} totalPages={pagosPagination.totalPages} hasNext={pagosPagination.hasNext} loading={loadingPagos} onPrevious={pagosPagination.previous} onNext={pagosPagination.next} />
                 </section>
               </>
             )}
