@@ -21,6 +21,8 @@ interface ReservationFormProps {
 
 const MIN_CLIENT_SEARCH_LENGTH = 2;
 const MAX_CLIENT_SUGGESTIONS = 7;
+// Mismo umbral que validateReservationForm: fijos de 7 dígitos son válidos.
+const MIN_PHONE_DIGITS = 7;
 
 const getClienteNombreCompleto = (cliente: ClientePG) => `${cliente.nombre} ${cliente.apellido}`.trim();
 
@@ -108,6 +110,21 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
   const showClienteDropdown = initialData?.isAdmin
     && clienteDropdownOpen
     && clienteQuery.length >= MIN_CLIENT_SEARCH_LENGTH;
+
+  // El teléfono identifica al cliente sólo mientras el nombre esté vacío. Se
+  // resuelve al teclear y no en un efecto: si reaccionara a que "Cliente" quedó
+  // vacío, borrar un nombre elegido por error lo volvería a escribir solo.
+  const handleTelefonoChange = (valor: string) => {
+    const telefono = normalizeBolivianPhone(valor);
+    setNumeroTelefono(telefono);
+
+    if (!initialData?.isAdmin || cliente.trim() || telefono.length < MIN_PHONE_DIGITS) return;
+
+    const match = clientesDirectorio.find(
+      (clienteItem) => normalizeClientPhone(clienteItem.numero_telefono) === telefono,
+    );
+    if (match) setCliente(getClienteNombreCompleto(match));
+  };
 
   const selectClienteSugerido = (clienteItem: ClientePG) => {
     setCliente(getClienteNombreCompleto(clienteItem));
@@ -303,7 +320,7 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
               type="tel"
               inputMode="numeric"
               value={numeroTelefono}
-              onChange={e => setNumeroTelefono(normalizeBolivianPhone(e.target.value))}
+              onChange={e => handleTelefonoChange(e.target.value)}
               placeholder="77777777"
               className={errors.numeroTelefono ? styles.inputError : ''}
             />
