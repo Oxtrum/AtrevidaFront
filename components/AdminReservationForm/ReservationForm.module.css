@@ -672,77 +672,6 @@
   transform: translateY(1px) scale(0.98);
 }
 
-/* ────────────────────────────────────────────────────────────────
-   MODAL: CREAR CLIENTE
-   ──────────────────────────────────────────────────────────────── */
-
-.modalFormGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.85rem;
-}
-
-.modalField,
-.modalFieldFull {
-  display: flex;
-  flex-direction: column;
-  gap: 0.38rem;
-}
-
-.modalFieldFull {
-  grid-column: 1 / -1;
-}
-
-.modalField span {
-  color: var(--admin-text-dim);
-  font-size: 0.76rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.modalField input {
-  width: 100%;
-  min-height: 42px;
-  border: 1px solid var(--admin-border);
-  border-radius: var(--admin-radius-md);
-  background: var(--admin-input-bg);
-  color: var(--admin-foreground);
-  font-family: inherit;
-  font-size: 0.875rem;
-  padding: 0.7rem 0.85rem;
-  transition:
-    border-color var(--admin-t-normal) var(--admin-ease),
-    box-shadow var(--admin-t-normal) var(--admin-ease);
-}
-
-.modalField input:focus {
-  outline: none;
-  border-color: var(--admin-accent-primary);
-  box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.14);
-}
-
-.fieldError {
-  font-size: 0.75rem;
-  color: var(--admin-accent-danger);
-}
-
-.submitError {
-  margin-top: 0.9rem;
-  padding: 0.7rem 0.9rem;
-  border: 1px solid rgba(255, 77, 109, 0.24);
-  border-radius: var(--admin-radius-md);
-  background: rgba(255, 77, 109, 0.1);
-  color: var(--admin-accent-danger);
-  font-size: 0.82rem;
-}
-
-@media (max-width: 640px) {
-  .modalFormGrid {
-    grid-template-columns: 1fr;
-  }
-}
-
 /* ─── Rango por bloques: fin del rango y ayuda ────────────────── */
 
 /* Último bloque incluido en la reserva */
@@ -772,4 +701,58 @@
   font-size: 0.74rem;
   line-height: 1.45;
   color: var(--admin-text-dim);
+}
+
+/* ────────────────────────────────────────────────────────────────
+   LABEL ROW + ACCION INLINE
+   ──────────────────────────────────────────────────────────────── */
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.inlineAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.28rem 0.6rem;
+  border-radius: var(--admin-radius-sm);
+  border: 1px solid var(--admin-border-subtle);
+  background: transparent;
+  color: var(--admin-accent-primary);
+  font-size: 0.74rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.inlineAction:hover {
+  background: rgba(236, 0, 140, 0.1);
+  border-color: var(--admin-accent-primary);
+}
+
+.clientRegisterOption {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border: none;
+  border-top: 1px solid var(--admin-border-subtle);
+  background: transparent;
+  color: var(--admin-accent-primary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.clientRegisterOption:hover {
+  background: rgba(236, 0, 140, 0.1);
 }
