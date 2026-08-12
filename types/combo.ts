@@ -1,4 +1,5 @@
 import type { ApiResponse } from './reserva';
+import type { PaginationMetadata } from '@/lib/api/pagination';
 
 /** Local donde se publica un combo (subset usado por el catálogo público). */
 export interface ComboLocal {
@@ -36,6 +37,7 @@ export interface ComboCatalogo {
 export interface CombosData {
   total: number;
   combos: ComboCatalogo[];
+  paginacion?: PaginationMetadata;
 }
 
 export type CombosApiResponse = ApiResponse<CombosData>;

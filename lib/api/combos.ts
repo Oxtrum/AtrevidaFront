@@ -1,13 +1,14 @@
 import { apiClient } from './client';
 import type { ApiResponse } from '@/types/reserva';
 import type { CombosApiResponse } from '@/types/combo';
+import type { PaginationParams } from './pagination';
 
 /**
  * Obtiene los combos (paquetes) del catálogo público.
  * Sin filtro de local: devuelve todos los combos activos publicados.
  */
-export async function getCombosDB(): Promise<CombosApiResponse> {
-  return apiClient.get<CombosApiResponse>('/bd/combos');
+export async function getCombosDB(params: PaginationParams = {}): Promise<CombosApiResponse> {
+  return apiClient.get<CombosApiResponse>('/bd/combos', { params: { limit: params.limit, cursor: params.cursor, include_total: params.include_total } });
 }
 
 // ─── Admin CRUD (admin_sys) ─────────────────────────────────────────

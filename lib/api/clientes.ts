@@ -1,5 +1,6 @@
 import { apiClient } from './client';
 import type { ApiResponse } from '@/types/reserva';
+import type { PaginationMetadata, PaginationParams } from './pagination';
 
 export interface ClientePG {
   id: number;
@@ -12,10 +13,12 @@ export interface ClientePG {
   nit?: string;
 }
 
-export interface GetClientesParams {
+export interface GetClientesParams extends PaginationParams {
   nombre?: string;
   apellido?: string;
   numero_telefono?: string;
+	busqueda?: string;
+	include_total?: boolean;
 }
 
 export interface ClientesListResponse {
@@ -25,7 +28,9 @@ export interface ClientesListResponse {
     apellido?: string;
     numero_telefono?: string;
   };
-  total: number;
+	total: number;
+	total_registros?: number;
+	paginacion?: PaginationMetadata;
 }
 
 export interface CrearClienteData {
@@ -46,13 +51,18 @@ export interface ActualizarClienteData {
   nit?: string;
 }
 
-export async function getClientesDB(params: GetClientesParams): Promise<ApiResponse<ClientesListResponse>> {
+export async function getClientesDB(params: GetClientesParams, signal?: AbortSignal): Promise<ApiResponse<ClientesListResponse>> {
   return apiClient.get<ApiResponse<ClientesListResponse>>('/bd/clientes', {
     params: {
       nombre: params.nombre,
       apellido: params.apellido,
       numero_telefono: params.numero_telefono,
+	  busqueda: params.busqueda,
+	  limit: params.limit,
+	  cursor: params.cursor,
+	  include_total: params.include_total ? 'true' : undefined,
     },
+    signal,
   });
 }
 

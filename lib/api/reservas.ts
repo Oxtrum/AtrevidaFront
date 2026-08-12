@@ -6,6 +6,7 @@
 import { apiClient } from './client';
 import { withNombreLocalScope } from './localScope';
 import type { ApiResponse, EstadoReserva, ReservaBD, ReservaFormData, ReservasBDApiResponse } from '@/types/reserva';
+import type { PaginationParams } from './pagination';
 
 // ─── Parámetros (Sheets - DEPRECATED) ──────────────────────────────────────
 
@@ -26,7 +27,7 @@ export type ReservaTipoBackend = 'mesa' | 'bicicleta';
 /** Tipo de reserva en body POST/PATCH (M/B). */
 export type ReservaTipoBody = 'M' | 'B';
 
-export interface GetReservasDBParams {
+export interface GetReservasDBParams extends PaginationParams {
   local?: string;
   fecha?: string;
   fecha_desde?: string;
@@ -167,7 +168,7 @@ export async function getReservasSheets(params: GetReservasSheetsParams): Promis
 // ─── Queries (DB) ───────────────────────────────────────────────────────────
 
 /** Obtiene reservas filtradas desde la base de datos. */
-export async function getReservasDB(params: GetReservasDBParams): Promise<ReservasBDApiResponse> {
+export async function getReservasDB(params: GetReservasDBParams, signal?: AbortSignal): Promise<ReservasBDApiResponse> {
   const scopedParams = withNombreLocalScope(params);
 
   return apiClient.get<ReservasBDApiResponse>('/bd/reservas', {
@@ -182,7 +183,11 @@ export async function getReservasDB(params: GetReservasDBParams): Promise<Reserv
       numero_telefono: scopedParams.numero_telefono,
       servicio_solicitado: scopedParams.servicio_solicitado,
       servicio_confirmado: scopedParams.servicio_confirmado,
+	  limit: scopedParams.limit,
+	  cursor: scopedParams.cursor,
+	  include_total: scopedParams.include_total,
     },
+	signal,
   });
 }
 

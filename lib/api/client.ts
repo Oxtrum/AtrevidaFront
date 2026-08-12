@@ -54,7 +54,7 @@ export class ApiError extends Error {
 // ─── Opciones ─────────────────────────────────────────────────────────────────
 
 type RequestOptions = Omit<RequestInit, 'body'> & {
-  params?: Record<string, string | number | undefined>;
+  params?: Record<string, string | number | boolean | undefined>;
   body?: unknown;
   auth?: AuthMode;
   /** Segundos de revalidación (solo server-side). 0 = sin caché. */

@@ -22,6 +22,9 @@ export interface GetCombosParams {
   nombre?: string;
   categoria?: string;
   sesiones?: number;
+	limit?: number;
+	cursor?: string;
+	include_total?: boolean;
 }
 
 export interface GetCategoriasParams {
@@ -203,6 +206,9 @@ export async function getCombosDB(params: GetCombosParams) {
       nombre: scopedParams.nombre,
       categoria: scopedParams.categoria,
       sesiones: scopedParams.sesiones,
+	  limit: scopedParams.limit,
+	  cursor: scopedParams.cursor,
+	  include_total: scopedParams.include_total,
     },
   });
 }

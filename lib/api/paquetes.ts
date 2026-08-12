@@ -1,5 +1,6 @@
 import { apiClient } from './client';
 import type { ApiResponse } from '@/types/reserva';
+import type { PaginationMetadata, PaginationParams } from './pagination';
 
 // ─── Tipos ───────────────────────────────────────────────────────────
 
@@ -68,7 +69,7 @@ export interface CrearPaqueteBody {
 
 // ─── Admin CRUD (admin_sys) ─────────────────────────────────────────
 
-export interface GetPaquetesParams {
+export interface GetPaquetesParams extends PaginationParams {
   local?: string;
   categoria?: string;
   nombre?: string;
@@ -78,8 +79,8 @@ export interface GetPaquetesParams {
 /** GET /bd/paquetes — lista paquetes filtrados. */
 export async function getPaquetesDB(
   params: GetPaquetesParams = {},
-): Promise<ApiResponse<{ total: number; paquetes: PaqueteDetalle[] }>> {
-  return apiClient.get<ApiResponse<{ total: number; paquetes: PaqueteDetalle[] }>>(
+): Promise<ApiResponse<{ total: number; paquetes: PaqueteDetalle[]; paginacion?: PaginationMetadata }>> {
+  return apiClient.get<ApiResponse<{ total: number; paquetes: PaqueteDetalle[]; paginacion?: PaginationMetadata }>>(
     '/bd/paquetes',
     {
       params: {
@@ -87,6 +88,9 @@ export async function getPaquetesDB(
         categoria: params.categoria,
         nombre: params.nombre,
         activo: params.activo?.toString(),
+		limit: params.limit,
+		cursor: params.cursor,
+		include_total: params.include_total,
       },
     },
   );

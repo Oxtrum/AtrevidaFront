@@ -1,5 +1,7 @@
 export type DiaSemana = 'LUNES' | 'MARTES' | 'MIÉRCOLES' | 'JUEVES' | 'VIERNES' | 'SÁBADO';
 
+import type { PaginationMetadata } from '@/lib/api/pagination';
+
 export type TipoReserva = 'm' | 'b' | 'M' | 'B' | 'feriado';
 export type EstadoReserva = 'PENDIENTE' | 'AGENDADO' | 'RECHAZADO' | 'COMPLETADO';
 
@@ -11,7 +13,7 @@ export interface FechaDia {
 }
 export interface ReservasBDApiResponse {
   code: number;
-  data: { reservas: ReservaBD[]; total: number };
+  data: { reservas: ReservaBD[]; total: number; paginacion?: PaginationMetadata };
   error: boolean;
   message: string | null;
   status: string;

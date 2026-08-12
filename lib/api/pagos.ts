@@ -1,6 +1,7 @@
 import { apiClient } from './client';
 import { withLocalIdScope, withNombreLocalScope } from './localScope';
 import type { ApiResponse } from '@/types/reserva';
+import type { PaginationMetadata, PaginationParams } from './pagination';
 
 export interface DetalleServicio {
   servicio_id: number | null;
@@ -39,7 +40,7 @@ export interface Pago {
   fecha_modificacion: string;
 }
 
-export interface GetPagosParams {
+export interface GetPagosParams extends PaginationParams {
   codigo_pago?: string;
   local_id?: number;
   local_nombre?: string;
@@ -60,6 +61,7 @@ export interface PagosListResponse {
     activo: boolean;
   };
   pagos: Pago[];
+  paginacion?: PaginationMetadata;
 }
 
 export interface PagosResumenParams {
@@ -116,6 +118,9 @@ export async function getPagosDB(params?: GetPagosParams): Promise<ApiResponse<P
       cliente_nombre: scopedParams.cliente_nombre,
       estado: scopedParams.estado,
       activo: scopedParams.activo === undefined ? undefined : String(scopedParams.activo),
+	  limit: scopedParams.limit,
+	  cursor: scopedParams.cursor,
+	  include_total: scopedParams.include_total,
     },
   });
 }

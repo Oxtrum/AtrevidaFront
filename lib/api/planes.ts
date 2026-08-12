@@ -1,5 +1,6 @@
 import { apiClient } from './client';
 import type { ApiResponse } from '@/types/reserva';
+import type { PaginationMetadata, PaginationParams } from './pagination';
 
 export interface CrearPlanData {
   combo_id: number;
@@ -28,15 +29,15 @@ export interface PlanItem {
   creado_en: string;
 }
 
-export interface GetPlanesParams extends Record<string, string | number | undefined> {
+export interface GetPlanesParams extends PaginationParams, Record<string, string | number | boolean | undefined> {
   local?: string;
   local_id?: number;
   cliente?: string;
   estado?: string;
 }
 
-export async function getPlanesDB(params: GetPlanesParams): Promise<ApiResponse<{ planes: PlanItem[] }>> {
-  return apiClient.get<ApiResponse<{ planes: PlanItem[] }>>('/bd/planes', { params });
+export async function getPlanesDB(params: GetPlanesParams): Promise<ApiResponse<{ total: number; planes: PlanItem[]; paginacion?: PaginationMetadata }>> {
+  return apiClient.get<ApiResponse<{ total: number; planes: PlanItem[]; paginacion?: PaginationMetadata }>>('/bd/planes', { params });
 }
 
 export interface PlanServicioDetalle {
