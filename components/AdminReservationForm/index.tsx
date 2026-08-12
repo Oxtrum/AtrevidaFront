@@ -21,8 +21,6 @@ interface ReservationFormProps {
 
 const MIN_CLIENT_SEARCH_LENGTH = 2;
 const MAX_CLIENT_SUGGESTIONS = 7;
-// Mismo umbral que validateReservationForm: fijos de 7 dígitos son válidos.
-const MIN_PHONE_DIGITS = 7;
 
 const getClienteNombreCompleto = (cliente: ClientePG) => `${cliente.nombre} ${cliente.apellido}`.trim();
 
@@ -89,31 +87,6 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
       cancelled = true;
     };
   }, [initialData?.isAdmin]);
-
-  // Cuando el teléfono ya es válido (7+ dígitos, igual que validateReservationForm),
-  // busca en el directorio ya cargado un cliente con ese número.
-  const clienteEncontradoPorTelefono = useMemo(() => {
-    if (!initialData?.isAdmin || numeroTelefono.length < MIN_PHONE_DIGITS) return null;
-
-    return clientesDirectorio.find(
-      (clienteItem) => normalizeClientPhone(clienteItem.numero_telefono) === numeroTelefono,
-    ) ?? null;
-  }, [numeroTelefono, clientesDirectorio, initialData?.isAdmin]);
-
-  // Si el teléfono identificó a un cliente y el nombre sigue vacío, se completa solo.
-  const clienteVacio = !cliente.trim();
-  useEffect(() => {
-    if (!clienteEncontradoPorTelefono || !clienteVacio) return;
-    setCliente(getClienteNombreCompleto(clienteEncontradoPorTelefono));
-  }, [clienteEncontradoPorTelefono, clienteVacio, setCliente]);
-
-  const mostrarOfertaCrearCliente = Boolean(
-    initialData?.isAdmin
-    && !clientesLoading
-    && numeroTelefono.length >= MIN_PHONE_DIGITS
-    && cliente.trim().length > 0
-    && !clienteEncontradoPorTelefono,
-  );
 
   const clienteQuery = normalizeSearch(cliente);
   const clientesSugeridos = useMemo(() => {
@@ -335,20 +308,6 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
               className={errors.numeroTelefono ? styles.inputError : ''}
             />
             {errors.numeroTelefono && <span className={styles.errorText}>{errors.numeroTelefono}</span>}
-            {clienteEncontradoPorTelefono && (
-              <p className={styles.clienteFoundHint}>
-                Cliente registrado encontrado: <strong>{getClienteNombreCompleto(clienteEncontradoPorTelefono)}</strong>
-              </p>
-            )}
-            {mostrarOfertaCrearCliente && (
-              <div className={styles.clienteNuevoHint}>
-                <span>Este teléfono no corresponde a ningún cliente registrado.</span>
-                <button type="button" className={styles.clienteNuevoButton} onClick={() => setClienteModalOpen(true)}>
-                  <UserPlus size={14} strokeWidth={2} />
-                  Crear ficha de cliente
-                </button>
-              </div>
-            )}
           </div>
 
           {initialData?.isAdmin && (

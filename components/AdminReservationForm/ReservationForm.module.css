@@ -615,63 +615,6 @@
   padding: 0.8rem 0.9rem;
 }
 
-/* ────────────────────────────────────────────────────────────────
-   CLIENTE ENCONTRADO / CLIENTE NUEVO (búsqueda por teléfono)
-   ──────────────────────────────────────────────────────────────── */
-
-.clienteFoundHint {
-  margin: 0.6rem 0 0;
-  font-size: 0.8rem;
-  color: var(--admin-accent-tertiary);
-}
-
-.clienteFoundHint strong {
-  color: var(--admin-foreground);
-}
-
-.clienteNuevoHint {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.6rem;
-  margin-top: 0.6rem;
-  padding: 0.75rem 0.9rem;
-  border: 1px solid rgba(255, 230, 0, 0.28);
-  border-radius: var(--admin-radius-md);
-  background: rgba(255, 230, 0, 0.08);
-  color: var(--admin-text-muted);
-  font-size: 0.8rem;
-  line-height: 1.4;
-}
-
-.clienteNuevoButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  flex: 0 0 auto;
-  margin-left: auto;
-  padding: 0.45rem 0.85rem;
-  border: 1px solid var(--admin-accent-primary);
-  border-radius: var(--admin-radius-full);
-  background: rgba(236, 0, 140, 0.1);
-  color: var(--admin-accent-primary);
-  font-family: inherit;
-  font-size: 0.78rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition:
-    background var(--admin-t-fast) var(--admin-ease),
-    transform var(--admin-t-fast) var(--admin-ease);
-}
-
-.clienteNuevoButton:hover {
-  background: rgba(236, 0, 140, 0.18);
-}
-
-.clienteNuevoButton:active {
-  transform: translateY(1px) scale(0.98);
-}
-
 /* ─── Rango por bloques: fin del rango y ayuda ────────────────── */
 
 /* Último bloque incluido en la reserva */
