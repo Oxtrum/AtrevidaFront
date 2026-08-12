@@ -7,6 +7,7 @@ import { Check, MapPin } from 'lucide-react';
 import { getPaquetesDB, type PaqueteDetalle } from '@/lib/api/paquetes';
 import section from '@/components/Servicios/Servicios.module.css';
 import styles from './Paquetes.module.css';
+import { PAGE_LIMIT, type PaginationMetadata } from '@/lib/api/pagination';
 
 const WHATSAPP = '59177411855';
 const INSTAGRAM = 'https://instagram.com/atrevida.fit';
@@ -83,6 +84,8 @@ function serviciosUnicos(base: PaqueteDetalle['servicios_base']): string[] {
 export default function Paquetes() {
   const [paquetes, setPaquetes] = useState<PaqueteDetalle[]>([]);
   const [loading, setLoading] = useState(true);
+	const [loadingMore, setLoadingMore] = useState(false);
+	const [pagination, setPagination] = useState<PaginationMetadata>();
   const sectionRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -90,9 +93,12 @@ export default function Paquetes() {
   // Carga dinámica: refleja altas/bajas de paquetes en cada visita.
   useEffect(() => {
     let active = true;
-    getPaquetesDB()
+    getPaquetesDB({ limit: PAGE_LIMIT })
       .then((res) => {
-        if (active) setPaquetes(res.data?.paquetes ?? []);
+		if (active) {
+			setPaquetes(res.data?.paquetes ?? []);
+			setPagination(res.data?.paginacion);
+		}
       })
       .catch(() => {
         if (active) setPaquetes([]);
@@ -104,6 +110,18 @@ export default function Paquetes() {
       active = false;
     };
   }, []);
+
+	const loadMore = async () => {
+		if (!pagination?.next_cursor || loadingMore) return;
+		setLoadingMore(true);
+		try {
+			const res = await getPaquetesDB({ limit: PAGE_LIMIT, cursor: pagination.next_cursor });
+			setPaquetes((current) => [...current, ...(res.data?.paquetes ?? [])]);
+			setPagination(res.data?.paginacion);
+		} finally {
+			setLoadingMore(false);
+		}
+	};
 
   // Entrada animada; count-agnostic (anima las cards que existan). Respeta reduce-motion.
   useEffect(() => {
@@ -254,6 +272,13 @@ export default function Paquetes() {
             })}
           </div>
         )}
+		{!loading && pagination?.has_more && (
+			<div className={styles.loadMoreWrap}>
+				<button type="button" className={styles.loadMore} onClick={loadMore} disabled={loadingMore}>
+					{loadingMore ? 'Cargando...' : 'Ver mas paquetes'}
+				</button>
+			</div>
+		)}
 
         {!loading && paquetes.length > 0 && (
           <p className={styles.follow}>

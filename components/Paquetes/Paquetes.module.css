@@ -321,3 +321,21 @@
     animation: none;
   }
 }
+.loadMoreWrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.loadMore {
+  min-height: 2.75rem;
+  padding: 0.65rem 1.25rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.loadMore:disabled { cursor: wait; opacity: 0.6; }
+.loadMore:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }

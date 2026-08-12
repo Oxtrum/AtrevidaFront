@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Filter, Layers, MapPin, Package2, Plus, Pencil, Trash2 } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
-import { PageHeader, FormModal, RowActionsMenu } from '@/components/AdminConfig';
+import { PageHeader, FormModal, RowActionsMenu, CursorPagination } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
 import { getLocalesDB } from '@/lib/api/servicios';
@@ -12,6 +12,8 @@ import { getPaquetesDB, eliminarPaquete, type PaqueteDetalle } from '@/lib/api/p
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import PaqueteFormModal, { type EditablePaquete } from './PaqueteFormModal';
 import styles from './page.module.css';
+import { PAGE_LIMIT } from '@/lib/api/pagination';
+import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
 
 interface LocalOption {
   id: number;
@@ -55,6 +57,9 @@ export default function PaquetesPage() {
   const effectiveFiltroLocal = scopedLocalName || filtroLocal;
   const hasScopedLocal = !!scopedLocalName;
   const hasFilter = adminLocalScope.ready;
+	const pagination = useCursorPagination(`${effectiveFiltroLocal}|${filtroNombreDebounced}|${filtroCategoria}`);
+	const { cursor: paginationCursor, includeTotal, setMetadata: setPaginationMetadata } = pagination;
+	const requestRef = useRef(0);
 
   const localOptions = useMemo(() => [
     ...(hasScopedLocal ? [] : [{ value: '', label: 'Todas las sucursales' }]),
@@ -75,6 +80,7 @@ export default function PaquetesPage() {
   const fetchPaquetes = useCallback(async () => {
     if (!adminLocalScope.ready) return;
     setLoading(true);
+	const requestId = ++requestRef.current;
     setError(null);
     try {
       const res = await getPaquetesDB({
@@ -82,14 +88,20 @@ export default function PaquetesPage() {
         nombre: filtroNombreDebounced || undefined,
         categoria: filtroCategoria || undefined,
         activo: true,
+		limit: PAGE_LIMIT,
+		cursor: paginationCursor,
+		include_total: includeTotal,
       });
+	  if (requestId !== requestRef.current) return;
       setPaquetes(res?.data?.paquetes ?? []);
+	  setPaginationMetadata(res?.data?.paginacion);
     } catch (err) {
+	  if (requestId !== requestRef.current) return;
       setError(err instanceof Error ? err.message : 'Error al cargar paquetes');
     } finally {
       setLoading(false);
     }
-  }, [adminLocalScope.ready, effectiveFiltroLocal, filtroNombreDebounced, filtroCategoria]);
+  }, [adminLocalScope.ready, effectiveFiltroLocal, filtroNombreDebounced, filtroCategoria, paginationCursor, includeTotal, setPaginationMetadata]);
 
   const fetchLocales = useCallback(async () => {
     if (!adminLocalScope.ready) return;
@@ -278,6 +290,7 @@ export default function PaquetesPage() {
                     );
                   })}
                 </div>
+				<CursorPagination page={pagination.page} totalPages={pagination.totalPages} hasNext={pagination.hasNext} loading={loading} onPrevious={pagination.previous} onNext={pagination.next} />
               </>
             )}
           </div>
