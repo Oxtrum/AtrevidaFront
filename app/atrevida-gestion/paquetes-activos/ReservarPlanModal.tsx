@@ -8,6 +8,7 @@ import { crearPlan } from '@/lib/api/planes';
 import { getCombosDB } from '@/lib/api/servicios';
 import { getClientesDB, type ClientePG } from '@/lib/api/clientes';
 import styles from './page.module.css';
+import { PAGE_LIMIT } from '@/lib/api/pagination';
 
 interface LocalOpt { id: number; nombre: string; }
 interface ComboOpt { id: number; nombre: string; }
@@ -31,12 +32,18 @@ export default function ReservarPlanModal({ locales, onClose, onReservado }: Pro
   const [loadingCombos, setLoadingCombos] = useState(false);
   const [saving, setSaving] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+	const query = normalizeSearch(clienteQuery);
 
   useEffect(() => {
-    getClientesDB({})
-      .then((r) => setClientes(r?.data?.clientes ?? []))
-      .catch(() => setClientes([]));
-  }, []);
+	if (query.length < 2) { setClientes([]); return; }
+	const controller = new AbortController();
+	const timer = window.setTimeout(() => {
+	  getClientesDB({ busqueda: query, limit: PAGE_LIMIT }, controller.signal)
+		.then((r) => { if (!controller.signal.aborted) setClientes(r?.data?.clientes ?? []); })
+		.catch(() => { if (!controller.signal.aborted) setClientes([]); });
+	}, 300);
+	return () => { window.clearTimeout(timer); controller.abort(); };
+  }, [query]);
 
   useEffect(() => {
     const local = locales.find((l) => String(l.id) === localId);
@@ -55,7 +62,6 @@ export default function ReservarPlanModal({ locales, onClose, onReservado }: Pro
       .finally(() => setLoadingCombos(false));
   }, [localId, locales]);
 
-  const query = normalizeSearch(clienteQuery);
   const sugeridos = useMemo(() => {
     if (query.length < 2) return [];
     return clientes

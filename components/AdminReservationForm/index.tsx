@@ -13,6 +13,7 @@ import { getClientesDB, type ClientePG } from '@/lib/api/clientes';
 import { ClienteFormModal } from '@/components/AdminClientes';
 import { normalizeBolivianPhone } from '@/lib/utils/reservationValidation';
 import styles from './ReservationForm.module.css';
+import { PAGE_LIMIT } from '@/lib/api/pagination';
 
 interface ReservationFormProps {
   initialData?: ReservationFormInitialData;
@@ -36,7 +37,7 @@ const normalizeClientPhone = (value: string) => {
 export default function AdminReservationForm({ initialData, onSuccess }: ReservationFormProps) {
   const router = useRouter();
   const [clientesDirectorio, setClientesDirectorio] = useState<ClientePG[]>([]);
-  const [clientesLoading, setClientesLoading] = useState(() => Boolean(initialData?.isAdmin));
+  const [clientesLoading, setClientesLoading] = useState(false);
   const [clientesError, setClientesError] = useState<string | null>(null);
   const [clienteDropdownOpen, setClienteDropdownOpen] = useState(false);
   const [clienteModalOpen, setClienteModalOpen] = useState(false);
@@ -66,31 +67,37 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
     handleSubmit,
   } = useReservationForm(initialData, onSuccess);
 
+	const clienteQuery = normalizeSearch(cliente);
+
   useEffect(() => {
-    if (!initialData?.isAdmin) return;
-
-    let cancelled = false;
-
-    getClientesDB({})
+	if (!initialData?.isAdmin || clienteQuery.length < MIN_CLIENT_SEARCH_LENGTH) {
+		return;
+	}
+	const controller = new AbortController();
+	const timer = window.setTimeout(() => {
+	  setClientesLoading(true);
+	  setClientesError(null);
+	  getClientesDB({ busqueda: clienteQuery, limit: PAGE_LIMIT }, controller.signal)
       .then((res) => {
-        if (cancelled) return;
+		if (controller.signal.aborted) return;
         setClientesDirectorio(res.data?.clientes ?? []);
       })
       .catch((err) => {
-        if (cancelled) return;
+		if (controller.signal.aborted) return;
         setClientesDirectorio([]);
         setClientesError(err instanceof Error ? err.message : 'No se pudo cargar el directorio de clientes');
       })
       .finally(() => {
-        if (!cancelled) setClientesLoading(false);
+		if (!controller.signal.aborted) setClientesLoading(false);
       });
+	}, 300);
 
     return () => {
-      cancelled = true;
+	  window.clearTimeout(timer);
+	  controller.abort();
     };
-  }, [initialData?.isAdmin]);
+  }, [clienteQuery, initialData?.isAdmin]);
 
-  const clienteQuery = normalizeSearch(cliente);
   const clientesSugeridos = useMemo(() => {
     if (!initialData?.isAdmin || clienteQuery.length < MIN_CLIENT_SEARCH_LENGTH) return [];
 

@@ -3,15 +3,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
-import { Pencil, Plus, Trash2, Users } from 'lucide-react';
+import { Pencil, Plus, Search, Trash2, Users } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
-import { PageHeader, DataTable, FormModal, RowActionsMenu } from '@/components/AdminConfig';
+import { PageHeader, DataTable, FormModal, RowActionsMenu, CursorPagination } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import { toast } from '@/components/Shared/Toast';
 import { getClientesDB, eliminarClienteDB } from '@/lib/api/clientes';
 import type { ClientePG } from '@/lib/api/clientes';
 import { ClienteFormModal } from '@/components/AdminClientes';
 import styles from './page.module.css';
+import { PAGE_LIMIT } from '@/lib/api/pagination';
+import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
 
 interface ClienteRow extends Record<string, unknown> {
   id: number;
@@ -35,6 +37,16 @@ export default function ClientesPage() {
   const [clientes, setClientes] = useState<ClienteRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+	const [search, setSearch] = useState('');
+	const [debouncedSearch, setDebouncedSearch] = useState('');
+  const pagination = useCursorPagination(debouncedSearch);
+	const { cursor: paginationCursor, includeTotal, setMetadata: setPaginationMetadata } = pagination;
+	const requestRef = useRef(0);
+
+	useEffect(() => {
+		const timer = window.setTimeout(() => setDebouncedSearch(search.trim()), 300);
+		return () => window.clearTimeout(timer);
+	}, [search]);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCliente, setEditingCliente] = useState<ClientePG | undefined>(undefined);
@@ -42,18 +54,22 @@ export default function ClientesPage() {
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
 
   const fetchData = useCallback(async () => {
+	const requestId = ++requestRef.current;
     setLoading(true);
     setError(null);
     try {
-      const res = await getClientesDB({});
+	  const res = await getClientesDB({ busqueda: debouncedSearch || undefined, limit: PAGE_LIMIT, cursor: paginationCursor, include_total: includeTotal });
+	  if (requestId !== requestRef.current) return;
       const data = (res as { data?: { clientes?: ClientePG[] } }).data;
       setClientes((data?.clientes ?? []) as ClienteRow[]);
+	  setPaginationMetadata(res.data?.paginacion);
     } catch (err) {
+	  if (requestId !== requestRef.current) return;
       setError(err instanceof Error ? err.message : 'Error al cargar clientes');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [debouncedSearch, paginationCursor, includeTotal, setPaginationMetadata]);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -141,6 +157,10 @@ export default function ClientesPage() {
 
         <div ref={contentRef} className={styles.contentStack}>
          
+		  <div className={styles.searchBar}>
+			<Search size={16} className={styles.searchIcon} />
+			<input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar por nombre, apellido o telefono..." aria-label="Buscar clientes" />
+		  </div>
           <DataTable<ClienteRow>
             columns={columns}
             data={clientes}
@@ -149,8 +169,10 @@ export default function ClientesPage() {
             onRefresh={fetchData}
             getRowKey={(c) => c.id}
             searchPlaceholder="Buscar por nombre..."
+			hideSearch
             emptyMessage="No se encontraron clientes"
           />
+          <CursorPagination page={pagination.page} totalPages={pagination.totalPages} hasNext={pagination.hasNext} loading={loading} onPrevious={pagination.previous} onNext={pagination.next} />
         </div>
         </div>
       </main>

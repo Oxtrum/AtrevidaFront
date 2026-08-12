@@ -204,7 +204,7 @@ export default function AdminDashboardPage() {
 
       const [resumenResult, clientesResult] = await Promise.allSettled([
         resumenRequest,
-        getClientesDB({}),
+        getClientesDB({ limit: 1, include_total: true }),
       ]);
 
       if (resumenResult.status === 'fulfilled') {
@@ -215,7 +215,7 @@ export default function AdminDashboardPage() {
       }
 
       if (clientesResult.status === 'fulfilled') {
-        setClientesTotal(clientesResult.value.data?.total ?? 0);
+        setClientesTotal(clientesResult.value.data?.total_registros ?? 0);
       }
 
       setResumenLoading(false);
