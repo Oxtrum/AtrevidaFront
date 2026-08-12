@@ -7,4 +7,5 @@ export { RowActionsMenu } from './RowActionsMenu';
 export type { RowAction } from './RowActionsMenu';
 export { SectionLabel } from './SectionLabel';
 export { AdminPanel } from './AdminPanel';
+export { CursorPagination } from './CursorPagination';
 export { StatCard, StatGrid } from './StatCard';
