@@ -11,7 +11,7 @@ import { useLocales } from '@/lib/hooks/useLocales';
 import { useReservasFiltradas } from '@/lib/hooks/useReservasFiltradas';
 import type { ReservaTipoBackend } from '@/lib/api/reservas';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
-import { DataTable, Column, RowActionsMenu, PageHeader, AdminPanel, ConfirmDialog } from '@/components/AdminConfig';
+import { DataTable, Column, RowActionsMenu, PageHeader, AdminPanel, ConfirmDialog, CursorPagination } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { Input } from '@/components/Shared';
 import Header from '@/components/AdminHeader/Header';
@@ -19,6 +19,8 @@ import { eliminarReservaDB } from '@/lib/api/reservas';
 import { toast } from '@/components/Shared/Toast';
 import { ReservaDetailModal, ReservasToolbar } from '@/components/AdminReservas';
 import styles from './page.module.css';
+import { PAGE_LIMIT } from '@/lib/api/pagination';
+import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
 
 interface ReservaRow extends Record<string, unknown> {
   id: number;
@@ -59,7 +61,7 @@ export default function AdminReservasPage() {
   const [filtroEstado, setFiltroEstado] = useState<EstadoReserva | ''>('');
 
   const { locales } = useLocales();
-  const { reservas, loading, error, fetch: fetchReservas } = useReservasFiltradas();
+  const { reservas, loading, error, pagination: serverPagination, fetch: fetchReservas } = useReservasFiltradas();
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [selectedReserva, setSelectedReserva] = useState<ReservaBD | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<ReservaBD | null>(null);
@@ -82,6 +84,10 @@ export default function AdminReservasPage() {
 
   const [filtroFechaDesde, setFiltroFechaDesde] = useState(getInitialFechaDesde);
   const [filtroFechaHasta, setFiltroFechaHasta] = useState(getInitialFechaHasta);
+	const pagination = useCursorPagination(`${effectiveFiltroLocal}|${filtroFechaDesde}|${filtroFechaHasta}|${filtroTipo}|${filtroEstado}`);
+	const { cursor: paginationCursor, includeTotal, setMetadata: setPaginationMetadata } = pagination;
+
+	useEffect(() => setPaginationMetadata(serverPagination), [setPaginationMetadata, serverPagination]);
 
   // Fechas de la semana que muestra el calendario. Se derivan igual que en
   // CalendarAdmin (generarSemanas(6) + getFechasDeSemana), y `semanaActiva` se
@@ -103,9 +109,12 @@ export default function AdminReservasPage() {
         fecha_hasta: filtroFechaHasta,
         tipo: (filtroTipo as 'mesa' | 'bicicleta' | '') || undefined,
         estado: filtroEstado || undefined,
+		limit: PAGE_LIMIT,
+		cursor: paginationCursor,
+		include_total: includeTotal,
       });
     }
-  }, [effectiveFiltroLocal, filtroFechaDesde, filtroFechaHasta, filtroTipo, filtroEstado, fetchReservas]);
+  }, [effectiveFiltroLocal, filtroFechaDesde, filtroFechaHasta, filtroTipo, filtroEstado, fetchReservas, paginationCursor, includeTotal]);
 
   // Verificar autenticación admin
   useEffect(() => {
@@ -429,6 +438,7 @@ export default function AdminReservasPage() {
                 emptyMessage="No se encontraron reservas"
                 onRowClick={(row) => setSelectedReserva(row as unknown as ReservaBD)}
               />
+			  <CursorPagination page={pagination.page} totalPages={pagination.totalPages} hasNext={pagination.hasNext} loading={loading} onPrevious={pagination.previous} onNext={pagination.next} />
             </AdminPanel>
           )}
 

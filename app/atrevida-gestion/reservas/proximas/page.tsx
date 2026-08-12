@@ -17,11 +17,13 @@ import {
 } from 'lucide-react';
 
 import Header from '@/components/AdminHeader/Header';
-import { PageHeader, StatGrid, StatCard, AdminPanel } from '@/components/AdminConfig';
+import { PageHeader, StatGrid, StatCard, AdminPanel, CursorPagination } from '@/components/AdminConfig';
 import { getReservasDB } from '@/lib/api/reservas';
 import { buildReminderWhatsappHref } from '@/lib/utils/whatsapp';
 import type { ReservaBD, EstadoReserva } from '@/types/reserva';
 import styles from './page.module.css';
+import { PAGE_LIMIT } from '@/lib/api/pagination';
+import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
 
 type RelativeDay = 'HOY' | 'MANANA';
 
@@ -85,8 +87,12 @@ export default function AdminReservasProximasPage() {
 
   const todayISO = useMemo(() => getDateISOWithOffset(0), []);
   const tomorrowISO = useMemo(() => getDateISOWithOffset(1), []);
+	const pagination = useCursorPagination(`${todayISO}|${tomorrowISO}|AGENDADO`);
+	const { cursor: paginationCursor, includeTotal, setMetadata: setPaginationMetadata } = pagination;
+	const requestRef = useRef(0);
 
   const fetchReservas = useCallback(async (isRefresh = false) => {
+	const requestId = ++requestRef.current;
     if (isRefresh) {
       setRefreshing(true);
     } else {
@@ -99,16 +105,22 @@ export default function AdminReservasProximasPage() {
         fecha_desde: todayISO,
         fecha_hasta: tomorrowISO,
         estado: 'AGENDADO',
+		limit: PAGE_LIMIT,
+		cursor: paginationCursor,
+		include_total: includeTotal,
       });
+	  if (requestId !== requestRef.current) return;
       setReservas(response.data?.reservas ?? []);
+	  setPaginationMetadata(response.data?.paginacion);
     } catch (fetchError) {
+	  if (requestId !== requestRef.current) return;
       setError(fetchError instanceof Error ? fetchError.message : 'No se pudieron cargar las citas próximas.');
       if (!isRefresh) setReservas([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [todayISO, tomorrowISO]);
+  }, [todayISO, tomorrowISO, paginationCursor, includeTotal, setPaginationMetadata]);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -281,10 +293,13 @@ export default function AdminReservasProximasPage() {
             )}
 
             {!loading && !error && (
-              <div className={styles.columnsGrid}>
+			  <>
+			  <div className={styles.columnsGrid}>
                 {renderColumn('Reservas de hoy', todayISO, 'HOY', reservasHoy)}
                 {renderColumn('Reservas de mañana', tomorrowISO, 'MANANA', reservasManana)}
               </div>
+			  <CursorPagination page={pagination.page} totalPages={pagination.totalPages} hasNext={pagination.hasNext} loading={loading || refreshing} onPrevious={pagination.previous} onNext={pagination.next} />
+			  </>
             )}
           </AdminPanel>
         </div>

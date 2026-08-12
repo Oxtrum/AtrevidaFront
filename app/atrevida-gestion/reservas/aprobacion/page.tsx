@@ -24,7 +24,7 @@ import {
 
 import Header from '@/components/AdminHeader/Header';
 import { WhatsappIcon } from '@/components/icons/WhatsappIcon';
-import { PageHeader, StatGrid, StatCard, AdminPanel } from '@/components/AdminConfig';
+import { PageHeader, StatGrid, StatCard, AdminPanel, CursorPagination } from '@/components/AdminConfig';
 import { CATEGORIAS_ORDEN } from '@/components/AdminReservationForm/constants';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { actualizarEstadoReservaDB, actualizarReservaDB, actualizarReservaNotificadoDB, eliminarReservaDB, getReservasDB } from '@/lib/api/reservas';
@@ -39,6 +39,8 @@ import {
   type ReservaBD,
 } from '@/types/reserva';
 import styles from './page.module.css';
+import { PAGE_LIMIT } from '@/lib/api/pagination';
+import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
 
 type EstadoGestion = Extract<EstadoReserva, 'PENDIENTE' | 'AGENDADO' | 'RECHAZADO'>;
 type EstadoNormalizado = EstadoGestion | 'COMPLETADO';
@@ -239,8 +241,12 @@ export default function AdminReservasAprobacionPage() {
   const scopedLocalName = adminLocalScope.workplace?.nombre_local ?? '';
   const defaultLocalFiltro = scopedLocalName || ALL_LOCALS_FILTER;
   const effectiveLocalFiltro = scopedLocalName || (adminLocalScope.ready ? localFiltro : LOCAL_SCOPE_PENDING);
+	const pagination = useCursorPagination(`${effectiveLocalFiltro}|${estadoFiltro}|${tipoFiltro}|${fechaFiltro}|${searchQuery}`);
+	const { cursor: paginationCursor, includeTotal, setMetadata: setPaginationMetadata } = pagination;
+	const paginationRequestRef = useRef(0);
 
   const fetchReservas = useCallback(async () => {
+	const requestId = ++paginationRequestRef.current;
     const isInitialRequest = !hasLoadedRef.current;
     if (isInitialRequest) {
       setInitialLoading(true);
@@ -252,8 +258,17 @@ export default function AdminReservasAprobacionPage() {
     try {
       const response = await getReservasDB({
         fecha_desde: getDateISOWithOffset(-14),
+		local: effectiveLocalFiltro !== ALL_LOCALS_FILTER && effectiveLocalFiltro !== LOCAL_SCOPE_PENDING ? effectiveLocalFiltro : undefined,
+		estado: estadoFiltro !== 'TODOS' ? estadoFiltro : undefined,
+		fecha: fechaFiltro || undefined,
+		tipo: tipoFiltro !== 'TODOS' ? tipoFiltro.toLowerCase() as 'mesa' | 'bicicleta' : undefined,
+		limit: PAGE_LIMIT,
+		cursor: paginationCursor,
+		include_total: includeTotal,
       });
+	  if (requestId !== paginationRequestRef.current) return;
       const nextReservas = response.data?.reservas ?? [];
+	  setPaginationMetadata(response.data?.paginacion);
       const nextIds = new Set(nextReservas.map((reserva) => reserva.id));
       sortStampByReservaIdRef.current.forEach((_, reservaId) => {
         if (!nextIds.has(reservaId)) sortStampByReservaIdRef.current.delete(reservaId);
@@ -266,13 +281,14 @@ export default function AdminReservasAprobacionPage() {
       setReservas(nextReservas);
       hasLoadedRef.current = true;
     } catch (fetchError) {
+	  if (requestId !== paginationRequestRef.current) return;
       setError(fetchError instanceof Error ? fetchError.message : 'No se pudieron cargar las reservas');
       if (isInitialRequest) setReservas([]);
     } finally {
       setInitialLoading(false);
       setIsFetching(false);
     }
-  }, []);
+  }, [effectiveLocalFiltro, estadoFiltro, fechaFiltro, tipoFiltro, paginationCursor, includeTotal, setPaginationMetadata]);
 
   const markConfirmationSent = useCallback(async (reservaId: number) => {
     setReservas((current) =>
@@ -1143,6 +1159,9 @@ export default function AdminReservasAprobacionPage() {
                   })}
                 </div>
               )}
+			  {!initialLoading && !error && (
+				<CursorPagination page={pagination.page} totalPages={pagination.totalPages} hasNext={pagination.hasNext} loading={isFetching} onPrevious={pagination.previous} onNext={pagination.next} />
+			  )}
             </div>
           </AdminPanel>
 
