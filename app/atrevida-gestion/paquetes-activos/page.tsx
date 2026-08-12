@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
 import { CheckCircle, Filter, Package2, PlayCircle, Plus, X, XCircle } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
-import { PageHeader, DataTable, AdminPanel, Column, RowActionsMenu, RowAction } from '@/components/AdminConfig';
+import { PageHeader, DataTable, AdminPanel, Column, RowActionsMenu, RowAction, CursorPagination } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
 import { getLocalesDB } from '@/lib/api/servicios';
@@ -22,6 +22,8 @@ import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import ReservarPlanModal from './ReservarPlanModal';
 import CobrarPlanModal from './CobrarPlanModal';
 import styles from './page.module.css';
+import { PAGE_LIMIT } from '@/lib/api/pagination';
+import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
 
 interface LocalOpt { id: number; nombre: string; }
 
@@ -40,6 +42,9 @@ export default function PaquetesActivosPage() {
   const [filtroLocal, setFiltroLocal] = useState(scopedLocalName);
 
   const [filtroEstado, setFiltroEstado] = useState(''); // '' = Todos
+	const pagination = useCursorPagination(`${filtroLocal}|${filtroEstado}|${scopedLocalName}`);
+	const { cursor: paginationCursor, includeTotal, setMetadata: setPaginationMetadata } = pagination;
+	const requestRef = useRef(0);
   const [planAbierto, setPlanAbierto] = useState<PlanRow | null>(null);
   const [detalle, setDetalle] = useState<PlanDetalle | null>(null);
   const [detalleLoading, setDetalleLoading] = useState(false);
@@ -57,18 +62,25 @@ export default function PaquetesActivosPage() {
   const fetchPlanes = useCallback(async () => {
     if (!adminLocalScope.ready) return;
     setLoading(true);
+	const requestId = ++requestRef.current;
     try {
       const res = await getPlanesDB({
         local: filtroLocal || undefined,
         estado: filtroEstado || undefined,
+		limit: PAGE_LIMIT,
+		cursor: paginationCursor,
+		include_total: includeTotal,
       });
+	  if (requestId !== requestRef.current) return;
       setPlanes((res?.data?.planes ?? []) as unknown as PlanRow[]);
+	  setPaginationMetadata(res?.data?.paginacion);
     } catch {
+	  if (requestId !== requestRef.current) return;
       setPlanes([]);
     } finally {
       setLoading(false);
     }
-  }, [adminLocalScope.ready, filtroLocal, filtroEstado]);
+  }, [adminLocalScope.ready, filtroLocal, filtroEstado, paginationCursor, includeTotal, setPaginationMetadata]);
 
   const fetchLocales = useCallback(async () => {
     try {
@@ -298,6 +310,7 @@ export default function PaquetesActivosPage() {
               onRowClick={(p) => setPlanAbierto(p)}
               emptyMessage="No hay paquetes registrados."
             />
+			<CursorPagination page={pagination.page} totalPages={pagination.totalPages} hasNext={pagination.hasNext} loading={loading} onPrevious={pagination.previous} onNext={pagination.next} />
 
             
           </div>

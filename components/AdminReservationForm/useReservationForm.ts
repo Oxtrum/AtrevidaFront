@@ -18,6 +18,7 @@ import { validateReservationForm, } from '@/lib/utils/reservationValidation';
 import { type SlotStatus } from '@/lib/utils/hoursAvailability';
 import { HORAS, DIAS_SEMANA, SLOT_MIN, SLOTS_POR_HORA, calcularHoraFin, tiempoAMinutos, isSlotOutsideBusinessHours } from '@/lib/constants/reservationForm';
 import { seleccionarSlot } from '@/lib/utils/slotRange';
+import { PAGE_LIMIT } from '@/lib/api/pagination';
 
 export interface ReservationFormInitialData {
   local?: string;
@@ -441,7 +442,7 @@ export function useReservationForm(
     // Revalidar paquete antes de enviar (#C + #F capa 2)
     if (planId != null && effectiveSucursal) {
       try {
-        const planRes = await getPlanesDB({ cliente, estado: 'ACTIVO', local: effectiveSucursal });
+		const planRes = await getPlanesDB({ cliente, estado: 'ACTIVO', local: effectiveSucursal, limit: PAGE_LIMIT });
         const planData = planRes as { data?: { planes?: { id: number }[] } };
         const planValido = (planData?.data?.planes ?? []).find((p) => p.id === planId);
         if (!planValido) {

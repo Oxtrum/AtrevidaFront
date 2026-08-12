@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { getPlanesDB, type PlanItem } from '@/lib/api/planes';
+import { PAGE_LIMIT } from '@/lib/api/pagination';
 
 interface PlanSelectorProps {
   clienteNombre: string;
@@ -25,7 +26,7 @@ export default function PlanSelector({ clienteNombre, planId, localNombre, onCha
   useEffect(() => {
     if (nombre.length < 2 || !local) return;
     let cancelled = false;
-    getPlanesDB({ cliente: nombre, estado: 'ACTIVO', local })
+	getPlanesDB({ cliente: nombre, estado: 'ACTIVO', local, limit: PAGE_LIMIT })
       .then((res) => {
         if (cancelled) return;
         const data = res as { data?: { planes?: PlanItem[] } };

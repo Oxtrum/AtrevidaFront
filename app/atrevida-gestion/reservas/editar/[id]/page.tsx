@@ -19,6 +19,7 @@ import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import type { SlotStatus } from '@/lib/utils/hoursAvailability';
 import { seleccionarSlot } from '@/lib/utils/slotRange';
 import styles from './page.module.css';
+import { PAGE_LIMIT } from '@/lib/api/pagination';
 
 const TRANSICIONES_VALIDAS: Record<string, EstadoReserva[]> = {
   PENDIENTE: ['PENDIENTE', 'AGENDADO', 'RECHAZADO'],
@@ -284,7 +285,7 @@ function EditarReservaContent() {
     if (!cliente || !localActual) return;
     const fetchPlanes = async () => {
       try {
-        const res = await getPlanesDB({ cliente, estado: 'ACTIVO', local: localActual });
+		const res = await getPlanesDB({ cliente, estado: 'ACTIVO', local: localActual, limit: PAGE_LIMIT });
         setPlanesDisponibles(res?.data?.planes ?? []);
       } catch {
         setPlanesDisponibles([]);
