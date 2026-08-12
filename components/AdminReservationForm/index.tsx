@@ -21,6 +21,8 @@ interface ReservationFormProps {
 
 const MIN_CLIENT_SEARCH_LENGTH = 2;
 const MAX_CLIENT_SUGGESTIONS = 7;
+// Mismo umbral que validateReservationForm: fijos de 7 dígitos son válidos.
+const MIN_PHONE_DIGITS = 7;
 
 const getClienteNombreCompleto = (cliente: ClientePG) => `${cliente.nombre} ${cliente.apellido}`.trim();
 
@@ -88,10 +90,10 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
     };
   }, [initialData?.isAdmin]);
 
-  // Cuando el teléfono queda completo (8 dígitos), busca en el directorio ya
-  // cargado un cliente con ese número.
+  // Cuando el teléfono ya es válido (7+ dígitos, igual que validateReservationForm),
+  // busca en el directorio ya cargado un cliente con ese número.
   const clienteEncontradoPorTelefono = useMemo(() => {
-    if (!initialData?.isAdmin || numeroTelefono.length !== 8) return null;
+    if (!initialData?.isAdmin || numeroTelefono.length < MIN_PHONE_DIGITS) return null;
 
     return clientesDirectorio.find(
       (clienteItem) => normalizeClientPhone(clienteItem.numero_telefono) === numeroTelefono,
@@ -108,7 +110,7 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
   const mostrarOfertaCrearCliente = Boolean(
     initialData?.isAdmin
     && !clientesLoading
-    && numeroTelefono.length === 8
+    && numeroTelefono.length >= MIN_PHONE_DIGITS
     && cliente.trim().length > 0
     && !clienteEncontradoPorTelefono,
   );
