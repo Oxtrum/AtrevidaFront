@@ -47,8 +47,9 @@ export default function PagosPage() {
   const [filterEstado, setFilterEstado] = useState('PAGADO');
 	const filterKey = `${searchClienteDebounced}|${searchNitDebounced}|${filterEstado}`;
 	const pagination = useCursorPagination(filterKey);
-	const { cursor: paginationCursor, includeTotal, setMetadata: setPaginationMetadata } = pagination;
+	const { cursor: paginationCursor, requestRevision, shouldIncludeTotal, setMetadata: setPaginationMetadata } = pagination;
 	const requestRef = useRef(0);
+	const requestControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setSearchClienteDebounced(searchCliente), 350);
@@ -61,6 +62,10 @@ export default function PagosPage() {
   }, [searchNit]);
 
   const fetchData = useCallback(async () => {
+    void requestRevision;
+	requestControllerRef.current?.abort();
+	const controller = new AbortController();
+	requestControllerRef.current = controller;
 	const requestId = ++requestRef.current;
     setLoading(true);
     setError(null);
@@ -72,19 +77,25 @@ export default function PagosPage() {
         activo: true,
 		limit: PAGE_LIMIT,
 		cursor: paginationCursor,
-		include_total: includeTotal,
-      });
+		include_total: shouldIncludeTotal(),
+      }, controller.signal);
 	  if (requestId !== requestRef.current) return;
       setPagos((res.data?.pagos ?? []) as PagoRow[]);
       setTotal(res.data?.total ?? 0);
 	  setPaginationMetadata(res.data?.paginacion);
     } catch (err) {
+	  if (controller.signal.aborted) return;
 	  if (requestId !== requestRef.current) return;
       setError(err instanceof Error ? err.message : 'Error al cargar pagos');
     } finally {
-      setLoading(false);
+	  if (requestId === requestRef.current) setLoading(false);
     }
-  }, [searchClienteDebounced, searchNitDebounced, filterEstado, paginationCursor, includeTotal, setPaginationMetadata]);
+  }, [searchClienteDebounced, searchNitDebounced, filterEstado, paginationCursor, requestRevision, shouldIncludeTotal, setPaginationMetadata]);
+
+	useEffect(() => () => {
+		requestRef.current += 1;
+		requestControllerRef.current?.abort();
+	}, []);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');

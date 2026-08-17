@@ -67,6 +67,27 @@
   backdrop-filter: blur(18px);
 }
 
+.historySearch {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: min(100%, 290px);
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  padding: 0 0.75rem;
+  color: var(--admin-text-dim);
+  background: var(--admin-input-bg, var(--admin-panel-bg));
+}
+
+.historySearch input {
+  min-height: 42px;
+  width: 100%;
+  border: 0;
+  outline: 0;
+  color: var(--admin-text-primary);
+  background: transparent;
+}
+
 .localPickerHeader h2,
 .panelHeader h2 {
   margin: 0.25rem 0 0;

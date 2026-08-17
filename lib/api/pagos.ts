@@ -41,6 +41,7 @@ export interface Pago {
 }
 
 export interface GetPagosParams extends PaginationParams {
+  busqueda?: string;
   codigo_pago?: string;
   local_id?: number;
   local_nombre?: string;
@@ -53,6 +54,7 @@ export interface GetPagosParams extends PaginationParams {
 export interface PagosListResponse {
   total: number;
   filtros: {
+    busqueda?: string;
     codigo_pago: string;
     local_nombre: string;
     cliente_nit: string;
@@ -106,11 +108,13 @@ export interface PagosResumenResponse {
   detalle_reportes: ReporteFinanciero[];
 }
 
-export async function getPagosDB(params?: GetPagosParams): Promise<ApiResponse<PagosListResponse>> {
+export async function getPagosDB(params?: GetPagosParams, signal?: AbortSignal): Promise<ApiResponse<PagosListResponse>> {
   const scopedParams = withLocalIdScope<GetPagosParams>(params ?? {});
 
   return apiClient.get<ApiResponse<PagosListResponse>>('/bd/pagos', {
+    signal,
     params: {
+      busqueda: scopedParams.busqueda,
       codigo_pago: scopedParams.codigo_pago,
       local_id: scopedParams.local_id,
       local_nombre: scopedParams.local_nombre,

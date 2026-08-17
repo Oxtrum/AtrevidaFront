@@ -150,9 +150,12 @@ export default function CajaPage() {
   const [pagos, setPagos] = useState<PagoRow[]>([]);
   const [loadingPagos, setLoadingPagos] = useState(false);
   const [pagosError, setPagosError] = useState<string | null>(null);
-	const pagosPagination = useCursorPagination(String(selectedLocal?.id ?? ''));
-	const { cursor: pagosCursor, includeTotal: includePagosTotal, setMetadata: setPagosMetadata } = pagosPagination;
+  const [pagosSearch, setPagosSearch] = useState('');
+  const [pagosSearchDebounced, setPagosSearchDebounced] = useState('');
+	const pagosPagination = useCursorPagination(`${selectedLocal?.id ?? ''}|${pagosSearchDebounced}`);
+	const { cursor: pagosCursor, requestRevision: pagosRequestRevision, shouldIncludeTotal: shouldIncludePagosTotal, setMetadata: setPagosMetadata } = pagosPagination;
 	const pagosRequestRef = useRef(0);
+	const pagosControllerRef = useRef<AbortController | null>(null);
 
   const [clienteNit, setClienteNit] = useState('');
   const [nitPropuesto, setNitPropuesto] = useState(false);
@@ -242,7 +245,11 @@ export default function CajaPage() {
   }, []);
 
   const fetchPagos = useCallback(async (local = selectedLocal) => {
+    void pagosRequestRevision;
     if (!local) return;
+	pagosControllerRef.current?.abort();
+	const controller = new AbortController();
+	pagosControllerRef.current = controller;
     setLoadingPagos(true);
     setPagosError(null);
 	const requestId = ++pagosRequestRef.current;
@@ -251,20 +258,32 @@ export default function CajaPage() {
         local_nombre: local.nombre,
         estado: 'PAGADO',
         activo: true,
+		busqueda: pagosSearchDebounced || undefined,
 		limit: PAGE_LIMIT,
 		cursor: pagosCursor,
-		include_total: includePagosTotal,
-      });
+		include_total: shouldIncludePagosTotal(),
+      }, controller.signal);
 	  if (requestId !== pagosRequestRef.current) return;
       setPagos((res.data?.pagos ?? []) as PagoRow[]);
 	  setPagosMetadata(res.data?.paginacion);
     } catch (err) {
+	  if (controller.signal.aborted) return;
 	  if (requestId !== pagosRequestRef.current) return;
       setPagosError(err instanceof Error ? err.message : 'Error al cargar pagos');
     } finally {
-      setLoadingPagos(false);
+	  if (requestId === pagosRequestRef.current) setLoadingPagos(false);
     }
-  }, [selectedLocal, pagosCursor, includePagosTotal, setPagosMetadata]);
+  }, [selectedLocal, pagosSearchDebounced, pagosCursor, pagosRequestRevision, shouldIncludePagosTotal, setPagosMetadata]);
+
+	useEffect(() => () => {
+		pagosRequestRef.current += 1;
+		pagosControllerRef.current?.abort();
+	}, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setPagosSearchDebounced(pagosSearch.trim()), 300);
+    return () => window.clearTimeout(timer);
+  }, [pagosSearch]);
 
   useEffect(() => {
     if (!adminLocalScope.ready) return;
@@ -638,7 +657,7 @@ export default function CajaPage() {
 
       toast.success(modo === 'cobrarReserva' ? 'Paquete cobrado y activado' : 'Pago registrado en caja');
       resetSale();
-      await fetchPagos(selectedLocal);
+      pagosPagination.resetAfterMutation();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al registrar pago';
       setFormErrors({ submit: message });
@@ -1186,6 +1205,16 @@ export default function CajaPage() {
                       <span className={styles.kicker}>Historial local</span>
                       <h2>Pagos registrados en {selectedLocal.nombre}</h2>
                     </div>
+                    <label className={styles.historySearch}>
+                      <Search size={15} aria-hidden="true" />
+                      <input
+                        type="search"
+                        value={pagosSearch}
+                        onChange={(event) => setPagosSearch(event.target.value)}
+                        placeholder="Código, cliente, NIT o cajero"
+                        aria-label="Buscar pagos del local"
+                      />
+                    </label>
                   </div>
 
                   <DataTable<PagoRow>
@@ -1195,7 +1224,7 @@ export default function CajaPage() {
                     error={pagosError}
                     onRefresh={() => fetchPagos(selectedLocal)}
                     getRowKey={(p) => p.codigo_pago}
-                    searchPlaceholder="Buscar pagos del local..."
+                    hideSearch
                     emptyMessage="Todavía no hay pagos en este local"
                   />
 				  <CursorPagination page={pagosPagination.page} totalPages={pagosPagination.totalPages} hasNext={pagosPagination.hasNext} loading={loadingPagos} onPrevious={pagosPagination.previous} onNext={pagosPagination.next} />
