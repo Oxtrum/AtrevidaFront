@@ -327,6 +327,13 @@
   margin-top: 2rem;
 }
 
+.loadMoreError {
+  margin: 0 0 0.65rem;
+  color: #b42318;
+  font-size: 0.86rem;
+  text-align: center;
+}
+
 .loadMore {
   min-height: 2.75rem;
   padding: 0.65rem 1.25rem;

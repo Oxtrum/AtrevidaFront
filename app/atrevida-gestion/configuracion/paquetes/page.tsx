@@ -58,8 +58,9 @@ export default function PaquetesPage() {
   const hasScopedLocal = !!scopedLocalName;
   const hasFilter = adminLocalScope.ready;
 	const pagination = useCursorPagination(`${effectiveFiltroLocal}|${filtroNombreDebounced}|${filtroCategoria}`);
-	const { cursor: paginationCursor, includeTotal, setMetadata: setPaginationMetadata } = pagination;
+	const { cursor: paginationCursor, requestRevision, shouldIncludeTotal, setMetadata: setPaginationMetadata } = pagination;
 	const requestRef = useRef(0);
+	const requestControllerRef = useRef<AbortController | null>(null);
 
   const localOptions = useMemo(() => [
     ...(hasScopedLocal ? [] : [{ value: '', label: 'Todas las sucursales' }]),
@@ -78,7 +79,11 @@ export default function PaquetesPage() {
   }, [filtroNombre]);
 
   const fetchPaquetes = useCallback(async () => {
+    void requestRevision;
     if (!adminLocalScope.ready) return;
+	requestControllerRef.current?.abort();
+	const controller = new AbortController();
+	requestControllerRef.current = controller;
     setLoading(true);
 	const requestId = ++requestRef.current;
     setError(null);
@@ -90,18 +95,24 @@ export default function PaquetesPage() {
         activo: true,
 		limit: PAGE_LIMIT,
 		cursor: paginationCursor,
-		include_total: includeTotal,
-      });
+		include_total: shouldIncludeTotal(),
+      }, controller.signal);
 	  if (requestId !== requestRef.current) return;
       setPaquetes(res?.data?.paquetes ?? []);
 	  setPaginationMetadata(res?.data?.paginacion);
     } catch (err) {
+	  if (controller.signal.aborted) return;
 	  if (requestId !== requestRef.current) return;
       setError(err instanceof Error ? err.message : 'Error al cargar paquetes');
     } finally {
-      setLoading(false);
+	  if (requestId === requestRef.current) setLoading(false);
     }
-  }, [adminLocalScope.ready, effectiveFiltroLocal, filtroNombreDebounced, filtroCategoria, paginationCursor, includeTotal, setPaginationMetadata]);
+  }, [adminLocalScope.ready, effectiveFiltroLocal, filtroNombreDebounced, filtroCategoria, paginationCursor, requestRevision, shouldIncludeTotal, setPaginationMetadata]);
+
+	useEffect(() => () => {
+		requestRef.current += 1;
+		requestControllerRef.current?.abort();
+	}, []);
 
   const fetchLocales = useCallback(async () => {
     if (!adminLocalScope.ready) return;
@@ -142,7 +153,7 @@ export default function PaquetesPage() {
         try {
           await eliminarPaquete(p.paquete.id);
           toast.success('Paquete eliminado');
-          fetchPaquetes();
+          pagination.resetAfterMutation();
         } catch {
           toast.error('No se pudo eliminar el paquete.');
         }
@@ -303,7 +314,7 @@ export default function PaquetesPage() {
         paquete={editingPaquete}
         locales={locales}
         onClose={() => setPaqueteModalOpen(false)}
-        onSaved={fetchPaquetes}
+        onSaved={pagination.resetAfterMutation}
       />
 
       <FormModal

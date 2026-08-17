@@ -85,7 +85,10 @@ export default function Paquetes() {
   const [paquetes, setPaquetes] = useState<PaqueteDetalle[]>([]);
   const [loading, setLoading] = useState(true);
 	const [loadingMore, setLoadingMore] = useState(false);
+	const [loadMoreError, setLoadMoreError] = useState<string | null>(null);
 	const [pagination, setPagination] = useState<PaginationMetadata>();
+	const loadMoreActiveRef = useRef(false);
+	const loadMoreControllerRef = useRef<AbortController | null>(null);
   const sectionRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -93,7 +96,8 @@ export default function Paquetes() {
   // Carga dinámica: refleja altas/bajas de paquetes en cada visita.
   useEffect(() => {
     let active = true;
-    getPaquetesDB({ limit: PAGE_LIMIT })
+    const controller = new AbortController();
+    getPaquetesDB({ limit: PAGE_LIMIT }, controller.signal)
       .then((res) => {
 		if (active) {
 			setPaquetes(res.data?.paquetes ?? []);
@@ -108,20 +112,45 @@ export default function Paquetes() {
       });
     return () => {
       active = false;
+      controller.abort();
     };
   }, []);
 
 	const loadMore = async () => {
-		if (!pagination?.next_cursor || loadingMore) return;
+		if (!pagination?.next_cursor || loadMoreActiveRef.current) return;
+		loadMoreActiveRef.current = true;
+		loadMoreControllerRef.current?.abort();
+		const controller = new AbortController();
+		loadMoreControllerRef.current = controller;
 		setLoadingMore(true);
+		setLoadMoreError(null);
 		try {
-			const res = await getPaquetesDB({ limit: PAGE_LIMIT, cursor: pagination.next_cursor });
-			setPaquetes((current) => [...current, ...(res.data?.paquetes ?? [])]);
+			const res = await getPaquetesDB({ limit: PAGE_LIMIT, cursor: pagination.next_cursor }, controller.signal);
+			if (loadMoreControllerRef.current !== controller) return;
+			setPaquetes((current) => {
+				const seen = new Set(current.map((item) => item.paquete.id));
+				const additions = (res.data?.paquetes ?? []).filter((item) => !seen.has(item.paquete.id));
+				return [...current, ...additions];
+			});
 			setPagination(res.data?.paginacion);
+		} catch (error) {
+			if (!controller.signal.aborted) {
+				setLoadMoreError(error instanceof Error ? error.message : 'No se pudieron cargar más paquetes.');
+			}
 		} finally {
-			setLoadingMore(false);
+			if (loadMoreControllerRef.current === controller) {
+				loadMoreActiveRef.current = false;
+				setLoadingMore(false);
+			}
 		}
 	};
+
+	useEffect(() => () => {
+		const controller = loadMoreControllerRef.current;
+		loadMoreControllerRef.current = null;
+		loadMoreActiveRef.current = false;
+		controller?.abort();
+	}, []);
 
   // Entrada animada; count-agnostic (anima las cards que existan). Respeta reduce-motion.
   useEffect(() => {
@@ -274,8 +303,9 @@ export default function Paquetes() {
         )}
 		{!loading && pagination?.has_more && (
 			<div className={styles.loadMoreWrap}>
+				{loadMoreError && <p className={styles.loadMoreError} role="alert">{loadMoreError}</p>}
 				<button type="button" className={styles.loadMore} onClick={loadMore} disabled={loadingMore}>
-					{loadingMore ? 'Cargando...' : 'Ver mas paquetes'}
+					{loadingMore ? 'Cargando...' : loadMoreError ? 'Reintentar' : 'Ver más paquetes'}
 				</button>
 			</div>
 		)}

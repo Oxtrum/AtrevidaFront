@@ -79,10 +79,12 @@ export interface GetPaquetesParams extends PaginationParams {
 /** GET /bd/paquetes — lista paquetes filtrados. */
 export async function getPaquetesDB(
   params: GetPaquetesParams = {},
+  signal?: AbortSignal,
 ): Promise<ApiResponse<{ total: number; paquetes: PaqueteDetalle[]; paginacion?: PaginationMetadata }>> {
   return apiClient.get<ApiResponse<{ total: number; paquetes: PaqueteDetalle[]; paginacion?: PaginationMetadata }>>(
     '/bd/paquetes',
     {
+      signal,
       params: {
         local: params.local,
         categoria: params.categoria,
