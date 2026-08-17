@@ -1,58 +1,108 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { PaginationMetadata } from '@/lib/api/pagination';
 
-export function useCursorPagination(filterKey = '') {
-  const [history, setHistory] = useState<string[]>(['']);
-  const [index, setIndex] = useState(0);
-  const [metadata, setMetadata] = useState<PaginationMetadata | undefined>();
-	const [totalPages, setTotalPages] = useState<number | undefined>();
-	const [activeKey, setActiveKey] = useState(filterKey);
+interface CursorPaginationState {
+  history: string[];
+  index: number;
+  metadata?: PaginationMetadata;
+  totalPages?: number;
+  activeKey: string;
+  requestRevision: number;
+}
 
-	const isCurrent = activeKey === filterKey;
-  const cursor = isCurrent ? (history[index] || undefined) : undefined;
-	const page = isCurrent ? index + 1 : 1;
-	const updateMetadata = useCallback((value: PaginationMetadata | undefined) => {
-		if (activeKey !== filterKey) {
-			setHistory(['']);
-			setIndex(0);
-			setActiveKey(filterKey);
-			setTotalPages(value?.total_paginas);
-		} else if (value?.total_paginas !== undefined) {
-			setTotalPages(value.total_paginas);
-		}
-		setMetadata(value);
-	}, [activeKey, filterKey]);
-  const reset = useCallback(() => {
-    setHistory(['']);
-    setIndex(0);
-    setMetadata(undefined);
-	setTotalPages(undefined);
-	setActiveKey(filterKey);
+export function useCursorPagination(filterKey = '') {
+  const filterKeyRef = useRef(filterKey);
+  const totalNeededRef = useRef(true);
+
+  useEffect(() => {
+    filterKeyRef.current = filterKey;
+    totalNeededRef.current = true;
   }, [filterKey]);
+
+  const [state, setState] = useState<CursorPaginationState>({
+    history: [''],
+    index: 0,
+    activeKey: filterKey,
+    requestRevision: 0,
+  });
+
+  const isCurrent = state.activeKey === filterKey;
+  const cursor = isCurrent ? (state.history[state.index] || undefined) : undefined;
+  const page = isCurrent ? state.index + 1 : 1;
+
+  const shouldIncludeTotal = useCallback(() => totalNeededRef.current, []);
+
+  const updateMetadata = useCallback((value: PaginationMetadata | undefined) => {
+    const currentKey = filterKeyRef.current;
+    if (value?.total_paginas !== undefined) totalNeededRef.current = false;
+
+    setState((current) => {
+      if (current.activeKey !== currentKey) {
+        return {
+          history: [''],
+          index: 0,
+          metadata: value,
+          totalPages: value?.total_paginas,
+          activeKey: currentKey,
+          requestRevision: current.requestRevision,
+        };
+      }
+      return {
+        ...current,
+        metadata: value,
+        totalPages: value?.total_paginas ?? current.totalPages,
+      };
+    });
+  }, []);
+
+  const resetToFirstPage = useCallback(() => {
+    totalNeededRef.current = true;
+    const currentKey = filterKeyRef.current;
+    setState((current) => ({
+      history: [''],
+      index: 0,
+      metadata: undefined,
+      totalPages: undefined,
+      activeKey: currentKey,
+      requestRevision: current.requestRevision + 1,
+    }));
+  }, []);
+
   const next = useCallback(() => {
-	if (!isCurrent) return;
-    const value = metadata?.next_cursor;
-    if (!value) return;
-    setHistory((current) => [...current.slice(0, index + 1), value]);
-    setIndex((current) => current + 1);
-    setMetadata(undefined);
-  }, [index, isCurrent, metadata?.next_cursor]);
+    const currentKey = filterKeyRef.current;
+    setState((current) => {
+      if (current.activeKey !== currentKey || !current.metadata?.next_cursor) return current;
+      return {
+        ...current,
+        history: [...current.history.slice(0, current.index + 1), current.metadata.next_cursor],
+        index: current.index + 1,
+        metadata: undefined,
+      };
+    });
+  }, []);
+
   const previous = useCallback(() => {
-    setIndex((current) => Math.max(0, current - 1));
-    setMetadata(undefined);
+    setState((current) => ({
+      ...current,
+      index: Math.max(0, current.index - 1),
+      metadata: undefined,
+    }));
   }, []);
 
   return useMemo(() => ({
     cursor,
-	page,
-    hasNext: isCurrent ? (metadata?.has_more ?? false) : false,
-	totalPages: isCurrent ? totalPages : undefined,
-	includeTotal: !isCurrent || totalPages === undefined,
+    page,
+    hasNext: isCurrent ? (state.metadata?.has_more ?? false) : false,
+    totalPages: isCurrent ? state.totalPages : undefined,
+    requestRevision: state.requestRevision,
+    shouldIncludeTotal,
     setMetadata: updateMetadata,
-    reset,
+    reset: resetToFirstPage,
+    resetAfterMutation: resetToFirstPage,
     next,
     previous,
-	}), [cursor, page, isCurrent, metadata?.has_more, totalPages, next, previous, reset, updateMetadata]);
+  }), [cursor, page, isCurrent, state.metadata?.has_more, state.totalPages, state.requestRevision,
+    shouldIncludeTotal, updateMetadata, resetToFirstPage, next, previous]);
 }

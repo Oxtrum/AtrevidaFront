@@ -40,8 +40,9 @@ export default function ClientesPage() {
 	const [search, setSearch] = useState('');
 	const [debouncedSearch, setDebouncedSearch] = useState('');
   const pagination = useCursorPagination(debouncedSearch);
-	const { cursor: paginationCursor, includeTotal, setMetadata: setPaginationMetadata } = pagination;
+	const { cursor: paginationCursor, requestRevision, shouldIncludeTotal, setMetadata: setPaginationMetadata } = pagination;
 	const requestRef = useRef(0);
+	const requestControllerRef = useRef<AbortController | null>(null);
 
 	useEffect(() => {
 		const timer = window.setTimeout(() => setDebouncedSearch(search.trim()), 300);
@@ -54,22 +55,32 @@ export default function ClientesPage() {
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
 
   const fetchData = useCallback(async () => {
+    void requestRevision;
+	requestControllerRef.current?.abort();
+	const controller = new AbortController();
+	requestControllerRef.current = controller;
 	const requestId = ++requestRef.current;
     setLoading(true);
     setError(null);
     try {
-	  const res = await getClientesDB({ busqueda: debouncedSearch || undefined, limit: PAGE_LIMIT, cursor: paginationCursor, include_total: includeTotal });
+	  const res = await getClientesDB({ busqueda: debouncedSearch || undefined, limit: PAGE_LIMIT, cursor: paginationCursor, include_total: shouldIncludeTotal() }, controller.signal);
 	  if (requestId !== requestRef.current) return;
       const data = (res as { data?: { clientes?: ClientePG[] } }).data;
       setClientes((data?.clientes ?? []) as ClienteRow[]);
 	  setPaginationMetadata(res.data?.paginacion);
     } catch (err) {
+	  if (controller.signal.aborted) return;
 	  if (requestId !== requestRef.current) return;
       setError(err instanceof Error ? err.message : 'Error al cargar clientes');
     } finally {
-      setLoading(false);
+	  if (requestId === requestRef.current) setLoading(false);
     }
-  }, [debouncedSearch, paginationCursor, includeTotal, setPaginationMetadata]);
+  }, [debouncedSearch, paginationCursor, requestRevision, shouldIncludeTotal, setPaginationMetadata]);
+
+	useEffect(() => () => {
+		requestRef.current += 1;
+		requestControllerRef.current?.abort();
+	}, []);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -102,7 +113,7 @@ export default function ClientesPage() {
         try {
           await eliminarClienteDB(row.id);
           toast.success('Cliente eliminado');
-          await fetchData();
+          pagination.resetAfterMutation();
         } catch (err) {
           toast.error(err instanceof Error ? err.message : 'Error al eliminar cliente');
         }
@@ -182,7 +193,7 @@ export default function ClientesPage() {
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
         cliente={editingCliente}
-        onSaved={fetchData}
+        onSaved={pagination.resetAfterMutation}
       />
 
       {/* Modal confirmar eliminación */}
