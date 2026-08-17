@@ -42,9 +42,12 @@ export default function PaquetesActivosPage() {
   const [filtroLocal, setFiltroLocal] = useState(scopedLocalName);
 
   const [filtroEstado, setFiltroEstado] = useState(''); // '' = Todos
-	const pagination = useCursorPagination(`${filtroLocal}|${filtroEstado}|${scopedLocalName}`);
-	const { cursor: paginationCursor, includeTotal, setMetadata: setPaginationMetadata } = pagination;
+  const [busqueda, setBusqueda] = useState('');
+  const [busquedaDebounced, setBusquedaDebounced] = useState('');
+	const pagination = useCursorPagination(`${filtroLocal}|${filtroEstado}|${scopedLocalName}|${busquedaDebounced}`);
+	const { cursor: paginationCursor, requestRevision, shouldIncludeTotal, setMetadata: setPaginationMetadata } = pagination;
 	const requestRef = useRef(0);
+	const requestControllerRef = useRef<AbortController | null>(null);
   const [planAbierto, setPlanAbierto] = useState<PlanRow | null>(null);
   const [detalle, setDetalle] = useState<PlanDetalle | null>(null);
   const [detalleLoading, setDetalleLoading] = useState(false);
@@ -60,27 +63,44 @@ export default function PaquetesActivosPage() {
   ];
 
   const fetchPlanes = useCallback(async () => {
+    void requestRevision;
     if (!adminLocalScope.ready) return;
+	requestControllerRef.current?.abort();
+	const controller = new AbortController();
+	requestControllerRef.current = controller;
     setLoading(true);
 	const requestId = ++requestRef.current;
     try {
       const res = await getPlanesDB({
         local: filtroLocal || undefined,
         estado: filtroEstado || undefined,
+		busqueda: busquedaDebounced || undefined,
+		orden: 'prioridad_estado',
 		limit: PAGE_LIMIT,
 		cursor: paginationCursor,
-		include_total: includeTotal,
-      });
+		include_total: shouldIncludeTotal(),
+      }, controller.signal);
 	  if (requestId !== requestRef.current) return;
       setPlanes((res?.data?.planes ?? []) as unknown as PlanRow[]);
 	  setPaginationMetadata(res?.data?.paginacion);
     } catch {
+	  if (controller.signal.aborted) return;
 	  if (requestId !== requestRef.current) return;
       setPlanes([]);
     } finally {
-      setLoading(false);
+	  if (requestId === requestRef.current) setLoading(false);
     }
-  }, [adminLocalScope.ready, filtroLocal, filtroEstado, paginationCursor, includeTotal, setPaginationMetadata]);
+  }, [adminLocalScope.ready, filtroLocal, filtroEstado, busquedaDebounced, paginationCursor, requestRevision, shouldIncludeTotal, setPaginationMetadata]);
+
+	useEffect(() => () => {
+		requestRef.current += 1;
+		requestControllerRef.current?.abort();
+	}, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setBusquedaDebounced(busqueda.trim()), 300);
+    return () => window.clearTimeout(timer);
+  }, [busqueda]);
 
   const fetchLocales = useCallback(async () => {
     try {
@@ -134,21 +154,12 @@ export default function PaquetesActivosPage() {
     return out;
   }, [detalle]);
 
-  const planesOrdenados = useMemo(() => {
-    const rank = (e: string) => (e === 'RESERVADO' ? 0 : e === 'ACTIVO' ? 1 : 2);
-    return [...planes].sort((a, b) => {
-      const r = rank(a.estado) - rank(b.estado);
-      if (r !== 0) return r;
-      return (b.creado_en ?? '').localeCompare(a.creado_en ?? '');
-    });
-  }, [planes]);
-
   const toggleSesion = async (numero: number, realizado: boolean) => {
     if (!planAbierto) return;
     try {
       await marcarSesionPlan(planAbierto.id, numero, realizado);
       await recargarDetalle(planAbierto.id);
-      fetchPlanes();
+      pagination.resetAfterMutation();
       toast.success(realizado ? 'Sesión marcada' : 'Sesión pendiente');
     } catch {
       toast.error('No se pudo actualizar la sesión');
@@ -181,7 +192,7 @@ export default function PaquetesActivosPage() {
     try {
       await cambiarEstadoPlan(plan.id, nuevoEstado);
       toast.success(`Plan ${nuevoEstado}`);
-      fetchPlanes();
+      pagination.resetAfterMutation();
     } catch {
       toast.error('No se pudo cambiar el estado.');
     }
@@ -269,6 +280,17 @@ export default function PaquetesActivosPage() {
                   Filtros
                 </div>
                 <div className={styles.filterBar}>
+                  <div className={styles.filterGroup}>
+                    <label htmlFor="buscar-plan" className={styles.filterLabel}>Buscar</label>
+                    <input
+                      id="buscar-plan"
+                      type="search"
+                      className={styles.filterInput}
+                      value={busqueda}
+                      onChange={(event) => setBusqueda(event.target.value)}
+                      placeholder="Cliente, paquete o código"
+                    />
+                  </div>
                   {!scopedLocalName && (
                     <div className={styles.filterGroup}>
                       <label id="lbl-local" htmlFor="filtro-local" className={styles.filterLabel}>Local</label>
@@ -303,12 +325,13 @@ export default function PaquetesActivosPage() {
 
             <DataTable<PlanRow>
               columns={columns}
-              data={planesOrdenados}
+              data={planes}
               loading={loading}
               onRefresh={fetchPlanes}
               getRowKey={(p) => p.id}
               onRowClick={(p) => setPlanAbierto(p)}
               emptyMessage="No hay paquetes registrados."
+              hideSearch
             />
 			<CursorPagination page={pagination.page} totalPages={pagination.totalPages} hasNext={pagination.hasNext} loading={loading} onPrevious={pagination.previous} onNext={pagination.next} />
 
@@ -383,7 +406,7 @@ export default function PaquetesActivosPage() {
         <ReservarPlanModal
           locales={locales}
           onClose={() => setReservarOpen(false)}
-          onReservado={fetchPlanes}
+          onReservado={pagination.resetAfterMutation}
         />
       )}
       {planACobrar && (
@@ -391,7 +414,7 @@ export default function PaquetesActivosPage() {
           plan={planACobrar}
           locales={locales}
           onClose={() => setPlanACobrar(null)}
-          onCobrado={fetchPlanes}
+          onCobrado={pagination.resetAfterMutation}
         />
       )}
     </AdminPanel>

@@ -18,6 +18,7 @@ export interface PlanItem {
   codigo: string;
   cliente: string;
   cliente_id?: number;
+  cliente_nombre_texto?: string;
   local_nombre_texto?: string;
   combo_id_origen?: number;
   combo_nombre_texto?: string;
@@ -25,19 +26,22 @@ export interface PlanItem {
   sesiones_usadas: number;
   precio_total: number;
   estado: string;
+  activo?: boolean;
   estado_cobranza: string;
   creado_en: string;
 }
 
 export interface GetPlanesParams extends PaginationParams, Record<string, string | number | boolean | undefined> {
+  busqueda?: string;
+  orden?: 'prioridad_estado';
   local?: string;
   local_id?: number;
   cliente?: string;
   estado?: string;
 }
 
-export async function getPlanesDB(params: GetPlanesParams): Promise<ApiResponse<{ total: number; planes: PlanItem[]; paginacion?: PaginationMetadata }>> {
-  return apiClient.get<ApiResponse<{ total: number; planes: PlanItem[]; paginacion?: PaginationMetadata }>>('/bd/planes', { params });
+export async function getPlanesDB(params: GetPlanesParams, signal?: AbortSignal): Promise<ApiResponse<{ total: number; planes: PlanItem[]; paginacion?: PaginationMetadata }>> {
+  return apiClient.get<ApiResponse<{ total: number; planes: PlanItem[]; paginacion?: PaginationMetadata }>>('/bd/planes', { params, signal });
 }
 
 export interface PlanServicioDetalle {
@@ -53,8 +57,8 @@ export interface PlanDetalle extends PlanItem {
   servicios: PlanServicioDetalle[];
 }
 
-export async function getPlanByID(id: number): Promise<ApiResponse<{ plan: PlanDetalle }>> {
-  return apiClient.get<ApiResponse<{ plan: PlanDetalle }>>(`/bd/planes/${id}`);
+export async function getPlanByID(id: number, signal?: AbortSignal): Promise<ApiResponse<{ plan: PlanDetalle }>> {
+  return apiClient.get<ApiResponse<{ plan: PlanDetalle }>>(`/bd/planes/${id}`, { signal });
 }
 
 /** PATCH /bd/planes/{id}/sesiones/{numero} — marca/desmarca una sesión. */
