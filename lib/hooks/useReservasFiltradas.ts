@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { getReservasDB, type GetReservasDBParams } from '@/lib/api/reservas';
 import { shouldScopeAdminToLocal } from '@/lib/auth/adminSession';
 import type { ReservaBD, ReservasBDApiResponse } from '@/types/reserva';
@@ -55,9 +55,15 @@ export function useReservasFiltradas(): UseReservasFiltradasReturn {
       setReservas([]);
       setTotal(0);
     } finally {
-      setLoading(false);
+	  if (controllerRef.current === controller) setLoading(false);
     }
   }, []);
+
+	useEffect(() => () => {
+		const controller = controllerRef.current;
+		controllerRef.current = null;
+		controller?.abort();
+	}, []);
 
 	return { reservas, total, loading, error, pagination, fetch };
 }

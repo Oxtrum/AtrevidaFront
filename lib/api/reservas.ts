@@ -38,6 +38,12 @@ export interface GetReservasDBParams extends PaginationParams {
   numero_telefono?: string;
   servicio_solicitado?: string;
   servicio_confirmado?: string;
+	busqueda?: string;
+	excluir_estado?: EstadoReserva;
+	vigente_fecha?: string;
+	vigente_hora?: string;
+	vigencia_solo_pendientes?: boolean;
+	orden?: 'cronologico';
 }
 
 export interface GetReservasCalendarioParams {
@@ -183,6 +189,12 @@ export async function getReservasDB(params: GetReservasDBParams, signal?: AbortS
       numero_telefono: scopedParams.numero_telefono,
       servicio_solicitado: scopedParams.servicio_solicitado,
       servicio_confirmado: scopedParams.servicio_confirmado,
+	  busqueda: scopedParams.busqueda,
+	  excluir_estado: scopedParams.excluir_estado,
+	  vigente_fecha: scopedParams.vigente_fecha,
+	  vigente_hora: scopedParams.vigente_hora,
+	  vigencia_solo_pendientes: scopedParams.vigencia_solo_pendientes,
+	  orden: scopedParams.orden,
 	  limit: scopedParams.limit,
 	  cursor: scopedParams.cursor,
 	  include_total: scopedParams.include_total,

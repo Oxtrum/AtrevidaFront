@@ -7,7 +7,7 @@ import { Save } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
 import { actualizarReservaDB, actualizarEstadoReservaDB, getReservaByID } from '@/lib/api/reservas';
 import { getServiciosDB } from '@/lib/api/servicios';
-import { getPlanesDB, type PlanItem } from '@/lib/api/planes';
+import { getPlanByID, getPlanesDB, type PlanItem } from '@/lib/api/planes';
 import { useReservas } from '@/lib/hooks/useReservas';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { DiaSemana, EstadoReserva, ReservaBD, generarSemanas, getFechasDeSemana, esFechaPasada } from '@/types/reserva';
@@ -283,16 +283,28 @@ function EditarReservaContent() {
   useEffect(() => {
     const cliente = reserva?.cliente;
     if (!cliente || !localActual) return;
+    const controller = new AbortController();
     const fetchPlanes = async () => {
       try {
-		const res = await getPlanesDB({ cliente, estado: 'ACTIVO', local: localActual, limit: PAGE_LIMIT });
-        setPlanesDisponibles(res?.data?.planes ?? []);
+		const res = await getPlanesDB({ cliente, estado: 'ACTIVO', local: localActual, limit: PAGE_LIMIT }, controller.signal);
+        const planes = [...(res?.data?.planes ?? [])];
+        const selectedID = reserva?.plan_id;
+        if (selectedID != null && !planes.some((plan) => plan.id === selectedID)) {
+          try {
+            const selected = await getPlanByID(selectedID, controller.signal);
+            if (selected?.data?.plan) planes.unshift(selected.data.plan);
+          } catch {
+            // El selector conserva el ID original aunque el detalle ya no exista.
+          }
+        }
+		if (!controller.signal.aborted) setPlanesDisponibles(planes);
       } catch {
-        setPlanesDisponibles([]);
+		if (!controller.signal.aborted) setPlanesDisponibles([]);
       }
     };
     fetchPlanes();
-  }, [reserva?.cliente, localActual]);
+	return () => controller.abort();
+  }, [reserva?.cliente, reserva?.plan_id, localActual]);
 
   // FETCH reservas reales cuando cambia local o fecha
   useEffect(() => {

@@ -59,6 +59,8 @@ export default function AdminReservasPage() {
   const [filtroLocal, setFiltroLocal] = useState(DEFAULT_LOCAL);
   const [filtroTipo, setFiltroTipo] = useState<ReservaTipoBackend | ''>('');
   const [filtroEstado, setFiltroEstado] = useState<EstadoReserva | ''>('');
+  const [busqueda, setBusqueda] = useState('');
+  const [busquedaDebounced, setBusquedaDebounced] = useState('');
 
   const { locales } = useLocales();
   const { reservas, loading, error, pagination: serverPagination, fetch: fetchReservas } = useReservasFiltradas();
@@ -84,10 +86,15 @@ export default function AdminReservasPage() {
 
   const [filtroFechaDesde, setFiltroFechaDesde] = useState(getInitialFechaDesde);
   const [filtroFechaHasta, setFiltroFechaHasta] = useState(getInitialFechaHasta);
-	const pagination = useCursorPagination(`${effectiveFiltroLocal}|${filtroFechaDesde}|${filtroFechaHasta}|${filtroTipo}|${filtroEstado}`);
-	const { cursor: paginationCursor, includeTotal, setMetadata: setPaginationMetadata } = pagination;
+	const pagination = useCursorPagination(`${effectiveFiltroLocal}|${filtroFechaDesde}|${filtroFechaHasta}|${filtroTipo}|${filtroEstado}|${busquedaDebounced}`);
+	const { cursor: paginationCursor, requestRevision, shouldIncludeTotal, setMetadata: setPaginationMetadata } = pagination;
 
 	useEffect(() => setPaginationMetadata(serverPagination), [setPaginationMetadata, serverPagination]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setBusquedaDebounced(busqueda.trim()), 300);
+    return () => window.clearTimeout(timer);
+  }, [busqueda]);
 
   // Fechas de la semana que muestra el calendario. Se derivan igual que en
   // CalendarAdmin (generarSemanas(6) + getFechasDeSemana), y `semanaActiva` se
@@ -109,12 +116,13 @@ export default function AdminReservasPage() {
         fecha_hasta: filtroFechaHasta,
         tipo: (filtroTipo as 'mesa' | 'bicicleta' | '') || undefined,
         estado: filtroEstado || undefined,
+		busqueda: busquedaDebounced || undefined,
 		limit: PAGE_LIMIT,
 		cursor: paginationCursor,
-		include_total: includeTotal,
+		include_total: shouldIncludeTotal(),
       });
     }
-  }, [effectiveFiltroLocal, filtroFechaDesde, filtroFechaHasta, filtroTipo, filtroEstado, fetchReservas, paginationCursor, includeTotal]);
+  }, [effectiveFiltroLocal, filtroFechaDesde, filtroFechaHasta, filtroTipo, filtroEstado, busquedaDebounced, fetchReservas, paginationCursor, requestRevision, shouldIncludeTotal]);
 
   // Verificar autenticación admin
   useEffect(() => {
@@ -179,13 +187,7 @@ export default function AdminReservasPage() {
     try {
       await eliminarReservaDB(reserva.id);
       toast.success('Reserva eliminada');
-      await fetchReservas({
-        local: effectiveFiltroLocal,
-        fecha_desde: filtroFechaDesde,
-        fecha_hasta: filtroFechaHasta,
-        tipo: (filtroTipo as 'mesa' | 'bicicleta' | '') || undefined,
-        estado: filtroEstado || undefined,
-      });
+      pagination.resetAfterMutation();
     } catch (err) {
       if (err instanceof Error) console.error('eliminarReservaDB', err);
       toast.error('No se pudo eliminar la reserva');
@@ -391,6 +393,15 @@ export default function AdminReservasPage() {
             filtros={
               <>
                 <div className={styles.filtroGroup}>
+                  <label>Buscar</label>
+                  <Input
+                    type="search"
+                    value={busqueda}
+                    onChange={(e) => setBusqueda(e.target.value)}
+                    placeholder="Cliente, servicio, teléfono..."
+                  />
+                </div>
+                <div className={styles.filtroGroup}>
                   <label>Fecha desde</label>
                   <Input
                     type="date"
@@ -434,7 +445,7 @@ export default function AdminReservasPage() {
                 loading={loading}
                 error={error}
                 getRowKey={(r) => r.id as number}
-                searchPlaceholder="Buscar cliente, servicio..."
+                hideSearch
                 emptyMessage="No se encontraron reservas"
                 onRowClick={(row) => setSelectedReserva(row as unknown as ReservaBD)}
               />

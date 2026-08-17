@@ -44,15 +44,17 @@ const getDateISOWithOffset = (daysOffset: number) => {
   return date.toLocaleDateString('en-CA');
 };
 
+const getCurrentTimeHHMM = () => {
+  const now = new Date();
+  return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+};
+
 const getReservaDateTimeMs = (reserva: ReservaBD, time: string) => {
   const timestamp = new Date(`${reserva.fecha}T${normalizeTimeForDate(time)}`).getTime();
   return Number.isFinite(timestamp) ? timestamp : 0;
 };
 
 const getReservaStartMs = (reserva: ReservaBD) => getReservaDateTimeMs(reserva, reserva.hora_desde);
-
-const getReservaEndMs = (reserva: ReservaBD) =>
-  getReservaDateTimeMs(reserva, reserva.hora_hasta || reserva.hora_desde);
 
 const formatDate = (fecha: string) => {
   const [year, month, day] = fecha.split('-').map(Number);
@@ -84,14 +86,22 @@ export default function AdminReservasProximasPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+	const [totalRegistros, setTotalRegistros] = useState<number | null>(null);
+	const [proximaReservaGlobal, setProximaReservaGlobal] = useState<ReservaBD | null>(null);
 
   const todayISO = useMemo(() => getDateISOWithOffset(0), []);
   const tomorrowISO = useMemo(() => getDateISOWithOffset(1), []);
-	const pagination = useCursorPagination(`${todayISO}|${tomorrowISO}|AGENDADO`);
-	const { cursor: paginationCursor, includeTotal, setMetadata: setPaginationMetadata } = pagination;
+	const vigenteHora = useMemo(() => getCurrentTimeHHMM(), []);
+	const pagination = useCursorPagination(`${todayISO}|${tomorrowISO}|${vigenteHora}|AGENDADO|cronologico`);
+	const { cursor: paginationCursor, requestRevision, shouldIncludeTotal, setMetadata: setPaginationMetadata } = pagination;
 	const requestRef = useRef(0);
+	const requestControllerRef = useRef<AbortController | null>(null);
 
   const fetchReservas = useCallback(async (isRefresh = false) => {
+    void requestRevision;
+	requestControllerRef.current?.abort();
+	const controller = new AbortController();
+	requestControllerRef.current = controller;
 	const requestId = ++requestRef.current;
     if (isRefresh) {
       setRefreshing(true);
@@ -105,22 +115,39 @@ export default function AdminReservasProximasPage() {
         fecha_desde: todayISO,
         fecha_hasta: tomorrowISO,
         estado: 'AGENDADO',
+		vigente_fecha: todayISO,
+		vigente_hora: vigenteHora,
+		orden: 'cronologico',
 		limit: PAGE_LIMIT,
 		cursor: paginationCursor,
-		include_total: includeTotal,
-      });
+		include_total: shouldIncludeTotal(),
+      }, controller.signal);
 	  if (requestId !== requestRef.current) return;
       setReservas(response.data?.reservas ?? []);
+	  if (!paginationCursor) {
+		setProximaReservaGlobal(response.data?.reservas?.[0] ?? null);
+	  }
 	  setPaginationMetadata(response.data?.paginacion);
+	  if (response.data?.paginacion?.total_registros !== undefined) {
+		setTotalRegistros(response.data.paginacion.total_registros);
+	  }
     } catch (fetchError) {
+	  if (controller.signal.aborted) return;
 	  if (requestId !== requestRef.current) return;
       setError(fetchError instanceof Error ? fetchError.message : 'No se pudieron cargar las citas próximas.');
       if (!isRefresh) setReservas([]);
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+	  if (requestId === requestRef.current) {
+		setLoading(false);
+		setRefreshing(false);
+	  }
     }
-  }, [todayISO, tomorrowISO, paginationCursor, includeTotal, setPaginationMetadata]);
+  }, [todayISO, tomorrowISO, vigenteHora, paginationCursor, requestRevision, shouldIncludeTotal, setPaginationMetadata]);
+
+	useEffect(() => () => {
+		requestRef.current += 1;
+		requestControllerRef.current?.abort();
+	}, []);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -147,8 +174,7 @@ export default function AdminReservasProximasPage() {
     () => reservas
       .filter((reserva) =>
         normalizeEstado(reserva.estado) === 'AGENDADO'
-        && reserva.fecha === todayISO
-        && getReservaEndMs(reserva) >= Date.now(),
+        && reserva.fecha === todayISO,
       )
       .sort((a, b) => getReservaStartMs(a) - getReservaStartMs(b)),
     [reservas, todayISO],
@@ -161,8 +187,9 @@ export default function AdminReservasProximasPage() {
     [reservas, tomorrowISO],
   );
 
-  const total = reservasHoy.length + reservasManana.length;
-  const nextReserva = reservasHoy[0] ?? reservasManana[0];
+  const totalVisible = reservasHoy.length + reservasManana.length;
+	const total = totalRegistros ?? totalVisible;
+  const nextReserva = proximaReservaGlobal ?? reservasHoy[0] ?? reservasManana[0];
 
   const renderColumn = (title: string, fecha: string, relativeDay: RelativeDay, items: ReservaBD[]) => (
     <section className={styles.dayColumn} aria-labelledby={`day-${relativeDay}`}>

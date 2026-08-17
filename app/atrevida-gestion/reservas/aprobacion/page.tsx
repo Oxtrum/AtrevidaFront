@@ -28,6 +28,7 @@ import { PageHeader, StatGrid, StatCard, AdminPanel, CursorPagination } from '@/
 import { CATEGORIAS_ORDEN } from '@/components/AdminReservationForm/constants';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { actualizarEstadoReservaDB, actualizarReservaDB, actualizarReservaNotificadoDB, eliminarReservaDB, getReservasDB } from '@/lib/api/reservas';
+import { getLocalesDB, type LocalRow } from '@/lib/api/servicios';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import { formatDateTime } from '@/lib/utils/formatDateTime';
 import {
@@ -178,9 +179,6 @@ const getReservaDateTimeMs = (reserva: ReservaBD, time: string) => {
 
 const getReservaStartMs = (reserva: ReservaBD) => getReservaDateTimeMs(reserva, reserva.hora_desde);
 
-const getReservaEndMs = (reserva: ReservaBD) =>
-  getReservaDateTimeMs(reserva, reserva.hora_hasta || reserva.hora_desde);
-
 const getReservaAuditMs = (reserva: ReservaBD) => {
   const timestamp = new Date(reserva.actualizado_en || reserva.creado_en || '').getTime();
   return Number.isFinite(timestamp) ? timestamp : getReservaStartMs(reserva);
@@ -192,8 +190,10 @@ const getDateISOWithOffset = (daysOffset: number) => {
   return date.toLocaleDateString('en-CA');
 };
 
-const isReservaPendienteVigente = (reserva: ReservaBD) =>
-  normalizeEstado(reserva.estado) === 'PENDIENTE' && getReservaEndMs(reserva) >= Date.now();
+const getCurrentTimeHHMM = () => {
+  const now = new Date();
+  return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+};
 
 const getClientInitials = (name?: string) => {
   const parts = (name || 'Cliente')
@@ -221,6 +221,7 @@ export default function AdminReservasAprobacionPage() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [isFetching, setIsFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
+	const [totalRegistros, setTotalRegistros] = useState<number | null>(null);
   const [actionId, setActionId] = useState<number | null>(null);
   const [rejectingId, setRejectingId] = useState<number | null>(null);
   const [rejectCauses, setRejectCauses] = useState<Record<number, string>>({});
@@ -234,6 +235,8 @@ export default function AdminReservasAprobacionPage() {
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [estadoFiltro, setEstadoFiltro] = useState<EstadoFiltro>('PENDIENTE');
   const [searchQuery, setSearchQuery] = useState('');
+	const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+	const [localesDisponibles, setLocalesDisponibles] = useState<LocalRow[]>([]);
   const [localFiltro, setLocalFiltro] = useState(ALL_LOCALS_FILTER);
   const [tipoFiltro, setTipoFiltro] = useState('TODOS');
   const [fechaFiltro, setFechaFiltro] = useState('');
@@ -241,11 +244,38 @@ export default function AdminReservasAprobacionPage() {
   const scopedLocalName = adminLocalScope.workplace?.nombre_local ?? '';
   const defaultLocalFiltro = scopedLocalName || ALL_LOCALS_FILTER;
   const effectiveLocalFiltro = scopedLocalName || (adminLocalScope.ready ? localFiltro : LOCAL_SCOPE_PENDING);
-	const pagination = useCursorPagination(`${effectiveLocalFiltro}|${estadoFiltro}|${tipoFiltro}|${fechaFiltro}|${searchQuery}`);
-	const { cursor: paginationCursor, includeTotal, setMetadata: setPaginationMetadata } = pagination;
-	const paginationRequestRef = useRef(0);
+	const vigenteFecha = useMemo(() => getDateISOWithOffset(0), []);
+	const vigenteHora = useMemo(() => getCurrentTimeHHMM(), []);
+	const aplicaVigenciaPendientes = estadoFiltro === 'PENDIENTE' || estadoFiltro === 'TODOS';
+	const pagination = useCursorPagination(`${effectiveLocalFiltro}|${estadoFiltro}|${tipoFiltro}|${fechaFiltro}|${debouncedSearchQuery}|${aplicaVigenciaPendientes ? `${vigenteFecha}|${vigenteHora}` : ''}`);
+	const { cursor: paginationCursor, requestRevision, shouldIncludeTotal, setMetadata: setPaginationMetadata } = pagination;
+  const paginationRequestRef = useRef(0);
+  const paginationControllerRef = useRef<AbortController | null>(null);
+
+	useEffect(() => {
+		const timer = window.setTimeout(() => setDebouncedSearchQuery(searchQuery.trim()), 300);
+		return () => window.clearTimeout(timer);
+	}, [searchQuery]);
+
+	useEffect(() => {
+		if (!adminLocalScope.ready) return;
+		let cancelled = false;
+		void getLocalesDB()
+			.then((response) => {
+				if (!cancelled) setLocalesDisponibles((response.data?.locales ?? []).filter((local) => local.activo !== false));
+			})
+			.catch(() => {
+				if (!cancelled) setLocalesDisponibles([]);
+			});
+		return () => { cancelled = true; };
+	}, [adminLocalScope.ready]);
 
   const fetchReservas = useCallback(async () => {
+    void requestRevision;
+	if (!adminLocalScope.ready) return;
+	paginationControllerRef.current?.abort();
+	const controller = new AbortController();
+	paginationControllerRef.current = controller;
 	const requestId = ++paginationRequestRef.current;
     const isInitialRequest = !hasLoadedRef.current;
     if (isInitialRequest) {
@@ -262,13 +292,21 @@ export default function AdminReservasAprobacionPage() {
 		estado: estadoFiltro !== 'TODOS' ? estadoFiltro : undefined,
 		fecha: fechaFiltro || undefined,
 		tipo: tipoFiltro !== 'TODOS' ? tipoFiltro.toLowerCase() as 'mesa' | 'bicicleta' : undefined,
+		busqueda: debouncedSearchQuery || undefined,
+		excluir_estado: estadoFiltro === 'TODOS' ? 'COMPLETADO' : undefined,
+		vigente_fecha: aplicaVigenciaPendientes ? vigenteFecha : undefined,
+		vigente_hora: aplicaVigenciaPendientes ? vigenteHora : undefined,
+		vigencia_solo_pendientes: estadoFiltro === 'TODOS' ? true : undefined,
 		limit: PAGE_LIMIT,
 		cursor: paginationCursor,
-		include_total: includeTotal,
-      });
+		include_total: shouldIncludeTotal(),
+      }, controller.signal);
 	  if (requestId !== paginationRequestRef.current) return;
       const nextReservas = response.data?.reservas ?? [];
 	  setPaginationMetadata(response.data?.paginacion);
+	  if (response.data?.paginacion?.total_registros !== undefined) {
+		setTotalRegistros(response.data.paginacion.total_registros);
+	  }
       const nextIds = new Set(nextReservas.map((reserva) => reserva.id));
       sortStampByReservaIdRef.current.forEach((_, reservaId) => {
         if (!nextIds.has(reservaId)) sortStampByReservaIdRef.current.delete(reservaId);
@@ -281,14 +319,22 @@ export default function AdminReservasAprobacionPage() {
       setReservas(nextReservas);
       hasLoadedRef.current = true;
     } catch (fetchError) {
+	  if (controller.signal.aborted) return;
 	  if (requestId !== paginationRequestRef.current) return;
       setError(fetchError instanceof Error ? fetchError.message : 'No se pudieron cargar las reservas');
       if (isInitialRequest) setReservas([]);
     } finally {
-      setInitialLoading(false);
-      setIsFetching(false);
+	  if (requestId === paginationRequestRef.current) {
+		setInitialLoading(false);
+		setIsFetching(false);
+	  }
     }
-  }, [effectiveLocalFiltro, estadoFiltro, fechaFiltro, tipoFiltro, paginationCursor, includeTotal, setPaginationMetadata]);
+  }, [adminLocalScope.ready, aplicaVigenciaPendientes, debouncedSearchQuery, effectiveLocalFiltro, estadoFiltro, fechaFiltro, tipoFiltro, vigenteFecha, vigenteHora, paginationCursor, requestRevision, shouldIncludeTotal, setPaginationMetadata]);
+
+	useEffect(() => () => {
+		paginationRequestRef.current += 1;
+		paginationControllerRef.current?.abort();
+	}, []);
 
   const markConfirmationSent = useCallback(async (reservaId: number) => {
     setReservas((current) =>
@@ -316,16 +362,6 @@ export default function AdminReservasAprobacionPage() {
     callback();
   }, []);
 
-  const localOptions = useMemo(
-    () => Array.from(new Set(reservas.map((reserva) => reserva.local).filter(Boolean))).sort(),
-    [reservas],
-  );
-
-  const tipoOptions = useMemo(
-    () => Array.from(new Set(reservas.map((reserva) => reserva.tipo).filter(Boolean))).sort(),
-    [reservas],
-  );
-
   const localFilterOptions = useMemo(
     () => !adminLocalScope.ready
       ? [{ value: LOCAL_SCOPE_PENDING, label: 'Cargando local...' }]
@@ -333,56 +369,28 @@ export default function AdminReservasAprobacionPage() {
       ? [{ value: scopedLocalName, label: scopedLocalName }]
       : [
           { value: ALL_LOCALS_FILTER, label: 'Todas' },
-          ...localOptions.map((local) => ({ value: local, label: local })),
+          ...localesDisponibles.map((local) => ({ value: local.nombre, label: local.nombre })),
         ],
-    [adminLocalScope.ready, localOptions, scopedLocalName],
+    [adminLocalScope.ready, localesDisponibles, scopedLocalName],
   );
 
-  const tipoFilterOptions = useMemo(
-    () => [
-      { value: 'TODOS', label: 'Todos' },
-      ...tipoOptions.map((tipo) => ({ value: tipo, label: TIPO_LABELS[tipo] ?? tipo })),
-    ],
-    [tipoOptions],
-  );
+  const tipoFilterOptions = useMemo(() => [
+    { value: 'TODOS', label: 'Todos' },
+    { value: 'mesa', label: TIPO_LABELS.M },
+    { value: 'bicicleta', label: TIPO_LABELS.B },
+  ], []);
 
   const reservasVisibles = useMemo(() => {
-    const term = normalizeSearchText(searchQuery.trim());
-
-    const filteredReservas = reservas.filter((reserva) => {
-      const estadoNormalizado = normalizeEstado(reserva.estado);
-      if (estadoNormalizado === 'COMPLETADO') return false;
-      const isVisibleByStateWindow = estadoNormalizado !== 'PENDIENTE' || isReservaPendienteVigente(reserva);
-      const matchesEstado = estadoFiltro === 'TODOS' || estadoNormalizado === estadoFiltro;
-      const matchesLocal = effectiveLocalFiltro === LOCAL_SCOPE_PENDING
-        || effectiveLocalFiltro === ALL_LOCALS_FILTER
-        || reserva.local === effectiveLocalFiltro;
-      const matchesTipo = tipoFiltro === 'TODOS' || reserva.tipo === tipoFiltro;
-      const matchesFecha = !fechaFiltro || reserva.fecha === fechaFiltro;
-      const searchable = normalizeSearchText([
-        reserva.id,
-        reserva.cliente,
-        reserva.numero_telefono,
-        reserva.servicio,
-        reserva.servicio_solicitado,
-        reserva.servicio_confirmado,
-        reserva.local,
-        reserva.fecha,
-      ].join(' '));
-
-      return isVisibleByStateWindow && matchesEstado && matchesLocal && matchesTipo && matchesFecha && (!term || searchable.includes(term));
-    });
-
     if (estadoFiltro !== 'AGENDADO') {
-      return filteredReservas;
+      return reservas;
     }
 
-    return filteredReservas.sort((a, b) => {
+    return [...reservas].sort((a, b) => {
       const stampA = sortStampByReservaIdRef.current.get(a.id) ?? getReservaAuditMs(a);
       const stampB = sortStampByReservaIdRef.current.get(b.id) ?? getReservaAuditMs(b);
       return stampB - stampA;
     });
-  }, [effectiveLocalFiltro, estadoFiltro, fechaFiltro, reservas, searchQuery, tipoFiltro]);
+  }, [estadoFiltro, reservas]);
 
   const hasAdvancedFilters = Boolean(
     searchQuery.trim()
@@ -403,7 +411,7 @@ export default function AdminReservasAprobacionPage() {
   });
 
   const reservasPendientes = useMemo(
-    () => reservas.filter(isReservaPendienteVigente),
+    () => reservas.filter((reserva) => normalizeEstado(reserva.estado) === 'PENDIENTE'),
     [reservas],
   );
 
@@ -504,6 +512,7 @@ export default function AdminReservasAprobacionPage() {
       setNotificationReserva((current) => current?.id === reservaId ? null : current);
       setDeleteReserva(null);
       setStatusMessage({ type: 'success', text: `Reserva #${reservaId} eliminada.` });
+      pagination.resetAfterMutation();
       window.setTimeout(() => setStatusMessage(null), 3600);
     } catch (deleteError) {
       setStatusMessage({
@@ -548,6 +557,7 @@ export default function AdminReservasAprobacionPage() {
       setNotificationReserva((current) => current?.id === reservaId ? null : current);
       setCompletionDraft(null);
       setStatusMessage({ type: 'success', text: `Reserva #${reservaId} marcada como completada.` });
+      pagination.resetAfterMutation();
       window.setTimeout(() => setStatusMessage(null), 3600);
     } catch (updateError) {
       setStatusMessage({
@@ -595,6 +605,7 @@ export default function AdminReservasAprobacionPage() {
         type: 'success',
         text: 'Reserva rechazada correctamente.',
       });
+      pagination.resetAfterMutation();
       window.setTimeout(() => setStatusMessage(null), 3600);
     } catch (updateError) {
       setStatusMessage({
@@ -672,6 +683,7 @@ export default function AdminReservasAprobacionPage() {
       setApprovalDraft(null);
       setNotificationReserva(updatedReserva);
       setStatusMessage({ type: 'success', text: `Reserva #${approvalReserva.id} agendada correctamente.` });
+      pagination.resetAfterMutation();
       window.setTimeout(() => setStatusMessage(null), 3600);
     } catch (updateError) {
       setStatusMessage({
@@ -834,7 +846,7 @@ export default function AdminReservasAprobacionPage() {
               <div>
                 <h2>{estadoFiltro === 'TODOS' ? 'Todas las solicitudes' : `Reservas ${ESTADO_OPTIONS.find((option) => option.value === estadoFiltro)?.label.toLowerCase()}`}</h2>
               </div>
-              <span className={styles.countPill}>{reservasVisibles.length} resultado{reservasVisibles.length === 1 ? '' : 's'}</span>
+              <span className={styles.countPill}>{totalRegistros ?? reservasVisibles.length} resultado{(totalRegistros ?? reservasVisibles.length) === 1 ? '' : 's'}</span>
             </div>
 
             <div className={styles.controlsPanel}>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
-import { getPlanesDB, type PlanItem } from '@/lib/api/planes';
+import { getPlanByID, getPlanesDB, type PlanItem } from '@/lib/api/planes';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
 
 interface PlanSelectorProps {
@@ -18,32 +18,73 @@ const noteStyle: React.CSSProperties = {
   margin: '0.35rem 0 0',
 };
 
+const normalize = (value: string | undefined) => (value ?? '').trim().toLocaleUpperCase('es-BO');
+
+const isAvailableFor = (plan: PlanItem, client: string, local: string) => (
+  plan.estado === 'ACTIVO'
+  && plan.activo !== false
+  && plan.sesiones_usadas < plan.sesiones_totales
+  && normalize(plan.cliente_nombre_texto || plan.cliente) === normalize(client)
+  && normalize(plan.local_nombre_texto) === normalize(local)
+);
+
 export default function PlanSelector({ clienteNombre, planId, localNombre, onChange }: PlanSelectorProps) {
   const [planes, setPlanes] = useState<PlanItem[]>([]);
+  const [loadedKey, setLoadedKey] = useState('');
   const nombre = clienteNombre.trim();
   const local = localNombre.trim();
+  const queryKey = `${nombre}|${local}`;
+  const loading = nombre.length >= 2 && !!local && loadedKey !== queryKey;
 
   useEffect(() => {
-    if (nombre.length < 2 || !local) return;
+    if (nombre.length < 2 || !local) {
+      return;
+    }
+
     let cancelled = false;
-	getPlanesDB({ cliente: nombre, estado: 'ACTIVO', local, limit: PAGE_LIMIT })
+    const controller = new AbortController();
+    getPlanesDB({ cliente: nombre, estado: 'ACTIVO', local, limit: PAGE_LIMIT }, controller.signal)
       .then((res) => {
-        if (cancelled) return;
-        const data = res as { data?: { planes?: PlanItem[] } };
-        setPlanes(data?.data?.planes ?? []);
+        if (!cancelled) setPlanes(res?.data?.planes ?? []);
       })
       .catch(() => {
         if (!cancelled) setPlanes([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadedKey(queryKey);
       });
-    return () => { cancelled = true; };
-  }, [nombre, local]);
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [nombre, local, queryKey]);
 
-  // Limpia selección si el plan ya no está en la lista (cambio de sucursal, agotado, etc.)
+  // El listado es sólo para sugerencias. La selección se consulta directamente
+  // para que un plan posterior al resultado 50 no se descarte por accidente.
   useEffect(() => {
-    if (planId == null) return;
-    const stillAvailable = planes.some((p) => p.id === planId);
-    if (!stillAvailable) onChange(null);
-  }, [planes, planId, onChange]);
+    if (planId == null || nombre.length < 2 || !local) return;
+
+    let cancelled = false;
+    const controller = new AbortController();
+    getPlanByID(planId, controller.signal)
+      .then((res) => {
+        if (cancelled) return;
+        const plan = res?.data?.plan;
+        if (!plan || !isAvailableFor(plan, nombre, local)) {
+          onChange(null);
+          return;
+        }
+        setPlanes((current) => current.some((item) => item.id === plan.id) ? current : [plan, ...current]);
+      })
+      .catch(() => {
+        if (!cancelled) onChange(null);
+      });
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [nombre, local, planId, onChange]);
 
   if (!local) {
     return (
@@ -58,21 +99,23 @@ export default function PlanSelector({ clienteNombre, planId, localNombre, onCha
 
   const options = [
     { value: '', label: 'No usar paquete' },
-    ...planes.map((p) => ({
-      value: String(p.id),
-      label: `${p.combo_nombre_texto ?? 'Paquete'} — ${p.sesiones_totales} sesiones`,
+    ...planes.map((plan) => ({
+      value: String(plan.id),
+      label: `${plan.combo_nombre_texto ?? 'Paquete'} — ${plan.sesiones_totales - plan.sesiones_usadas} sesiones disponibles`,
     })),
   ];
 
   return (
     <div style={{ gridColumn: '1 / -1' }}>
       <label id="lbl-plan" htmlFor="plan-select">Usar paquete</label>
-      {planes.length > 0 ? (
+      {loading ? (
+        <p style={noteStyle}>Cargando paquetes...</p>
+      ) : planes.length > 0 ? (
         <CustomSelect
           id="plan-select"
           ariaLabelledBy="lbl-plan"
           value={planId != null ? String(planId) : ''}
-          onChange={(v) => onChange(v ? Number(v) : null)}
+          onChange={(value) => onChange(value ? Number(value) : null)}
           options={options}
         />
       ) : (

@@ -13,12 +13,11 @@ import { useLocales } from '@/lib/hooks/useLocales';
 import { getServiciosDB } from '@/lib/api/servicios';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import { toast } from '../Shared/Toast';
-import { getPlanesDB } from '@/lib/api/planes';
+import { getPlanByID } from '@/lib/api/planes';
 import { validateReservationForm, } from '@/lib/utils/reservationValidation';
 import { type SlotStatus } from '@/lib/utils/hoursAvailability';
 import { HORAS, DIAS_SEMANA, SLOT_MIN, SLOTS_POR_HORA, calcularHoraFin, tiempoAMinutos, isSlotOutsideBusinessHours } from '@/lib/constants/reservationForm';
 import { seleccionarSlot } from '@/lib/utils/slotRange';
-import { PAGE_LIMIT } from '@/lib/api/pagination';
 
 export interface ReservationFormInitialData {
   local?: string;
@@ -442,9 +441,16 @@ export function useReservationForm(
     // Revalidar paquete antes de enviar (#C + #F capa 2)
     if (planId != null && effectiveSucursal) {
       try {
-		const planRes = await getPlanesDB({ cliente, estado: 'ACTIVO', local: effectiveSucursal, limit: PAGE_LIMIT });
-        const planData = planRes as { data?: { planes?: { id: number }[] } };
-        const planValido = (planData?.data?.planes ?? []).find((p) => p.id === planId);
+		const planRes = await getPlanByID(planId);
+        const plan = planRes?.data?.plan;
+        const normalizar = (value: string | undefined) => (value ?? '').trim().toLocaleUpperCase('es-BO');
+        const planValido = plan
+          && plan.id === planId
+          && plan.estado === 'ACTIVO'
+          && plan.activo !== false
+          && plan.sesiones_usadas < plan.sesiones_totales
+          && normalizar(plan.cliente_nombre_texto || plan.cliente) === normalizar(cliente)
+          && normalizar(plan.local_nombre_texto) === normalizar(effectiveSucursal);
         if (!planValido) {
           toast.error('El paquete ya no es válido para esta sucursal.');
           setPlanId(null);
