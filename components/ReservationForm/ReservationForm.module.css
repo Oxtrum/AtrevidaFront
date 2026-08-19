@@ -1412,10 +1412,13 @@
   box-shadow: 0 3px 10px rgba(20, 174, 239, 0.20);
 }
 
+/* Sin ambientes libres: gris apagado y tachado. A esa hora ya se alcanzó la
+   capacidad del local y no entra otra reserva. */
 .timeChipOccupied {
-  border-color: rgba(255, 230, 0, 0.40) !important;
-  background: rgba(255, 230, 0, 0.12) !important;
-  color: rgba(255, 230, 0, 0.50) !important;
+  border-color: rgba(150, 150, 160, 0.30) !important;
+  background: rgba(120, 120, 130, 0.16) !important;
+  color: rgba(245, 245, 245, 0.45) !important;
+  text-decoration: line-through;
   cursor: not-allowed !important;
   opacity: 0.7;
 }

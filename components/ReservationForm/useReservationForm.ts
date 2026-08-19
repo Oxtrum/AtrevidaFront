@@ -19,9 +19,9 @@ import {
   getReservationDateRestriction,
   validateReservationForm,
 } from '@/lib/utils/reservationValidation';
-import { type SlotStatus } from '@/lib/utils/hoursAvailability';
+import { type SlotStatus, capacidadDeLocal, normalizarHoraSlot } from '@/lib/utils/hoursAvailability';
 import { HORAS, DIAS_SEMANA, SLOT_MIN, SLOTS_POR_HORA, calcularHoraFin, tiempoAMinutos, isSlotOutsideBusinessHours } from '@/lib/constants/reservationForm';
-import { seleccionarSlot } from '@/lib/utils/slotRange';
+import { iniciarSeleccion, modificarFin, puedeAjustarFin } from '@/lib/utils/slotRange';
 import { CATEGORIAS_ORDEN } from './constants';
 
 export interface ReservationFormInitialData {
@@ -113,6 +113,9 @@ export function useReservationForm(
   const [servicio, setServicio] = useState(initialData?.servicio || '');
   const [servicioSolicitado, setServicioSolicitado] = useState('');
   const [horaPreestablecida] = useState(!!initialData?.hora_desde); // Marca si hora vino del URL
+  // Ciclo de 2 clicks en la rejilla: click de inicio (fija desde + duración
+  // del servicio) → click de ajuste (recorta/estira el fin) → vuelve a inicio.
+  const [esperandoAjuste, setEsperandoAjuste] = useState(!!(initialData?.hora_desde && initialData?.hora_hasta));
 
   /**
    * Slots de la rejilla que ocupa el servicio elegido. 1 hora si no se conoce.
@@ -138,6 +141,9 @@ export function useReservationForm(
 
     const timeoutId = window.setTimeout(() => {
       setHoraHasta(fin);
+      // Ya hay un rango completo (inicio + duración del servicio): el
+      // próximo click en la rejilla es de ajuste, no de inicio.
+      setEsperandoAjuste(true);
     }, 0);
     return () => window.clearTimeout(timeoutId);
   }, [horaPreestablecida, horaDesde, servicio, fecha, sucursal, slotsDeServicio]);
@@ -259,12 +265,11 @@ export function useReservationForm(
     }
 
     // 4. Marcar horas ocupadas basado en reservasData y capacidad
-    if (reservasData?.data?.reservas && fechaDia && sucursal && tipo) {
+    // Capacidad real del local (`espacios[]`, la misma tabla contra la que
+    // valida el backend), no un fallback inventado.
+    const capacidadMaxima = capacidadDeLocal(locales.find(l => l.nombre === sucursal), tipo);
+    if (reservasData?.data?.reservas && fechaDia && sucursal && tipo && capacidadMaxima) {
       const fechaDiaStr = fecha;
-      const currentLocal = locales.find(l => l.nombre === sucursal);
-      const capacidadMaxima = tipo.toLowerCase() === 'm' || tipo.toLowerCase() === 'mesa' 
-        ? (currentLocal?.capacidad_mesas || 3) 
-        : (currentLocal?.capacidad_bicis || 2);
 
       // Filtrar reservas para el día y tipo seleccionado
       const reservasDelDia = reservasData.data.reservas.filter((r: ReservaBD) => {
@@ -279,8 +284,8 @@ export function useReservationForm(
       const conteoPorHora = new Map<string, number>();
 
       for (const reserva of reservasDelDia) {
-        const idxInicio = HORAS.indexOf(reserva.hora_desde);
-        const idxFin = HORAS.indexOf(reserva.hora_hasta);
+        const idxInicio = HORAS.indexOf(normalizarHoraSlot(reserva.hora_desde));
+        const idxFin = HORAS.indexOf(normalizarHoraSlot(reserva.hora_hasta));
 
         if (idxInicio !== -1 && idxFin !== -1) {
           for (let i = idxInicio; i < idxFin; i++) {
@@ -288,7 +293,8 @@ export function useReservationForm(
             conteoPorHora.set(h, (conteoPorHora.get(h) || 0) + 1);
           }
         } else if (idxInicio !== -1) {
-          conteoPorHora.set(reserva.hora_desde, (conteoPorHora.get(reserva.hora_desde) || 0) + 1);
+          const h = HORAS[idxInicio];
+          conteoPorHora.set(h, (conteoPorHora.get(h) || 0) + 1);
         }
       }
 
@@ -413,6 +419,7 @@ export function useReservationForm(
     }
     setHoraDesde('');
     setHoraHasta('');
+    setEsperandoAjuste(false);
     setSlotWarning(null);
   };
 
@@ -423,6 +430,7 @@ export function useReservationForm(
     if (!horaPreestablecida) {
       setHoraDesde('');
       setHoraHasta('');
+      setEsperandoAjuste(false);
     }
     setSlotWarning(null);
   };
@@ -437,6 +445,7 @@ export function useReservationForm(
     if (!horaPreestablecida) {
       setHoraDesde('');
       setHoraHasta('');
+      setEsperandoAjuste(false);
     }
     setSlotWarning(null);
   };
@@ -445,28 +454,33 @@ export function useReservationForm(
     setFecha(value);
     setHoraDesde('');
     setHoraHasta('');
+    setEsperandoAjuste(false);
     setSlotWarning(null);
   };
 
   /**
-   * Los clicks se acumulan: el primero abre la reserva con la duración del
-   * servicio y los siguientes la estiran o la recortan (ver `seleccionarSlot`).
+   * Ciclo de 2 clicks: el de inicio fija `horaDesde` y toma automáticamente
+   * la duración del servicio; el de ajuste recorta o estira `horaHasta`. Tras
+   * el ajuste, el siguiente click vuelve a ser de inicio. Un click que no
+   * sirve como ajuste (cae en el inicio o antes) arranca una selección nueva
+   * en vez de avisar un error (ver `slotRange.ts`).
    */
   const handleSlotSelect = (hora: string) => {
     const fechaDia = fecha ? new Date(`${fecha}T00:00:00`) : new Date();
-    const { desde, hasta, warning } = seleccionarSlot({
-      hora,
-      horaDesde,
-      horaHasta,
-      slotsPorDefecto: slotsDeServicio(servicio),
-      local: sucursal,
-      fecha: fechaDia,
-      esSlotLibre: (h) => (hoursAvailability.get(h) ?? 'free') === 'free',
-    });
+    const esSlotLibre = (h: string) => (hoursAvailability.get(h) ?? 'free') === 'free';
+    const ajustando = esperandoAjuste && puedeAjustarFin(hora, horaDesde, horaHasta);
 
+    const { desde, hasta } = ajustando
+      ? modificarFin({
+        hora, horaDesde, horaHasta,
+        local: sucursal, fecha: fechaDia, esSlotLibre,
+      })
+      : iniciarSeleccion(hora, slotsDeServicio(servicio), sucursal, fechaDia, esSlotLibre);
+
+    setEsperandoAjuste(!ajustando);
     setHoraDesde(desde);
     setHoraHasta(hasta);
-    setSlotWarning(warning);
+    setSlotWarning(null);
   };
 
   // ── Validación y submit ────────────────────────────────
@@ -491,10 +505,16 @@ export function useReservationForm(
 
     const fechaISO = fecha;
     if (!fechaISO) {
+      // Los errores van también al toast: el aviso del tope del formulario
+      // queda fuera de pantalla cuando se está abajo completando datos.
       setError('Error: No se pudo determinar la fecha.');
+      toast.error('No se pudo determinar la fecha. Elige de nuevo el día.');
       return;
     }
-    if (!validate()) return;
+    if (!validate()) {
+      toast.error('Faltan datos o hay campos con error. Revisa los marcados en rojo.');
+      return;
+    }
 
     setError(null);
     const selectedService = servicios.find(s => s.value === servicio);
@@ -539,7 +559,9 @@ export function useReservationForm(
         }
         router.refresh();
       } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : hookError || 'Error al crear la reserva');
+        const mensaje = err instanceof Error ? err.message : hookError || 'Error al crear la reserva';
+        setError(mensaje);
+        toast.error(mensaje);
       }
   };
   return {
@@ -556,6 +578,7 @@ export function useReservationForm(
     servicioSolicitado, setServicioSolicitado,
     error, errors,
     slotWarning,
+    esperandoAjuste,
     scheduleWarning,
     loading: loading || loadingLocales || loadingServicios,
     // Derived

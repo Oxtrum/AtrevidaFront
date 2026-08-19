@@ -1,15 +1,25 @@
 /**
  * Selección de rangos en la rejilla de horas.
  *
- * La rejilla es de media hora y antes cada click reemplazaba la selección
- * entera (siempre la duración del servicio). Ahora los clicks se acumulan,
- * como si se arrastrara sobre la rejilla:
+ * La rejilla es de media hora y la selección se arma en un ciclo de 2 clicks:
  *
- *   - Primer click  → arranca la reserva (duración por defecto del servicio).
- *   - Click sobre el borde final → suma media hora (9:30 → 10:00 → 10:30 …).
- *   - Click más adelante → mueve el fin directo a esa hora ("de 9:00 a 10:30").
- *   - Click dentro del rango → recorta el rango hasta ahí.
- *   - Click en el inicio o antes → empieza una selección nueva.
+ *   - Click de inicio  → fija la hora de inicio y toma automáticamente la
+ *     duración del servicio elegido (ej. 1h → 2 bloques). El próximo click
+ *     será de ajuste.
+ *   - Click de ajuste   → **el bloque clickeado queda incluido** en la
+ *     reserva: clickear antes acorta, clickear después alarga. La duración
+ *     del servicio es sólo el valor inicial, no un tope: el ajuste puede
+ *     dejar la reserva más corta o más larga. El próximo click vuelve a ser
+ *     un click de inicio.
+ *
+ * Que el bloque clickeado siempre quede dentro es lo que hace que cada click
+ * mueva algo visible, en vez de sentirse muerto.
+ *
+ * Ninguna de las dos funciones falla ni devuelve mensajes de error: lo que no
+ * se puede aplicar se recorta en silencio al límite válido más cercano (slots
+ * ocupados, cierre del local). Un click que no sirve como ajuste (cae antes
+ * del inicio) lo resuelve el hook tratándolo como un click de inicio — ver
+ * `puedeAjustarFin`.
  *
  * La lógica vive acá porque la comparten los tres formularios (público, admin
  * crear y admin editar), cada uno con su propio estado y disponibilidad.
@@ -20,33 +30,42 @@ import { HORAS, SLOT_MIN, calcularHoraFin, getBusinessClosingTime, timeToMinutes
 export interface RangoSlots {
     desde: string;
     hasta: string;
-    /** Mensaje para el usuario cuando la selección no pudo crecer como pidió. */
-    warning: string | null;
 }
 
 export interface SeleccionSlotParams {
-    /** Hora en la que se hizo click. */
+    /** Hora en la que se hizo click: ese bloque queda incluido en la reserva. */
     hora: string;
     /** Inicio actual de la selección ('' si todavía no hay). */
     horaDesde: string;
     /** Fin actual de la selección ('' si todavía no hay). */
     horaHasta: string;
-    /** Slots que ocupa el servicio elegido: duración del primer click. */
-    slotsPorDefecto: number;
     local: string;
     fecha: Date;
     /** `true` si en esa media hora todavía se puede reservar. */
     esSlotLibre: (hora: string) => boolean;
 }
 
-/** Nueva selección mínima: el click manda y la duración la pone el servicio. */
-function iniciarSeleccion(
+/**
+ * `true` si un click en `hora` puede interpretarse como ajuste del fin de la
+ * selección actual: hay un rango armado y el click no cae antes del inicio.
+ * Si es `false`, el hook lo trata como click de inicio en vez de mostrar un
+ * error.
+ */
+export function puedeAjustarFin(hora: string, horaDesde: string, horaHasta: string): boolean {
+    const idxClick = HORAS.indexOf(hora);
+    const idxDesde = HORAS.indexOf(horaDesde);
+    const idxHasta = HORAS.indexOf(horaHasta);
+    if (idxClick === -1 || idxDesde === -1 || idxHasta === -1) return false;
+    return idxClick >= idxDesde;
+}
+
+/** Click de inicio: el click manda y la duración la pone el servicio. */
+export function iniciarSeleccion(
     hora: string,
     slotsPorDefecto: number,
     local: string,
     fecha: Date,
     esSlotLibre: (hora: string) => boolean,
-    warning: string | null = null,
 ): RangoSlots {
     const hasta = calcularHoraFin(hora, slotsPorDefecto, local, fecha);
     const idxDesde = HORAS.indexOf(hora);
@@ -59,7 +78,7 @@ function iniciarSeleccion(
     }
     if (idxFinal <= idxDesde) idxFinal = idxDesde + 1;
 
-    return { desde: hora, hasta: HORAS[idxFinal] ?? hasta, warning };
+    return { desde: hora, hasta: HORAS[idxFinal] ?? hasta };
 }
 
 /** Recorta el fin al cierre del local. Devuelve `null` si no hay hora válida. */
@@ -70,64 +89,40 @@ function limitarACierre(hasta: string, local: string, fecha: Date): string | nul
 }
 
 /**
- * Calcula el rango resultante de hacer click en `hora`, acumulando sobre la
- * selección actual. Nunca devuelve un rango que cruce slots no disponibles.
+ * Click de ajuste: el bloque clickeado pasa a ser el último de la reserva, la
+ * acorte o la alargue. La duración del servicio no es tope acá. Recorta en
+ * silencio si el tramo pisa un slot ocupado o el cierre del local, y devuelve
+ * el rango actual sin cambios sólo si no se puede aplicar nada.
  */
-export function seleccionarSlot({
+export function modificarFin({
     hora,
     horaDesde,
     horaHasta,
-    slotsPorDefecto,
     local,
     fecha,
     esSlotLibre,
 }: SeleccionSlotParams): RangoSlots {
+    const actual = { desde: horaDesde, hasta: horaHasta };
     const idxClick = HORAS.indexOf(hora);
     const idxDesde = HORAS.indexOf(horaDesde);
-    const idxHasta = HORAS.indexOf(horaHasta);
 
-    if (idxClick === -1) return { desde: horaDesde, hasta: horaHasta, warning: null };
+    if (idxClick === -1 || idxDesde === -1 || idxClick < idxDesde) return actual;
 
-    // Sin selección previa (o inconsistente) y click en el inicio o antes:
-    // arranca de cero.
-    if (!horaDesde || !horaHasta || idxDesde === -1 || idxHasta === -1 || idxClick <= idxDesde) {
-        return iniciarSeleccion(hora, slotsPorDefecto, local, fecha, esSlotLibre);
+    // El bloque clickeado queda dentro de la reserva: el fin es el borde
+    // siguiente ("clic en 12:30" → la reserva llega hasta las 13:00).
+    let idxNuevoFin = Math.min(idxClick + 1, HORAS.length - 1);
+
+    // Frenar en el primer slot no disponible del tramo cubierto.
+    for (let i = idxDesde; i < idxNuevoFin; i++) {
+        if (!esSlotLibre(HORAS[i])) { idxNuevoFin = i; break; }
     }
 
-    // Click dentro del rango: recorta hasta ahí.
-    if (idxClick < idxHasta) {
-        return { desde: horaDesde, hasta: HORAS[idxClick], warning: null };
-    }
-
-    // Click sobre el borde final: suma un slot. Más adelante: el fin salta a
-    // esa hora, que es como se lee en voz alta ("de 9:00 a 10:30").
-    const idxNuevoFin = idxClick === idxHasta ? idxClick + 1 : idxClick;
-    if (idxNuevoFin >= HORAS.length) {
-        return { desde: horaDesde, hasta: horaHasta, warning: 'No se puede extender más allá del horario de atención.' };
-    }
-
-    // Todo lo que queda entre el fin actual y el nuevo fin tiene que estar libre.
-    for (let i = idxHasta; i < idxNuevoFin; i++) {
-        if (!esSlotLibre(HORAS[i])) {
-            return iniciarSeleccion(
-                hora, slotsPorDefecto, local, fecha, esSlotLibre,
-                `No se puede extender hasta las ${hora}: ${HORAS[i]} no está disponible. Se reinició la selección.`,
-            );
-        }
-    }
+    if (idxNuevoFin <= idxDesde) return actual;
 
     const nuevoHasta = limitarACierre(HORAS[idxNuevoFin], local, fecha);
-    if (!nuevoHasta || timeToMinutes(nuevoHasta) <= timeToMinutes(horaDesde)) {
-        return { desde: horaDesde, hasta: horaHasta, warning: 'No se puede extender más allá del horario de atención.' };
-    }
+    if (!nuevoHasta || timeToMinutes(nuevoHasta) <= timeToMinutes(horaDesde)) return actual;
 
-    return {
-        desde: horaDesde,
-        hasta: nuevoHasta,
-        warning: nuevoHasta !== HORAS[idxNuevoFin]
-            ? `La reserva se recortó a las ${nuevoHasta}, hora de cierre del local.`
-            : null,
-    };
+    return { desde: horaDesde, hasta: nuevoHasta };
 }
 
 /** Duración del rango en minutos, para mostrarla junto al horario elegido. */

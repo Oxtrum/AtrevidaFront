@@ -1,9 +1,11 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: var(--admin-overlay-bg, rgba(0, 0, 0, 0.6));
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  /* Blur más suave: el objetivo es aislar el modal, no mostrar el formulario
+     de atrás compitiendo con el texto (la opacidad vive en la variable). */
+  background: var(--admin-overlay-bg, rgba(0, 0, 0, 0.72));
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -20,7 +22,10 @@
 .modal {
   display: flex;
   flex-direction: column;
-  background: var(--admin-panel-elevated, #15151d);
+  /* Superficie sólida y no `--admin-panel-elevated`: esa variable es un
+     degradado semitransparente y, con el blur del overlay, el contenido de
+     atrás se filtra y cansa la lectura del texto. */
+  background: var(--admin-surface-solid-1, #14141c);
   border: 1px solid var(--admin-border-subtle, rgba(255, 255, 255, 0.08));
   border-radius: var(--admin-radius-xl, 16px);
   box-shadow: var(--admin-shadow-2xl, 0 24px 64px rgba(0, 0, 0, 0.5));
@@ -91,6 +96,24 @@
   padding: 1.5rem;
 }
 
+/* Bloque de impacto dentro de un diálogo de confirmación: lo que el usuario
+   tiene que leer sí o sí antes de decidir. Fondo sólido, no degradado. */
+.notice {
+  margin: 0.85rem 0;
+  padding: 0.75rem 0.9rem;
+  border-left: 3px solid var(--admin-accent-warning, #f5a524);
+  border-radius: 0 var(--admin-radius-md, 8px) var(--admin-radius-md, 8px) 0;
+  background: var(--admin-surface-3, rgba(255, 255, 255, 0.05));
+  color: var(--admin-foreground);
+}
+
+/* Último renglón del diálogo: la salida si el dato de arriba estaba mal. */
+.noticeHint {
+  margin: 0;
+  color: var(--admin-text-muted);
+  font-size: 0.83rem;
+}
+
 .footer {
   flex-shrink: 0;
   display: flex;
@@ -99,7 +122,7 @@
   gap: 0.75rem;
   padding: 1rem 1.5rem;
   border-top: 1px solid var(--admin-border-subtle, rgba(255, 255, 255, 0.08));
-  background: var(--admin-panel-elevated, #15151d);
+  background: var(--admin-surface-solid-1, #14141c);
 }
 
 .cancelButton {

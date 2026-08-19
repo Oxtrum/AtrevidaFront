@@ -16,8 +16,9 @@ import { DaySelector } from '@/components/AdminReservationForm/DaySelector';
 import { TimeSlotPicker } from '@/components/AdminReservationForm/TimeSlotPicker';
 import { ServiceSelect } from '@/components/AdminReservationForm/ServiceSelect';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
-import type { SlotStatus } from '@/lib/utils/hoursAvailability';
-import { seleccionarSlot } from '@/lib/utils/slotRange';
+import { toast } from '@/components/Shared/Toast';
+import { type SlotStatus, capacidadDeLocal, normalizarHoraSlot } from '@/lib/utils/hoursAvailability';
+import { iniciarSeleccion, modificarFin, puedeAjustarFin } from '@/lib/utils/slotRange';
 import styles from './page.module.css';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
 
@@ -54,6 +55,9 @@ function EditarReservaContent() {
   const [nuevaFecha, setNuevaFecha] = useState('');
   const [nuevaHoraDesde, setNuevaHoraDesde] = useState('');
   const [nuevaHoraHasta, setNuevaHoraHasta] = useState('');
+  // Ciclo de 2 clicks en la rejilla: click de inicio (fija desde + duración
+  // del servicio) → click de ajuste (recorta/estira el fin) → vuelve a inicio.
+  const [esperandoAjuste, setEsperandoAjuste] = useState(false);
   const [nuevoEstado, setNuevoEstado] = useState<EstadoReserva>('PENDIENTE');
   const [nuevasNotas, setNuevasNotas] = useState('');
   const [nuevoPrecio, setNuevoPrecio] = useState('');
@@ -182,12 +186,11 @@ function EditarReservaContent() {
 
     // 2. Marcar ocupados
     if (reservasData?.data?.reservas && nuevaFecha && reserva && locales.length > 0) {
-      const currentLocal = locales.find((l) => l.nombre === localActual);
       const tipoRaw = (reserva.tipo || 'M').toLowerCase();
       const tipo = tipoRaw === 'b' || tipoRaw === 'bicicleta' ? 'B' : 'M';
-      const capacidadMaxima = tipo === 'M'
-        ? (currentLocal?.capacidad_mesas || 3)
-        : (currentLocal?.capacidad_bicis || 2);
+      // Capacidad real del local (`espacios[]`, la misma tabla contra la que
+      // valida el backend), no un fallback inventado.
+      const capacidadMaxima = capacidadDeLocal(locales.find((l) => l.nombre === localActual), tipo) ?? 0;
 
       // Filtrar reservas para el día y tipo, EXCLUYENDO la actual
       const reservasDelDia = reservasData.data.reservas.filter((r: ReservaBD) => {
@@ -201,8 +204,8 @@ function EditarReservaContent() {
 
       const conteoPorHora = new Map<string, number>();
       for (const r of reservasDelDia) {
-        const idxInicio = HORAS.indexOf(r.hora_desde);
-        const idxFin = HORAS.indexOf(r.hora_hasta);
+        const idxInicio = HORAS.indexOf(normalizarHoraSlot(r.hora_desde));
+        const idxFin = HORAS.indexOf(normalizarHoraSlot(r.hora_hasta));
         if (idxInicio !== -1 && idxFin !== -1) {
           for (let i = idxInicio; i < idxFin; i++) {
             const h = HORAS[i];
@@ -212,7 +215,7 @@ function EditarReservaContent() {
       }
 
       for (const [hora, conteo] of conteoPorHora.entries()) {
-        if (conteo >= capacidadMaxima && map.get(hora) !== 'past' && map.get(hora) !== 'closed') {
+        if (capacidadMaxima > 0 && conteo >= capacidadMaxima && map.get(hora) !== 'past' && map.get(hora) !== 'closed') {
           map.set(hora, 'occupied');
         }
       }
@@ -233,6 +236,7 @@ function EditarReservaContent() {
           setNuevaFecha(found.fecha);
           setNuevaHoraDesde(found.hora_desde);
           setNuevaHoraHasta(found.hora_hasta);
+          setEsperandoAjuste(!!(found.hora_desde && found.hora_hasta));
           setNuevoEstado(found.estado || 'PENDIENTE');
           setNuevasNotas(found.notas || '');
           setNuevoPrecio(found.precio != null ? String(found.precio) : '');
@@ -348,6 +352,7 @@ function EditarReservaContent() {
     }
     setNuevaHoraDesde('');
     setNuevaHoraHasta('');
+    setEsperandoAjuste(false);
     setSlotWarning(null);
   };
 
@@ -370,24 +375,28 @@ function EditarReservaContent() {
   };
 
   /**
-   * Los clicks se acumulan: el primero abre la reserva con la duración del
-   * servicio y los siguientes la estiran o la recortan (ver `seleccionarSlot`).
+   * Ciclo de 2 clicks: el de inicio fija `nuevaHoraDesde` y toma automáticamente
+   * la duración del servicio; el de ajuste recorta o estira `nuevaHoraHasta`.
+   * Tras el ajuste, el siguiente click vuelve a ser de inicio. Un click que no
+   * sirve como ajuste (cae en el inicio o antes) arranca una selección nueva
+   * en vez de avisar un error (ver `slotRange.ts`).
    */
   const handleSlotSelect = (hora: string) => {
     const fechaDia = nuevaFecha ? new Date(`${nuevaFecha}T00:00:00`) : new Date();
-    const { desde, hasta, warning } = seleccionarSlot({
-      hora,
-      horaDesde: nuevaHoraDesde,
-      horaHasta: nuevaHoraHasta,
-      slotsPorDefecto: slotsDeServicio(nuevoServicio),
-      local: localActual,
-      fecha: fechaDia,
-      esSlotLibre: (h) => (hoursAvailability.get(h) ?? 'free') === 'free',
-    });
+    const esSlotLibre = (h: string) => (hoursAvailability.get(h) ?? 'free') === 'free';
+    const ajustando = esperandoAjuste && puedeAjustarFin(hora, nuevaHoraDesde, nuevaHoraHasta);
 
+    const { desde, hasta } = ajustando
+      ? modificarFin({
+        hora, horaDesde: nuevaHoraDesde, horaHasta: nuevaHoraHasta,
+        local: localActual, fecha: fechaDia, esSlotLibre,
+      })
+      : iniciarSeleccion(hora, slotsDeServicio(nuevoServicio), localActual, fechaDia, esSlotLibre);
+
+    setEsperandoAjuste(!ajustando);
     setNuevaHoraDesde(desde);
     setNuevaHoraHasta(hasta);
-    setSlotWarning(warning);
+    setSlotWarning(null);
   };
 
   const handleServicioChange = (value: string) => {
@@ -395,6 +404,7 @@ function EditarReservaContent() {
     if (nuevaHoraDesde) {
       const fechaDia = nuevaFecha ? new Date(`${nuevaFecha}T00:00:00`) : new Date();
       setNuevaHoraHasta(calcularHoraFin(nuevaHoraDesde, slotsDeServicio(value), localActual, fechaDia));
+      setEsperandoAjuste(true);
       setSlotWarning(null);
     }
   };
@@ -427,6 +437,7 @@ function EditarReservaContent() {
 
       if (!reservaChanged && !estadoChanged) {
         setMessage({ type: 'error', text: 'No hay cambios para guardar' });
+        toast.error('No hay cambios para guardar.');
         return;
       }
 
@@ -494,7 +505,11 @@ function EditarReservaContent() {
       setMessage({ type: 'success', text: 'Reserva actualizada correctamente' });
       window.setTimeout(() => router.push('/atrevida-gestion/reservas'), 1500);
     } catch (err) {
-      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'Error al actualizar reserva' });
+      // También al toast: el aviso del tope de la página queda fuera de
+      // pantalla cuando el staff está abajo editando el horario.
+      const texto = err instanceof Error ? err.message : 'Error al actualizar reserva';
+      setMessage({ type: 'error', text: texto });
+      toast.error(texto);
     } finally {
       setLoading(false);
     }
@@ -599,6 +614,7 @@ function EditarReservaContent() {
               horaHasta={nuevaHoraHasta}
               hoursAvailability={hoursAvailability}
               onSelect={handleSlotSelect}
+              esperandoAjuste={esperandoAjuste}
             />
             {slotWarning && (
               <p className={styles.fieldHint}>{slotWarning}</p>

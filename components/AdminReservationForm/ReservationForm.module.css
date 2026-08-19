@@ -268,12 +268,15 @@
 }
 
 /* Ocupado */
+/* Sin ambientes libres: gris apagado y tachado. No es un "quizás" — a esa
+   hora ya se alcanzó la capacidad del local y no entra otra reserva. */
 .timeChipOccupied {
-  background: rgba(255, 230, 0, 0.12) !important;
-  border: 1px solid rgba(255, 230, 0, 0.32) !important;
-  color: #fff179 !important;
+  background: rgba(120, 120, 130, 0.16) !important;
+  border: 1px solid rgba(150, 150, 160, 0.28) !important;
+  color: var(--admin-text-dim) !important;
+  text-decoration: line-through;
   cursor: not-allowed;
-  opacity: 0.85;
+  opacity: 0.75;
 }
 
 /* Pasado */

@@ -15,6 +15,13 @@ interface ToastState {
 
 let toastTimeout: ReturnType<typeof setTimeout> | undefined;
 
+/** Los errores explican qué hacer y son más largos: necesitan más tiempo en pantalla. */
+const DURACION_POR_TIPO: Record<ToastType, number> = {
+  success: 4000,
+  info: 4000,
+  error: 9000,
+};
+
 /**
  * Hook para controlar el Toast globalmente (versión simplificada)
  */
@@ -37,12 +44,12 @@ export const useToast = () => {
 };
 
 // Singleton-ish state for global access
-let globalShowToast: ((msg: string, type?: ToastType) => void) | undefined;
+let globalShowToast: ((msg: string, type?: ToastType, duration?: number) => void) | undefined;
 
 export const toast = {
-  success: (msg: string) => globalShowToast?.(msg, 'success'),
-  error: (msg: string) => globalShowToast?.(msg, 'error'),
-  info: (msg: string) => globalShowToast?.(msg, 'info'),
+  success: (msg: string, duration?: number) => globalShowToast?.(msg, 'success', duration),
+  error: (msg: string, duration?: number) => globalShowToast?.(msg, 'error', duration),
+  info: (msg: string, duration?: number) => globalShowToast?.(msg, 'info', duration),
 };
 
 export default function ToastContainer() {
@@ -53,13 +60,13 @@ export default function ToastContainer() {
   });
   const toastRef = useRef<HTMLDivElement>(null);
 
-  const showGlobalToast = useCallback((message: string, type: ToastType = 'success') => {
+  const showGlobalToast = useCallback((message: string, type: ToastType = 'success', duration?: number) => {
     if (toastTimeout) clearTimeout(toastTimeout);
     setState({ message, type, isVisible: true });
-    
+
     toastTimeout = setTimeout(() => {
       setState(prev => ({ ...prev, isVisible: false }));
-    }, 4000);
+    }, duration ?? DURACION_POR_TIPO[type]);
   }, []);
 
   useEffect(() => {

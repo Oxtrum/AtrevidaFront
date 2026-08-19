@@ -30,6 +30,7 @@ export default function ReservationForm({ initialData, onSuccess, onCancel }: Re
     servicioSolicitado, setServicioSolicitado,
     error, errors,
     slotWarning,
+    esperandoAjuste,
     scheduleWarning,
     loading,
     hoursAvailability,
@@ -184,6 +185,7 @@ export default function ReservationForm({ initialData, onSuccess, onCancel }: Re
                 horaHasta={horaHasta}
                 hoursAvailability={hoursAvailability}
                 onSelect={handleSlotSelect}
+                esperandoAjuste={esperandoAjuste}
               />
             )}
           </div>

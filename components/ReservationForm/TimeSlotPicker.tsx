@@ -10,6 +10,8 @@ interface TimeSlotPickerProps {
   horaHasta: string;
   hoursAvailability: Map<string, SlotStatus>;
   onSelect: (desde: string) => void;
+  /** `true` si el próximo toque ajusta la duración; `false` si elige un nuevo inicio. */
+  esperandoAjuste?: boolean;
 }
 
 export function TimeSlotPicker({
@@ -17,6 +19,7 @@ export function TimeSlotPicker({
   horaHasta,
   hoursAvailability,
   onSelect,
+  esperandoAjuste = false,
 }: TimeSlotPickerProps) {
 
   const handleClick = (hora: string) => {
@@ -25,8 +28,9 @@ export function TimeSlotPicker({
     // No permitir seleccionar horas pasadas, ocupadas o fuera de atención
     if (status === 'past' || status === 'occupied' || status === 'closed') return;
 
-    // El hook arma el rango: el primer click abre la reserva y los siguientes
-    // la estiran o la recortan.
+    // El hook arma el rango en un ciclo de 2 clicks: el de inicio (toma la
+    // duración del servicio) y el de ajuste (recorta o estira el fin). El
+    // siguiente click después de ajustar vuelve a ser de inicio.
     onSelect(hora);
   };
 
@@ -41,7 +45,7 @@ export function TimeSlotPicker({
     return idxHora >= idxDesde && idxHora < idxHasta;
   };
 
-  /** Último bloque incluido: el click siguiente sobre él suma media hora. */
+  /** Último bloque que ocupa la reserva (el chip de `horaHasta` ya queda fuera). */
   const isLastInRange = (hora: string): boolean =>
     rangoValido && HORAS.indexOf(hora) === idxHasta - 1;
 
@@ -68,9 +72,9 @@ export function TimeSlotPicker({
         <span>
           <span
             className={styles.legendDot}
-            style={{ background: 'rgba(255,230,0,0.50)', border: '1px solid rgba(255,230,0,0.3)' }}
+            style={{ background: 'rgba(120,120,130,0.35)', border: '1px solid rgba(150,150,160,0.5)' }}
           />
-          Ocupado
+          Sin espacios
         </span>
         <span>
           <span
@@ -118,10 +122,10 @@ export function TimeSlotPicker({
               disabled={isPast || isOccupied || isClosed}
               title={
                 isPast ? `${hora} — Pasado`
-                  : isOccupied ? `${hora} — Ocupado`
+                  : isOccupied ? `${hora} — Sin ambientes libres a esta hora`
                     : isClosed ? `${hora} — No atiende`
-                      : isBoundary ? `${hora} — Fin de la reserva (toca para sumar 30 min)`
-                        : isEnd ? `${hora} — Último bloque`
+                      : isBoundary ? `${hora} — Fin de la reserva${esperandoAjuste ? ' (toca para incluir este bloque)' : ''}`
+                        : isEnd ? `${hora} — Último bloque incluido`
                           : hora
               }
             >
@@ -140,11 +144,13 @@ export function TimeSlotPicker({
         </div>
       )}
 
-      {/* Ayuda: la selección se arma con varios toques */}
+      {/* Ayuda: ciclo de 2 toques — inicio (duración automática) y ajuste */}
       <p className={styles.slotHint}>
-        {horaDesde
-          ? 'Toca otra hora para alargar la reserva (cada bloque suma 30 min) o una hora anterior para empezar de nuevo.'
-          : 'Toca una hora para empezar y sigue tocando para alargar la reserva.'}
+        {!horaDesde
+          ? 'Toca una hora para empezar: toma la duración del servicio automáticamente.'
+          : esperandoAjuste
+            ? 'Toca el último bloque que ocupe la reserva para ajustar la duración.'
+            : 'Toca cualquier hora para elegir un nuevo inicio.'}
       </p>
     </div>
   );

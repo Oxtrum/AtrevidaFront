@@ -11,6 +11,8 @@ import { ServiceSelect } from './ServiceSelect';
 import { useReservationForm, type ReservationFormInitialData } from './useReservationForm';
 import { getClientesDB, type ClientePG } from '@/lib/api/clientes';
 import { ClienteFormModal } from '@/components/AdminClientes';
+import { ConfirmDialog } from '@/components/AdminConfig/ConfirmDialog';
+import modalStyles from '@/components/AdminConfig/FormModal.module.css';
 import { normalizeBolivianPhone } from '@/lib/utils/reservationValidation';
 import styles from './ReservationForm.module.css';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
@@ -54,6 +56,9 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
     servicio,
     error, errors,
     slotWarning,
+    esperandoAjuste,
+    confirmandoDuracion,
+    desajusteDuracion,
     loading,
     hoursAvailability,
     diasDisponibles,
@@ -65,6 +70,8 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
     handleDiaChange,
     handleSlotSelect,
     handleSubmit,
+    confirmarDuracion,
+    cancelarConfirmacionDuracion,
   } = useReservationForm(initialData, onSuccess);
 
 	const clienteQuery = normalizeSearch(cliente);
@@ -242,6 +249,7 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
                 horaHasta={horaHasta}
                 hoursAvailability={hoursAvailability}
                 onSelect={handleSlotSelect}
+                esperandoAjuste={esperandoAjuste}
               />
             )}
           </div>
@@ -408,6 +416,35 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
         initialNombre={cliente}
         initialTelefono={numeroTelefono}
         onSaved={handleClienteCreado}
+      />
+
+      {/* El rango elegido no dura lo que el servicio: confirmar antes de
+          ocupar ambientes de más (o de menos) sin querer. */}
+      <ConfirmDialog
+        isOpen={confirmandoDuracion && !!desajusteDuracion}
+        title="La duración no coincide con el servicio"
+        confirmLabel="Reservar así"
+        cancelLabel="Ajustar horario"
+        loading={loading}
+        onConfirm={confirmarDuracion}
+        onClose={cancelarConfirmacionDuracion}
+        message={desajusteDuracion && (
+          <>
+            <p style={{ margin: 0 }}>
+              <strong>{servicio}</strong> dura <strong>{desajusteDuracion.duracionServicio}</strong>,
+              pero reservaste de <strong>{desajusteDuracion.horaDesde}</strong> a{' '}
+              <strong>{desajusteDuracion.horaHasta}</strong> ({desajusteDuracion.duracionElegida}).
+            </p>
+            <p className={modalStyles.notice}>
+              {desajusteDuracion.esMasLargo
+                ? `El ambiente queda ocupado toda esa franja: ${desajusteDuracion.bloquesDiferencia} bloque(s) de 30 min extra no podrán usarse para otras reservas ese día.`
+                : `El servicio podría no alcanzar a completarse: faltan ${desajusteDuracion.bloquesDiferencia} bloque(s) de 30 min respecto de su duración habitual.`}
+            </p>
+            <p className={modalStyles.noticeHint}>
+              Si fue un error, elige <strong>Ajustar horario</strong> y vuelve a marcar el rango en la rejilla.
+            </p>
+          </>
+        )}
       />
     </form>
   );

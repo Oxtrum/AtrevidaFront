@@ -38,13 +38,17 @@ export function ConfirmDialog({
           <h2 className={modal.title}>{title}</h2>
         </div>
         <div className={modal.body}>
-          <p style={{ color: 'var(--admin-foreground)', fontSize: '0.9rem', lineHeight: 1.6 }}>{message}</p>
+          {/* `div` y no `p`: hay diálogos que pasan varios párrafos o listas. */}
+          <div style={{ color: 'var(--admin-foreground)', fontSize: '0.9rem', lineHeight: 1.6 }}>{message}</div>
         </div>
         <div className={modal.footer}>
-          <button className={modal.cancelButton} onClick={onClose} disabled={loading}>
+          {/* `type="button"` explícito: el diálogo puede vivir dentro de un
+              <form> y el default `submit` lo re-enviaría al confirmar. */}
+          <button type="button" className={modal.cancelButton} onClick={onClose} disabled={loading}>
             {cancelLabel}
           </button>
           <button
+            type="button"
             className={modal.submitButton}
             onClick={onConfirm}
             disabled={loading}

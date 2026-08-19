@@ -16,9 +16,13 @@ interface Local {
   id: number;
   nombre: string;
   activo: boolean;
+  /**
+   * Capacidad por tipo de ambiente. Única fuente: la API no devuelve campos
+   * `capacidad_mesas`/`capacidad_bicis` (estaban declarados y siempre llegaban
+   * `undefined`, lo que hacía caer a fallbacks inventados). Usar
+   * `capacidadDeLocal()` de `lib/utils/hoursAvailability`.
+   */
   espacios: Array<{ tipo_espacio: string; cantidad_espacios: number }> | null;
-  capacidad_mesas?: number;
-  capacidad_bicis?: number;
 }
 
 interface UseLocalesReturn {
