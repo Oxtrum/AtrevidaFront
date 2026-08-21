@@ -99,6 +99,7 @@ export interface CrearReservaDBData {
   tipo: ReservaTipoBody;
   cliente: string;
   numero_telefono: string;
+  telefono_e164?: string;
   servicio: string;
   servicio_solicitado?: string | null;
   servicio_confirmado?: string | null;
@@ -123,6 +124,7 @@ export interface ActualizarReservaDBData {
   nuevas_notas?: string;
   nuevo_cliente?: string;
   nuevo_numero_telefono?: string;
+  nuevo_telefono_e164?: string;
   nuevo_precio?: number;
   nuevo_servicio?: string;
   nuevo_servicio_solicitado?: string | null;

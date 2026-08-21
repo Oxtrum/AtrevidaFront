@@ -7,7 +7,7 @@ import { CustomSelect } from '../Custom/CustomSelect';
 import { TimeSlotPicker } from './TimeSlotPicker';
 import { ServiceSelect } from './ServiceSelect';
 import { useReservationForm, type ReservationFormInitialData } from './useReservationForm';
-import { normalizeBolivianPhone } from '@/lib/utils/reservationValidation';
+import { PhoneInput } from '@/components/PhoneInput';
 import styles from './ReservationForm.module.css';
 
 interface ReservationFormProps {
@@ -25,6 +25,7 @@ export default function ReservationForm({ initialData, onSuccess, onCancel }: Re
     horaDesde, horaHasta,
     cliente, setCliente,
     numeroTelefono, setNumeroTelefono,
+    telefonoE164, setTelefonoE164,
     notas, setNotas,
     servicio,
     servicioSolicitado, setServicioSolicitado,
@@ -224,13 +225,15 @@ export default function ReservationForm({ initialData, onSuccess, onCancel }: Re
           <div className={`${styles.formGroup} ${styles.fullWidth}`}>
             <label>Teléfono</label>
             <div className={styles.phoneInputWrap}>
-              <input
-                type="tel"
-                inputMode="numeric"
+              <PhoneInput
                 value={numeroTelefono}
-                onChange={e => setNumeroTelefono(normalizeBolivianPhone(e.target.value))}
+                e164={telefonoE164}
+                onChange={(phone) => {
+                  setNumeroTelefono(phone.nationalNumber);
+                  setTelefonoE164(phone.e164);
+                }}
                 placeholder="77777777"
-                className={errors.numeroTelefono ? styles.inputError : ''}
+                invalid={!!errors.numeroTelefono}
               />
             </div>
             {errors.numeroTelefono && <span className={styles.errorText}>{errors.numeroTelefono}</span>}

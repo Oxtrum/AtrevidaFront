@@ -7,6 +7,7 @@ export interface ClientePG {
   nombre: string;
   apellido: string;
   numero_telefono: string;
+  telefono_e164?: string;
   /** Cedula de identidad. Cadena vacia si no se registro. */
   ci?: string;
   /** NIT de facturacion por defecto. Cadena vacia si no se registro. */
@@ -37,6 +38,7 @@ export interface CrearClienteData {
   nombre: string;
   apellido: string;
   numero_telefono: string;
+  telefono_e164?: string;
   ci?: string;
   nit?: string;
 }
@@ -45,6 +47,7 @@ export interface ActualizarClienteData {
   nombre?: string;
   apellido?: string;
   numero_telefono?: string;
+  telefono_e164?: string;
   /** Cadena vacia borra el dato. */
   ci?: string;
   /** Cadena vacia borra el dato. */

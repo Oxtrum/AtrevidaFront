@@ -5,6 +5,8 @@ import { FormModal } from '@/components/AdminConfig';
 import { toast } from '@/components/Shared/Toast';
 import { crearClienteDB, actualizarClienteDB } from '@/lib/api/clientes';
 import type { ClientePG } from '@/lib/api/clientes';
+import { PhoneInput } from '@/components/PhoneInput';
+import { phoneValueFrom } from '@/lib/utils/phone';
 import styles from './ClienteFormModal.module.css';
 
 interface ClienteFormModalProps {
@@ -26,13 +28,14 @@ interface FormState {
   nombre: string;
   apellido: string;
   numero_telefono: string;
+  telefono_e164?: string;
   ci: string;
   nit: string;
 }
 
 type FormErrors = Partial<Record<keyof FormState, string>>;
 
-const EMPTY_FORM: FormState = { nombre: '', apellido: '', numero_telefono: '', ci: '', nit: '' };
+const EMPTY_FORM: FormState = { nombre: '', apellido: '', numero_telefono: '', telefono_e164: undefined, ci: '', nit: '' };
 
 /**
  * Parte un nombre completo en nombre + apellido por el último espacio.
@@ -73,6 +76,7 @@ export function ClienteFormModal({
         nombre: cliente.nombre,
         apellido: cliente.apellido,
         numero_telefono: cliente.numero_telefono,
+        telefono_e164: cliente.telefono_e164,
         ci: cliente.ci ?? '',
         nit: cliente.nit ?? '',
       });
@@ -82,7 +86,8 @@ export function ClienteFormModal({
         ...EMPTY_FORM,
         nombre,
         apellido,
-        numero_telefono: initialTelefono ?? '',
+        numero_telefono: phoneValueFrom(initialTelefono).nationalNumber,
+        telefono_e164: phoneValueFrom(initialTelefono).e164,
         nit: initialNit ?? '',
       });
     }
@@ -102,6 +107,8 @@ export function ClienteFormModal({
       next.numero_telefono = 'El teléfono es obligatorio';
     } else if (!/^\d{7,}$/.test(form.numero_telefono.replace(/\D/g, ''))) {
       next.numero_telefono = 'Ingresa al menos 7 dígitos del teléfono';
+    } else if (!form.telefono_e164) {
+      next.numero_telefono = 'El número no es válido para el país seleccionado';
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -114,6 +121,7 @@ export function ClienteFormModal({
       nombre: form.nombre.trim(),
       apellido: form.apellido.trim(),
       numero_telefono: form.numero_telefono.trim(),
+      telefono_e164: form.telefono_e164,
       ci: form.ci.trim(),
       nit: form.nit.trim(),
     };
@@ -180,14 +188,17 @@ export function ClienteFormModal({
 
         <div className={`${styles.field} ${styles.colSpan2}`}>
           <label htmlFor="cliente-telefono">Teléfono</label>
-          <input
+          <PhoneInput
             id="cliente-telefono"
-            type="tel"
             value={form.numero_telefono}
-            onChange={(e) => patch('numero_telefono', e.target.value)}
+            e164={form.telefono_e164}
+            onChange={(phone) => setForm((prev) => ({
+              ...prev,
+              numero_telefono: phone.nationalNumber,
+              telefono_e164: phone.e164,
+            }))}
             placeholder="Ej: 70011223"
-            aria-invalid={!!errors.numero_telefono}
-            className={errors.numero_telefono ? styles.inputError : ''}
+            invalid={!!errors.numero_telefono}
           />
           {errors.numero_telefono && (
             <span className={styles.fieldError}>{errors.numero_telefono}</span>

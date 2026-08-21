@@ -25,7 +25,8 @@
   font-weight: 400;
 }
 
-.field input {
+.field input,
+.field select {
   padding: 0.75rem 1rem;
   border: 1px solid var(--admin-border-subtle);
   border-radius: var(--admin-radius-md);
@@ -36,7 +37,8 @@
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.field input:focus {
+.field input:focus,
+.field select:focus {
   outline: none;
   border-color: var(--admin-accent-primary);
   box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.16);

@@ -7,9 +7,9 @@ import { Check, MapPin } from 'lucide-react';
 import { getPaquetesDB, type PaqueteDetalle } from '@/lib/api/paquetes';
 import section from '@/components/Servicios/Servicios.module.css';
 import styles from './Paquetes.module.css';
+import { buildBusinessWhatsappUrl } from '@/lib/utils/whatsapp';
 import { PAGE_LIMIT, type PaginationMetadata } from '@/lib/api/pagination';
 
-const WHATSAPP = '59177411855';
 const INSTAGRAM = 'https://instagram.com/atrevida.fit';
 
 function WhatsappGlyph({ size = 14 }: { size?: number }) {
@@ -32,7 +32,7 @@ const sesionesLabel = (n: number) => `${n} ${n === 1 ? 'sesión' : 'sesiones'}`;
 const MAX_SERVICIOS = 4;
 
 const whatsappUrl = (nombre: string) =>
-  `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Hola, me interesa el paquete ${nombre}.`)}`;
+  buildBusinessWhatsappUrl(`Hola, me interesa el paquete ${nombre}.`) ?? '#';
 
 /**
  * Marca el tier con el precio por sesión más bajo. Se calcula en vez de asumir

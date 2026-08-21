@@ -224,7 +224,8 @@
   font-weight: 700;
 }
 
-.phoneInputWrap input {
+.phoneInputWrap input,
+.phoneInputWrap select {
   border-radius: var(--af-input-radius);
 }
 

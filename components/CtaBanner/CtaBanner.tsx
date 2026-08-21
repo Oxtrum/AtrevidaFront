@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import styles from './CtaBanner.module.css';
+import { buildBusinessWhatsappUrl } from '@/lib/utils/whatsapp';
 
 export default function CtaBanner() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -68,7 +69,7 @@ export default function CtaBanner() {
             <a href="#contacto" className={styles.btnPrimary}>
               ✦ Reservar cita gratuita
             </a>
-            <a href="https://wa.me/59177411855" className={styles.btnSecondary} target="_blank" rel="noopener noreferrer">
+            <a href={buildBusinessWhatsappUrl() ?? '#'} className={styles.btnSecondary} target="_blank" rel="noopener noreferrer">
               WhatsApp →
             </a>
           </div>

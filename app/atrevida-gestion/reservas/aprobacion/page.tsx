@@ -31,6 +31,9 @@ import { actualizarEstadoReservaDB, actualizarReservaDB, actualizarReservaNotifi
 import { getLocalesDB, type LocalRow } from '@/lib/api/servicios';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import { formatDateTime } from '@/lib/utils/formatDateTime';
+import { buildClientWhatsappUrl } from '@/lib/utils/whatsapp';
+import { phoneValueFrom } from '@/lib/utils/phone';
+import { PhoneInput } from '@/components/PhoneInput';
 import {
   SERVICIOS_ADMIN_DISPONIBLES,
   getServiciosAdminPorCategoria,
@@ -51,6 +54,7 @@ type ApprovalDraft = {
   horaDesde: string;
   horaHasta: string;
   telefono: string;
+  telefonoE164?: string;
   notas: string;
   servicioConfirmado: string;
 };
@@ -94,14 +98,9 @@ const formatDate = (fecha: string) => {
   });
 };
 
-const getWhatsappHref = (telefono?: string) => {
-  const phoneDigits = telefono?.replace(/\D/g, '') ?? '';
-  if (!phoneDigits) return null;
-
-  const phone = phoneDigits.startsWith('591') ? phoneDigits : '591' + phoneDigits;
+const getWhatsappHref = (telefono?: string, telefonoE164?: string) => {
   const message = 'Hola 🌸 Recibimos tu reserva. ¿Qué tratamiento deseas realizar?';
-
-  return `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`;
+  return buildClientWhatsappUrl(telefonoE164, telefono, message);
 };
 
 const getMealLabelByTime = (horaDesde: string) => {
@@ -111,10 +110,6 @@ const getMealLabelByTime = (horaDesde: string) => {
 };
 
 const getConfirmationWhatsappHref = (reserva: ReservaBD) => {
-  const phoneDigits = reserva.numero_telefono?.replace(/\D/g, '') ?? '';
-  if (!phoneDigits) return null;
-
-  const phone = phoneDigits.startsWith('591') ? phoneDigits : '591' + phoneDigits;
   const tratamiento = reserva.servicio_confirmado || reserva.servicio_solicitado || reserva.servicio || 'Tratamiento confirmado';
   const comidaPrevia = getMealLabelByTime(reserva.hora_desde);
   const message = [
@@ -130,7 +125,7 @@ const getConfirmationWhatsappHref = (reserva: ReservaBD) => {
     'La esperamos.',
   ].join('\n');
 
-  return `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`;
+  return buildClientWhatsappUrl(reserva.telefono_e164, reserva.numero_telefono, message);
 };
 
 const getDefaultConfirmedService = (reserva: ReservaBD) => {
@@ -452,12 +447,14 @@ export default function AdminReservasAprobacionPage() {
   );
 
   const openApprovalModal = (reserva: ReservaBD) => {
+    const phone = phoneValueFrom(reserva.telefono_e164 || reserva.numero_telefono);
     setApprovalReserva(reserva);
     setApprovalDraft({
       fecha: reserva.fecha,
       horaDesde: reserva.hora_desde,
       horaHasta: reserva.hora_hasta,
-      telefono: reserva.numero_telefono ?? '',
+      telefono: phone.nationalNumber,
+      telefonoE164: phone.e164,
       notas: reserva.notas ?? '',
       servicioConfirmado: getDefaultConfirmedService(reserva),
     });
@@ -631,13 +628,23 @@ export default function AdminReservasAprobacionPage() {
 
     const rawDigits = approvalDraft.telefono.replace(/\D/g, '');
     const cleanPhone = rawDigits;
+    const originalPhone = phoneValueFrom(approvalReserva.telefono_e164 || approvalReserva.numero_telefono);
+    const phoneChanged = cleanPhone !== originalPhone.nationalNumber.replace(/\D/g, '')
+      || approvalDraft.telefonoE164 !== originalPhone.e164;
+    if (phoneChanged && cleanPhone && !approvalDraft.telefonoE164) {
+      setStatusMessage({ type: 'error', text: 'El número no es válido para el país seleccionado.' });
+      return;
+    }
     const updateData = {
       id: approvalReserva.id,
       local: approvalReserva.local,
       ...(approvalDraft.fecha !== approvalReserva.fecha && { nueva_fecha: approvalDraft.fecha }),
       ...(approvalDraft.horaDesde !== approvalReserva.hora_desde && { nueva_hora_desde: approvalDraft.horaDesde }),
       ...(approvalDraft.horaHasta !== approvalReserva.hora_hasta && { nueva_hora_hasta: approvalDraft.horaHasta }),
-      ...(cleanPhone !== (approvalReserva.numero_telefono ?? '') && { nuevo_numero_telefono: cleanPhone }),
+      ...(phoneChanged && cleanPhone && {
+        nuevo_numero_telefono: cleanPhone,
+        nuevo_telefono_e164: approvalDraft.telefonoE164,
+      }),
       ...(approvalDraft.notas !== (approvalReserva.notas ?? '') && { nuevas_notas: approvalDraft.notas }),
     };
 
@@ -667,6 +674,7 @@ export default function AdminReservasAprobacionPage() {
         hora_desde: approvalDraft.horaDesde,
         hora_hasta: approvalDraft.horaHasta,
         numero_telefono: cleanPhone,
+        telefono_e164: approvalDraft.telefonoE164,
         notas: approvalDraft.notas,
         servicio_confirmado: confirmedService.label,
         precio: confirmedService.precio,
@@ -953,7 +961,7 @@ export default function AdminReservasAprobacionPage() {
                 <div ref={cardsGridRef} className={styles.pendingGrid}>
                   {renderedReservas.map((reserva) => {
                   const estadoNormalizado = normalizeEstado(reserva.estado);
-                  const whatsappHref = getWhatsappHref(reserva.numero_telefono);
+                  const whatsappHref = getWhatsappHref(reserva.numero_telefono, reserva.telefono_e164);
                   const confirmationWhatsappHref = getConfirmationWhatsappHref(reserva);
                   const confirmationSent = Boolean(reserva.notificado);
                   const isCompleted = reserva.estado === 'COMPLETADO';
@@ -1235,13 +1243,14 @@ export default function AdminReservasAprobacionPage() {
               </label>
               <label className={styles.modalField}>
                 Teléfono
-                <input
+                <PhoneInput
                   value={approvalDraft.telefono}
-                  onChange={(event) => setApprovalDraft((current) => current ? {
+                  e164={approvalDraft.telefonoE164}
+                  onChange={(phone) => setApprovalDraft((current) => current ? {
                     ...current,
-                    telefono: event.target.value,
+                    telefono: phone.nationalNumber,
+                    telefonoE164: phone.e164,
                   } : current)}
-                  inputMode="numeric"
                   placeholder="77777777"
                 />
               </label>

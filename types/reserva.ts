@@ -404,6 +404,7 @@ export interface ReservaBD {
   hora_hasta: string; // "9:30"
   cliente: string;
   numero_telefono?: string;
+  telefono_e164?: string;
   servicio: string;
   servicio_solicitado?: string | null;
   servicio_confirmado?: string | null;

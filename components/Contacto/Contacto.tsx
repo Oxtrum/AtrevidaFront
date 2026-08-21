@@ -5,6 +5,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowRight, CalendarCheck, Camera, Clock, ExternalLink, MapPin, MessageCircle, X } from 'lucide-react';
 import styles from './Contacto.module.css';
+import { buildBusinessWhatsappUrl } from '@/lib/utils/whatsapp';
 import Link from 'next/link';
 
 const INFO_ITEMS = [
@@ -24,7 +25,7 @@ const INFO_ITEMS = [
     sub: 'Lun – Sáb, 8am – 7pm',
     color: '#14AEEF',
     rgb: '20, 174, 239',
-    link: 'https://wa.me/59177411855'
+    link: buildBusinessWhatsappUrl() ?? '#'
   },
   {
     icono: <Camera strokeWidth={1.5} />,

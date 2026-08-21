@@ -19,6 +19,8 @@ import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
 import { type SlotStatus, capacidadDeLocal, normalizarHoraSlot } from '@/lib/utils/hoursAvailability';
 import { iniciarSeleccion, modificarFin, puedeAjustarFin } from '@/lib/utils/slotRange';
+import { PhoneInput } from '@/components/PhoneInput';
+import { phoneValueFrom } from '@/lib/utils/phone';
 import styles from './page.module.css';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
 
@@ -62,6 +64,7 @@ function EditarReservaContent() {
   const [nuevasNotas, setNuevasNotas] = useState('');
   const [nuevoPrecio, setNuevoPrecio] = useState('');
   const [nuevoTelefono, setNuevoTelefono] = useState('');
+  const [nuevoTelefonoE164, setNuevoTelefonoE164] = useState<string | undefined>();
   const [nuevoServicio, setNuevoServicio] = useState('');
   const [nuevoCliente, setNuevoCliente] = useState('');
   const [nuevoLocal, setNuevoLocal] = useState('');
@@ -240,7 +243,9 @@ function EditarReservaContent() {
           setNuevoEstado(found.estado || 'PENDIENTE');
           setNuevasNotas(found.notas || '');
           setNuevoPrecio(found.precio != null ? String(found.precio) : '');
-          setNuevoTelefono(found.numero_telefono || '');
+          const phone = phoneValueFrom(found.telefono_e164 || found.numero_telefono);
+          setNuevoTelefono(phone.nationalNumber);
+          setNuevoTelefonoE164(phone.e164);
           setNuevoServicio(found.servicio || '');
           setNuevoCliente(found.cliente || '');
           setNuevoLocal(found.local || '');
@@ -424,8 +429,14 @@ function EditarReservaContent() {
       const estadoChanged = nuevoEstado !== estadoActual;
       const notasChanged = nuevasNotas !== (reserva.notas || '');
       const precioChanged = nuevoPrecio !== (reserva.precio != null ? String(reserva.precio) : '');
-      const telefonoOriginal = reserva.numero_telefono|| '';
-      const telefonoChanged = nuevoTelefono !== telefonoOriginal;
+      const telefonoOriginal = phoneValueFrom(reserva.telefono_e164 || reserva.numero_telefono);
+      const telefonoChanged = nuevoTelefono !== telefonoOriginal.nationalNumber
+        || nuevoTelefonoE164 !== telefonoOriginal.e164;
+      if (telefonoChanged && nuevoTelefono.trim() && !nuevoTelefonoE164) {
+        setMessage({ type: 'error', text: 'El número no es válido para el país seleccionado' });
+        toast.error('El número no es válido para el país seleccionado.');
+        return;
+      }
       const servicioChanged = nuevoServicio !== (reserva.servicio || '');
       const clienteChanged = nuevoCliente.trim() !== '' && nuevoCliente.trim() !== reserva.cliente;
       const localChanged = nuevoLocal !== '' && nuevoLocal !== reserva.local;
@@ -470,7 +481,10 @@ function EditarReservaContent() {
           ...(hastaChanged && { nueva_hora_hasta: nuevaHoraHasta }),
           ...(notasChanged && { nuevas_notas: nuevasNotas }),
           ...(precioChanged && nuevoPrecio !== '' && { nuevo_precio: Number(nuevoPrecio) }),
-          ...(telefonoChanged && nuevoTelefono && { nuevo_numero_telefono: nuevoTelefono.replace(/\D/g, '') }),
+          ...(telefonoChanged && nuevoTelefono && {
+            nuevo_numero_telefono: nuevoTelefono.replace(/\D/g, ''),
+            nuevo_telefono_e164: nuevoTelefonoE164,
+          }),
           ...(servicioChanged && nuevoServicio && {
             nuevo_servicio: nuevoServicio,
             nuevo_servicio_confirmado: nuevoServicio,
@@ -492,7 +506,10 @@ function EditarReservaContent() {
         ...(estadoChanged && { estado: nuevoEstado }),
         ...(notasChanged && { notas: nuevasNotas }),
         ...(precioChanged && nuevoPrecio !== '' && { precio: Number(nuevoPrecio) }),
-        ...(telefonoChanged && nuevoTelefono && { numero_telefono: nuevoTelefono.replace(/\D/g, '') }),
+        ...(telefonoChanged && nuevoTelefono && {
+          numero_telefono: nuevoTelefono.replace(/\D/g, ''),
+          telefono_e164: nuevoTelefonoE164,
+        }),
         ...(servicioChanged && nuevoServicio && {
           servicio: nuevoServicio,
           servicio_confirmado: nuevoServicio,
@@ -699,12 +716,14 @@ function EditarReservaContent() {
           <div className={`${styles.formGroup} ${styles.fullWidth}`}>
             <label>Teléfono</label>
             <div className={styles.phoneWrapper}>
-              <input
-                type="tel"
+              <PhoneInput
                 value={nuevoTelefono}
-                onChange={e => setNuevoTelefono(e.target.value)}
+                e164={nuevoTelefonoE164}
+                onChange={(phone) => {
+                  setNuevoTelefono(phone.nationalNumber);
+                  setNuevoTelefonoE164(phone.e164);
+                }}
                 placeholder="70011223"
-                className={styles.inputField}
               />
             </div>
           </div>

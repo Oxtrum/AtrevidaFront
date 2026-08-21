@@ -13,7 +13,8 @@ import { getClientesDB, type ClientePG } from '@/lib/api/clientes';
 import { ClienteFormModal } from '@/components/AdminClientes';
 import { ConfirmDialog } from '@/components/AdminConfig/ConfirmDialog';
 import modalStyles from '@/components/AdminConfig/FormModal.module.css';
-import { normalizeBolivianPhone } from '@/lib/utils/reservationValidation';
+import { PhoneInput } from '@/components/PhoneInput';
+import { phoneValueFrom, type PhoneValue } from '@/lib/utils/phone';
 import styles from './ReservationForm.module.css';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
 
@@ -31,10 +32,7 @@ const getClienteNombreCompleto = (cliente: ClientePG) => `${cliente.nombre} ${cl
 
 const normalizeSearch = (value: string) => value.trim().toLowerCase();
 
-const normalizeClientPhone = (value: string) => {
-  const digits = value.replace(/\D/g, '');
-  return normalizeBolivianPhone(digits.length > 8 ? digits.slice(-8) : digits);
-};
+const normalizeClientPhone = (value: string, e164?: string) => phoneValueFrom(e164 || value).nationalNumber;
 
 export default function AdminReservationForm({ initialData, onSuccess }: ReservationFormProps) {
   const router = useRouter();
@@ -50,6 +48,7 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
     horaDesde, horaHasta,
     cliente, setCliente,
     numeroTelefono, setNumeroTelefono,
+    telefonoE164, setTelefonoE164,
     notas, setNotas,
     planId, setPlanId,
     agendarDirecto, setAgendarDirecto,
@@ -128,27 +127,32 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
   // El teléfono identifica al cliente sólo mientras el nombre esté vacío. Se
   // resuelve al teclear y no en un efecto: si reaccionara a que "Cliente" quedó
   // vacío, borrar un nombre elegido por error lo volvería a escribir solo.
-  const handleTelefonoChange = (valor: string) => {
-    const telefono = normalizeBolivianPhone(valor);
+  const handleTelefonoChange = (phone: PhoneValue) => {
+    const telefono = phone.nationalNumber;
     setNumeroTelefono(telefono);
+    setTelefonoE164(phone.e164);
 
     if (!initialData?.isAdmin || cliente.trim() || telefono.length < MIN_PHONE_DIGITS) return;
 
     const match = clientesDirectorio.find(
-      (clienteItem) => normalizeClientPhone(clienteItem.numero_telefono) === telefono,
+      (clienteItem) => normalizeClientPhone(clienteItem.numero_telefono, clienteItem.telefono_e164) === telefono,
     );
     if (match) setCliente(getClienteNombreCompleto(match));
   };
 
   const selectClienteSugerido = (clienteItem: ClientePG) => {
     setCliente(getClienteNombreCompleto(clienteItem));
-    setNumeroTelefono(normalizeClientPhone(clienteItem.numero_telefono));
+    const phone = phoneValueFrom(clienteItem.telefono_e164 || clienteItem.numero_telefono);
+    setNumeroTelefono(phone.nationalNumber);
+    setTelefonoE164(phone.e164);
     setClienteDropdownOpen(false);
   };
 
   const handleClienteCreado = (nuevo: ClientePG) => {
     setCliente(getClienteNombreCompleto(nuevo));
-    setNumeroTelefono(normalizeClientPhone(nuevo.numero_telefono));
+    const phone = phoneValueFrom(nuevo.telefono_e164 || nuevo.numero_telefono);
+    setNumeroTelefono(phone.nationalNumber);
+    setTelefonoE164(phone.e164);
     // El directorio se carga una sola vez al montar. Sin este push, el cliente
     // recien creado no aparece al volver a buscarlo en la misma sesion.
     setClientesDirectorio((prev) => [nuevo, ...prev]);
@@ -331,13 +335,12 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
 
           <div className={`${styles.formGroup} ${styles.fullWidth}`}>
             <label>Teléfono</label>
-            <input
-              type="tel"
-              inputMode="numeric"
+            <PhoneInput
               value={numeroTelefono}
-              onChange={e => handleTelefonoChange(e.target.value)}
+              e164={telefonoE164}
+              onChange={handleTelefonoChange}
               placeholder="77777777"
-              className={errors.numeroTelefono ? styles.inputError : ''}
+              invalid={!!errors.numeroTelefono}
             />
             {errors.numeroTelefono && <span className={styles.errorText}>{errors.numeroTelefono}</span>}
           </div>

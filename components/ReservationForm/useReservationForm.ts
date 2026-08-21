@@ -109,6 +109,7 @@ export function useReservationForm(
   const [horaHasta, setHoraHasta] = useState(normalizarHora(initialData?.hora_hasta || ''));
   const [cliente, setCliente] = useState('');
   const [numeroTelefono, setNumeroTelefono] = useState('');
+  const [telefonoE164, setTelefonoE164] = useState<string | undefined>();
   const [notas, setNotas] = useState('');
   const [servicio, setServicio] = useState(initialData?.servicio || '');
   const [servicioSolicitado, setServicioSolicitado] = useState('');
@@ -496,6 +497,12 @@ export function useReservationForm(
     } else if (horaDesde && hoursAvailability.get(horaDesde) === 'closed') {
       e.horaDesde = 'Ese horario está fuera de atención';
     }
+    // No permitir que un país elegido sin un número válido caiga al formato
+    // legacy: el backend debe conservar ese fallback sólo para consumidores
+    // anteriores, no convertirlo silenciosamente a Bolivia en este formulario.
+    if (numeroTelefono.trim() && !telefonoE164) {
+      e.numeroTelefono = 'El número no es válido para el país seleccionado';
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -538,6 +545,7 @@ export function useReservationForm(
           tipo: tipoBackend,
           cliente,
           numero_telefono: phoneDigits,
+          telefono_e164: telefonoE164,
           servicio: servicioLabel,
           servicio_solicitado: servicioSolicitadoInfo?.label || servicioLabel,
           // Toda reserva pública nace PENDIENTE: la valida el staff antes de agendarla.
@@ -573,6 +581,7 @@ export function useReservationForm(
     horaDesde, horaHasta,
     cliente, setCliente,
     numeroTelefono, setNumeroTelefono,
+    telefonoE164, setTelefonoE164,
     notas, setNotas,
     servicio,
     servicioSolicitado, setServicioSolicitado,

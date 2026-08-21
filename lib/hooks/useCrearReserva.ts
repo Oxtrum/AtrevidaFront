@@ -26,6 +26,7 @@ interface CrearReservaData {
     tipo: ReservaTipoBody;
     cliente: string;
     numero_telefono?: string;
+    telefono_e164?: string;
     servicio: string;
     servicio_solicitado?: string | null;
     servicio_confirmado?: string | null;
@@ -57,6 +58,7 @@ export function useCrearReserva(): UseCrearReservaReturn {
                     tipo: data.tipo,
                     cliente: data.cliente,
                     numero_telefono: data.numero_telefono || '',
+                    telefono_e164: data.telefono_e164,
                     servicio: data.servicio,
                     servicio_solicitado: data.servicio_solicitado,
                     servicio_confirmado: data.servicio_confirmado,

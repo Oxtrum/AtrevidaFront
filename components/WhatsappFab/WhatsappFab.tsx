@@ -3,14 +3,14 @@
 import { usePathname } from 'next/navigation';
 import { WhatsappIcon } from '@/components/icons/WhatsappIcon';
 import styles from './WhatsappFab.module.css';
+import { ATREVIDA_WHATSAPP_E164, buildWhatsappUrl } from '@/lib/utils/whatsapp';
 
-const PHONE = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '59177411855';
 const DEFAULT_MESSAGE = 'Hola Atrevida Fit, quisiera más información sobre sus servicios.';
 
 const HIDDEN_PREFIXES = ['/atrevida-gestion'];
 
 interface WhatsappFabProps {
-  /** Override phone number (international format, no `+`). */
+  /** Override phone number en E.164. */
   phone?: string;
   /** Prefilled message text. */
   message?: string;
@@ -19,14 +19,15 @@ interface WhatsappFabProps {
 }
 
 export default function WhatsappFab({
-  phone = PHONE,
+  phone = ATREVIDA_WHATSAPP_E164,
   message = DEFAULT_MESSAGE,
   label = 'Escríbenos',
 }: WhatsappFabProps) {
   const pathname = usePathname() ?? '';
   if (HIDDEN_PREFIXES.some((p) => pathname.startsWith(p))) return null;
 
-  const href = `https://wa.me/591${phone}?text=${encodeURIComponent(message)}`;
+  const href = buildWhatsappUrl(phone, message);
+  if (!href) return null;
 
   return (
     <a

@@ -21,6 +21,7 @@ import type { Column } from '@/components/AdminConfig';
 import { toast } from '@/components/Shared/Toast';
 import { crearClienteDB, getClientesDB } from '@/lib/api/clientes';
 import type { ClientePG } from '@/lib/api/clientes';
+import { PhoneInput } from '@/components/PhoneInput';
 import { crearPagoDB, getPagosDB } from '@/lib/api/pagos';
 import type { CrearPagoData, DetalleServicio, Pago } from '@/lib/api/pagos';
 import { getLocalesDB, getServiciosDB, getCombosDB } from '@/lib/api/servicios';
@@ -63,6 +64,7 @@ interface NewClientForm {
   nombre: string;
   apellido: string;
   numero_telefono: string;
+  telefono_e164?: string;
 }
 
 interface NewClientErrors {
@@ -176,6 +178,7 @@ export default function CajaPage() {
     nombre: '',
     apellido: '',
     numero_telefono: '',
+    telefono_e164: undefined,
   });
   const [newClientErrors, setNewClientErrors] = useState<NewClientErrors>({});
   const [savingNewClient, setSavingNewClient] = useState(false);
@@ -533,7 +536,7 @@ export default function CajaPage() {
 
   const resetNewClientModal = () => {
     setNewClientModalOpen(false);
-    setNewClientForm({ nombre: '', apellido: '', numero_telefono: '' });
+    setNewClientForm({ nombre: '', apellido: '', numero_telefono: '', telefono_e164: undefined });
     setNewClientErrors({});
   };
 
@@ -566,6 +569,7 @@ export default function CajaPage() {
       nombre: parsed.nombre,
       apellido: parsed.apellido,
       numero_telefono: '',
+      telefono_e164: undefined,
     });
     setNewClientErrors({});
     setNewClientModalOpen(true);
@@ -592,6 +596,8 @@ export default function CajaPage() {
       errors.numero_telefono = 'El celular es obligatorio';
     } else if (!/^\d{7,}$/.test(newClientForm.numero_telefono.replace(/\D/g, ''))) {
       errors.numero_telefono = 'Ingresa al menos 7 dígitos del teléfono';
+    } else if (!newClientForm.telefono_e164) {
+      errors.numero_telefono = 'El número no es válido para el país seleccionado';
     }
     setNewClientErrors(errors);
     return Object.keys(errors).length === 0;
@@ -695,6 +701,7 @@ export default function CajaPage() {
         nombre: newClientForm.nombre.trim(),
         apellido: newClientForm.apellido.trim(),
         numero_telefono: newClientForm.numero_telefono.trim(),
+        telefono_e164: newClientForm.telefono_e164,
         // El NIT tecleado en el ticket pasa a ser el NIT por defecto del
         // cliente nuevo: es el momento natural de capturarlo.
         nit: clienteNit.trim(),
@@ -1279,16 +1286,20 @@ export default function CajaPage() {
 
           <label className={`${styles.modalField} ${styles.modalFieldFull}`}>
             <span>Celular</span>
-            <input
-              type="tel"
+            <PhoneInput
               value={newClientForm.numero_telefono}
-              onChange={(e) => {
-                setNewClientForm((prev) => ({ ...prev, numero_telefono: e.target.value }));
+              e164={newClientForm.telefono_e164}
+              onChange={(phone) => {
+                setNewClientForm((prev) => ({
+                  ...prev,
+                  numero_telefono: phone.nationalNumber,
+                  telefono_e164: phone.e164,
+                }));
                 if (newClientErrors.numero_telefono) {
                   setNewClientErrors((prev) => ({ ...prev, numero_telefono: undefined }));
                 }
               }}
-              className={newClientErrors.numero_telefono ? styles.inputError : ''}
+              invalid={!!newClientErrors.numero_telefono}
               placeholder="Número de celular"
             />
             {newClientErrors.numero_telefono && (

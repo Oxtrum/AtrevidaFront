@@ -1,4 +1,26 @@
 import type { ReservaBD } from '@/types/reserva';
+import { resolvePhoneE164 } from './phone';
+
+/** Número comercial en E.164: no se le antepone ningún prefijo. */
+export const ATREVIDA_WHATSAPP_E164 = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '+59177411855';
+
+export function buildWhatsappUrl(e164: string | null | undefined, message?: string): string | null {
+  const digits = e164?.replace(/\D/g, '') ?? '';
+  if (!digits) return null;
+  return `https://wa.me/${digits}${message ? `?text=${encodeURIComponent(message)}` : ''}`;
+}
+
+export function buildClientWhatsappUrl(
+  telefonoE164: string | null | undefined,
+  numeroTelefono: string | null | undefined,
+  message?: string,
+): string | null {
+  return buildWhatsappUrl(resolvePhoneE164(telefonoE164, numeroTelefono), message);
+}
+
+export function buildBusinessWhatsappUrl(message?: string): string | null {
+  return buildWhatsappUrl(resolvePhoneE164(ATREVIDA_WHATSAPP_E164), message);
+}
 
 const getDateISOWithOffset = (daysOffset: number) => {
   const date = new Date();
@@ -28,10 +50,6 @@ const getDayLabel = (fecha: string) => {
  * Devuelve null si la reserva no tiene teléfono.
  */
 export const buildReminderWhatsappHref = (reserva: ReservaBD): string | null => {
-  const phoneDigits = reserva.numero_telefono?.replace(/\D/g, '') ?? '';
-  if (!phoneDigits) return null;
-
-  const phone = phoneDigits.startsWith('591') ? phoneDigits : '591' + phoneDigits;
   const dayLabel = getDayLabel(reserva.fecha);
   const message = [
     'Hola, buenas tardes 🌸',
@@ -39,5 +57,5 @@ export const buildReminderWhatsappHref = (reserva: ReservaBD): string | null => 
     `Sucursal: ${reserva.local}`,
   ].join('\n');
 
-  return `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(message)}`;
+  return buildClientWhatsappUrl(reserva.telefono_e164, reserva.numero_telefono, message);
 };

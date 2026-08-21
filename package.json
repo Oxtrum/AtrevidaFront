@@ -9,8 +9,10 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "country-flag-icons": "^1.6.20",
     "exceljs": "^4.4.0",
     "gsap": "^3.14.2",
+    "libphonenumber-js": "^1.13.11",
     "lucide-react": "^1.8.0",
     "next": "16.2.2",
     "react": "19.2.4",

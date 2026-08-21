@@ -89,6 +89,7 @@ export function useReservationForm(
   const [confirmandoDuracion, setConfirmandoDuracion] = useState(false);
   const [cliente, setCliente] = useState('');
   const [numeroTelefono, setNumeroTelefono] = useState('');
+  const [telefonoE164, setTelefonoE164] = useState<string | undefined>();
   const [servicio, setServicio] = useState(initialData?.servicio || '');
   const [notas, setNotas] = useState('');
   const [planId, setPlanId] = useState<number | null>(null);
@@ -457,6 +458,11 @@ export function useReservationForm(
     } else if (horaDesde && hoursAvailability.get(horaDesde) === 'closed') {
       e.horaDesde = 'Ese horario está fuera de atención';
     }
+    // El fallback boliviano sólo existe para clientes API anteriores. Desde la
+    // interfaz, un país seleccionado debe producir siempre su E.164 válido.
+    if (numeroTelefono.trim() && !telefonoE164) {
+      e.numeroTelefono = 'El número no es válido para el país seleccionado';
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -528,6 +534,7 @@ export function useReservationForm(
           tipo: tipoBody,
           cliente,
           numero_telefono: numeroTelefono.replace(/\D/g, ''),
+          telefono_e164: telefonoE164,
           servicio,
           servicio_solicitado: servicio,
           servicio_confirmado: agendarDirecto ? servicio : null,
@@ -581,6 +588,7 @@ export function useReservationForm(
     horaDesde, horaHasta,
     cliente, setCliente,
     numeroTelefono, setNumeroTelefono,
+    telefonoE164, setTelefonoE164,
     notas, setNotas,
     planId, setPlanId,
     agendarDirecto, setAgendarDirecto,
