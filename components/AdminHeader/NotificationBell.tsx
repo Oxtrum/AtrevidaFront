@@ -100,35 +100,46 @@ export function NotificationBell() {
   const [userName, setUserName] = useState('Admin');
   const panelRef = useRef<HTMLDivElement>(null);
   const bellRef = useRef<HTMLButtonElement>(null);
+  const requestInFlightRef = useRef<Promise<void> | null>(null);
 
-  const fetchNotifications = useCallback(async ({ silent = false } = {}) => {
-    if (!hasAdminToken()) {
-      setIsAuthenticated(false);
-      setReservas([]);
-      setTotal(0);
-      return;
-    }
+  const fetchNotifications = useCallback(({ silent = false } = {}) => {
+    if (requestInFlightRef.current) return requestInFlightRef.current;
 
-    setIsAuthenticated(true);
-    if (!silent) setLoading(true);
-    setError(null);
+    const request = (async () => {
+      if (!hasAdminToken()) {
+        setIsAuthenticated(false);
+        setReservas([]);
+        setTotal(0);
+        return;
+      }
 
-    try {
-      const response = await getReservasNotificaciones(20);
-      const data = response.data ?? { total: 0, reservas: [] };
-      const nextReservas = sortByNewestCreated(data.reservas ?? []);
-      setReservas(nextReservas);
-      setTotal(data.total ?? data.reservas?.length ?? 0);
-      setSelectedIds((current) => {
-        const visibleIds = new Set(nextReservas.map((reserva) => reserva.id));
-        return new Set([...current].filter((id) => visibleIds.has(id)));
-      });
-      setLastFetch(new Date().toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' }));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudieron cargar las notificaciones');
-    } finally {
-      if (!silent) setLoading(false);
-    }
+      setIsAuthenticated(true);
+      if (!silent) setLoading(true);
+      setError(null);
+
+      try {
+        const response = await getReservasNotificaciones(20);
+        const data = response.data ?? { total: 0, reservas: [] };
+        const nextReservas = sortByNewestCreated(data.reservas ?? []);
+        setReservas(nextReservas);
+        setTotal(data.total ?? data.reservas?.length ?? 0);
+        setSelectedIds((current) => {
+          const visibleIds = new Set(nextReservas.map((reserva) => reserva.id));
+          return new Set([...current].filter((id) => visibleIds.has(id)));
+        });
+        setLastFetch(new Date().toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' }));
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'No se pudieron cargar las notificaciones');
+      } finally {
+        if (!silent) setLoading(false);
+      }
+    })();
+
+    requestInFlightRef.current = request;
+    void request.finally(() => {
+      if (requestInFlightRef.current === request) requestInFlightRef.current = null;
+    });
+    return request;
   }, []);
 
   useEffect(() => {
@@ -151,9 +162,6 @@ export function NotificationBell() {
     };
 
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        void fetchNotifications({ silent: true });
-      }
       schedule();
     };
 
