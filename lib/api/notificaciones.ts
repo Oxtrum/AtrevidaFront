@@ -5,20 +5,15 @@ import type { ReservasBDApiResponse } from '@/types/reserva';
 export interface ReservaNotificacion {
   id: number;
   local: string;
-  tipo: string;
   fecha: string;
   hora_desde: string;
   hora_hasta: string;
   cliente: string;
-  estado: string;
   numero_telefono?: string | null;
   servicio?: string | null;
   servicio_solicitado?: string | null;
   servicio_confirmado?: string | null;
-  precio?: number | null;
-  notificado: boolean;
   creado_en?: string;
-  actualizado_en?: string;
 }
 
 export interface ReservasNotificacionesData {
