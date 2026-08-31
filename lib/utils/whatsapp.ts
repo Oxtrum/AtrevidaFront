@@ -44,17 +44,45 @@ const getDayLabel = (fecha: string) => {
   return `El ${formatFechaLarga(fecha)}`;
 };
 
+/** "8:00" / "08:00:00" -> "8:00AM" */
+const formatHora12 = (hora: string) => {
+  const [rawHour, rawMinute] = hora.split(':');
+  const hour = Number(rawHour);
+  if (Number.isNaN(hour)) return hora;
+  const sufijo = hour < 12 ? 'AM' : 'PM';
+  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+  return `${hour12}:${(rawMinute ?? '00').padStart(2, '0')}${sufijo}`;
+};
+
+/** Saludo según la hora en que se envía el recordatorio. */
+const getSaludo = () => {
+  const hora = new Date().getHours();
+  if (hora < 12) return 'Hola buenos días 🌞';
+  if (hora < 19) return 'Hola buenas tardes ✨';
+  return 'Hola buenas noches 🌙';
+};
+
+/** Nombres con tilde para el mensaje; el resto cae a Capitalizado. */
+const LOCAL_LABELS: Record<string, string> = {
+  'SAN MARTIN': 'San Martín',
+};
+
+const formatLocal = (local: string) =>
+  LOCAL_LABELS[local.trim().toUpperCase()] ??
+  local
+    .toLocaleLowerCase('es-BO')
+    .replace(/(^|\s)\p{L}/gu, letra => letra.toLocaleUpperCase('es-BO'));
+
 /**
  * Construye el deep-link de WhatsApp para recordar una cita al cliente.
  * Calcula el día relativo (Hoy / Mañana / la fecha) desde `reserva.fecha`.
  * Devuelve null si la reserva no tiene teléfono.
  */
 export const buildReminderWhatsappHref = (reserva: ReservaBD): string | null => {
-  const dayLabel = getDayLabel(reserva.fecha);
   const message = [
-    'Hola, buenas tardes 🌸',
-    `${dayLabel} la esperamos para su cita a las ${reserva.hora_desde}.`,
-    `Sucursal: ${reserva.local}`,
+    getSaludo(),
+    `${getDayLabel(reserva.fecha)} la esperamos para su cita ${formatHora12(reserva.hora_desde)} 🌹`,
+    `📍Sucursal ${formatLocal(reserva.local)}`,
   ].join('\n');
 
   return buildClientWhatsappUrl(reserva.telefono_e164, reserva.numero_telefono, message);
