@@ -7,7 +7,7 @@ export const ATREVIDA_WHATSAPP_E164 = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ||
 export function buildWhatsappUrl(e164: string | null | undefined, message?: string): string | null {
   const digits = e164?.replace(/\D/g, '') ?? '';
   if (!digits) return null;
-  return `https://wa.me/${digits}${message ? `?text=${encodeURIComponent(message)}` : ''}`;
+  return `https://api.whatsapp.com/send?phone=${digits}${message ? `&text=${encodeURIComponent(message)}` : ''}`;
 }
 
 export function buildClientWhatsappUrl(
