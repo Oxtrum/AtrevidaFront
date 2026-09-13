@@ -66,7 +66,7 @@ const formatDashboardCurrency = (value: number | string | null | undefined) => `
   maximumFractionDigits: 2,
 })}`;
 
-const makeKpiPrimary = (clientesTotal: number | null): KpiCard[] => [
+const makeKpiPrimary = (clientesTotal: number | null, sinAtencionHoy: boolean): KpiCard[] => [
   {
     label: 'Reservas del día',
     trend: 'Hoy',
@@ -82,7 +82,7 @@ const makeKpiPrimary = (clientesTotal: number | null): KpiCard[] => [
     icon: <DollarSign size={16} strokeWidth={1.5} />,
     color: '#92278F',
     colorRgb: '146, 39, 143',
-    getValue: (resumen, isLoading) => isLoading ? '—' : formatDashboardCurrency(resumen.ingresos_hoy),
+    getValue: (resumen, isLoading) => isLoading ? '—' : sinAtencionHoy ? 'Sin atención hoy' : formatDashboardCurrency(resumen.ingresos_hoy),
     getSub: () => 'Ingresos registrados para la fecha seleccionada',
   },
   {
@@ -274,6 +274,7 @@ export default function AdminDashboardPage() {
   }, [adminLocalScope.ready, effectiveDashboardLocal, resumenFecha, router, scopedLocalName]);
 
   const weekBars = getWeekBars(resumen);
+  const sinAtencionHoy = new Date(`${resumenFecha}T00:00:00`).getDay() === 0;
 
   return (
     <div ref={containerRef} className={styles.pageContainer}>
@@ -325,7 +326,7 @@ export default function AdminDashboardPage() {
 
           {/* ── KPIs — fila principal ── */}
           <div className={styles.kpiGridPrimary}>
-            {makeKpiPrimary(clientesTotal).map((kpi, i) => (
+            {makeKpiPrimary(clientesTotal, sinAtencionHoy).map((kpi, i) => (
               <div
                 key={i}
                 className={`kpi-card ${styles.kpiCard}`}
