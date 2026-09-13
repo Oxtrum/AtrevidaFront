@@ -1,6 +1,4 @@
 import { ApiError, apiClient } from './client';
-import { withNombreLocalScope } from './localScope';
-import type { ReservasBDApiResponse } from '@/types/reserva';
 
 export interface ReservaNotificacion {
   id: number;
@@ -35,31 +33,9 @@ export interface MarcarReservasNotificacionesLeidasResponse {
 }
 
 export async function getReservasNotificaciones(limit = 20) {
-  try {
-    return await apiClient.get<ReservasNotificacionesResponse>('/bd/notificaciones/reservas', {
-      params: { limit },
-    });
-  } catch (error) {
-    if (!(error instanceof ApiError) || error.status !== 404) {
-      throw error;
-    }
-
-    const fallbackParams = withNombreLocalScope<{ local?: string; estado: string }>({ estado: 'AGENDADO' });
-    const fallback = await apiClient.get<ReservasBDApiResponse>('/bd/reservas', {
-      params: fallbackParams,
-    });
-    const reservas = fallback.data.reservas
-      .filter((reserva) => !reserva.notificado)
-      .slice(0, limit) as ReservaNotificacion[];
-
-    return {
-      success: true,
-      data: {
-        total: reservas.length,
-        reservas,
-      },
-    };
-  }
+  return apiClient.get<ReservasNotificacionesResponse>('/bd/notificaciones/reservas', {
+    params: { limit },
+  });
 }
 
 export async function marcarReservasNotificacionesLeidas(ids: number[]) {
