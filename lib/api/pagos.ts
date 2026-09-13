@@ -40,6 +40,10 @@ export interface Pago {
   fecha_modificacion: string;
 }
 
+export interface PagoCompleto extends Pago {
+  detalle: DetalleServicio[];
+}
+
 export interface GetPagosParams extends PaginationParams {
   busqueda?: string;
   codigo_pago?: string;
@@ -129,8 +133,8 @@ export async function getPagosDB(params?: GetPagosParams, signal?: AbortSignal):
   });
 }
 
-export async function getPagoByID(codigo: string): Promise<ApiResponse<{ pago: Pago }>> {
-  return apiClient.get<ApiResponse<{ pago: Pago }>>(`/bd/pagos/${codigo}`);
+export async function getPagoByID(codigo: string): Promise<ApiResponse<{ pago: PagoCompleto }>> {
+  return apiClient.get<ApiResponse<{ pago: PagoCompleto }>>(`/bd/pagos/${codigo}`);
 }
 
 export async function crearPagoDB(data: CrearPagoData): Promise<ApiResponse<{ codigo_pago: string }>> {

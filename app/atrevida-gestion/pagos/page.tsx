@@ -8,6 +8,7 @@ import Header from '@/components/AdminHeader/Header';
 import { PageHeader, DataTable, CursorPagination } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
+import { PagoDetalleCodeButton, PagoDetalleModal } from '@/components/Pagos/PagoDetalleModal';
 import { getPagosDB } from '@/lib/api/pagos';
 import type { Pago } from '@/lib/api/pagos';
 import { canViewAdminPayments } from '@/lib/auth/adminSession';
@@ -36,6 +37,7 @@ export default function PagosPage() {
   const [authorized, setAuthorized] = useState(false);
   const [checkedAccess, setCheckedAccess] = useState(false);
   const [pagos, setPagos] = useState<PagoRow[]>([]);
+  const [detallePagoCodigo, setDetallePagoCodigo] = useState<string | null>(null);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -128,7 +130,12 @@ export default function PagosPage() {
   );
 
   const columns: Column<PagoRow>[] = [
-    { key: 'codigo_pago', label: 'Código', searchable: false },
+    {
+      key: 'codigo_pago',
+      label: 'Código',
+      searchable: false,
+      render: (value) => <PagoDetalleCodeButton codigoPago={String(value)} onOpen={setDetallePagoCodigo} />,
+    },
     { key: 'local_nombre', label: 'Local' },
     { key: 'cliente_nombre', label: 'Cliente' },
     { key: 'cliente_nit', label: 'NIT', searchable: false },
@@ -248,6 +255,13 @@ export default function PagosPage() {
           </div>
         </div>
       </main>
+      {detallePagoCodigo && (
+        <PagoDetalleModal
+          key={detallePagoCodigo}
+          codigoPago={detallePagoCodigo}
+          onClose={() => setDetallePagoCodigo(null)}
+        />
+      )}
     </div>
   );
 }

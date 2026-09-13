@@ -22,6 +22,7 @@ import { toast } from '@/components/Shared/Toast';
 import { crearClienteDB, getClientesDB } from '@/lib/api/clientes';
 import type { ClientePG } from '@/lib/api/clientes';
 import { PhoneInput } from '@/components/PhoneInput';
+import { PagoDetalleCodeButton, PagoDetalleModal } from '@/components/Pagos/PagoDetalleModal';
 import { crearPagoDB, getPagosDB } from '@/lib/api/pagos';
 import type { CrearPagoData, DetalleServicio, Pago } from '@/lib/api/pagos';
 import { getLocalesDB, getServiciosDB, getCombosDB } from '@/lib/api/servicios';
@@ -152,6 +153,7 @@ export default function CajaPage() {
   const [serviceQuery, setServiceQuery] = useState('');
 
   const [pagos, setPagos] = useState<PagoRow[]>([]);
+  const [detallePagoCodigo, setDetallePagoCodigo] = useState<string | null>(null);
   const [loadingPagos, setLoadingPagos] = useState(false);
   const [pagosError, setPagosError] = useState<string | null>(null);
   const [pagosSearch, setPagosSearch] = useState('');
@@ -740,7 +742,12 @@ export default function CajaPage() {
   };
 
   const columns: Column<PagoRow>[] = [
-    { key: 'codigo_pago', label: 'Código', searchable: false },
+    {
+      key: 'codigo_pago',
+      label: 'Código',
+      searchable: false,
+      render: (value) => <PagoDetalleCodeButton codigoPago={String(value)} onOpen={setDetallePagoCodigo} />,
+    },
     { key: 'cliente_nombre', label: 'Cliente' },
     { key: 'cliente_nit', label: 'NIT', searchable: false },
     {
@@ -1278,6 +1285,14 @@ export default function CajaPage() {
           </div>
         </div>
       </main>
+
+      {detallePagoCodigo && (
+        <PagoDetalleModal
+          key={detallePagoCodigo}
+          codigoPago={detallePagoCodigo}
+          onClose={() => setDetallePagoCodigo(null)}
+        />
+      )}
 
       <FormModal
         isOpen={newClientModalOpen}
