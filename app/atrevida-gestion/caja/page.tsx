@@ -81,10 +81,12 @@ const formatMoney = (value: number | string | null | undefined) => `Bs. ${Number
   maximumFractionDigits: 2,
 })}`;
 
+const roundMoney = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
+
 const normalizeServicePrice = (value: number | string | null | undefined) => {
-  if (typeof value === 'number') return value;
+  if (typeof value === 'number') return roundMoney(value);
   const parsed = Number(String(value ?? '').replace(',', '.'));
-  return Number.isFinite(parsed) ? parsed : 0;
+  return Number.isFinite(parsed) ? roundMoney(parsed) : 0;
 };
 
 const getTodayStamp = () => new Date().toLocaleDateString('es-BO', {
@@ -422,7 +424,7 @@ export default function CajaPage() {
         return prev.map((item, index) => {
           if (index !== existing) return item;
           const cantidad = item.cantidad + 1;
-          return { ...item, cantidad, subtotal: cantidad * item.precio_unitario };
+          return { ...item, cantidad, subtotal: roundMoney(cantidad * item.precio_unitario) };
         });
       }
       return [
@@ -477,7 +479,16 @@ export default function CajaPage() {
     const safeCantidad = Math.max(1, cantidad);
     setDetalle((prev) => prev.map((item, itemIndex) => (
       itemIndex === index
-        ? { ...item, cantidad: safeCantidad, subtotal: safeCantidad * item.precio_unitario }
+        ? { ...item, cantidad: safeCantidad, subtotal: roundMoney(safeCantidad * item.precio_unitario) }
+        : item
+    )));
+  };
+
+  const updatePrecioUnitario = (index: number, value: string) => {
+    const precioUnitario = Math.max(0, normalizeServicePrice(value));
+    setDetalle((prev) => prev.map((item, itemIndex) => (
+      itemIndex === index
+        ? { ...item, precio_unitario: precioUnitario, subtotal: roundMoney(item.cantidad * precioUnitario) }
         : item
     )));
   };
@@ -951,7 +962,10 @@ export default function CajaPage() {
                                 <strong>{servicio.nombre}</strong>
                                 <small>{servicio.categoria || 'Servicio'}</small>
                               </span>
-                              <b>{formatMoney(normalizeServicePrice(servicio.costo))}</b>
+                              <span className={styles.servicePrice}>
+                                <b>{formatMoney(normalizeServicePrice(servicio.costo))}</b>
+                                <small>Precio de referencia</small>
+                              </span>
                             </button>
                           ))}
                           {!loadingServicios && serviciosFiltrados.length === 0 && (
@@ -1134,6 +1148,13 @@ export default function CajaPage() {
                       </button>
                     </div>
 
+                    <div className={styles.ticketColumns}>
+                      <span>Servicio / Producto</span>
+                      <span>Precio unitario</span>
+                      <span>Cantidad</span>
+                      <span>Subtotal</span>
+                      <span aria-hidden="true" />
+                    </div>
                     <div className={styles.ticketItems}>
                       {detalle.length === 0 ? (
                         <div className={styles.emptyTicket}>
@@ -1145,8 +1166,24 @@ export default function CajaPage() {
                           <div key={`${item.servicio}-${index}`} className={styles.ticketItem}>
                             <div>
                               <strong>{item.servicio}</strong>
-                              <span>{formatMoney(item.precio_unitario)} unitario</span>
                             </div>
+                            {modo === 'venta' && item.servicio_id !== null ? (
+                              <label className={styles.unitPriceField}>
+                                <span className={styles.currencyPrefix}>Bs.</span>
+                                <input
+                                  type="number"
+                                  min={0}
+                                  step="0.01"
+                                  inputMode="decimal"
+                                  value={item.precio_unitario}
+                                  onFocus={(event) => event.currentTarget.select()}
+                                  onChange={(event) => updatePrecioUnitario(index, event.target.value)}
+                                  aria-label={`Precio unitario de ${item.servicio}`}
+                                />
+                              </label>
+                            ) : (
+                              <span className={styles.unitPriceStatic}>{formatMoney(item.precio_unitario)}</span>
+                            )}
                             <div className={styles.qtyControl}>
                               <button type="button" onClick={() => updateCantidad(index, item.cantidad - 1)} aria-label="Reducir cantidad">
                                 <Minus size={13} strokeWidth={2.1} />
