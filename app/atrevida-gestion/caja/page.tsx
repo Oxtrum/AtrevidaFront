@@ -150,7 +150,7 @@ export default function CajaPage() {
   const [loadingServicios, setLoadingServicios] = useState(false);
   const [combos, setCombos] = useState<{ id: number; nombre: string; precio_total: number }[]>([]);
   const [loadingCombos, setLoadingCombos] = useState(false);
-  // Paquetes agregados al ticket; el plan se crea al registrar el pago. Clave = nombre de la línea.
+  // Paquetes agregados al pago; el plan se crea al registrar el pago. Clave = nombre de la línea.
   const [combosVenta, setCombosVenta] = useState<Record<string, { combo_id: number; precio: number }>>({});
   const [catalogoTab, setCatalogoTab] = useState<'servicios' | 'paquetes' | 'personalizado'>('servicios');
   const [serviceQuery, setServiceQuery] = useState('');
@@ -189,7 +189,7 @@ export default function CajaPage() {
   });
   const [newClientErrors, setNewClientErrors] = useState<NewClientErrors>({});
   const [savingNewClient, setSavingNewClient] = useState(false);
-  // Modo "cobrar reserva": en vez de armar un ticket libre, se elige un plan
+  // Modo "cobrar reserva": en vez de agregar elementos a un pago nuevo, se elige un plan
   // RESERVADO existente y el pago lo activa (no crea un plan nuevo).
   const [modo, setModo] = useState<'venta' | 'cobrarReserva'>('venta');
   const [planesReservados, setPlanesReservados] = useState<PlanItem[]>([]);
@@ -478,7 +478,7 @@ export default function CajaPage() {
     );
     setCombosVenta((prev) => ({ ...prev, [nombreLinea]: { combo_id: combo.id, precio: combo.precio_total } }));
     clearFieldError('detalle');
-    toast.success(`Paquete "${combo.nombre}" agregado al ticket`);
+    toast.success(`Paquete "${combo.nombre}" agregado al pago`);
   };
 
   const updateCantidad = (index: number, cantidad: number) => {
@@ -607,7 +607,7 @@ export default function CajaPage() {
       errors.detalle = parsePrecioPago(item.precio_unitario) === null
         ? `Ingresa un precio unitario válido para "${item.servicio}". El campo es obligatorio.`
         : `Revisa la cantidad y el subtotal de "${item.servicio}".`;
-      document.getElementById(`ticket-precio-${errorIndex}`)?.focus();
+      document.getElementById(`detalle-pago-precio-${errorIndex}`)?.focus();
     } else if (!Number.isFinite(subtotal) || subtotal > 99999999.99 || !Number.isFinite(descuento) || descuento < 0 || descuento > subtotal) {
       errors.detalle = 'Revisa el subtotal y el descuento del pago.';
     }
@@ -674,7 +674,7 @@ export default function CajaPage() {
           }
         }
       } else {
-        // Crear el paquete (ya ACTIVO) de cada línea de paquete que quedó en el ticket.
+        // Crear el paquete (ya ACTIVO) de cada línea de paquete que quedó en el detalle del pago.
         // Nace ACTIVO porque ya está pagado: el cliente puede usar sus sesiones de inmediato.
         // Se pasa el código del pago para aplicarlo a la cuota (queda PAGADO).
         const paquetes = detalle.filter((i) => i.servicio_id === null && combosVenta[i.servicio]);
@@ -731,7 +731,7 @@ export default function CajaPage() {
         apellido: newClientForm.apellido.trim(),
         numero_telefono: newClientForm.numero_telefono.trim(),
         telefono_e164: newClientForm.telefono_e164,
-        // El NIT tecleado en el ticket pasa a ser el NIT por defecto del
+        // El NIT ingresado en el pago pasa a ser el NIT por defecto del
         // cliente nuevo: es el momento natural de capturarlo.
         nit: clienteNit.trim(),
       };
@@ -922,7 +922,7 @@ export default function CajaPage() {
                           </div>
                         ) : (
                           <p className={styles.mutedText}>
-                            Escribe el nombre del cliente en el panel derecho y elige su paquete reservado para cargarlo al ticket.
+                            Escribe el nombre del cliente en el panel derecho y elige su paquete reservado para agregarlo al pago.
                           </p>
                         )}
                       </div>
@@ -1005,7 +1005,7 @@ export default function CajaPage() {
                               type="button"
                               className={styles.serviceItem}
                               onClick={() => handleAgregarCombo(combo)}
-                              title={`Agregar ${combo.nombre} al ticket`}
+                              title={`Agregar ${combo.nombre} al pago`}
                             >
                               <span>
                                 <strong>{combo.nombre}</strong>
@@ -1194,7 +1194,7 @@ export default function CajaPage() {
                               <label className={styles.unitPriceField}>
                                 <span className={styles.currencyPrefix}>Bs.</span>
                                 <input
-                                  id={`ticket-precio-${index}`}
+                                  id={`detalle-pago-precio-${index}`}
                                   type="number"
                                   min={0}
                                   max={99999999.99}
