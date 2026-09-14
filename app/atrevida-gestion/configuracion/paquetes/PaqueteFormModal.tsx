@@ -6,6 +6,7 @@ import { FormModal } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
 import { getCategoriasDB, getServiciosDB } from '@/lib/api/servicios';
+import { formatCostoServicio } from '@/lib/utils/serviceCost';
 import {
   crearPaquete,
   actualizarPaquete,
@@ -31,6 +32,7 @@ interface ServicioOpt {
   id: number;
   nombre: string;
   costo: number | string;
+  costo_variable?: boolean;
 }
 
 // Fila del picker de servicios base: se elige del catálogo (servicioId) o se
@@ -297,7 +299,7 @@ export default function PaqueteFormModal({ open, mode, paquete, locales, onClose
               value={s.servicioId != null ? String(s.servicioId) : ''}
               onChange={(v) => seleccionarServicioBase(i, v)}
               placeholder={loadingServicios ? 'Cargando servicios…' : 'Seleccionar servicio del catálogo…'}
-              options={serviciosDisponibles.map((sv) => ({ value: String(sv.id), label: sv.nombre }))}
+              options={serviciosDisponibles.map((sv) => ({ value: String(sv.id), label: `${sv.nombre} — ${formatCostoServicio(sv)}` }))}
             />
             <input
               className={styles.serviceTextInput}
