@@ -806,6 +806,10 @@
   outline-offset: 1px;
 }
 
+.unitPriceField input[aria-invalid="true"] {
+  border-color: var(--admin-accent-danger);
+}
+
 .ticketItem b {
   min-width: 0;
   padding-left: 0.75rem;

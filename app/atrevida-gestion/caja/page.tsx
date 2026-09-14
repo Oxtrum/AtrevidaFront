@@ -24,7 +24,9 @@ import type { ClientePG } from '@/lib/api/clientes';
 import { PhoneInput } from '@/components/PhoneInput';
 import { PagoDetalleCodeButton, PagoDetalleModal } from '@/components/Pagos/PagoDetalleModal';
 import { crearPagoDB, getPagosDB } from '@/lib/api/pagos';
-import type { CrearPagoData, DetalleServicio, Pago } from '@/lib/api/pagos';
+import type { CrearPagoData, Pago } from '@/lib/api/pagos';
+import { prepararDetallePago, parsePrecioPago, subtotalDetallePago, type DetallePagoDraft } from '@/lib/utils/paymentDraft';
+import { formatCostoServicio } from '@/lib/utils/serviceCost';
 import { getLocalesDB, getServiciosDB, getCombosDB } from '@/lib/api/servicios';
 import { crearPlan, cobrarPlan, getPlanesDB } from '@/lib/api/planes';
 import type { PlanItem } from '@/lib/api/planes';
@@ -45,6 +47,7 @@ interface ServicioOption {
   id: number;
   nombre: string;
   costo: number | string;
+  costo_variable?: boolean;
   categoria?: string;
   activo?: boolean;
 }
@@ -172,7 +175,7 @@ export default function CajaPage() {
   const [clienteDropdownOpen, setClienteDropdownOpen] = useState(false);
   const [descuento, setDescuento] = useState(0);
   const [tipoPago, setTipoPago] = useState<'qr' | 'efectivo'>('qr');
-  const [detalle, setDetalle] = useState<DetalleServicio[]>([]);
+  const [detalle, setDetalle] = useState<DetallePagoDraft[]>([]);
   const [customServicio, setCustomServicio] = useState('');
   const [customPrecio, setCustomPrecio] = useState('');
   const [saving, setSaving] = useState(false);
@@ -395,6 +398,7 @@ export default function CajaPage() {
     [detalle],
   );
   const totalFinal = Math.max(0, subtotal - descuento);
+  const tienePreciosPendientes = detalle.some((item) => item.subtotal === null);
   const totalLocal = useMemo(
     () => pagos.reduce((sum, pago) => sum + Number(pago.total_final ?? 0), 0),
     [pagos],
@@ -419,14 +423,14 @@ export default function CajaPage() {
   };
 
   const addDetalle = (servicio: ServicioOption) => {
-    const precio = normalizeServicePrice(servicio.costo);
+    const precio = servicio.costo_variable === true ? null : normalizeServicePrice(servicio.costo);
     setDetalle((prev) => {
       const existing = prev.findIndex((item) => item.servicio_id === servicio.id);
       if (existing >= 0) {
         return prev.map((item, index) => {
           if (index !== existing) return item;
           const cantidad = item.cantidad + 1;
-          return { ...item, cantidad, subtotal: roundMoney(cantidad * item.precio_unitario) };
+          return { ...item, cantidad, subtotal: subtotalDetallePago(cantidad, item.precio_unitario) };
         });
       }
       return [
@@ -478,21 +482,21 @@ export default function CajaPage() {
   };
 
   const updateCantidad = (index: number, cantidad: number) => {
-    const safeCantidad = Math.max(1, cantidad);
+    const safeCantidad = Number.isFinite(cantidad) ? Math.max(1, Math.floor(cantidad)) : 1;
     setDetalle((prev) => prev.map((item, itemIndex) => (
       itemIndex === index
-        ? { ...item, cantidad: safeCantidad, subtotal: roundMoney(safeCantidad * item.precio_unitario) }
+        ? { ...item, cantidad: safeCantidad, subtotal: subtotalDetallePago(safeCantidad, item.precio_unitario) }
         : item
     )));
   };
 
   const updatePrecioUnitario = (index: number, value: string) => {
-    const precioUnitario = Math.max(0, normalizeServicePrice(value));
     setDetalle((prev) => prev.map((item, itemIndex) => (
       itemIndex === index
-        ? { ...item, precio_unitario: precioUnitario, subtotal: roundMoney(item.cantidad * precioUnitario) }
+        ? { ...item, precio_unitario: value, subtotal: subtotalDetallePago(item.cantidad, value) }
         : item
     )));
+    clearFieldError('detalle');
   };
 
   const removeDetalle = (index: number) => {
@@ -597,6 +601,16 @@ export default function CajaPage() {
         ? 'Selecciona un paquete reservado para cobrar'
         : 'Agrega al menos un servicio';
     }
+    const { errorIndex } = prepararDetallePago(detalle);
+    if (errorIndex !== null) {
+      const item = detalle[errorIndex];
+      errors.detalle = parsePrecioPago(item.precio_unitario) === null
+        ? `Ingresa un precio unitario válido para "${item.servicio}". El campo es obligatorio.`
+        : `Revisa la cantidad y el subtotal de "${item.servicio}".`;
+      document.getElementById(`ticket-precio-${errorIndex}`)?.focus();
+    } else if (!Number.isFinite(subtotal) || subtotal > 99999999.99 || !Number.isFinite(descuento) || descuento < 0 || descuento > subtotal) {
+      errors.detalle = 'Revisa el subtotal y el descuento del pago.';
+    }
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -617,7 +631,9 @@ export default function CajaPage() {
   };
 
   const registerPayment = async (clienteId: number | null) => {
-    if (!selectedLocal) return;
+    if (!selectedLocal || !validate()) return;
+    const detallePreparado = prepararDetallePago(detalle);
+    if (detallePreparado.errorIndex !== null) return;
     if (modo === 'cobrarReserva' && !planReservado) {
       toast.error('Selecciona un paquete reservado para cobrar.');
       return;
@@ -641,7 +657,7 @@ export default function CajaPage() {
         estado: 'PAGADO',
         tipo_pago: tipoPago,
         activo: true,
-        detalle,
+        detalle: detallePreparado.detalle,
       };
       const pagoRes = await crearPagoDB(payload);
       const codigoPago = pagoRes.data?.codigo_pago;
@@ -970,8 +986,8 @@ export default function CajaPage() {
                                 <small>{servicio.categoria || 'Servicio'}</small>
                               </span>
                               <span className={styles.servicePrice}>
-                                <b>{formatMoney(normalizeServicePrice(servicio.costo))}</b>
-                                <small>Precio de referencia</small>
+                                <b>{formatCostoServicio(servicio)}</b>
+                                <small>{servicio.costo_variable === true ? 'Se define al cobrar' : 'Precio de referencia'}</small>
                               </span>
                             </button>
                           ))}
@@ -1178,11 +1194,16 @@ export default function CajaPage() {
                               <label className={styles.unitPriceField}>
                                 <span className={styles.currencyPrefix}>Bs.</span>
                                 <input
+                                  id={`ticket-precio-${index}`}
                                   type="number"
                                   min={0}
+                                  max={99999999.99}
                                   step="0.01"
                                   inputMode="decimal"
-                                  value={item.precio_unitario}
+                                  value={item.precio_unitario ?? ''}
+                                  placeholder="Obligatorio"
+                                  aria-required="true"
+                                  aria-invalid={!!formErrors.detalle && parsePrecioPago(item.precio_unitario) === null}
                                   onFocus={(event) => event.currentTarget.select()}
                                   onChange={(event) => updatePrecioUnitario(index, event.target.value)}
                                   aria-label={`Precio unitario de ${item.servicio}`}
@@ -1206,7 +1227,7 @@ export default function CajaPage() {
                                 <Plus size={13} strokeWidth={2.1} />
                               </button>
                             </div>
-                            <b>{formatMoney(item.subtotal)}</b>
+                            <b>{item.subtotal === null ? '—' : formatMoney(item.subtotal)}</b>
                             <button type="button" className={styles.iconButton} onClick={() => removeDetalle(index)} aria-label="Quitar servicio">
                               <Trash2 size={15} strokeWidth={1.8} />
                             </button>
@@ -1219,7 +1240,7 @@ export default function CajaPage() {
                     <div className={styles.totalsPanel}>
                       <div>
                         <span>Subtotal</span>
-                        <strong>{formatMoney(subtotal)}</strong>
+                        <strong>{tienePreciosPendientes ? '—' : formatMoney(subtotal)}</strong>
                       </div>
                       <label>
                         <span>Descuento</span>
@@ -1232,7 +1253,7 @@ export default function CajaPage() {
                       </label>
                       <div className={styles.totalFinal}>
                         <span>Total a cobrar</span>
-                        <strong>{formatMoney(totalFinal)}</strong>
+                        <strong>{tienePreciosPendientes ? '—' : formatMoney(totalFinal)}</strong>
                       </div>
                     </div>
 
