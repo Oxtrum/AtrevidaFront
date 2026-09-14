@@ -52,6 +52,7 @@ export interface CrearServicioData {
   categoria: string;
   tiempo: string;
   costo: number;
+  costo_variable?: boolean;
   sesiones: number;
   tipo_espacio_requerido: string;
   local: string;
@@ -63,6 +64,7 @@ export interface ActualizarServicioData {
   categoria?: string;
   tiempo?: string;
   costo?: number;
+  costo_variable?: boolean;
   sesiones?: number;
   tipo_espacio_requerido?: string;
   requiere_evaluacion?: boolean;
@@ -128,6 +130,7 @@ export interface ServicioRow {
   id: number;
   nombre: string;
   costo: number | string;
+  costo_variable?: boolean;
   categoria?: string;
   activo?: boolean;
   tiempo?: unknown;

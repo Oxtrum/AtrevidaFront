@@ -21,6 +21,7 @@ import {
 } from '@/lib/api/servicios';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import { tiempoAMinutos } from '@/lib/constants/reservationForm';
+import { formatCostoServicio } from '@/lib/utils/serviceCost';
 import styles from './page.module.css';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -32,6 +33,7 @@ interface ServicioRow extends Record<string, unknown> {
   local: string;
   tiempo: string;
   costo: string;
+  costo_variable?: boolean;
   sesiones: number;
   tipoEspacio: string;
   activo?: boolean;
@@ -60,6 +62,7 @@ interface FormState {
   categoria: string;
   tiempo: string;
   costo: string;
+  costo_variable: boolean;
   sesiones: number;
   tipo_espacio_requerido: string;
   local: string;
@@ -89,6 +92,7 @@ const FORM_INITIAL: FormState = {
   categoria: '',
   tiempo: '',
   costo: '',
+  costo_variable: false,
   sesiones: 1,
   tipo_espacio_requerido: 'M',
   local: '',
@@ -330,7 +334,8 @@ export default function ServiciosPage() {
       nombre: row.nombre,
       categoria: row.categoria,
       tiempo: String(tiempoAMinutos(String(row.tiempo ?? ''))),
-      costo: String(row.costo ?? ''),
+      costo: row.costo_variable === true ? '' : String(row.costo ?? ''),
+      costo_variable: row.costo_variable === true,
       sesiones: row.sesiones,
       tipo_espacio_requerido:
         row.tipoEspacio === 'Mesas' ? 'M'
@@ -357,8 +362,8 @@ export default function ServiciosPage() {
     if (!isEdit && !form.local) errors.local = 'Selecciona un local';
 
     const costoNum = Number(form.costo);
-    if (!form.costo || Number.isNaN(costoNum) || costoNum < 0) {
-      errors.costo = 'Costo inválido';
+    if (!form.costo_variable && (!form.costo.trim() || !Number.isFinite(costoNum) || costoNum < 0 || costoNum > 99999999.99)) {
+      errors.costo = 'Ingresa un costo entre 0 y 99.999.999,99 Bs.';
     }
 
     const tiempoNum = Number(form.tiempo);
@@ -380,7 +385,7 @@ export default function ServiciosPage() {
     setFormErrors({});
 
     const sesiones = Math.max(1, Math.floor(form.sesiones));
-    const costo = Number(form.costo);
+    const costo = form.costo_variable ? 0 : Number(form.costo);
     const tiempo = minutosATexto(Number(form.tiempo));
 
     try {
@@ -390,6 +395,7 @@ export default function ServiciosPage() {
           categoria: form.categoria,
           tiempo,
           costo,
+          costo_variable: form.costo_variable,
           sesiones,
           tipo_espacio_requerido: form.tipo_espacio_requerido,
           requiere_evaluacion: form.requiere_evaluacion,
@@ -405,6 +411,7 @@ export default function ServiciosPage() {
           categoria: form.categoria,
           tiempo,
           costo,
+          costo_variable: form.costo_variable,
           sesiones,
           tipo_espacio_requerido: form.tipo_espacio_requerido,
           local: scopedLocalName || form.local,
@@ -528,7 +535,7 @@ export default function ServiciosPage() {
     { key: 'categoria', label: 'Categoría' },
     { key: 'local', label: 'Local', searchable: false },
     { key: 'tiempo', label: 'Tiempo', searchable: false },
-    { key: 'costo', label: 'Costo', searchable: false },
+    { key: 'costo', label: 'Costo', searchable: false, render: (_value, row) => formatCostoServicio(row) },
     { key: 'sesiones', label: 'Sesiones', searchable: false },
     {
       key: 'tipoEspacio',
@@ -885,19 +892,36 @@ export default function ServiciosPage() {
           </div>
 
           {/* Costo */}
+          <label className={`${styles.checkboxCard} ${styles.colSpan2}`} htmlFor="srv-costo-variable">
+            <input
+              id="srv-costo-variable"
+              type="checkbox"
+              checked={form.costo_variable}
+              onChange={(e) => {
+                patchForm({ costo_variable: e.target.checked, costo: '' });
+                setFormErrors((prev) => ({ ...prev, costo: undefined }));
+              }}
+            />
+            <div className={styles.checkboxCardContent}>
+              <span className={styles.checkboxCardTitle}>Costo variable</span>
+              <span className={styles.checkboxCardDesc}>El costo se define al cobrar, según las condiciones del servicio.</span>
+            </div>
+          </label>
           <div className={styles.field}>
-            <label htmlFor="srv-costo">Costo (Bs.)</label>
+            <label htmlFor="srv-costo">Costo de referencia (Bs.)</label>
             <input
               id="srv-costo"
               type="number"
               step="0.01"
               min={0}
+              max={99999999.99}
+              disabled={form.costo_variable}
               value={form.costo}
               onChange={(e) => {
                 patchForm({ costo: e.target.value });
                 if (formErrors.costo) setFormErrors((p) => ({ ...p, costo: undefined }));
               }}
-              placeholder="0.00"
+              placeholder={form.costo_variable ? 'Variable' : '0.00'}
               aria-invalid={!!formErrors.costo}
               className={formErrors.costo ? styles.inputError : ''}
             />
