@@ -28,17 +28,14 @@ import { PageHeader, StatGrid, StatCard, AdminPanel, CursorPagination } from '@/
 import { CATEGORIAS_ORDEN } from '@/components/AdminReservationForm/constants';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { actualizarEstadoReservaDB, actualizarReservaDB, actualizarReservaNotificadoDB, eliminarReservaDB, getReservasDB } from '@/lib/api/reservas';
-import { getLocalesDB, type LocalRow } from '@/lib/api/servicios';
+import { getLocalesDB, getServiciosDB, type LocalRow, type ServicioRow } from '@/lib/api/servicios';
+import { formatCostoServicio } from '@/lib/utils/serviceCost';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import { formatDateTime } from '@/lib/utils/formatDateTime';
 import { buildClientWhatsappUrl } from '@/lib/utils/whatsapp';
 import { phoneValueFrom } from '@/lib/utils/phone';
 import { PhoneInput } from '@/components/PhoneInput';
 import {
-  SERVICIOS_ADMIN_DISPONIBLES,
-  getServiciosAdminPorCategoria,
-  getServiciosAdminPorSucursal,
-  getTipoBackendFromServicio,
   type EstadoReserva,
   type ReservaBD,
 } from '@/types/reserva';
@@ -129,9 +126,7 @@ const getConfirmationWhatsappHref = (reserva: ReservaBD) => {
 };
 
 const getDefaultConfirmedService = (reserva: ReservaBD) => {
-  const requested = reserva.servicio_solicitado || reserva.servicio_confirmado || reserva.servicio;
-  const match = SERVICIOS_ADMIN_DISPONIBLES.find((servicio) => servicio.label === requested);
-  return match?.value || '';
+  return reserva.servicio_confirmado || reserva.servicio_solicitado || reserva.servicio || '';
 };
 
 const getReservaServiceSummary = (reserva: ReservaBD) => {
@@ -222,6 +217,7 @@ export default function AdminReservasAprobacionPage() {
   const [rejectCauses, setRejectCauses] = useState<Record<number, string>>({});
   const [approvalReserva, setApprovalReserva] = useState<ReservaBD | null>(null);
   const [approvalDraft, setApprovalDraft] = useState<ApprovalDraft | null>(null);
+  const [approvalCatalog, setApprovalCatalog] = useState<{ local: string; servicios: ServicioRow[]; error?: string } | null>(null);
   const [openActionMenuId, setOpenActionMenuId] = useState<number | null>(null);
   const [completionDraft, setCompletionDraft] = useState<CompletionDraft | null>(null);
   const [completionError, setCompletionError] = useState<string | null>(null);
@@ -421,21 +417,37 @@ export default function AdminReservasAprobacionPage() {
   );
 
   const approvalServiceGroups = useMemo(() => {
-    if (!approvalReserva) return [];
+    if (!approvalReserva || approvalCatalog?.local !== approvalReserva.local) return [];
+    const categorias = new Map<string, ServicioRow[]>();
+    for (const servicio of approvalCatalog.servicios) {
+      const categoria = servicio.categoria || 'Otros';
+      if (!categorias.has(categoria)) categorias.set(categoria, []);
+      categorias.get(categoria)!.push(servicio);
+    }
+    const orden = [...CATEGORIAS_ORDEN, ...Array.from(categorias.keys()).filter(c => !(CATEGORIAS_ORDEN as readonly string[]).includes(c))];
+    return orden.filter(c => categorias.has(c)).map(c => ({
+      label: c,
+      options: categorias.get(c)!.map(servicio => ({
+        value: servicio.nombre,
+        label: `${servicio.nombre} — ${String(servicio.tiempo || '')} — ${formatCostoServicio(servicio)}`,
+      })),
+    }));
+  }, [approvalReserva, approvalCatalog]);
 
-    const servicios = getServiciosAdminPorSucursal(approvalReserva.local);
-    const serviciosPorCategoria = getServiciosAdminPorCategoria(servicios);
-
-    return CATEGORIAS_ORDEN
-      .filter((categoria) => serviciosPorCategoria[categoria]?.length > 0)
-      .map((categoria) => ({
-        label: categoria,
-        options: serviciosPorCategoria[categoria].map((servicio) => ({
-          value: servicio.value,
-          label: `${servicio.label} — ${servicio.duracion} — ${servicio.costo}`,
-        })),
-      }));
-  }, [approvalReserva]);
+  const approvalLocal = approvalReserva?.local;
+  const approvalId = approvalReserva?.id;
+  useEffect(() => {
+    if (!approvalLocal) return;
+    let active = true;
+    void getServiciosDB({ local: approvalLocal })
+      .then(response => {
+        if (active) setApprovalCatalog({ local: approvalLocal, servicios: (response.data?.servicios ?? []).filter(s => s.activo !== false) });
+      })
+      .catch(() => {
+        if (active) setApprovalCatalog({ local: approvalLocal, servicios: [], error: 'No se pudo cargar el catálogo de servicios. Cierra el formulario y vuelve a abrirlo.' });
+      });
+    return () => { active = false; };
+  }, [approvalLocal, approvalId]);
 
   const completionServiceSummary = useMemo(
     () => completionDraft ? getReservaServiceSummary(completionDraft.reserva) : { visible: [], remaining: 0 },
@@ -447,6 +459,7 @@ export default function AdminReservasAprobacionPage() {
   );
 
   const openApprovalModal = (reserva: ReservaBD) => {
+    setApprovalCatalog(null);
     const phone = phoneValueFrom(reserva.telefono_e164 || reserva.numero_telefono);
     setApprovalReserva(reserva);
     setApprovalDraft({
@@ -617,9 +630,9 @@ export default function AdminReservasAprobacionPage() {
   const approveReservaFromModal = async () => {
     if (!approvalReserva || !approvalDraft) return;
 
-    const confirmedService = SERVICIOS_ADMIN_DISPONIBLES.find(
-      (servicio) => servicio.value === approvalDraft.servicioConfirmado,
-    );
+    const confirmedService = approvalCatalog?.local === approvalReserva.local
+      ? approvalCatalog.servicios.find(servicio => servicio.nombre === approvalDraft.servicioConfirmado)
+      : undefined;
 
     if (!confirmedService) {
       setStatusMessage({ type: 'error', text: 'Selecciona el servicio confirmado para agendar la reserva.' });
@@ -656,14 +669,18 @@ export default function AdminReservasAprobacionPage() {
         await actualizarReservaDB(updateData);
       }
 
-      const tipoBackend = getTipoBackendFromServicio(confirmedService.value);
+      const tipoBackend = confirmedService.tipoEspacio === 'B' ? 'B' as const : 'M' as const;
+      const mismoServicio = approvalReserva.servicio_confirmado === confirmedService.nombre || (!approvalReserva.servicio_confirmado && approvalReserva.servicio === confirmedService.nombre);
+      const precio = mismoServicio && approvalReserva.precio != null
+        ? approvalReserva.precio
+        : confirmedService.costo_variable === true ? undefined : Number(confirmedService.costo) || 0;
 
       await actualizarEstadoReservaDB({
         id: approvalReserva.id,
         estado: 'AGENDADO',
         causa: '',
-        servicio_confirmado: confirmedService.label,
-        precio: confirmedService.precio,
+        servicio_confirmado: confirmedService.nombre,
+        precio,
         tipo: tipoBackend,
       });
 
@@ -676,8 +693,9 @@ export default function AdminReservasAprobacionPage() {
         numero_telefono: cleanPhone,
         telefono_e164: approvalDraft.telefonoE164,
         notas: approvalDraft.notas,
-        servicio_confirmado: confirmedService.label,
-        precio: confirmedService.precio,
+        servicio_confirmado: confirmedService.nombre,
+        precio,
+        costo_variable: mismoServicio && approvalReserva.costo_variable != null ? approvalReserva.costo_variable : confirmedService.costo_variable === true,
         tipo: tipoBackend,
         notificado: false,
       };
@@ -1296,10 +1314,11 @@ export default function AdminReservasAprobacionPage() {
                     servicioConfirmado: value,
                   } : current)}
                   groups={approvalServiceGroups}
-                  placeholder="Seleccionar servicio"
+                  placeholder={approvalCatalog?.local === approvalReserva.local ? 'Seleccionar servicio' : 'Cargando servicios...'}
                   hasError={false}
                 />
               </label>
+              {approvalCatalog?.error && <p role="alert">{approvalCatalog.error}</p>}
               <label className={`${styles.modalField} ${styles.modalFieldWide}`}>
                 Notas
                 <textarea
@@ -1326,7 +1345,7 @@ export default function AdminReservasAprobacionPage() {
                 type="button"
                 className={styles.modalPrimary}
                 onClick={approveReservaFromModal}
-                disabled={actionId === approvalReserva.id}
+                disabled={actionId === approvalReserva.id || approvalCatalog?.local !== approvalReserva.local || !!approvalCatalog.error || approvalCatalog.servicios.length === 0}
               >
                 <Check size={16} strokeWidth={1.8} />
                 {actionId === approvalReserva.id ? 'Agendando...' : 'Aprobar y agendar'}

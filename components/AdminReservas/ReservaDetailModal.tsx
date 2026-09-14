@@ -6,6 +6,7 @@ import { X, Pencil, Trash2, Clock, CalendarDays } from 'lucide-react';
 import type { ReservaBD } from '@/types/reserva';
 import { WhatsappIcon } from '@/components/icons/WhatsappIcon';
 import { buildReminderWhatsappHref } from '@/lib/utils/whatsapp';
+import { formatCostoReserva } from '@/lib/utils/serviceCost';
 import styles from './ReservaDetailModal.module.css';
 
 interface ReservaDetailModalProps {
@@ -144,7 +145,10 @@ export function ReservaDetailModal({
             <div className={styles.field}>
               <span className={styles.fieldLabel}>Precio</span>
               <span className={styles.fieldValue}>
-                {reserva.precio != null ? `Bs ${reserva.precio}` : <span className={styles.fieldEmpty}>—</span>}
+                {formatCostoReserva(reserva)}
+                {reserva.costo_variable === true && reserva.precio != null && (
+                  <span className={styles.fieldEmpty}> · Importe registrado: Bs {reserva.precio}</span>
+                )}
               </span>
             </div>
 

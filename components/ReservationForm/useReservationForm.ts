@@ -6,7 +6,6 @@ import {
   DiaSemana, SERVICIOS_DISPONIBLES, SUCURSALES,
   SERVICIOS_ESPECIALIZADOS_DISPONIBLES,
   getTipoFromServicio, getTipoBackendFromServicio,
-  getServiciosAdminPorCategoria,
   generarSemanas, getFechasDeSemana, esFechaPasada,
   type ReservaBD,
 } from '@/types/reserva';
@@ -197,6 +196,7 @@ export function useReservationForm(
     [servicio, servicios],
   );
   const esTratamientoEspecializado = servicio === 'tratamiento_especializado';
+  const { servicios: catalogoEspecializado } = useServiciosPublicos(sucursal, false, esTratamientoEspecializado);
   const requiereAprobacion = servicioSeleccionado?.requiere_evaluacion ?? true;
   const scheduleWarning = useMemo(
     () => getReservationDateRestriction(fecha),
@@ -370,14 +370,19 @@ export function useReservationForm(
     return map;
   }, [servicios]);
 
-  const serviciosEspecializadosFiltrados = SERVICIOS_ESPECIALIZADOS_DISPONIBLES.filter((s) => {
+  const especializadosReales = catalogoEspecializado.filter((s) => s.requiere_evaluacion && s.value !== 'tratamiento_especializado');
+  const serviciosEspecializadosFiltrados = especializadosReales.length > 0 ? especializadosReales : SERVICIOS_ESPECIALIZADOS_DISPONIBLES.filter((s) => {
     const normalizedSucursal = sucursal === 'SAN MARTIN' ? 'CENTRO' : sucursal;
     return s.sucursal === 'ambos' || s.sucursal === normalizedSucursal;
   });
-  const serviciosEspecializadosPorCategoria = getServiciosAdminPorCategoria(serviciosEspecializadosFiltrados);
-  const categoriasEspecializadasDisponibles = CATEGORIAS_ORDEN.filter(
-    c => serviciosEspecializadosPorCategoria[c]?.length > 0,
-  );
+  const serviciosEspecializadosPorCategoria: Record<string, Array<(typeof serviciosEspecializadosFiltrados)[number]>> = {};
+  for (const item of serviciosEspecializadosFiltrados) {
+    (serviciosEspecializadosPorCategoria[item.categoria] ??= []).push(item);
+  }
+  const categoriasEspecializadasDisponibles = [
+    ...CATEGORIAS_ORDEN.filter(c => serviciosEspecializadosPorCategoria[c]?.length > 0),
+    ...Object.keys(serviciosEspecializadosPorCategoria).filter(c => !(CATEGORIAS_ORDEN as readonly string[]).includes(c)),
+  ];
 
   // ── Select options ─────────────────────────────────────
   const semanaOptions = semanasDisponibles.map((s, idx) => ({
@@ -531,7 +536,7 @@ export function useReservationForm(
 
     const servicioInfo = selectedService ?? SERVICIOS_DISPONIBLES.find(s => s.value === servicio);
     const servicioSolicitadoInfo = esTratamientoEspecializado
-      ? SERVICIOS_ESPECIALIZADOS_DISPONIBLES.find(s => s.value === servicioSolicitado)
+      ? serviciosEspecializadosFiltrados.find(s => s.value === servicioSolicitado)
       : servicioInfo;
     const servicioLabel = servicioInfo?.label || servicio;
     const phoneDigits = numeroTelefono.replace(/\D/g, '');
@@ -550,7 +555,7 @@ export function useReservationForm(
           servicio_solicitado: servicioSolicitadoInfo?.label || servicioLabel,
           // Toda reserva pública nace PENDIENTE: la valida el staff antes de agendarla.
           servicio_confirmado: null,
-          precio: esTratamientoEspecializado ? 0 : servicioInfo?.precio ?? 0,
+          precio: !esTratamientoEspecializado && selectedService?.costo_variable === true ? undefined : esTratamientoEspecializado ? 0 : servicioInfo?.precio ?? 0,
           notas,
           estado: 'PENDIENTE' as const,
         };

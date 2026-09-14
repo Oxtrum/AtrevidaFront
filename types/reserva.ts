@@ -120,6 +120,7 @@ export interface ReservaDetalle {
   reserva_hora_hasta?: string;
   estado?: EstadoReserva;
   plan_id?: number;
+  costo_variable?: boolean | null;
 }
 
 export interface ReservaPorHora {
@@ -408,7 +409,8 @@ export interface ReservaBD {
   servicio: string;
   servicio_solicitado?: string | null;
   servicio_confirmado?: string | null;
-  precio?: number;
+  precio?: number | null;
+  costo_variable?: boolean | null;
   plan_id?: number;
   notas?: string;
   estado?: EstadoReserva;

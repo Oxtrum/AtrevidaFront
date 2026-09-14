@@ -101,6 +101,7 @@ export interface CrearReservaDBData {
   numero_telefono: string;
   telefono_e164?: string;
   servicio: string;
+  servicio_id?: number;
   servicio_solicitado?: string | null;
   servicio_confirmado?: string | null;
   notas?: string;
@@ -126,6 +127,8 @@ export interface ActualizarReservaDBData {
   nuevo_numero_telefono?: string;
   nuevo_telefono_e164?: string;
   nuevo_precio?: number;
+  /** Borra un importe pendiente de definicion; incompatible con nuevo_precio. */
+  limpiar_precio?: boolean;
   nuevo_servicio?: string;
   nuevo_servicio_solicitado?: string | null;
   nuevo_servicio_confirmado?: string | null;

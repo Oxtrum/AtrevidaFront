@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { formatCostoServicio } from '@/lib/utils/serviceCost';
 import {
   SERVICIOS_DISPONIBLES,
   SERVICIO_TRATAMIENTO_ESPECIALIZADO,
@@ -14,6 +15,7 @@ export interface ServicioPublico {
   duracion: string;
   costo: string;
   precio: number;
+  costo_variable?: boolean;
   sesiones: number;
   sucursal: string;
   requiere_evaluacion: boolean;
@@ -28,6 +30,7 @@ interface ServicioDBRow {
   local: string;
   tiempo: string;
   costo: number | string;
+  costo_variable?: boolean;
   sesiones: number;
   tipo_espacio_requerido?: string;
   tipoEspacio?: string;
@@ -69,7 +72,8 @@ function mapRow(row: ServicioDBRow): ServicioPublico {
     label: row.nombre,
     categoria: row.categoria,
     duracion: row.tiempo,
-    costo: precio > 0 ? `${precio} Bs` : 'Gratis',
+    costo: formatCostoServicio(row),
+    costo_variable: row.costo_variable === true,
     precio,
     sesiones: row.sesiones ?? 1,
     sucursal: row.local,
@@ -78,19 +82,21 @@ function mapRow(row: ServicioDBRow): ServicioPublico {
   };
 }
 
-export function useServiciosPublicos(sucursal: string, pacienteNuevo?: boolean) {
+export function useServiciosPublicos(sucursal: string, pacienteNuevo?: boolean, enabled = true) {
   const [servicios, setServicios] = useState<ServicioPublico[]>(() => staticFallback(sucursal));
   const [loading, setLoading] = useState(false);
+  const [loadedLocal, setLoadedLocal] = useState(sucursal);
 
-  const load = useCallback(async (local: string) => {
+  const load = useCallback(async (local: string, signal: AbortSignal) => {
     if (!local) return;
     setLoading(true);
     try {
       const qs = new URLSearchParams({ local });
       if (pacienteNuevo) qs.set('paciente_nuevo', 'true');
-      const res = await fetch(`/api/bd/servicios?${qs.toString()}`);
+      const res = await fetch(`/api/bd/servicios?${qs.toString()}`, { signal });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json() as { data?: { servicios?: ServicioDBRow[] } };
+      if (signal.aborted) return;
       const rawRows = (json.data?.servicios ?? []).filter(r => r.activo !== false);
       // Deduplicate by nombre — backend may return same service for multiple locals
       const seen = new Set<string>();
@@ -104,18 +110,24 @@ export function useServiciosPublicos(sucursal: string, pacienteNuevo?: boolean) 
       } else {
         setServicios(staticFallback(local));
       }
+      setLoadedLocal(local);
     } catch {
-      setServicios(staticFallback(local));
+      if (!signal.aborted) {
+        setServicios(staticFallback(local));
+        setLoadedLocal(local);
+      }
     } finally {
-      setLoading(false);
+      if (!signal.aborted) setLoading(false);
     }
   }, [pacienteNuevo]);
 
   useEffect(() => {
-    load(sucursal);
-  }, [sucursal, load]);
+    const controller = new AbortController();
+    if (enabled) void load(sucursal, controller.signal);
+    return () => controller.abort();
+  }, [sucursal, load, enabled]);
 
-  return { servicios, loading };
+  return { servicios: loadedLocal === sucursal ? servicios : staticFallback(sucursal), loading };
 }
 
 // Re-export for convenience

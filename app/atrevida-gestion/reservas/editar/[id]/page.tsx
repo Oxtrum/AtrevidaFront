@@ -21,6 +21,7 @@ import { type SlotStatus, capacidadDeLocal, normalizarHoraSlot } from '@/lib/uti
 import { iniciarSeleccion, modificarFin, puedeAjustarFin } from '@/lib/utils/slotRange';
 import { PhoneInput } from '@/components/PhoneInput';
 import { phoneValueFrom } from '@/lib/utils/phone';
+import { formatCostoServicio } from '@/lib/utils/serviceCost';
 import styles from './page.module.css';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
 
@@ -70,13 +71,17 @@ function EditarReservaContent() {
   const [nuevoLocal, setNuevoLocal] = useState('');
   const [nuevoPlanId, setNuevoPlanId] = useState<string>(SIN_PAQUETE);
   const [slotWarning, setSlotWarning] = useState<string | null>(null);
-  const [serviciosDisponibles, setServiciosDisponibles] = useState<Array<{ nombre: string; categoria: string; tipoEspacio: string; costo: string; tiempo: string }>>([]);
+  const [serviciosDisponibles, setServiciosDisponibles] = useState<Array<{ nombre: string; categoria: string; tipoEspacio: string; costo: string; costo_variable?: boolean; tiempo: string }>>([]);
   const [planesDisponibles, setPlanesDisponibles] = useState<PlanItem[]>([]);
 
   // El local del formulario manda sobre el guardado: horarios, capacidad y
   // catálogo de servicios se calculan contra la sucursal destino.
   const localActual = nuevoLocal || reserva?.local || '';
   const estadoActual = reserva?.estado || 'PENDIENTE';
+  const servicioElegido = serviciosDisponibles.find(s => s.nombre === nuevoServicio);
+  const costoVariableActual = nuevoServicio === reserva?.servicio
+    ? reserva?.costo_variable === true
+    : servicioElegido?.costo_variable === true;
   const bloqueadaPorCompletado = estadoActual === 'COMPLETADO';
 
   const semanasDisponibles = useMemo(() => generarSemanas(6), []);
@@ -127,7 +132,7 @@ function EditarReservaContent() {
       if (!byCategory.has(cat)) byCategory.set(cat, []);
       byCategory.get(cat)!.push({
         value: s.nombre,
-        label: `${s.nombre} — ${s.tiempo || ''} — Bs ${s.costo || 0}`,
+        label: `${s.nombre} — ${s.tiempo || ''} — ${formatCostoServicio(s)}`,
       });
     }
     if (nuevoServicio && !serviciosDisponibles.some(s => s.nombre === nuevoServicio)) {
@@ -279,7 +284,7 @@ function EditarReservaContent() {
     if (!localActual) return;
     const fetchServicios = async () => {
       try {
-        const res = await getServiciosDB({ local: localActual }) as { data?: { servicios?: Array<{ nombre: string; categoria: string; tipoEspacio: string; costo: string; tiempo: string }> } };
+        const res = await getServiciosDB({ local: localActual }) as { data?: { servicios?: typeof serviciosDisponibles } };
         setServiciosDisponibles(res?.data?.servicios ?? []);
       } catch {
         setServiciosDisponibles([]);
@@ -405,7 +410,10 @@ function EditarReservaContent() {
   };
 
   const handleServicioChange = (value: string) => {
+    if (value === nuevoServicio) return;
     setNuevoServicio(value);
+    const servicio = serviciosDisponibles.find(s => s.nombre === value);
+    setNuevoPrecio(servicio?.costo_variable === true || !servicio ? '' : String(servicio.costo ?? ''));
     if (nuevaHoraDesde) {
       const fechaDia = nuevaFecha ? new Date(`${nuevaFecha}T00:00:00`) : new Date();
       setNuevaHoraHasta(calcularHoraFin(nuevaHoraDesde, slotsDeServicio(value), localActual, fechaDia));
@@ -417,6 +425,10 @@ function EditarReservaContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!reserva) return;
+    if (nuevoPrecio.trim() !== '' && (!Number.isFinite(Number(nuevoPrecio)) || Number(nuevoPrecio) < 0 || Number(nuevoPrecio) > 99999999.99)) {
+      toast.error('Ingresa un precio válido o deja el campo vacío si está pendiente.');
+      return;
+    }
 
     setLoading(true);
     setMessage(null);
@@ -464,7 +476,7 @@ function EditarReservaContent() {
           estado: nuevoEstado,
           ...(nuevoEstado === 'AGENDADO' && {
             servicio_confirmado: servicioChanged ? nuevoServicio : (reserva.servicio_confirmado || reserva.servicio),
-            precio: nuevoPrecio !== '' ? Number(nuevoPrecio) : reserva.precio,
+            ...(nuevoPrecio.trim() !== '' && { precio: Number(nuevoPrecio) }),
             tipo: (servicioChanged && servicioInfo
               ? tipoDeServicio
               : (reserva.tipo === 'M' || reserva.tipo === 'B' ? reserva.tipo : 'M')) as 'M' | 'B',
@@ -481,6 +493,7 @@ function EditarReservaContent() {
           ...(hastaChanged && { nueva_hora_hasta: nuevaHoraHasta }),
           ...(notasChanged && { nuevas_notas: nuevasNotas }),
           ...(precioChanged && nuevoPrecio !== '' && { nuevo_precio: Number(nuevoPrecio) }),
+          ...(precioChanged && nuevoPrecio.trim() === '' && { limpiar_precio: true }),
           ...(telefonoChanged && nuevoTelefono && {
             nuevo_numero_telefono: nuevoTelefono.replace(/\D/g, ''),
             nuevo_telefono_e164: nuevoTelefonoE164,
@@ -506,6 +519,7 @@ function EditarReservaContent() {
         ...(estadoChanged && { estado: nuevoEstado }),
         ...(notasChanged && { notas: nuevasNotas }),
         ...(precioChanged && nuevoPrecio !== '' && { precio: Number(nuevoPrecio) }),
+        ...(precioChanged && nuevoPrecio.trim() === '' && { precio: null }),
         ...(telefonoChanged && nuevoTelefono && {
           numero_telefono: nuevoTelefono.replace(/\D/g, ''),
           telefono_e164: nuevoTelefonoE164,
@@ -513,6 +527,7 @@ function EditarReservaContent() {
         ...(servicioChanged && nuevoServicio && {
           servicio: nuevoServicio,
           servicio_confirmado: nuevoServicio,
+          costo_variable: servicioInfo ? servicioInfo.costo_variable === true : null,
           ...(servicioInfo && { tipo: tipoDeServicio }),
         }),
         ...(clienteChanged && { cliente: nuevoCliente.trim() }),
@@ -660,10 +675,13 @@ function EditarReservaContent() {
               type="number"
               value={nuevoPrecio}
               onChange={e => setNuevoPrecio(e.target.value)}
-              placeholder="0"
+              placeholder={costoVariableActual ? 'Variable' : '0'}
               className={styles.inputField}
               min={0}
+              max={99999999.99}
+              step="0.01"
             />
+            {costoVariableActual && <small className={styles.costHint}>Costo variable. Puedes registrar un importe acordado o dejarlo pendiente.</small>}
           </div>
 
           <div className={`${styles.formGroup} ${styles.fullWidth}`}>
@@ -673,11 +691,7 @@ function EditarReservaContent() {
               servicio={nuevoServicio}
               groups={servicioGroups}
               hasError={false}
-              onChange={(value) => {
-                handleServicioChange(value);
-                const svc = serviciosDisponibles.find(s => s.nombre === value);
-                if (svc?.costo) setNuevoPrecio(String(svc.costo));
-              }}
+              onChange={handleServicioChange}
             />
           </div>
 

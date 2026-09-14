@@ -11,6 +11,7 @@ import { useCrearReserva } from '@/lib/hooks/useCrearReserva';
 import { useReservas } from '@/lib/hooks/useReservas';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { getServiciosDB } from '@/lib/api/servicios';
+import { formatCostoServicio } from '@/lib/utils/serviceCost';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import { toast } from '../Shared/Toast';
 import { getPlanByID } from '@/lib/api/planes';
@@ -97,7 +98,7 @@ export function useReservationForm(
   // la reserva creada desde el panel ya está confirmada. Desactivar el toggle la
   // envía a aprobación (PENDIENTE).
   const [agendarDirecto, setAgendarDirecto] = useState(true);
-  const [serviciosAPI, setServiciosAPI] = useState<Array<{ nombre: string; categoria: string; tipoEspacio: string; costo: string; tiempo: string; requiere_evaluacion: boolean }>>([]);
+  const [serviciosAPI, setServiciosAPI] = useState<Array<{ id: number; nombre: string; categoria: string; tipoEspacio: string; costo: string; costo_variable?: boolean; tiempo: string; requiere_evaluacion: boolean }>>([]);
 
   /** Slots que ocupa el servicio elegido. 1 hora si no se conoce su duración. */
   const slotsDeServicio = (svc: string): number => {
@@ -350,7 +351,7 @@ export function useReservationForm(
       if (!byCategory.has(cat)) byCategory.set(cat, []);
       byCategory.get(cat)!.push({
         value: s.nombre,
-        label: `${s.nombre} — ${s.tiempo || ''} — Bs ${s.costo || 0}`,
+        label: `${s.nombre} — ${s.tiempo || ''} — ${formatCostoServicio(s)}`,
       });
     }
     return Array.from(byCategory.entries()).map(([label, options]) => ({ label, options }));
@@ -538,7 +539,8 @@ export function useReservationForm(
           servicio,
           servicio_solicitado: servicio,
           servicio_confirmado: agendarDirecto ? servicio : null,
-          precio: servicioInfo ? Number(servicioInfo.costo) || 0 : 0,
+          servicio_id: servicioInfo?.id,
+          precio: servicioInfo?.costo_variable === true ? undefined : servicioInfo ? Number(servicioInfo.costo) || 0 : 0,
           notas: notas || undefined,
           plan_id: planId ?? undefined,
           estado: agendarDirecto ? 'AGENDADO' as const : 'PENDIENTE' as const,

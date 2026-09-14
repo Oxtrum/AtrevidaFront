@@ -210,6 +210,7 @@ export default function AdminReservasPage() {
       servicio: r.servicio ?? '',
       estado: r.estado,
       plan_id: r.plan_id,
+      costo_variable: r.costo_variable,
     });
   };
 
