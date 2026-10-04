@@ -81,7 +81,7 @@ const formatLocal = (local: string) =>
 export const buildReminderWhatsappHref = (reserva: ReservaBD): string | null => {
   const message = [
     getSaludo(),
-    `${getDayLabel(reserva.fecha)} la esperamos para su cita ${formatHora12(reserva.hora_desde)} 🌹`,
+    `${getDayLabel(reserva.fecha)} te esperamos para tu cita ${formatHora12(reserva.hora_desde)} 🌹`,
     `📍Sucursal ${formatLocal(reserva.local)}`,
   ].join('\n');
 

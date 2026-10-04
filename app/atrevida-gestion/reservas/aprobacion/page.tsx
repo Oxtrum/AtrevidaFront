@@ -110,16 +110,16 @@ const getConfirmationWhatsappHref = (reserva: ReservaBD) => {
   const tratamiento = reserva.servicio_confirmado || reserva.servicio_solicitado || reserva.servicio || 'Tratamiento confirmado';
   const comidaPrevia = getMealLabelByTime(reserva.hora_desde);
   const message = [
-    '*Su cita ha sido confirmada en Atrevida Fit* 🌸',
+    '*Tu cita ha sido confirmada en Atrevida Fit* 🌸',
     '',
     `*Fecha:* ${formatDate(reserva.fecha)} (${reserva.fecha})`,
     `*Horario:* ${reserva.hora_desde} - ${reserva.hora_hasta}`,
     `*Tratamiento:* ${tratamiento}`,
     `*Sucursal:* ${reserva.local}`,
     '',
-    `Venga con el estómago lleno (${comidaPrevia}) y 1 litro de agua.`,
+    `Ven con el estómago lleno (${comidaPrevia}) y 1 litro de agua.`,
     '',
-    'La esperamos.',
+    'Te esperamos.',
   ].join('\n');
 
   return buildClientWhatsappUrl(reserva.telefono_e164, reserva.numero_telefono, message);
@@ -1497,7 +1497,7 @@ export default function AdminReservasAprobacionPage() {
           >
             <div className={styles.modalTop}>
               <div>
-                <h2 id="delete-modal-title">¿Estas segura de eliminar la reserva?</h2>
+                <h2 id="delete-modal-title">¿Seguro que quieres eliminar la reserva?</h2>
               </div>
               <button
                 type="button"
