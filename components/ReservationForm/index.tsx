@@ -211,12 +211,6 @@ export default function ReservationForm({ initialData, onSuccess, onCancel }: Re
 
           <div className={styles.formDivider} />
 
-          {!initialData?.isAdmin && (
-            <div className={`${styles.turnstile} ${styles.fullWidth}`}>
-              <TurnstileWidget onToken={setTurnstileToken} resetKey={turnstileResetKey} />
-            </div>
-          )}
-
           {/* Cliente */}
           <div className={`${styles.formGroup} ${styles.fullWidth}`}>
             <label>Cliente</label>
@@ -258,6 +252,12 @@ export default function ReservationForm({ initialData, onSuccess, onCancel }: Re
               placeholder="Comentarios adicionales"
             />
           </div>
+
+          {!initialData?.isAdmin && (
+            <div className={`${styles.turnstile} ${styles.fullWidth}`}>
+              <TurnstileWidget onToken={setTurnstileToken} resetKey={turnstileResetKey} />
+            </div>
+          )}
 
         </div>
 

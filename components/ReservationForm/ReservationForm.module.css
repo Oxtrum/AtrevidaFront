@@ -185,7 +185,7 @@
 .formGroup input::placeholder,
 .formGroup select::placeholder,
 .formGroup textarea::placeholder {
-  color: var(--af-dim);
+  color: rgba(250, 250, 250, 0.68);
   font-weight: 400;
 }
 

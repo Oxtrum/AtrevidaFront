@@ -24,6 +24,8 @@
   transition: var(--af-t-mid);
 }
 
+.number::placeholder { color: rgba(250, 250, 250, 0.68); }
+
 .number:hover:not(:disabled) { background: var(--af-input-bg-hov); border-color: var(--af-border-hover); }
 
 .number:focus {
