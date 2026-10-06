@@ -535,6 +535,12 @@
   margin: 0.5rem 0;
 }
 
+.turnstile {
+  min-height: 65px;
+  display: flex;
+  align-items: center;
+}
+
 /* ────────────────────────────────────────────────────────────────
    FORM ACTIONS (CTA Buttons)
    ──────────────────────────────────────────────────────────────── */

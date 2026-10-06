@@ -35,6 +35,7 @@ interface CrearReservaData {
     notas?: string;
     plan_id?: number;
     estado?: EstadoReserva;
+    turnstileToken?: string;
 }
 
 /**
@@ -68,6 +69,7 @@ export function useCrearReserva(): UseCrearReservaReturn {
                     notas: data.notas,
                     plan_id: data.plan_id,
                     estado: data.estado ?? 'PENDIENTE',
+                    turnstileToken: data.turnstileToken,
                 });
                 return result;
             }

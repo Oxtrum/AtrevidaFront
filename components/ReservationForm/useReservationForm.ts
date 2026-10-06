@@ -110,6 +110,8 @@ export function useReservationForm(
   const [numeroTelefono, setNumeroTelefono] = useState('');
   const [telefonoE164, setTelefonoE164] = useState<string | undefined>();
   const [notas, setNotas] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const [servicio, setServicio] = useState(initialData?.servicio || '');
   const [servicioSolicitado, setServicioSolicitado] = useState('');
   const [horaPreestablecida] = useState(!!initialData?.hora_desde); // Marca si hora vino del URL
@@ -527,6 +529,11 @@ export function useReservationForm(
       toast.error('Faltan datos o hay campos con error. Revisa los marcados en rojo.');
       return;
     }
+    if (!turnstileToken && !initialData?.isAdmin) {
+      setError('Completa la verificación de seguridad para continuar.');
+      toast.error('Completa la verificación de seguridad para continuar.');
+      return;
+    }
 
     setError(null);
     const selectedService = servicios.find(s => s.value === servicio);
@@ -558,6 +565,7 @@ export function useReservationForm(
           precio: !esTratamientoEspecializado && selectedService?.costo_variable === true ? undefined : esTratamientoEspecializado ? 0 : servicioInfo?.precio ?? 0,
           notas,
           estado: 'PENDIENTE' as const,
+          turnstileToken: initialData?.isAdmin ? undefined : turnstileToken,
         };
 
         await crearReserva(payload);
@@ -575,6 +583,11 @@ export function useReservationForm(
         const mensaje = err instanceof Error ? err.message : hookError || 'Error al crear la reserva';
         setError(mensaje);
         toast.error(mensaje);
+      } finally {
+        if (!initialData?.isAdmin) {
+          setTurnstileToken('');
+          setTurnstileResetKey(key => key + 1);
+        }
       }
   };
   return {
@@ -613,5 +626,7 @@ export function useReservationForm(
     handleFechaChange,
     handleSlotSelect,
     handleSubmit,
+    setTurnstileToken,
+    turnstileResetKey,
   };
 }

@@ -9,6 +9,7 @@ import { ServiceSelect } from './ServiceSelect';
 import { useReservationForm, type ReservationFormInitialData } from './useReservationForm';
 import { PhoneInput } from '@/components/PhoneInput';
 import styles from './ReservationForm.module.css';
+import { TurnstileWidget } from './TurnstileWidget';
 
 interface ReservationFormProps {
   initialData?: ReservationFormInitialData;
@@ -45,6 +46,8 @@ export default function ReservationForm({ initialData, onSuccess, onCancel }: Re
     handleFechaChange,
     handleSlotSelect,
     handleSubmit,
+    setTurnstileToken,
+    turnstileResetKey,
   } = useReservationForm(initialData, onSuccess);
   const fechaLegible = useMemo(() => {
     if (!fecha) return 'Sin fecha';
@@ -207,6 +210,12 @@ export default function ReservationForm({ initialData, onSuccess, onCancel }: Re
           </div>
 
           <div className={styles.formDivider} />
+
+          {!initialData?.isAdmin && (
+            <div className={`${styles.turnstile} ${styles.fullWidth}`}>
+              <TurnstileWidget onToken={setTurnstileToken} resetKey={turnstileResetKey} />
+            </div>
+          )}
 
           {/* Cliente */}
           <div className={`${styles.formGroup} ${styles.fullWidth}`}>

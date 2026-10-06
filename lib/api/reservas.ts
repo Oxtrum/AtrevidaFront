@@ -3,7 +3,7 @@
  * Importar SOLO este módulo en componentes y server actions, nunca fetch directo.
  */
 
-import { apiClient } from './client';
+import { ApiError, apiClient } from './client';
 import { withNombreLocalScope } from './localScope';
 import type { ApiResponse, EstadoReserva, ReservaBD, ReservaFormData, ReservasBDApiResponse } from '@/types/reserva';
 import type { PaginationParams } from './pagination';
@@ -108,6 +108,7 @@ export interface CrearReservaDBData {
   plan_id?: number;
   precio?: number;
   estado: EstadoReserva;
+  turnstileToken?: string;
 }
 
 /**
@@ -246,6 +247,19 @@ export async function getReservasResumenDB(
 
 /** Crea una nueva reserva en la base de datos. */
 export async function crearReservaDB(data: CrearReservaDBData): Promise<CrearReservaResult> {
+  if (data.turnstileToken) {
+    const { turnstileToken, ...reservation } = data;
+    const response = await fetch('/api/bd/reservas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...reservation, 'cf-turnstile-response': turnstileToken }),
+    });
+    const result = await response.json();
+    if (!response.ok) {
+      throw new ApiError(result?.message || `HTTP ${response.status}`, response.status, result);
+    }
+    return result as CrearReservaResult;
+  }
   return apiClient.post<CrearReservaResult>('/bd/reservas', data);
 }
 
