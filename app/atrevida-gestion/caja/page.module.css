@@ -67,11 +67,20 @@
   backdrop-filter: blur(18px);
 }
 
-.historySearch {
+.historyFilters {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  width: min(100%, 930px);
+}
+
+.historyFilter {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  min-width: min(100%, 290px);
+  flex: 1 1 0;
+  min-width: 0;
   border: 1px solid var(--admin-border-subtle);
   border-radius: var(--admin-radius-md);
   padding: 0 0.75rem;
@@ -79,13 +88,27 @@
   background: var(--admin-input-bg, var(--admin-panel-bg));
 }
 
-.historySearch input {
+.historyFilter input {
   min-height: 42px;
   width: 100%;
   border: 0;
   outline: 0;
   color: var(--admin-text-primary);
   background: transparent;
+}
+
+.historyFilterNit {
+  flex: 0 1 11rem;
+  max-width: 11rem;
+}
+
+.historyFilterProduct {
+  flex: 1.25 1 0;
+}
+
+.historyStatusFilter {
+  flex: 0 1 11.5rem;
+  min-width: 10rem;
 }
 
 .localPickerHeader h2,
@@ -943,6 +966,15 @@
 }
 
 @media (max-width: 1100px) {
+  .historyHeaderCard {
+    flex-direction: column;
+  }
+
+  .historyFilters {
+    width: 100%;
+    max-width: none;
+  }
+
   .cashSummary {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -1003,6 +1035,21 @@
 
   .ticketActions button {
     width: 100%;
+  }
+
+  .historyFilters {
+    align-items: stretch;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .historyFilter,
+  .historyFilterNit,
+  .historyFilterProduct,
+  .historyStatusFilter {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
   }
 }
 

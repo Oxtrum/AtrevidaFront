@@ -80,6 +80,16 @@ interface NewClientErrors {
 
 const CAJA_LOCAL_STORAGE_KEY = 'atrevidaCajaLocal';
 
+const ESTADO_OPTIONS = ['PAGADO', 'PENDIENTE', 'BORRADOR'];
+const ESTADO_LABELS: Record<string, string> = {
+  BORRADOR: 'POR CONFIRMAR',
+};
+
+const filtroTextoActivo = (value: string) => {
+  const normalized = value.trim();
+  return normalized.length >= 2 ? normalized : '';
+};
+
 const formatMoney = (value: number | string | null | undefined) => `Bs. ${Number(value ?? 0).toLocaleString('es-BO', {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
@@ -159,9 +169,19 @@ export default function CajaPage() {
   const [detallePagoCodigo, setDetallePagoCodigo] = useState<string | null>(null);
   const [loadingPagos, setLoadingPagos] = useState(false);
   const [pagosError, setPagosError] = useState<string | null>(null);
-  const [pagosSearch, setPagosSearch] = useState('');
-  const [pagosSearchDebounced, setPagosSearchDebounced] = useState('');
-	const pagosPagination = useCursorPagination(`${selectedLocal?.id ?? ''}|${pagosSearchDebounced}`);
+  const [pagosCliente, setPagosCliente] = useState('');
+  const [pagosClienteDebounced, setPagosClienteDebounced] = useState('');
+  const [pagosNit, setPagosNit] = useState('');
+  const [pagosNitDebounced, setPagosNitDebounced] = useState('');
+  const [pagosProducto, setPagosProducto] = useState('');
+  const [pagosProductoDebounced, setPagosProductoDebounced] = useState('');
+  const [pagosEstado, setPagosEstado] = useState('PAGADO');
+  const pagosClienteActivo = filtroTextoActivo(pagosClienteDebounced);
+  const pagosNitActivo = filtroTextoActivo(pagosNitDebounced);
+  const pagosProductoActivo = filtroTextoActivo(pagosProductoDebounced);
+	const pagosPagination = useCursorPagination(
+    `${selectedLocal?.id ?? ''}|${pagosClienteActivo}|${pagosNitActivo}|${pagosProductoActivo}|${pagosEstado}`,
+  );
 	const { cursor: pagosCursor, requestRevision: pagosRequestRevision, shouldIncludeTotal: shouldIncludePagosTotal, setMetadata: setPagosMetadata } = pagosPagination;
 	const pagosRequestRef = useRef(0);
 	const pagosControllerRef = useRef<AbortController | null>(null);
@@ -266,9 +286,11 @@ export default function CajaPage() {
     try {
       const res = await getPagosDB({
         local_nombre: local.nombre,
-        estado: 'PAGADO',
+        cliente_nombre: pagosClienteActivo || undefined,
+        cliente_nit: pagosNitActivo || undefined,
+        producto: pagosProductoActivo || undefined,
+        estado: pagosEstado || undefined,
         activo: true,
-		busqueda: pagosSearchDebounced || undefined,
 		limit: PAGE_LIMIT,
 		cursor: pagosCursor,
 		include_total: shouldIncludePagosTotal(),
@@ -283,17 +305,27 @@ export default function CajaPage() {
     } finally {
 	  if (requestId === pagosRequestRef.current) setLoadingPagos(false);
     }
-  }, [selectedLocal, pagosSearchDebounced, pagosCursor, pagosRequestRevision, shouldIncludePagosTotal, setPagosMetadata]);
+  }, [selectedLocal, pagosClienteActivo, pagosNitActivo, pagosProductoActivo, pagosEstado, pagosCursor, pagosRequestRevision, shouldIncludePagosTotal, setPagosMetadata]);
 
 	useEffect(() => () => {
 		pagosRequestRef.current += 1;
 		pagosControllerRef.current?.abort();
 	}, []);
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => setPagosSearchDebounced(pagosSearch.trim()), 300);
-    return () => window.clearTimeout(timer);
-  }, [pagosSearch]);
+	useEffect(() => {
+		const timer = window.setTimeout(() => setPagosClienteDebounced(pagosCliente), 350);
+		return () => window.clearTimeout(timer);
+	}, [pagosCliente]);
+
+	useEffect(() => {
+		const timer = window.setTimeout(() => setPagosNitDebounced(pagosNit), 350);
+		return () => window.clearTimeout(timer);
+	}, [pagosNit]);
+
+	useEffect(() => {
+		const timer = window.setTimeout(() => setPagosProductoDebounced(pagosProducto), 350);
+		return () => window.clearTimeout(timer);
+	}, [pagosProducto]);
 
   useEffect(() => {
     if (!adminLocalScope.ready) return;
@@ -1290,16 +1322,47 @@ export default function CajaPage() {
                       <span className={styles.kicker}>Historial local</span>
                       <h2>Pagos registrados en {selectedLocal.nombre}</h2>
                     </div>
-                    <label className={styles.historySearch}>
-                      <Search size={15} aria-hidden="true" />
-                      <input
-                        type="search"
-                        value={pagosSearch}
-                        onChange={(event) => setPagosSearch(event.target.value)}
-                        placeholder="Código, cliente, NIT o cajero"
-                        aria-label="Buscar pagos del local"
-                      />
-                    </label>
+                    <div className={styles.historyFilters}>
+                      <label className={styles.historyFilter}>
+                        <Search size={15} aria-hidden="true" />
+                        <input
+                          type="search"
+                          value={pagosCliente}
+                          onChange={(event) => setPagosCliente(event.target.value)}
+                          placeholder="Buscar por cliente..."
+                          aria-label="Buscar pagos por cliente"
+                        />
+                      </label>
+                      <label className={`${styles.historyFilter} ${styles.historyFilterNit}`}>
+                        <Search size={15} aria-hidden="true" />
+                        <input
+                          type="search"
+                          value={pagosNit}
+                          onChange={(event) => setPagosNit(event.target.value)}
+                          placeholder="Buscar por NIT..."
+                          aria-label="Buscar pagos por NIT"
+                        />
+                      </label>
+                      <label className={`${styles.historyFilter} ${styles.historyFilterProduct}`}>
+                        <Search size={15} aria-hidden="true" />
+                        <input
+                          type="search"
+                          value={pagosProducto}
+                          onChange={(event) => setPagosProducto(event.target.value)}
+                          placeholder="Buscar por servicio/producto..."
+                          aria-label="Buscar pagos por servicio o producto"
+                        />
+                      </label>
+                      <div className={styles.historyStatusFilter}>
+                        <CustomSelect
+                          id="caja-pagos-estado"
+                          value={pagosEstado}
+                          onChange={setPagosEstado}
+                          options={ESTADO_OPTIONS.map((estado) => ({ value: estado, label: ESTADO_LABELS[estado] ?? estado }))}
+                          placeholder="Todos los estados"
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   <DataTable<PagoRow>
