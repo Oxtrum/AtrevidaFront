@@ -18,7 +18,7 @@ import {
   getReservationDateRestriction,
   validateReservationForm,
 } from '@/lib/utils/reservationValidation';
-import { type SlotStatus, capacidadDeLocal, normalizarHoraSlot } from '@/lib/utils/hoursAvailability';
+import { type SlotStatus, capacidadDeLocal, estadoOcupaCapacidad, normalizarHoraSlot } from '@/lib/utils/hoursAvailability';
 import { HORAS, DIAS_SEMANA, SLOT_MIN, SLOTS_POR_HORA, calcularHoraFin, tiempoAMinutos, isSlotOutsideBusinessHours } from '@/lib/constants/reservationForm';
 import { iniciarSeleccion, modificarFin, puedeAjustarFin } from '@/lib/utils/slotRange';
 import { CATEGORIAS_ORDEN } from './constants';
@@ -276,6 +276,7 @@ export function useReservationForm(
 
       // Filtrar reservas para el día y tipo seleccionado
       const reservasDelDia = reservasData.data.reservas.filter((r: ReservaBD) => {
+        if (!estadoOcupaCapacidad(r.estado)) return false;
         const tipoReserva = r.tipo?.toLowerCase();
         const matchesTipo = tipo.toLowerCase() === 'm' 
           ? (tipoReserva === 'm' || tipoReserva === 'mesa')

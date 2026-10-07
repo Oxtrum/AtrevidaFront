@@ -9,6 +9,16 @@
  */
 export type SlotStatus = 'free' | 'occupied' | 'past' | 'closed';
 
+/**
+ * Solo los estados finales liberan capacidad. Los estados nulos o desconocidos
+ * se consideran ocupantes para mantener compatibilidad con registros legacy y
+ * evitar habilitar cupos por datos incompletos.
+ */
+export function estadoOcupaCapacidad(estado?: string | null): boolean {
+    const normalizado = estado?.trim().toUpperCase();
+    return normalizado !== 'RECHAZADO' && normalizado !== 'COMPLETADO';
+}
+
 /** Forma mínima del local que devuelve `/bd/locales` para calcular capacidad. */
 export interface LocalConEspacios {
     nombre: string;

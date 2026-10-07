@@ -17,7 +17,7 @@ import { TimeSlotPicker } from '@/components/AdminReservationForm/TimeSlotPicker
 import { ServiceSelect } from '@/components/AdminReservationForm/ServiceSelect';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
-import { type SlotStatus, capacidadDeLocal, normalizarHoraSlot } from '@/lib/utils/hoursAvailability';
+import { type SlotStatus, capacidadDeLocal, estadoOcupaCapacidad, normalizarHoraSlot } from '@/lib/utils/hoursAvailability';
 import { iniciarSeleccion, modificarFin, puedeAjustarFin } from '@/lib/utils/slotRange';
 import { PhoneInput } from '@/components/PhoneInput';
 import { phoneValueFrom } from '@/lib/utils/phone';
@@ -203,6 +203,7 @@ function EditarReservaContent() {
       // Filtrar reservas para el día y tipo, EXCLUYENDO la actual
       const reservasDelDia = reservasData.data.reservas.filter((r: ReservaBD) => {
         if (r.id === reserva.id) return false; // IGNORARSE A SÍ MISMO
+        if (!estadoOcupaCapacidad(r.estado)) return false;
         const tipoReserva = r.tipo?.toLowerCase();
         const matchesTipo = tipo.toLowerCase() === 'm' 
           ? (tipoReserva === 'm' || tipoReserva === 'mesa')
