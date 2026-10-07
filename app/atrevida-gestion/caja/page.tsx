@@ -22,7 +22,7 @@ import { toast } from '@/components/Shared/Toast';
 import { crearClienteDB, getClientesDB } from '@/lib/api/clientes';
 import type { ClientePG } from '@/lib/api/clientes';
 import { PhoneInput } from '@/components/PhoneInput';
-import { PagoDetalleCodeButton, PagoDetalleModal } from '@/components/Pagos/PagoDetalleModal';
+import { PagoDetalleCodeButton, PagoDetalleModal, PagoProductosCell } from '@/components/Pagos/PagoDetalleModal';
 import { crearPagoDB, getPagosDB } from '@/lib/api/pagos';
 import type { CrearPagoData, Pago } from '@/lib/api/pagos';
 import { prepararDetallePago, parsePrecioPago, subtotalDetallePago, type DetallePagoDraft } from '@/lib/utils/paymentDraft';
@@ -766,6 +766,19 @@ export default function CajaPage() {
     },
     { key: 'cliente_nombre', label: 'Cliente' },
     { key: 'cliente_nit', label: 'NIT', searchable: false },
+    {
+      key: 'primer_producto',
+      label: 'Servicios / productos',
+      searchable: false,
+      render: (value, row) => (
+        <PagoProductosCell
+          codigoPago={row.codigo_pago}
+          primerProducto={String(value ?? '')}
+          cantidadProductos={Number(row.cantidad_productos ?? 0)}
+          onOpen={setDetallePagoCodigo}
+        />
+      ),
+    },
     {
       key: 'tipo_pago',
       label: 'Tipo',

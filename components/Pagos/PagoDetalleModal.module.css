@@ -215,6 +215,49 @@
 .codeButton:hover,
 .codeButton:focus-visible { color: var(--admin-accent-primary); text-decoration-color: currentColor; outline: none; }
 
+.productSummary {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+  max-width: 240px;
+}
+
+.productName {
+  overflow: hidden;
+  color: var(--admin-foreground);
+  font-size: 0.8rem;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moreProductsButton {
+  flex: 0 0 auto;
+  min-width: 30px;
+  padding: 0.18rem 0.42rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-full);
+  background: var(--admin-pill-bg);
+  color: var(--admin-accent-primary);
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.moreProductsButton:hover,
+.moreProductsButton:focus-visible {
+  border-color: var(--admin-border-hover);
+  background: rgba(236, 0, 140, 0.1);
+  outline: none;
+}
+
+.emptyProduct {
+  color: var(--admin-text-dim);
+  font-size: 0.78rem;
+}
+
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideUp { from { opacity: 0; transform: translateY(12px) scale(0.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes spin { to { transform: rotate(360deg); } }

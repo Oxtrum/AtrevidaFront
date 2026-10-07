@@ -30,6 +30,8 @@ export interface Pago {
   local_nombre: string;
   cliente_nit: string;
   cliente_nombre: string;
+  primer_producto: string;
+  cantidad_productos: number;
   subtotal: number;
   descuento: number;
   total_final: number;
@@ -51,6 +53,7 @@ export interface GetPagosParams extends PaginationParams {
   local_nombre?: string;
   cliente_nit?: string;
   cliente_nombre?: string;
+  producto?: string;
   estado?: string;
   activo?: boolean;
 }
@@ -63,6 +66,7 @@ export interface PagosListResponse {
     local_nombre: string;
     cliente_nit: string;
     cliente_nombre: string;
+    producto: string;
     estado: string;
     activo: boolean;
   };
@@ -124,6 +128,7 @@ export async function getPagosDB(params?: GetPagosParams, signal?: AbortSignal):
       local_nombre: scopedParams.local_nombre,
       cliente_nit: scopedParams.cliente_nit,
       cliente_nombre: scopedParams.cliente_nombre,
+      producto: scopedParams.producto,
       estado: scopedParams.estado,
       activo: scopedParams.activo === undefined ? undefined : String(scopedParams.activo),
 	  limit: scopedParams.limit,

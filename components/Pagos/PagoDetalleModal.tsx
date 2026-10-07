@@ -24,6 +24,38 @@ export function PagoDetalleCodeButton({ codigoPago, onOpen }: { codigoPago: stri
   );
 }
 
+export function PagoProductosCell({
+  codigoPago,
+  primerProducto,
+  cantidadProductos,
+  onOpen,
+}: {
+  codigoPago: string;
+  primerProducto: string;
+  cantidadProductos: number;
+  onOpen: (codigo: string) => void;
+}) {
+  const adicionales = Math.max(0, cantidadProductos - 1);
+  if (!primerProducto) return <span className={styles.emptyProduct}>Sin detalle</span>;
+
+  return (
+    <div className={styles.productSummary} title={primerProducto}>
+      <span className={styles.productName}>{primerProducto}</span>
+      {adicionales > 0 && (
+        <button
+          type="button"
+          className={styles.moreProductsButton}
+          onClick={() => onOpen(codigoPago)}
+          aria-label={`Ver ${cantidadProductos} servicios/productos del pago ${codigoPago}`}
+          title="Ver detalle del pago"
+        >
+          +{adicionales}
+        </button>
+      )}
+    </div>
+  );
+}
+
 export function PagoDetalleModal({ codigoPago, onClose }: PagoDetalleModalProps) {
   const [pago, setPago] = useState<PagoCompleto | null>(null);
   const [loading, setLoading] = useState(true);
@@ -130,7 +162,7 @@ export function PagoDetalleModal({ codigoPago, onClose }: PagoDetalleModalProps)
               <div className={styles.sectionTitle}>
                 <ReceiptText size={17} strokeWidth={1.8} />
                 <div>
-                  <h3>Servicios y productos cobrados</h3>
+                  <h3>Servicios / productos cobrados</h3>
                   <p>{pago.detalle.length} {pago.detalle.length === 1 ? 'elemento registrado' : 'elementos registrados'}</p>
                 </div>
               </div>

@@ -121,6 +121,17 @@
   transition: border-color 0.2s ease;
 }
 
+.nitSearch {
+  flex: 0 1 14rem;
+  min-width: 11rem;
+  max-width: 14rem;
+}
+
+.productSearch {
+  min-width: 15rem;
+  max-width: 24rem;
+}
+
 .searchBar:focus-within {
   border-color: var(--admin-accent-primary);
 }
@@ -438,6 +449,13 @@
 
   .searchBar {
     max-width: 100%;
+  }
+
+  .nitSearch,
+  .productSearch {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
   }
 
   .statusFilter {

@@ -8,7 +8,7 @@ import Header from '@/components/AdminHeader/Header';
 import { PageHeader, DataTable, CursorPagination } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
-import { PagoDetalleCodeButton, PagoDetalleModal } from '@/components/Pagos/PagoDetalleModal';
+import { PagoDetalleCodeButton, PagoDetalleModal, PagoProductosCell } from '@/components/Pagos/PagoDetalleModal';
 import { getPagosDB } from '@/lib/api/pagos';
 import type { Pago } from '@/lib/api/pagos';
 import { canViewAdminPayments } from '@/lib/auth/adminSession';
@@ -29,6 +29,11 @@ const formatMoney = (value: unknown) => `Bs. ${Number(value ?? 0).toLocaleString
   maximumFractionDigits: 2,
 })}`;
 
+const filtroTextoActivo = (value: string) => {
+  const normalized = value.trim();
+  return normalized.length >= 2 ? normalized : '';
+};
+
 export default function PagosPage() {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -46,8 +51,13 @@ export default function PagosPage() {
   const [searchClienteDebounced, setSearchClienteDebounced] = useState('');
   const [searchNit, setSearchNit] = useState('');
   const [searchNitDebounced, setSearchNitDebounced] = useState('');
+  const [searchProducto, setSearchProducto] = useState('');
+  const [searchProductoDebounced, setSearchProductoDebounced] = useState('');
   const [filterEstado, setFilterEstado] = useState('PAGADO');
-	const filterKey = `${searchClienteDebounced}|${searchNitDebounced}|${filterEstado}`;
+	const clienteActivo = filtroTextoActivo(searchClienteDebounced);
+	const nitActivo = filtroTextoActivo(searchNitDebounced);
+	const productoActivo = filtroTextoActivo(searchProductoDebounced);
+	const filterKey = `${clienteActivo}|${nitActivo}|${productoActivo}|${filterEstado}`;
 	const pagination = useCursorPagination(filterKey);
 	const { cursor: paginationCursor, requestRevision, shouldIncludeTotal, setMetadata: setPaginationMetadata } = pagination;
 	const requestRef = useRef(0);
@@ -63,6 +73,11 @@ export default function PagosPage() {
     return () => clearTimeout(timer);
   }, [searchNit]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => setSearchProductoDebounced(searchProducto), 350);
+    return () => clearTimeout(timer);
+  }, [searchProducto]);
+
   const fetchData = useCallback(async () => {
     void requestRevision;
 	requestControllerRef.current?.abort();
@@ -73,8 +88,9 @@ export default function PagosPage() {
     setError(null);
     try {
       const res = await getPagosDB({
-        cliente_nombre: searchClienteDebounced || undefined,
-        cliente_nit: searchNitDebounced || undefined,
+        cliente_nombre: clienteActivo || undefined,
+        cliente_nit: nitActivo || undefined,
+        producto: productoActivo || undefined,
         estado: filterEstado || undefined,
         activo: true,
 		limit: PAGE_LIMIT,
@@ -92,7 +108,7 @@ export default function PagosPage() {
     } finally {
 	  if (requestId === requestRef.current) setLoading(false);
     }
-  }, [searchClienteDebounced, searchNitDebounced, filterEstado, paginationCursor, requestRevision, shouldIncludeTotal, setPaginationMetadata]);
+  }, [clienteActivo, nitActivo, productoActivo, filterEstado, paginationCursor, requestRevision, shouldIncludeTotal, setPaginationMetadata]);
 
 	useEffect(() => () => {
 		requestRef.current += 1;
@@ -139,6 +155,19 @@ export default function PagosPage() {
     { key: 'local_nombre', label: 'Local' },
     { key: 'cliente_nombre', label: 'Cliente' },
     { key: 'cliente_nit', label: 'NIT', searchable: false },
+    {
+      key: 'primer_producto',
+      label: 'Servicios / productos',
+      searchable: false,
+      render: (value, row) => (
+        <PagoProductosCell
+          codigoPago={row.codigo_pago}
+          primerProducto={String(value ?? '')}
+          cantidadProductos={Number(row.cantidad_productos ?? 0)}
+          onOpen={setDetallePagoCodigo}
+        />
+      ),
+    },
     {
       key: 'tipo_pago',
       label: 'Tipo',
@@ -218,13 +247,23 @@ export default function PagosPage() {
                     />
                   </div>
 
-                  <div className={styles.searchBar}>
+                  <div className={`${styles.searchBar} ${styles.nitSearch}`}>
                     <Search size={16} strokeWidth={1.8} className={styles.searchIcon} />
                     <input
                       type="text"
                       placeholder="Buscar por NIT..."
                       value={searchNit}
                       onChange={(e) => setSearchNit(e.target.value)}
+                    />
+                  </div>
+
+                  <div className={`${styles.searchBar} ${styles.productSearch}`}>
+                    <Search size={16} strokeWidth={1.8} className={styles.searchIcon} />
+                    <input
+                      type="text"
+                      placeholder="Buscar por servicio/producto..."
+                      value={searchProducto}
+                      onChange={(e) => setSearchProducto(e.target.value)}
                     />
                   </div>
 
