@@ -114,6 +114,32 @@ export default function CalendarGrid({
   // Usar horas fijas basadas en la constante HORAS
   const horasGrid = useMemo(() => obtenerHorasFijas(data), [data]);
 
+  // La API repite una reserva en cada bloque que ocupa y `hora_desde` cambia
+  // con cada bloque. Conservamos el primer inicio por ID para que el detalle
+  // siempre muestre el horario total, incluso al abrirlo desde una continuación.
+  const rangoRealPorReserva = useMemo(() => {
+    const resultado = new Map<number, { inicio: string; fin: string }>();
+    for (const horaObj of horasGrid) {
+      const inicioFila = horaObj.hora.split(' a ')[0] || '';
+      for (const dia of DIAS) {
+        for (const slot of horaObj.dias[dia] ?? []) {
+          const inicio = (slot.hora_desde || inicioFila).slice(0, 5);
+          const fin = (slot.reserva_hora_hasta || slot.hora_hasta || '').slice(0, 5);
+          if (slot.id == null || !inicio) continue;
+          const rango = resultado.get(slot.id);
+          if (!rango) {
+            resultado.set(slot.id, { inicio, fin });
+          } else if (fin) {
+            // La rejilla está ordenada; el último bloque aporta el fin real
+            // incluso si una respuesta antigua no incluye reserva_hora_hasta.
+            rango.fin = fin;
+          }
+        }
+      }
+    }
+    return resultado;
+  }, [horasGrid]);
+
   // Una reserva que dura más de un slot llega repetida en cada fila que ocupa,
   // siempre con el mismo `id`. Recorriendo las filas en orden cronológico, la
   // primera aparición de un id en cada día es la que dibuja la tarjeta; las
@@ -268,12 +294,18 @@ export default function CalendarGrid({
                 {(mobile ? diasVisibles : DIAS).map(dia => {
                   const fechaInfo = fechas?.get(dia);
                   const esPasado = fechaInfo?.esPasado || false;
+                  const slots = horaObj.dias[dia]?.map(slot => {
+                    const rango = slot.id != null ? rangoRealPorReserva.get(slot.id) : undefined;
+                    return rango
+                      ? { ...slot, reserva_hora_desde: rango.inicio, reserva_hora_hasta: rango.fin || slot.reserva_hora_hasta }
+                      : slot;
+                  });
 
                   return (
                     <TimeSlotComponent
                       key={`${rowIdx}-${dia}`}
                       dia={dia}
-                      slots={horaObj.dias[dia]}
+                      slots={slots}
                       hora={horaObj.hora}
                       fecha={fechaInfo?.fecha || new Date()}
                       onClick={() => handleSlotClick(horaObj.hora, dia, horaObj)}

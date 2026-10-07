@@ -204,7 +204,7 @@ export default function AdminReservasPage() {
       local: r.local ?? '',
       tipo: r.tipo ?? '',
       fecha: r.fecha ?? '',
-      hora_desde: (r.hora_desde ?? '').slice(0, 5),
+      hora_desde: (r.reserva_hora_desde ?? r.hora_desde ?? '').slice(0, 5),
       hora_hasta: (r.reserva_hora_hasta ?? r.hora_hasta ?? '').slice(0, 5),
       cliente: r.cliente ?? '',
       servicio: r.servicio ?? '',
