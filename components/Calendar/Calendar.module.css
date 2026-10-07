@@ -579,6 +579,30 @@ width: 100%;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
+.reservationCardContinuation {
+  padding-top: 0.28rem;
+  padding-bottom: 0.28rem;
+  border-style: dashed;
+  opacity: 0.82;
+  box-shadow: none;
+}
+
+.reservationCardContinuation::before {
+  width: 2px;
+  opacity: 0.55;
+}
+
+.reservationCardContinuation:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28);
+  opacity: 0.96;
+}
+
+.reservationCardContinuation:focus-visible {
+  outline: 2px solid #EC008C;
+  outline-offset: 2px;
+}
+
 /* ─── Card text — overflow fixes ───────────────────────────────────────────── */
 
 .reservationCliente {
@@ -803,6 +827,11 @@ width: 100%;
     padding: 0.35rem 0.5rem 0.35rem 0.68rem;
   }
 
+  .reservationCardContinuation {
+    padding-top: 0.22rem;
+    padding-bottom: 0.22rem;
+  }
+
   .reservationCliente {
     font-size: 0.65rem;
   }
@@ -865,4 +894,16 @@ width: 100%;
   border: 1px solid rgba(20, 174, 239, 0.4);
   color: #14AEEF;
   white-space: nowrap;
+}
+
+.reservationContinuation {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: rgba(245, 245, 245, 0.55);
+  font-size: 0.56rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }

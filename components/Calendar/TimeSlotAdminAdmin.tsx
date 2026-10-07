@@ -2,6 +2,7 @@
 
 import { DiaSemana, ReservaDetalle, getTipoColor2, getTipoLabel } from '@/types/reserva';
 import { extraerNombreServicio, esHoraDisponible } from '@/lib/utils/calendarHelpers';
+import { separarSlotsContinuacion } from '@/lib/utils/calendarSlots';
 import styles from './CalendarAdmin.module.css';
 import { SlotBadges } from './SlotBadges';
 
@@ -38,12 +39,10 @@ export default function TimeSlotAdmin({
   const slotsOcupados = slots?.filter(s => s.cliente && s.cliente.trim() !== '') || [];
   const slotsLibres = slots?.filter(s => !s.cliente || s.cliente.trim() === '') || [];
 
-  // Solo la fila donde empieza la reserva dibuja su tarjeta. `slotsOcupados` y
-  // `slotsLibres` no se tocan: la capacidad, los badges y el "no hay lugar acá"
-  // se siguen calculando sobre todas las filas que la reserva ocupa.
-  const slotsConTarjeta = idsContinuacion?.size
-    ? slotsOcupados.filter(s => s.id == null || !idsContinuacion.has(s.id))
-    : slotsOcupados;
+  // Separar la primera aparición de sus continuaciones. La ocupación y los
+  // badges siguen usando todos los slots, incluidos los de continuación.
+  const { iniciales: slotsConTarjeta, continuaciones: slotsContinuacion } =
+    separarSlotsContinuacion(slotsOcupados, idsContinuacion);
 
   // Clickeable SOLO si hay slots libres disponibles y no es pasado
   const esClickeable = !esPasado && esHoraDisponible(fecha) && slotsLibres.length > 0;
@@ -83,16 +82,15 @@ export default function TimeSlotAdmin({
         ${hayDisponibilidad ? styles.timeSlotLibre : styles.timeSlotReservado}
         ${esPasado ? styles.timeSlotPasado : ''}
       `}
+      data-continuation-count={slotsContinuacion.length || undefined}
       onClick={handleClick}
       role={esClickeable ? 'button' : undefined}
       tabIndex={esClickeable ? 0 : undefined}
       title={esClickeable ? 'Hacer clic para crear reserva' : slotsOcupados.length > 0 ? 'Reservas (no hay disponibilidad)' : ''}
     >
       <div className={styles.timeSlotContent}>
-        {/* La rama la sigue eligiendo `slotsOcupados` (ocupación real), no
-            `slotsConTarjeta`: así los badges y el placeholder de slot libre se
-            comportan igual que antes. Lo único que cambia es la lista de
-            tarjetas, que en una fila de continuación queda vacía. */}
+        {/* La rama sigue dependiendo de `slotsOcupados` (ocupación real), no
+            del número de tarjetas iniciales. */}
         {slotsOcupados.length > 0 ? (
           // Mostrar reservas ocupadas
           <div className={styles.reservationList}>
@@ -132,6 +130,44 @@ export default function TimeSlotAdmin({
                 </div>
               );
               });
+            })}
+            {slotsContinuacion.map((slot, idx) => {
+              const tipoRaw = slot.tipo?.toLowerCase() || 'm';
+              const tipo = tipoRaw.includes('b') ? 'b' : 'm';
+              const colors = getTipoColor2(tipo);
+              const clickable = onReservaClick && slot.id != null;
+              // `hora_hasta` es el fin del bloque de 30 minutos, no el fin
+              // total de la reserva. Para no mostrar una duración incorrecta
+              // en cada continuación, usamos exclusivamente el campo real.
+              const horaFinReal = slot.reserva_hora_hasta || '';
+              const textoContinuacion = horaFinReal
+                ? `Continúa hasta ${horaFinReal}`
+                : 'Continúa en este bloque';
+
+              return (
+                <div
+                  key={`continuacion-${tipo}-${slot.id ?? idx}`}
+                  className={`${styles.reservationCard} ${styles.reservationCardContinuation}`}
+                  style={{
+                    background: colors.bg,
+                    borderColor: colors.border,
+                    cursor: clickable ? 'pointer' : undefined,
+                  }}
+                  onClick={clickable ? (e) => { e.stopPropagation(); onReservaClick!(slot); } : undefined}
+                  role={clickable ? 'button' : undefined}
+                  tabIndex={clickable ? 0 : undefined}
+                  aria-label={clickable ? `Ver detalle de ${slot.cliente || 'reserva'}. ${textoContinuacion}` : undefined}
+                  title={clickable ? 'Ver detalle de la reserva que continúa' : undefined}
+                >
+                  <span className={styles.reservationCliente} style={{ color: colors.accent }}>
+                    {slot.cliente || 'Reserva en curso'}
+                  </span>
+                  <span className={styles.reservationContinuation}>{textoContinuacion}</span>
+                  <span className={styles.reservationTipo} style={{ color: colors.accent }}>
+                    {getTipoLabel(tipo)}
+                  </span>
+                </div>
+              );
             })}
             {hayDisponibilidad && (
               <SlotBadges mesas={mesasLibres} bicicletas={bicicletasLibres} slots={slots} />

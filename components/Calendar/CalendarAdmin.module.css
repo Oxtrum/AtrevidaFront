@@ -428,6 +428,30 @@
   box-shadow: var(--admin-shadow-sm);
 }
 
+.reservationCardContinuation {
+  padding-top: 0.28rem;
+  padding-bottom: 0.28rem;
+  border-style: dashed;
+  opacity: 0.82;
+  box-shadow: none;
+}
+
+.reservationCardContinuation::before {
+  width: 2px;
+  opacity: 0.55;
+}
+
+.reservationCardContinuation:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--admin-shadow-xs);
+  opacity: 0.96;
+}
+
+.reservationCardContinuation:focus-visible {
+  outline: 2px solid var(--admin-accent-primary);
+  outline-offset: 2px;
+}
+
 .reservationCliente,
 .reservationServicio,
 .reservationTipo {
@@ -437,6 +461,18 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.reservationContinuation {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--admin-text-dim);
+  font-size: 0.56rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .reservationCliente {
