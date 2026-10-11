@@ -254,6 +254,7 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
                 hoursAvailability={hoursAvailability}
                 onSelect={handleSlotSelect}
                 esperandoAjuste={esperandoAjuste}
+                permitirSolicitudSinCupo={!agendarDirecto}
               />
             )}
           </div>

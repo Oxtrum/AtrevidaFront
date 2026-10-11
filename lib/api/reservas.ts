@@ -115,7 +115,8 @@ export interface CrearReservaDBData {
  * PATCH /bd/reservas — sólo se envían los campos que cambian; el backend
  * localiza la reserva por id + local. Editable en estado PENDIENTE, RECHAZADO
  * y AGENDADO; una reserva COMPLETADO responde 409.
- * No cambia `estado` — para eso está `actualizarEstadoReservaDB`.
+ * Puede confirmar de forma atómica con `nuevo_estado: 'AGENDADO'`; otros
+ * cambios de estado siguen usando `actualizarEstadoReservaDB`.
  */
 export interface ActualizarReservaDBData {
   id: number;
@@ -140,6 +141,8 @@ export interface ActualizarReservaDBData {
   nuevo_plan_id?: number;
   /** Desvincula la reserva de su plan actual; tiene prioridad sobre `nuevo_plan_id`. */
   limpiar_plan_id?: boolean;
+  /** Confirma dentro de la misma transacción que los demás cambios enviados. */
+  nuevo_estado?: Extract<EstadoReserva, 'AGENDADO'>;
 }
 
 export interface ActualizarEstadoReservaDBData {

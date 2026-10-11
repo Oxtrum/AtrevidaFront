@@ -1431,6 +1431,15 @@
   opacity: 0.7;
 }
 
+.timeChipRequestable {
+  cursor: pointer !important;
+  text-decoration: none !important;
+}
+
+.timeChipRequestable:hover {
+  border-color: rgba(20, 174, 239, 0.8) !important;
+}
+
 .timeChipReserved {
   border-color: rgba(236, 0, 140, 0.30) !important;
   background: rgba(236, 0, 140, 0.12) !important;

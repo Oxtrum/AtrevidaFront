@@ -476,7 +476,12 @@ export function useReservationForm(
    */
   const handleSlotSelect = (hora: string) => {
     const fechaDia = fecha ? new Date(`${fecha}T00:00:00`) : new Date();
-    const esSlotLibre = (h: string) => (hoursAvailability.get(h) ?? 'free') === 'free';
+    const esSlotLibre = (h: string) => {
+      const estado = hoursAvailability.get(h) ?? 'free';
+      // El flujo público siempre crea PENDIENTE: se puede solicitar el horario,
+      // aunque el backend no lo confirmará mientras no tenga capacidad.
+      return estado === 'free' || estado === 'occupied';
+    };
     const ajustando = esperandoAjuste && puedeAjustarFin(hora, horaDesde, horaHasta);
 
     const { desde, hasta } = ajustando

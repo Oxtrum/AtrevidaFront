@@ -190,6 +190,7 @@ export default function ReservationForm({ initialData, onSuccess, onCancel }: Re
                 hoursAvailability={hoursAvailability}
                 onSelect={handleSlotSelect}
                 esperandoAjuste={esperandoAjuste}
+                permitirSolicitudSinCupo
               />
             )}
           </div>

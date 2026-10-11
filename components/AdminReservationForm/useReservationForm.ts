@@ -424,7 +424,10 @@ export function useReservationForm(
    */
   const handleSlotSelect = (hora: string) => {
     const fechaDia = fechasSemana?.get(dia)?.fecha ?? new Date();
-    const esSlotLibre = (h: string) => (hoursAvailability.get(h) ?? 'free') === 'free';
+    const esSlotLibre = (h: string) => {
+      const estado = hoursAvailability.get(h) ?? 'free';
+      return estado === 'free' || (!agendarDirecto && estado === 'occupied');
+    };
     const ajustando = esperandoAjuste && puedeAjustarFin(hora, horaDesde, horaHasta);
 
     const { desde, hasta } = ajustando

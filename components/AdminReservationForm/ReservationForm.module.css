@@ -279,6 +279,11 @@
   opacity: 0.75;
 }
 
+.timeChipRequestable {
+  cursor: pointer !important;
+  text-decoration: none;
+}
+
 /* Pasado */
 .timeChipPast {
   background: rgba(255, 255, 255, 0.04) !important;

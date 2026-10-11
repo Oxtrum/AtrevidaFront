@@ -394,7 +394,10 @@ function EditarReservaContent() {
    */
   const handleSlotSelect = (hora: string) => {
     const fechaDia = nuevaFecha ? new Date(`${nuevaFecha}T00:00:00`) : new Date();
-    const esSlotLibre = (h: string) => (hoursAvailability.get(h) ?? 'free') === 'free';
+    const esSlotLibre = (h: string) => {
+      const estado = hoursAvailability.get(h) ?? 'free';
+      return estado === 'free' || (nuevoEstado !== 'AGENDADO' && estado === 'occupied');
+    };
     const ajustando = esperandoAjuste && puedeAjustarFin(hora, nuevaHoraDesde, nuevaHoraHasta);
 
     const { desde, hasta } = ajustando
@@ -470,8 +473,8 @@ function EditarReservaContent() {
       const servicioInfo = serviciosDisponibles.find(s => s.nombre === nuevoServicio);
       const tipoDeServicio = servicioInfo?.tipoEspacio === 'B' ? 'B' : 'M';
 
-      // Estado first — if transition is invalid, nothing gets changed
-      if (estadoChanged) {
+      const actualizarEstado = async () => {
+        if (!estadoChanged) return;
         await actualizarEstadoReservaDB({
           id: reserva.id,
           estado: nuevoEstado,
@@ -483,9 +486,10 @@ function EditarReservaContent() {
               : (reserva.tipo === 'M' || reserva.tipo === 'B' ? reserva.tipo : 'M')) as 'M' | 'B',
           }),
         });
-      }
+      };
 
-      if (reservaChanged) {
+      const actualizarCamposReserva = async () => {
+        if (!reservaChanged && !(estadoChanged && nuevoEstado === 'AGENDADO')) return;
         await actualizarReservaDB({
           id: reserva.id,
           local: reserva.local,
@@ -509,7 +513,19 @@ function EditarReservaContent() {
           ...(planChanged && (nuevoPlanId === SIN_PAQUETE
             ? { limpiar_plan_id: true }
             : { nuevo_plan_id: Number(nuevoPlanId) })),
+          ...(estadoChanged && nuevoEstado === 'AGENDADO' && { nuevo_estado: 'AGENDADO' as const }),
         });
+      };
+
+      // La confirmación y los cambios de horario se guardan en un solo PATCH
+      // para que un 409 no deje la reserva parcialmente reprogramada.
+      // Al pasar a un estado no ocupante, primero liberamos capacidad y luego
+      // permitimos guardar la reprogramación sin reservar ese espacio.
+      if (nuevoEstado === 'AGENDADO') {
+        await actualizarCamposReserva();
+      } else {
+        await actualizarEstado();
+        await actualizarCamposReserva();
       }
 
       setReserva(prev => prev ? {
@@ -648,6 +664,7 @@ function EditarReservaContent() {
               hoursAvailability={hoursAvailability}
               onSelect={handleSlotSelect}
               esperandoAjuste={esperandoAjuste}
+              permitirSolicitudSinCupo={nuevoEstado !== 'AGENDADO'}
             />
             {slotWarning && (
               <p className={styles.fieldHint}>{slotWarning}</p>
