@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { CalendarDays } from 'lucide-react';
 import { CustomSelect } from '../Custom/CustomSelect';
 import { TimeSlotPicker } from './TimeSlotPicker';
+import { WeekNavigator } from './WeekNavigator';
 import { ServiceSelect } from './ServiceSelect';
 import { useReservationForm, type ReservationFormInitialData } from './useReservationForm';
 import { PhoneInput } from '@/components/PhoneInput';
@@ -44,6 +45,9 @@ export default function ReservationForm({ initialData, onSuccess, onCancel }: Re
     isSundaySelected,
     handleServicioChange,
     handleFechaChange,
+    vistaSemana, setVistaSemana,
+    semanaVisible,
+    handleSemanaNav,
     handleSlotSelect,
     handleSubmit,
     setTurnstileToken,
@@ -118,6 +122,24 @@ export default function ReservationForm({ initialData, onSuccess, onCancel }: Re
               </button>
             </div>
             {errors.fecha && <span className={styles.errorText}>{errors.fecha}</span>}
+            <button
+              type="button"
+              className={styles.dateModeToggle}
+              onClick={() => setVistaSemana(v => !v)}
+              aria-expanded={vistaSemana}
+            >
+              {vistaSemana ? 'Ocultar semana' : 'Ver semana'}
+            </button>
+            {vistaSemana && semanaVisible && (
+              <WeekNavigator
+                titulo={semanaVisible.titulo}
+                dias={semanaVisible.dias}
+                puedeRetroceder={semanaVisible.puedeRetroceder}
+                onPrev={() => handleSemanaNav(-1)}
+                onNext={() => handleSemanaNav(1)}
+                onSelect={handleFechaChange}
+              />
+            )}
           </div>
 
           {/* Servicio */}
@@ -190,6 +212,7 @@ export default function ReservationForm({ initialData, onSuccess, onCancel }: Re
                 hoursAvailability={hoursAvailability}
                 onSelect={handleSlotSelect}
                 esperandoAjuste={esperandoAjuste}
+                permitirSolicitudSinCupo
               />
             )}
           </div>

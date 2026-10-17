@@ -1431,6 +1431,15 @@
   opacity: 0.7;
 }
 
+.timeChipRequestable {
+  cursor: pointer !important;
+  text-decoration: none !important;
+}
+
+.timeChipRequestable:hover {
+  border-color: rgba(20, 174, 239, 0.8) !important;
+}
+
 .timeChipReserved {
   border-color: rgba(236, 0, 140, 0.30) !important;
   background: rgba(236, 0, 140, 0.12) !important;
@@ -1701,4 +1710,78 @@
   font-size: 0.72rem;
   line-height: 1.45;
   color: rgba(245, 245, 245, 0.45);
+}
+
+/* ─── Week Navigator ──────────────────────────────────────────── */
+
+.dateModeToggle {
+  align-self: flex-start;
+  padding: 0.2rem 0.5rem;
+  background: none;
+  border: 0;
+  color: rgba(245, 245, 245, 0.65);
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: color 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dateModeToggle:hover {
+  color: #EC008C;
+}
+
+.weekNav {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.weekNavHeader {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.weekNavTitle {
+  text-align: center;
+  color: #F5F5F5;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.weekNavArrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: #F5F5F5;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(146, 39, 143, 0.35);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.weekNavArrow:hover:not(:disabled) {
+  color: #EC008C;
+  background: rgba(236, 0, 140, 0.08);
+  border-color: rgba(236, 0, 140, 0.55);
+}
+
+.weekNavArrow:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.weekNavArrow:focus-visible,
+.dateModeToggle:focus-visible {
+  outline: 2px solid #14AEEF;
+  outline-offset: 2px;
 }

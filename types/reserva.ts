@@ -319,7 +319,10 @@ export function esFechaPasada(fecha: Date): boolean {
   return fechaComparar < hoy;
 }
 
-export function generarSemanas(cantidad: number = 6): { valor: string; titulo: string; fechaInicio: Date }[] {
+/** Semanas reservables hacia adelante (10 años). Antes eran 6 y luego 104: ambos bloqueaban fechas lejanas. */
+export const SEMANAS_RESERVABLES = 520;
+
+export function generarSemanas(cantidad: number = SEMANAS_RESERVABLES): { valor: string; titulo: string; fechaInicio: Date }[] {
   const semanas: { valor: string; titulo: string; fechaInicio: Date }[] = [];
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);

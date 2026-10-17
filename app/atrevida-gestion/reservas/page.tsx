@@ -97,11 +97,11 @@ export default function AdminReservasPage() {
   }, [busqueda]);
 
   // Fechas de la semana que muestra el calendario. Se derivan igual que en
-  // CalendarAdmin (generarSemanas(6) + getFechasDeSemana), y `semanaActiva` se
+  // CalendarAdmin (generarSemanas() + getFechasDeSemana), y `semanaActiva` se
   // mantiene sincronizada vía onSemanaChange. Sirven para recortar la hora de
   // fin al cierre del local al prellenar el formulario de creación.
   const fechasCalendario = useMemo(() => {
-    const semanas = generarSemanas(6);
+    const semanas = generarSemanas();
     const idx = Number(semanaActiva);
     const semana = semanas[Number.isFinite(idx) ? idx : 0] ?? semanas[0];
     return semana ? getFechasDeSemana(semana.fechaInicio) : null;
@@ -228,9 +228,48 @@ export default function AdminReservasPage() {
   );
 
   const semanaOptions = useMemo(
-    () => generarSemanas(6).map((semana, idx) => ({ value: String(idx), label: semana.titulo })),
+    () => generarSemanas().map((semana, idx) => {
+      const sabado = new Date(semana.fechaInicio);
+      sabado.setDate(sabado.getDate() + 5);
+      return { value: String(idx), label: `${semana.titulo} DE ${sabado.getFullYear()}` };
+    }),
     []
   );
+
+  // Calendario de fechas: resalta el lunes de la semana activa y salta de semana al elegir.
+  const semanaFechaISO = useMemo(() => {
+    const semana = generarSemanas()[Number(semanaActiva)];
+    return semana ? semana.fechaInicio.toLocaleDateString('en-CA') : '';
+  }, [semanaActiva]);
+
+  const rangoFechas = useMemo(() => {
+    const semanas = generarSemanas();
+    const primera = semanas[0]?.fechaInicio;
+    const ultima = semanas[semanas.length - 1]?.fechaInicio;
+    if (!primera || !ultima) return { min: '', max: '' };
+    const fin = new Date(ultima);
+    fin.setDate(fin.getDate() + 5);
+    return { min: primera.toLocaleDateString('en-CA'), max: fin.toLocaleDateString('en-CA') };
+  }, []);
+
+  const handleFechaSelect = (iso: string) => {
+    const d = new Date(`${iso}T00:00:00`);
+    if (d.getDay() === 0) return; // domingos sin atención
+    const idx = generarSemanas().findIndex(s => {
+      const ini = new Date(s.fechaInicio);
+      ini.setHours(0, 0, 0, 0);
+      const fin = new Date(ini);
+      fin.setDate(fin.getDate() + 5);
+      return d >= ini && d <= fin;
+    });
+    if (idx < 0) return;
+    setSemanaActiva(String(idx));
+    // En la lista, la fecha elegida acota el rango a ese día.
+    if (vistaActiva === 'lista') {
+      setFiltroFechaDesde(iso);
+      setFiltroFechaHasta(iso);
+    }
+  };
 
   const tipoOptions: Array<{ value: ReservaTipoBackend | ''; label: string }> = [
     { value: '', label: 'Todos' },
@@ -391,6 +430,10 @@ export default function AdminReservasPage() {
             semanaIndex={Number(semanaActiva)}
             semanaOptions={semanaOptions}
             onSemanaChange={handleSemanaChange}
+            fechaISO={semanaFechaISO}
+            minISO={rangoFechas.min}
+            maxISO={rangoFechas.max}
+            onFechaSelect={handleFechaSelect}
             filtros={
               <>
                 <div className={styles.filtroGroup}>

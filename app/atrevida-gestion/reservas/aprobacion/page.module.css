@@ -419,6 +419,17 @@
   border: 1px solid rgba(255, 77, 109, 0.22);
 }
 
+.approvalError {
+  margin: 0 clamp(1rem, 3vw, 1.35rem) 1rem;
+  align-items: flex-start;
+  line-height: 1.45;
+}
+
+.approvalError svg {
+  flex: 0 0 auto;
+  margin-top: 0.08rem;
+}
+
 .updatingPill {
   display: inline-flex;
   align-items: center;

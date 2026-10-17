@@ -12,6 +12,8 @@ interface TimeSlotPickerProps {
   onSelect: (desde: string) => void;
   /** `true` si el próximo toque ajusta la duración; `false` si elige un nuevo inicio. */
   esperandoAjuste?: boolean;
+  /** Permite elegir horas llenas cuando el formulario crea una solicitud pendiente. */
+  permitirSolicitudSinCupo?: boolean;
 }
 
 export function TimeSlotPicker({
@@ -20,13 +22,14 @@ export function TimeSlotPicker({
   hoursAvailability,
   onSelect,
   esperandoAjuste = false,
+  permitirSolicitudSinCupo = false,
 }: TimeSlotPickerProps) {
 
   const handleClick = (hora: string) => {
     const status = hoursAvailability.get(hora);
 
-    // No permitir seleccionar horas pasadas, ocupadas o fuera de atención
-    if (status === 'past' || status === 'occupied' || status === 'closed') return;
+    // Las solicitudes pendientes no reservan cupo; pueden pedir un horario lleno.
+    if (status === 'past' || (status === 'occupied' && !permitirSolicitudSinCupo) || status === 'closed') return;
 
     // El hook arma el rango en un ciclo de 2 clicks: el de inicio (toma la
     // duración del servicio) y el de ajuste (recorta o estira el fin). El
@@ -74,7 +77,7 @@ export function TimeSlotPicker({
             className={styles.legendDot}
             style={{ background: 'rgba(120,120,130,0.35)', border: '1px solid rgba(150,150,160,0.5)' }}
           />
-          Sin espacios
+          {permitirSolicitudSinCupo ? 'Sin espacios (solicitud pendiente)' : 'Sin espacios'}
         </span>
         <span>
           <span
@@ -112,6 +115,7 @@ export function TimeSlotPicker({
                 styles.timeChip,
                 isPast ? styles.timeChipPast : '',
                 isOccupied ? styles.timeChipOccupied : '',
+                isOccupied && permitirSolicitudSinCupo ? styles.timeChipRequestable : '',
                 isClosed ? styles.timeChipClosed : '',
                 inRange ? styles.timeChipSelected : '',
                 isStart ? styles.timeChipStart : '',
@@ -119,10 +123,12 @@ export function TimeSlotPicker({
                 isBoundary ? styles.timeChipBoundary : '',
               ].filter(Boolean).join(' ')}
               onClick={() => handleClick(hora)}
-              disabled={isPast || isOccupied || isClosed}
+              disabled={isPast || (isOccupied && !permitirSolicitudSinCupo) || isClosed}
               title={
                 isPast ? `${hora} — Pasado`
-                  : isOccupied ? `${hora} — Sin ambientes libres a esta hora`
+                  : isOccupied ? permitirSolicitudSinCupo
+                    ? `${hora} — Sin ambientes libres; puedes solicitarlo pendiente`
+                    : `${hora} — Sin ambientes libres a esta hora`
                     : isClosed ? `${hora} — No atiende`
                       : isBoundary ? `${hora} — Fin de la reserva${esperandoAjuste ? ' (toca para incluir este bloque)' : ''}`
                         : isEnd ? `${hora} — Último bloque incluido`

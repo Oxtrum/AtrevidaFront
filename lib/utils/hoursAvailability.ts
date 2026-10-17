@@ -10,13 +10,12 @@
 export type SlotStatus = 'free' | 'occupied' | 'past' | 'closed';
 
 /**
- * Solo los estados finales liberan capacidad. Los estados nulos o desconocidos
- * se consideran ocupantes para mantener compatibilidad con registros legacy y
- * evitar habilitar cupos por datos incompletos.
+ * Solo una reserva confirmada consume capacidad. Las reservas pendientes,
+ * rechazadas, completadas y los estados nulos/desconocidos no bloquean cupos.
  */
 export function estadoOcupaCapacidad(estado?: string | null): boolean {
     const normalizado = estado?.trim().toUpperCase();
-    return normalizado !== 'RECHAZADO' && normalizado !== 'COMPLETADO';
+    return normalizado === 'AGENDADO';
 }
 
 /** Forma mínima del local que devuelve `/bd/locales` para calcular capacidad. */

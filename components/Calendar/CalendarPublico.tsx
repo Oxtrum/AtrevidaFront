@@ -41,7 +41,7 @@ export default function CalendarPublico({
   const gridRef = useRef<HTMLDivElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const semanasDisponibles = useMemo(() => generarSemanas(6), []);
+  const semanasDisponibles = useMemo(() => generarSemanas(), []);
   const semanaActual = semanasDisponibles[semanaIndex];
   const fechas = useMemo(() => (semanaActual ? getFechasDeSemana(semanaActual.fechaInicio) : null), [semanaActual]);
 

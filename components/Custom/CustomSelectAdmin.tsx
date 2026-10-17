@@ -23,6 +23,10 @@ interface CustomSelectProps {
   hasError?: boolean;
   id?: string;
   ariaLabelledBy?: string;
+  /** false oculta el buscador aunque haya muchas opciones (p. ej. lista de semanas). */
+  searchable?: boolean;
+  /** false oculta la opción del placeholder ("vaciar selección") en la lista. */
+  allowClear?: boolean;
 }
 
 export function CustomSelect({
@@ -34,6 +38,8 @@ export function CustomSelect({
   hasError,
   id,
   ariaLabelledBy,
+  searchable = true,
+  allowClear = true,
 }: CustomSelectProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -153,6 +159,7 @@ export function CustomSelect({
     options, groups, value, open,
     onSelect: handleSelect,
     onClose: () => setOpen(false),
+    threshold: searchable ? undefined : Number.POSITIVE_INFINITY,
   });
 
   const renderOption = (opt: RenderOption) => (
@@ -202,7 +209,7 @@ export function CustomSelect({
           </div>
         )}
 
-        {placeholder && !query && (
+        {placeholder && allowClear && !query && (
           <div
             className={`${styles.selectOption} ${!value ? styles.selectOptionActive : ''}`}
             onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); handleSelect(''); }}

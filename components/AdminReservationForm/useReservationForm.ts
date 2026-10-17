@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   DiaSemana, SUCURSALES,
@@ -149,7 +149,7 @@ export function useReservationForm(
   }, [scopedLocalName]);
 
   // ── Semanas ────────────────────────────────────
-  const semanasDisponibles = useMemo(() => generarSemanas(6), []);
+  const semanasDisponibles = useMemo(() => generarSemanas(), []);
   const semanaActual = semanasDisponibles[semanaIndex] || semanasDisponibles[0];
   const fechasSemana = useMemo(
     () => {
@@ -166,7 +166,13 @@ export function useReservationForm(
   }, [servicio, serviciosAPI]);
 
   // Auto-select first non-past day on mount (default 'LUNES' may be in the past mid-week)
+  // Si el día vino de una fecha elegida en el calendario, se respeta (no se pisa).
+  const respetarDiaRef = useRef(false);
   useEffect(() => {
+    if (respetarDiaRef.current) {
+      respetarDiaRef.current = false;
+      return;
+    }
     if (!initialData?.dia && fechasSemana) {
       for (const [d, info] of fechasSemana) {
         if (!info.esPasado) { setDia(d); break; }
@@ -341,10 +347,14 @@ export function useReservationForm(
   );
 
   // ── Select options ─────────────────────────────────────
-  const semanaOptions = semanasDisponibles.map((s, idx) => ({
-    value: String(idx),
-    label: s.titulo,
-  }));
+  const semanaOptions = semanasDisponibles.map((s, idx) => {
+    const sabado = new Date(s.fechaInicio);
+    sabado.setDate(sabado.getDate() + 5);
+    return {
+      value: String(idx),
+      label: `${s.titulo} DE ${sabado.getFullYear()}`,
+    };
+  });
   const servicioGroups = useMemo(() => {
     const byCategory = new Map<string, Array<{ value: string; label: string }>>();
     for (const s of serviciosAPI) {
@@ -393,6 +403,43 @@ export function useReservationForm(
     setSlotWarning(null);
   };
 
+  /** Fecha ISO (YYYY-MM-DD) del día seleccionado en la semana visible. */
+  const fechaSeleccionadaISO = fechasSemana?.get(dia)?.fecha.toLocaleDateString('en-CA') ?? '';
+
+  /** Rango de fechas alcanzables con el selector de semanas. */
+  const rangoFechas = useMemo(() => {
+    const primera = semanasDisponibles[0]?.fechaInicio;
+    const ultima = semanasDisponibles[semanasDisponibles.length - 1]?.fechaInicio;
+    if (!primera || !ultima) return { min: '', max: '' };
+    const fin = new Date(ultima);
+    fin.setDate(fin.getDate() + 5);
+    return { min: primera.toLocaleDateString('en-CA'), max: fin.toLocaleDateString('en-CA') };
+  }, [semanasDisponibles]);
+
+  /** Salta a la semana y día de una fecha concreta (viene del calendario). */
+  const handleFechaSelect = (iso: string) => {
+    const d = new Date(`${iso}T00:00:00`);
+    const dow = d.getDay();
+    if (dow === 0) return; // domingos sin atención
+    const idx = semanasDisponibles.findIndex(s => {
+      const ini = new Date(s.fechaInicio);
+      ini.setHours(0, 0, 0, 0);
+      const fin = new Date(ini);
+      fin.setDate(fin.getDate() + 5);
+      return d >= ini && d <= fin;
+    });
+    if (idx < 0) return;
+    const dias: DiaSemana[] = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
+    // Cambiar de semana dispara el efecto de autoselección: que no pise este día.
+    respetarDiaRef.current = idx !== semanaIndex;
+    setSemanaIndex(idx);
+    setDia(dias[dow - 1]);
+    setHoraDesde('');
+    setHoraHasta('');
+    setEsperandoAjuste(false);
+    setSlotWarning(null);
+  };
+
   const handleServicioChange = (value: string) => {
     setServicio(value);
     if (horaDesde) {
@@ -424,7 +471,10 @@ export function useReservationForm(
    */
   const handleSlotSelect = (hora: string) => {
     const fechaDia = fechasSemana?.get(dia)?.fecha ?? new Date();
-    const esSlotLibre = (h: string) => (hoursAvailability.get(h) ?? 'free') === 'free';
+    const esSlotLibre = (h: string) => {
+      const estado = hoursAvailability.get(h) ?? 'free';
+      return estado === 'free' || (!agendarDirecto && estado === 'occupied');
+    };
     const ajustando = esperandoAjuste && puedeAjustarFin(hora, horaDesde, horaHasta);
 
     const { desde, hasta } = ajustando
@@ -610,6 +660,9 @@ export function useReservationForm(
     servicioGroups,
     // Handlers
     handleSemanaChange,
+    handleFechaSelect,
+    fechaSeleccionadaISO,
+    rangoFechas,
     handleServicioChange,
     handleDiaChange,
     handleSlotSelect,
