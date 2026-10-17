@@ -29,8 +29,8 @@
   border-color: var(--af-accent-primary);
   background: var(--af-input-bg-foc);
   box-shadow:
-    0 0 0 3px rgba(220, 38, 38, 0.1),
-    0 0 50px rgba(220, 38, 38, 0.2);
+    0 0 0 3px rgba(236, 0, 140, 0.1),
+    0 0 50px rgba(236, 0, 140, 0.2);
   border-radius: var(--af-input-radius);
 }
 
@@ -162,7 +162,7 @@
 }
 
 .selectOptionHighlight {
-  background: rgba(20, 174, 239, 0.14);
+  background: rgba(236, 0, 140, 0.10);
   color: #f5f5f5;
 }
 
@@ -224,8 +224,8 @@
   background: var(--af-input-bg-foc);
   border-radius: var(--af-input-radius);
   box-shadow:
-    0 0 0 3px rgba(220, 38, 38, 0.1),
-    0 0 50px rgba(220, 38, 38, 0.2);
+    0 0 0 3px rgba(236, 0, 140, 0.1),
+    0 0 50px rgba(236, 0, 140, 0.2);
 }
 
 .selectDropdown {
@@ -239,12 +239,18 @@
 }
 
 .selectGroup {
-  color: #f87171;
+  color: #EC008C;
   background: rgba(255, 255, 255, 0.035);
 }
 
 .selectOption:hover,
 .selectOptionActive {
-  background: rgba(220, 38, 38, 0.12) !important;
-  color: #fca5a5 !important;
+  background: rgba(236, 0, 140, 0.12) !important;
+  color: #EC008C !important;
+}
+
+/* Error de validación: rojo de sistema (#ff4d4d), distinto del foco magenta. */
+.inputError .customSelectTrigger {
+  border-color: rgba(255, 77, 77, 0.6) !important;
+  box-shadow: 0 0 0 3px rgba(255, 77, 77, 0.1) !important;
 }

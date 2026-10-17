@@ -1,8 +1,7 @@
 'use client';
 
-import { useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { CalendarDays } from 'lucide-react';
 import { CustomSelect } from '../Custom/CustomSelect';
 import { TimeSlotPicker } from './TimeSlotPicker';
 import { WeekNavigator } from './WeekNavigator';
@@ -18,9 +17,12 @@ interface ReservationFormProps {
   onCancel?: () => void;
 }
 
+// Sin tope superior: el cliente puede reservar a cualquier fecha futura.
+const FECHA_MAX_RESERVA = '2099-12-31';
+
 export default function ReservationForm({ initialData, onSuccess, onCancel }: ReservationFormProps) {
   const router = useRouter();
-  const dateInputRef = useRef<HTMLInputElement>(null);
+  const hoyISO = new Date().toLocaleDateString('en-CA');
   const {
     sucursal, setSucursal,
     fecha,
@@ -45,7 +47,6 @@ export default function ReservationForm({ initialData, onSuccess, onCancel }: Re
     isSundaySelected,
     handleServicioChange,
     handleFechaChange,
-    vistaSemana, setVistaSemana,
     semanaVisible,
     handleSemanaNav,
     handleSlotSelect,
@@ -88,7 +89,7 @@ export default function ReservationForm({ initialData, onSuccess, onCancel }: Re
         <div className={styles.formGrid}>
 
           {/* Sucursal */}
-          <div className={styles.formGroup}>
+          <div className={`${styles.formGroup} ${styles.fullWidth}`}>
             <label>Sucursal</label>
             <CustomSelect
               value={sucursal}
@@ -98,48 +99,6 @@ export default function ReservationForm({ initialData, onSuccess, onCancel }: Re
               hasError={!!errors.sucursal}
             />
             {errors.sucursal && <span className={styles.errorText}>{errors.sucursal}</span>}
-          </div>
-
-          {/* Fecha */}
-          <div className={styles.formGroup}>
-            <label>Fecha</label>
-            <div className={styles.dateInputWrap}>
-              <input
-                ref={dateInputRef}
-                type="date"
-                value={fecha}
-                min={new Date().toLocaleDateString('en-CA')}
-                onChange={e => handleFechaChange(e.target.value)}
-                className={errors.fecha ? styles.inputError : ''}
-              />
-              <button
-                type="button"
-                className={styles.datePickerButton}
-                aria-label="Abrir selector de fecha"
-                onClick={() => dateInputRef.current?.showPicker?.()}
-              >
-                <CalendarDays size={18} strokeWidth={1.8} />
-              </button>
-            </div>
-            {errors.fecha && <span className={styles.errorText}>{errors.fecha}</span>}
-            <button
-              type="button"
-              className={styles.dateModeToggle}
-              onClick={() => setVistaSemana(v => !v)}
-              aria-expanded={vistaSemana}
-            >
-              {vistaSemana ? 'Ocultar semana' : 'Ver semana'}
-            </button>
-            {vistaSemana && semanaVisible && (
-              <WeekNavigator
-                titulo={semanaVisible.titulo}
-                dias={semanaVisible.dias}
-                puedeRetroceder={semanaVisible.puedeRetroceder}
-                onPrev={() => handleSemanaNav(-1)}
-                onNext={() => handleSemanaNav(1)}
-                onSelect={handleFechaChange}
-              />
-            )}
           </div>
 
           {/* Servicio */}
@@ -179,6 +138,25 @@ export default function ReservationForm({ initialData, onSuccess, onCancel }: Re
               {errors.servicioSolicitado && <span className={styles.errorText}>{errors.servicioSolicitado}</span>}
             </div>
           )}
+
+          {/* Semana y día */}
+          <div className={`${styles.formGroup} ${styles.fullWidth}`}>
+            <label>Semana y día</label>
+            {semanaVisible && (
+              <WeekNavigator
+                titulo={semanaVisible.titulo}
+                dias={semanaVisible.dias}
+                puedeRetroceder={semanaVisible.puedeRetroceder}
+                fechaISO={fecha}
+                minISO={hoyISO}
+                maxISO={FECHA_MAX_RESERVA}
+                onPrev={() => handleSemanaNav(-1)}
+                onNext={() => handleSemanaNav(1)}
+                onSelect={handleFechaChange}
+              />
+            )}
+            {errors.fecha && <span className={styles.errorText}>{errors.fecha}</span>}
+          </div>
 
           {/* Horario */}
           <div className={`${styles.formGroup} ${styles.fullWidth}`}>

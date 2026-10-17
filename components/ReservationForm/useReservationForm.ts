@@ -479,9 +479,8 @@ export function useReservationForm(
     setSlotWarning(null);
   };
 
-  // ── Vista de semana (opcional) ─────────────────────────
+  // ── Vista de semana ────────────────────────────────────
   // Funciona para cualquier fecha: la semana sale de `fecha`, sin lista acotada.
-  const [vistaSemana, setVistaSemana] = useState(false);
   const todayISO = getTodayISO();
 
   const semanaVisible = useMemo(() => {
@@ -690,7 +689,6 @@ export function useReservationForm(
     requiereAprobacion,
     isSundaySelected,
     // Handlers
-    vistaSemana, setVistaSemana,
     semanaVisible,
     handleSemanaNav,
     handleSemanaChange,

@@ -1,6 +1,7 @@
 'use client';
 
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { DatePickerPopover } from './DatePickerPopover';
 import styles from './ReservationForm.module.css';
 
 interface WeekDay {
@@ -16,18 +17,26 @@ interface WeekNavigatorProps {
   titulo: string;
   dias: WeekDay[];
   puedeRetroceder: boolean;
+  /** Fecha del día seleccionado (YYYY-MM-DD), para resaltarla en el calendario. */
+  fechaISO: string;
+  minISO: string;
+  maxISO: string;
   onPrev: () => void;
   onNext: () => void;
   onSelect: (iso: string) => void;
 }
 
-export function WeekNavigator({ titulo, dias, puedeRetroceder, onPrev, onNext, onSelect }: WeekNavigatorProps) {
+/** 📅 ‹ [semana] › seguido de la fila de días: misma estructura que el admin. */
+export function WeekNavigator({
+  titulo, dias, puedeRetroceder, fechaISO, minISO, maxISO, onPrev, onNext, onSelect,
+}: WeekNavigatorProps) {
   return (
     <div className={styles.weekNav}>
-      <div className={styles.weekNavHeader}>
+      <div className={styles.weekStepper}>
+        <DatePickerPopover value={fechaISO} min={minISO} max={maxISO} onSelect={onSelect} align="left" />
         <button
           type="button"
-          className={styles.weekNavArrow}
+          className={styles.weekStepButton}
           onClick={onPrev}
           disabled={!puedeRetroceder}
           aria-label="Semana anterior"
@@ -37,7 +46,7 @@ export function WeekNavigator({ titulo, dias, puedeRetroceder, onPrev, onNext, o
         <span className={styles.weekNavTitle} aria-live="polite">{titulo}</span>
         <button
           type="button"
-          className={styles.weekNavArrow}
+          className={styles.weekStepButton}
           onClick={onNext}
           aria-label="Semana siguiente"
         >
