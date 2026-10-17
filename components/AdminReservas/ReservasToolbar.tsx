@@ -1,7 +1,8 @@
 'use client';
 
-import { Building2, CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Building2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
+import { DatePickerPopover } from '@/components/AdminReservationForm/DatePickerPopover';
 import styles from './ReservasToolbar.module.css';
 
 interface ReservasToolbarProps {
@@ -15,6 +16,11 @@ interface ReservasToolbarProps {
   semanaIndex: number;
   semanaOptions: { value: string; label: string }[];
   onSemanaChange: (value: string) => void;
+  /** Fecha resaltada en el calendario (YYYY-MM-DD) y rango elegible. */
+  fechaISO: string;
+  minISO: string;
+  maxISO: string;
+  onFechaSelect: (iso: string) => void;
   /** Segunda fila, sólo en vista lista. */
   filtros?: React.ReactNode;
 }
@@ -34,6 +40,10 @@ export function ReservasToolbar({
   semanaIndex,
   semanaOptions,
   onSemanaChange,
+  fechaISO,
+  minISO,
+  maxISO,
+  onFechaSelect,
   filtros,
 }: ReservasToolbarProps) {
   const ultimaSemana = semanaOptions.length - 1;
@@ -58,13 +68,13 @@ export function ReservasToolbar({
                 onChange={onLocalChange}
                 options={localOptions}
                 placeholder="Sucursal"
+                allowClear={false}
               />
             </div>
           )}
         </div>
 
-        <div className={styles.chip}>
-          <CalendarDays size={15} strokeWidth={1.9} className={styles.chipIcon} aria-hidden="true" />
+        <div className={styles.weekGroup} role="group" aria-label="Semana">
           <button
             type="button"
             className={styles.stepper}
@@ -72,7 +82,7 @@ export function ReservasToolbar({
             disabled={semanaIndex <= 0}
             aria-label="Semana anterior"
           >
-            <ChevronLeft size={15} strokeWidth={2.2} />
+            <ChevronLeft size={16} strokeWidth={2.2} />
           </button>
           <div className={styles.chipSelectWide}>
             <CustomSelect
@@ -80,8 +90,18 @@ export function ReservasToolbar({
               value={String(semanaIndex)}
               onChange={onSemanaChange}
               options={semanaOptions}
+              searchable={false}
             />
           </div>
+          <DatePickerPopover
+            value={fechaISO}
+            min={minISO}
+            max={maxISO}
+            onSelect={onFechaSelect}
+            triggerClassName={styles.stepper}
+            iconSize={16}
+            align="right"
+          />
           <button
             type="button"
             className={styles.stepper}
@@ -89,7 +109,7 @@ export function ReservasToolbar({
             disabled={semanaIndex >= ultimaSemana}
             aria-label="Semana siguiente"
           >
-            <ChevronRight size={15} strokeWidth={2.2} />
+            <ChevronRight size={16} strokeWidth={2.2} />
           </button>
         </div>
 

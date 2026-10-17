@@ -13,8 +13,15 @@
 .row {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.75rem 1.5rem; /* entre grupos: holgado; dentro de cada grupo: justo */
   flex-wrap: wrap;
+}
+
+/* Semana: ‹ [selector] 📅 › como un solo grupo, para leerse como un control. */
+.weekGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 /* Chips de ancho propio: el problema anterior era que cada control ocupaba
@@ -30,12 +37,13 @@
   flex-shrink: 0;
 }
 
+/* Anchos fluidos: crecen con el viewport entre un piso legible y un tope. */
 .chipSelect {
-  width: 12rem;
+  width: clamp(10rem, 16vw, 13rem);
 }
 
 .chipSelectWide {
-  width: 15rem;
+  width: clamp(12rem, 24vw, 19rem);
 }
 
 .chipStatic {
@@ -53,8 +61,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 42px;
+  height: 42px; /* misma altura que los selects vecinos */
   flex-shrink: 0;
   border: 1px solid var(--admin-border-subtle);
   border-radius: var(--admin-radius-md);
@@ -87,7 +95,7 @@
 }
 
 .vistaButton {
-  min-height: 32px;
+  min-height: 34px;
   padding: 0.4rem 0.9rem;
   border-radius: var(--admin-radius-md);
   border: none;
@@ -111,17 +119,22 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
+/* Buscar manda (más ancho); fechas, tipo y estado comparten una sola fila. */
 .filtrosRow {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 2fr) repeat(4, minmax(0, 1fr));
   gap: 1rem;
   padding-top: 0.9rem;
   border-top: 1px solid var(--admin-border-subtle);
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
   .filtrosRow {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .filtrosRow > :first-child {
+    grid-column: 1 / -1;
   }
 }
 
@@ -135,6 +148,21 @@
     width: 100%;
   }
 
+  .weekGroup {
+    width: 100%;
+  }
+
+  .weekGroup .chipSelectWide {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* El select trae min-width: 10rem; en pantallas angostas debe poder encoger. */
+  .chipSelect > *,
+  .chipSelectWide > * {
+    min-width: 0;
+  }
+
   .vistaToggle {
     margin-left: 0;
     width: 100%;
@@ -144,6 +172,12 @@
     flex: 1;
   }
 
+  .filtrosRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
   .filtrosRow {
     grid-template-columns: 1fr;
   }

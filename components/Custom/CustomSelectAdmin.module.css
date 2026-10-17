@@ -1,6 +1,7 @@
 .customSelect {
   position: relative;
   width: 100%;
+  min-width: 10rem;
   user-select: none;
 }
 

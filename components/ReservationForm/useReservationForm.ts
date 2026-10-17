@@ -51,6 +51,26 @@ function getWeekIndexForDate(fechaISO: string, semanas: ReturnType<typeof genera
   return idx >= 0 ? idx : 0;
 }
 
+const DIAS_LABEL_CORTO = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const MESES_LABEL_CORTO = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+function toISO(d: Date) {
+  return d.toLocaleDateString('en-CA');
+}
+
+function addDays(d: Date, n: number) {
+  const r = new Date(d);
+  r.setDate(r.getDate() + n);
+  return r;
+}
+
+/** Lunes de la semana que contiene `fechaISO`. Si es domingo, el lunes siguiente (no hay atención). */
+function getMondayOf(fechaISO: string) {
+  const d = new Date(`${fechaISO}T00:00:00`);
+  const dow = d.getDay();
+  return addDays(d, dow === 0 ? 1 : 1 - dow);
+}
+
 function getDateDay(fechaISO: string) {
   if (!fechaISO) return null;
   return new Date(`${fechaISO}T00:00:00`).getDay();
@@ -163,7 +183,7 @@ export function useReservationForm(
   );
 
   // ── Semanas ────────────────────────────────────
-  const semanasDisponibles = useMemo(() => generarSemanas(6), []);
+  const semanasDisponibles = useMemo(() => generarSemanas(), []);
   const semanaIndex = initialData?.semana
     ? parseInt(initialData.semana, 10)
     : getWeekIndexForDate(fecha, semanasDisponibles);
@@ -459,6 +479,50 @@ export function useReservationForm(
     setSlotWarning(null);
   };
 
+  // ── Vista de semana (opcional) ─────────────────────────
+  // Funciona para cualquier fecha: la semana sale de `fecha`, sin lista acotada.
+  const [vistaSemana, setVistaSemana] = useState(false);
+  const todayISO = getTodayISO();
+
+  const semanaVisible = useMemo(() => {
+    if (!fecha) return null;
+    const lunes = getMondayOf(fecha);
+    const sabado = addDays(lunes, 5);
+    const mismoMes = lunes.getMonth() === sabado.getMonth();
+    const titulo = mismoMes
+      ? `${lunes.getDate()} – ${sabado.getDate()} ${MESES_LABEL_CORTO[sabado.getMonth()]} ${sabado.getFullYear()}`
+      : `${lunes.getDate()} ${MESES_LABEL_CORTO[lunes.getMonth()]} – ${sabado.getDate()} ${MESES_LABEL_CORTO[sabado.getMonth()]} ${sabado.getFullYear()}`;
+    const dias = DIAS_LABEL_CORTO.map((label, i) => {
+      const d = addDays(lunes, i);
+      const iso = toISO(d);
+      return {
+        iso,
+        label,
+        dia: d.getDate(),
+        mes: MESES_LABEL_CORTO[d.getMonth()],
+        esPasado: iso < todayISO,
+        activo: iso === fecha,
+      };
+    });
+    return {
+      titulo,
+      dias,
+      puedeRetroceder: toISO(addDays(lunes, -2)) >= todayISO,
+    };
+  }, [fecha, todayISO]);
+
+  const handleSemanaNav = (delta: -1 | 1) => {
+    if (!fecha) return;
+    let destino = addDays(new Date(`${fecha}T00:00:00`), delta * 7);
+    if (destino.getDay() === 0) destino = addDays(destino, 1);
+    // Al retroceder no se baja de hoy: se cae en el primer día reservable.
+    if (toISO(destino) < todayISO) {
+      destino = new Date(`${todayISO}T00:00:00`);
+      if (destino.getDay() === 0) destino = addDays(destino, 1);
+    }
+    handleFechaChange(toISO(destino));
+  };
+
   const handleFechaChange = (value: string) => {
     setFecha(value);
     setHoraDesde('');
@@ -626,6 +690,9 @@ export function useReservationForm(
     requiereAprobacion,
     isSundaySelected,
     // Handlers
+    vistaSemana, setVistaSemana,
+    semanaVisible,
+    handleSemanaNav,
     handleSemanaChange,
     handleServicioChange,
     handleDiaChange,

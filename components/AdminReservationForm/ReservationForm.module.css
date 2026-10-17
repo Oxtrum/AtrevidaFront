@@ -707,3 +707,167 @@
 .clientRegisterOption:hover {
   background: rgba(236, 0, 140, 0.1);
 }
+
+/* ─── Week stepper ( ‹ select › ) ─────────────────────────────── */
+
+.weekStepper {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  margin-bottom: 0.6rem;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.weekStepButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: #F5F5F5;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(146, 39, 143, 0.35);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.weekStepButton:hover:not(:disabled) {
+  color: #EC008C;
+  background: rgba(236, 0, 140, 0.08);
+  border-color: rgba(236, 0, 140, 0.55);
+}
+
+.weekStepButton:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.weekStepButton:focus-visible {
+  outline: 2px solid #14AEEF;
+  outline-offset: 2px;
+}
+
+/* ─── Date picker popover ─────────────────────────────────────── */
+
+.datePickerWrap {
+  position: relative;
+}
+
+.calendarPopover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  width: 288px;
+  max-width: calc(100vw - 2rem);
+  padding: 0.85rem;
+  background: #0c0c0c;
+  border: 1px solid rgba(146, 39, 143, 0.45);
+  border-radius: 16px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+}
+
+.calendarHeader {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.calendarTitle {
+  text-align: center;
+  color: #F5F5F5;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+.calendarNav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  color: #F5F5F5;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(146, 39, 143, 0.3);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.calendarNav:hover:not(:disabled) {
+  color: #EC008C;
+  border-color: rgba(236, 0, 140, 0.55);
+}
+
+.calendarNav:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+
+.calendarWeekday {
+  padding: 0.25rem 0;
+  text-align: center;
+  color: rgba(245, 245, 245, 0.45);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.calendarDay {
+  aspect-ratio: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #F5F5F5;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.calendarDay:hover:not(:disabled) {
+  background: rgba(236, 0, 140, 0.12);
+  border-color: rgba(236, 0, 140, 0.45);
+}
+
+.calendarDay:disabled {
+  color: rgba(245, 245, 245, 0.22);
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+
+.calendarDayToday {
+  border-color: rgba(20, 174, 239, 0.55);
+}
+
+.calendarDayActive,
+.calendarDayActive:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(146, 39, 143, 0.7), rgba(236, 0, 140, 0.6));
+  border-color: rgba(236, 0, 140, 0.8);
+  font-weight: 800;
+}
+
+.calendarDay:focus-visible,
+.calendarNav:focus-visible {
+  outline: 2px solid #14AEEF;
+  outline-offset: 2px;
+}
+
+.calendarPopoverLeft {
+  right: auto;
+  left: 0;
+}

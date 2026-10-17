@@ -6,6 +6,7 @@ import { AlertTriangle, CalendarPlus, UserPlus } from 'lucide-react';
 import { CustomSelect } from '../Custom/CustomSelectAdmin';
 import { TimeSlotPicker } from './TimeSlotPicker';
 import { DaySelector } from './DaySelector';
+import { WeekStepper } from './WeekStepper';
 import PlanSelector from './PlanSelector';
 import { ServiceSelect } from './ServiceSelect';
 import { useReservationForm, type ReservationFormInitialData } from './useReservationForm';
@@ -65,6 +66,9 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
     semanaOptions,
     servicioGroups,
     handleSemanaChange,
+    handleFechaSelect,
+    fechaSeleccionadaISO,
+    rangoFechas,
     handleServicioChange,
     handleDiaChange,
     handleSlotSelect,
@@ -73,34 +77,34 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
     cancelarConfirmacionDuracion,
   } = useReservationForm(initialData, onSuccess);
 
-	const clienteQuery = normalizeSearch(cliente);
+  const clienteQuery = normalizeSearch(cliente);
 
   useEffect(() => {
-	if (!initialData?.isAdmin || clienteQuery.length < MIN_CLIENT_SEARCH_LENGTH) {
-		return;
-	}
-	const controller = new AbortController();
-	const timer = window.setTimeout(() => {
-	  setClientesLoading(true);
-	  setClientesError(null);
-	  getClientesDB({ busqueda: clienteQuery, limit: PAGE_LIMIT }, controller.signal)
-      .then((res) => {
-		if (controller.signal.aborted) return;
-        setClientesDirectorio(res.data?.clientes ?? []);
-      })
-      .catch((err) => {
-		if (controller.signal.aborted) return;
-        setClientesDirectorio([]);
-        setClientesError(err instanceof Error ? err.message : 'No se pudo cargar el directorio de clientes');
-      })
-      .finally(() => {
-		if (!controller.signal.aborted) setClientesLoading(false);
-      });
-	}, 300);
+    if (!initialData?.isAdmin || clienteQuery.length < MIN_CLIENT_SEARCH_LENGTH) {
+      return;
+    }
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      setClientesLoading(true);
+      setClientesError(null);
+      getClientesDB({ busqueda: clienteQuery, limit: PAGE_LIMIT }, controller.signal)
+        .then((res) => {
+          if (controller.signal.aborted) return;
+          setClientesDirectorio(res.data?.clientes ?? []);
+        })
+        .catch((err) => {
+          if (controller.signal.aborted) return;
+          setClientesDirectorio([]);
+          setClientesError(err instanceof Error ? err.message : 'No se pudo cargar el directorio de clientes');
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setClientesLoading(false);
+        });
+    }, 300);
 
     return () => {
-	  window.clearTimeout(timer);
-	  controller.abort();
+      window.clearTimeout(timer);
+      controller.abort();
     };
   }, [clienteQuery, initialData?.isAdmin]);
 
@@ -180,7 +184,7 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
         <div className={styles.formGrid}>
 
           {/* Sucursal */}
-          <div className={styles.formGroup}>
+          <div className={`${styles.formGroup} ${styles.fullWidth}`}>
             <label>Sucursal</label>
             <CustomSelect
               value={sucursal}
@@ -190,18 +194,6 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
               hasError={!!errors.sucursal}
             />
             {errors.sucursal && <span className={styles.errorText}>{errors.sucursal}</span>}
-          </div>
-
-          {/* Semana */}
-          <div className={styles.formGroup}>
-            <label>Semana</label>
-            <CustomSelect
-              value={String(semanaIndex)}
-              onChange={handleSemanaChange}
-              options={semanaOptions}
-              hasError={!!errors.semana}
-            />
-            {errors.semana && <span className={styles.errorText}>{errors.semana}</span>}
           </div>
 
           {/* Servicio */}
@@ -219,7 +211,18 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
 
           {/* Día */}
           <div className={`${styles.formGroup} ${styles.fullWidth}`}>
-            <label>Día</label>
+            <label>Semana y día</label>
+            <WeekStepper
+              semanaIndex={semanaIndex}
+              semanaOptions={semanaOptions}
+              onSemanaChange={handleSemanaChange}
+              fechaISO={fechaSeleccionadaISO}
+              minISO={rangoFechas.min}
+              maxISO={rangoFechas.max}
+              onFechaSelect={handleFechaSelect}
+              hasError={!!errors.semana}
+            />
+            {errors.semana && <span className={styles.errorText}>{errors.semana}</span>}
             <DaySelector
               dias={diasDisponibles}
               diaActivo={dia}

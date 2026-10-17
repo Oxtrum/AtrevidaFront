@@ -13,6 +13,7 @@ import { useLocales } from '@/lib/hooks/useLocales';
 import { DiaSemana, EstadoReserva, ReservaBD, generarSemanas, getFechasDeSemana, esFechaPasada } from '@/types/reserva';
 import { HORAS, DIAS_SEMANA, SLOT_MIN, SLOTS_POR_HORA, calcularHoraFin, tiempoAMinutos, isSlotOutsideBusinessHours } from '@/lib/constants/reservationForm';
 import { DaySelector } from '@/components/AdminReservationForm/DaySelector';
+import { WeekStepper } from '@/components/AdminReservationForm/WeekStepper';
 import { TimeSlotPicker } from '@/components/AdminReservationForm/TimeSlotPicker';
 import { ServiceSelect } from '@/components/AdminReservationForm/ServiceSelect';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
@@ -84,7 +85,7 @@ function EditarReservaContent() {
     : servicioElegido?.costo_variable === true;
   const bloqueadaPorCompletado = estadoActual === 'COMPLETADO';
 
-  const semanasDisponibles = useMemo(() => generarSemanas(6), []);
+  const semanasDisponibles = useMemo(() => generarSemanas(), []);
   const [semanaIndex, setSemanaIndex] = useState(0);
 
   const semanaActual = semanasDisponibles[semanaIndex] || semanasDisponibles[0];
@@ -118,10 +119,11 @@ function EditarReservaContent() {
   );
 
   const semanaOptions = useMemo(
-    () => semanasDisponibles.map((s, idx) => ({
-      value: String(idx),
-      label: s.titulo,
-    })),
+    () => semanasDisponibles.map((s, idx) => {
+      const sabado = new Date(s.fechaInicio);
+      sabado.setDate(sabado.getDate() + 5);
+      return { value: String(idx), label: `${s.titulo} DE ${sabado.getFullYear()}` };
+    }),
     [semanasDisponibles],
   );
 
@@ -348,6 +350,35 @@ function EditarReservaContent() {
       const fechaISO = fechaInfo.fecha.toISOString().split('T')[0];
       setNuevaFecha(fechaISO);
     }
+  };
+
+  const rangoFechas = useMemo(() => {
+    const primera = semanasDisponibles[0]?.fechaInicio;
+    const ultima = semanasDisponibles[semanasDisponibles.length - 1]?.fechaInicio;
+    if (!primera || !ultima) return { min: '', max: '' };
+    const fin = new Date(ultima);
+    fin.setDate(fin.getDate() + 5);
+    return { min: primera.toLocaleDateString('en-CA'), max: fin.toLocaleDateString('en-CA') };
+  }, [semanasDisponibles]);
+
+  /** Salta a la semana de una fecha elegida en el calendario, conservando ese día. */
+  const handleFechaSelect = (iso: string) => {
+    const d = new Date(`${iso}T00:00:00`);
+    if (d.getDay() === 0) return; // domingos sin atención
+    const idx = semanasDisponibles.findIndex(s => {
+      const ini = new Date(s.fechaInicio);
+      ini.setHours(0, 0, 0, 0);
+      const fin = new Date(ini);
+      fin.setDate(fin.getDate() + 5);
+      return d >= ini && d <= fin;
+    });
+    if (idx < 0) return;
+    setSemanaIndex(idx);
+    setNuevaFecha(iso);
+    setNuevaHoraDesde('');
+    setNuevaHoraHasta('');
+    setEsperandoAjuste(false);
+    setSlotWarning(null);
   };
 
   const handleSemanaChange = (value: string) => {
@@ -639,11 +670,14 @@ function EditarReservaContent() {
         <div className={styles.formGrid}>
           <div className={`${styles.formGroup} ${styles.fullWidth}`}>
             <label>Semana</label>
-            <CustomSelect
-              value={String(semanaIndex)}
-              onChange={handleSemanaChange}
-              options={semanaOptions}
-              hasError={false}
+            <WeekStepper
+              semanaIndex={semanaIndex}
+              semanaOptions={semanaOptions}
+              onSemanaChange={handleSemanaChange}
+              fechaISO={nuevaFecha}
+              minISO={rangoFechas.min}
+              maxISO={rangoFechas.max}
+              onFechaSelect={handleFechaSelect}
             />
           </div>
 
