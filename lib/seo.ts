@@ -8,7 +8,7 @@ export const siteUrl = new URL(
 export const siteName = 'AtrevidaFit';
 
 export const defaultSeoDescription =
-  'AtrevidaFit en Cochabamba: tratamientos corporales y faciales, aparatologia estetica, evaluacion gratuita y reservas online con confirmacion del equipo.';
+  'AtrevidaFit en Cochabamba: tratamientos corporales y faciales, aparatologia estetica, valoracion personalizada y reservas online con confirmacion del equipo.';
 
 export function absoluteUrl(path: string): string {
   return new URL(path, siteUrl).toString();

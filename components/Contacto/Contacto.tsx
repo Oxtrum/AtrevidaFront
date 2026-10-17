@@ -182,7 +182,7 @@ export default function Contacto() {
               <span className={styles.titleAccent}>empezar hoy</span>
             </h2>
             <p className={styles.infoText}>
-              Escríbenos, reserva una evaluación gratuita o solicita un tratamiento. Nuestro equipo revisa tu solicitud
+              Escríbenos, reserva una valoración personalizada o solicita un tratamiento. Nuestro equipo revisa tu solicitud
               y confirma el horario más conveniente para ti.
             </p>
 
@@ -251,7 +251,7 @@ export default function Contacto() {
         <div ref={ctaRef} className={styles.ctaSection}>
           <div>
             <p className={styles.ctaEyebrow}>¿Estás lista?</p>
-            <h3 className={styles.ctaTitle}>Reserva una evaluación gratuita y recibe una recomendación profesional.</h3>
+            <h3 className={styles.ctaTitle}>Reserva una valoración personalizada y recibe una recomendación profesional.</h3>
           </div>
           <Link href="/reservas" className={styles.ctaBtn}>
             <CalendarCheck size={20} strokeWidth={1.8} />

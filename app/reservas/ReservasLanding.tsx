@@ -306,7 +306,7 @@ export default function ReservasLanding({ initialModalOpen = false }: ReservasLa
           <h1 className={styles.title}>Agenda el tratamiento que tu cuerpo necesita</h1>
           <p className={styles.subtitle}>
             Reserva tu cita para tratamientos corporales, faciales y planes especializados.
-            Si aún no sabes por dónde empezar, agenda una evaluación gratuita y recibe una recomendación profesional antes de decidir.
+            Si aún no sabes por dónde empezar, agenda una valoración personalizada y recibe una recomendación profesional antes de decidir.
           </p>
 
           <div className={styles.actions}>
@@ -318,7 +318,7 @@ export default function ReservasLanding({ initialModalOpen = false }: ReservasLa
               Reservar tratamiento
               <ArrowRight size={18} strokeWidth={1.8} />
             </button>
-            <span className={styles.microcopy}>Evaluación gratuita disponible para orientar tu elección</span>
+            <span className={styles.microcopy}>Valoración personalizada para orientar tu elección</span>
           </div>
 
           <div ref={proofRef} className={styles.proofStrip}>
@@ -327,8 +327,8 @@ export default function ReservasLanding({ initialModalOpen = false }: ReservasLa
               <strong>Tratamientos corporales y faciales</strong>
             </div>
             <div>
-              <span>0 Bs</span>
-              <strong>Evaluación inicial gratuita</strong>
+              <span>1 a 1</span>
+              <strong>Valoración inicial con especialista</strong>
             </div>
             <div>
               <span>Manual</span>
@@ -366,7 +366,7 @@ export default function ReservasLanding({ initialModalOpen = false }: ReservasLa
           <article className={styles.benefitCard}>
             <Target size={24} strokeWidth={1.7} />
             <h3>Recomendación real</h3>
-            <p>La evaluación gratuita ayuda a definir qué tecnología o tratamiento tiene más sentido para tu objetivo.</p>
+            <p>La valoración personalizada ayuda a definir qué tecnología o tratamiento tiene más sentido para tu objetivo.</p>
           </article>
           <article className={styles.benefitCard}>
             <CalendarCheck size={24} strokeWidth={1.7} />
@@ -384,9 +384,9 @@ export default function ReservasLanding({ initialModalOpen = false }: ReservasLa
       <section className={styles.optionsSection}>
         <div className={styles.optionPanel}>
           <span className={styles.optionKicker}>Opciones de reserva</span>
-          <h2>Empieza con evaluación o solicita un tratamiento.</h2>
+          <h2>Empieza con una valoración o solicita un tratamiento.</h2>
           <p>
-            La evaluación gratuita es ideal si quieres orientación. El tratamiento especializado funciona cuando ya tienes claro el servicio o vienes por seguimiento.
+            La valoración personalizada es ideal si quieres orientación. El tratamiento especializado funciona cuando ya tienes claro el servicio o vienes por seguimiento.
           </p>
           <button className={styles.secondaryButton} onClick={openModal}>
             Abrir formulario
@@ -397,7 +397,7 @@ export default function ReservasLanding({ initialModalOpen = false }: ReservasLa
           <article>
             <CheckCircle2 size={20} strokeWidth={1.8} />
             <div>
-              <h3>Evaluación gratuita</h3>
+              <h3>Valoración personalizada</h3>
               <p>Valoración inicial para entender tu objetivo y recomendar el siguiente paso.</p>
             </div>
           </article>
@@ -430,7 +430,7 @@ export default function ReservasLanding({ initialModalOpen = false }: ReservasLa
           <div>
             <span>03</span>
             <h3>Comienzas</h3>
-            <p>Llegas con una ruta clara para evaluación, tratamiento o seguimiento.</p>
+            <p>Llegas con una ruta clara para valoración, tratamiento o seguimiento.</p>
           </div>
         </div>
       </section>

@@ -38,7 +38,7 @@ export default function Home() {
         "@type": "Offer",
         itemOffered: {
           "@type": "Service",
-          name: "Evaluacion estetica gratuita",
+          name: "Valoracion estetica personalizada",
         },
       },
     ],

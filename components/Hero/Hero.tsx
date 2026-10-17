@@ -104,13 +104,13 @@ export default function Hero() {
 
           <p ref={subtitleRef} className={styles.subtitle}>
             Moldea, tonifica y cuida tu piel con tecnología estética no invasiva, atención personalizada
-            y una evaluación gratuita para elegir el tratamiento correcto desde el primer paso.
+            y una valoración personalizada para elegir el tratamiento correcto desde el primer paso.
           </p>
 
           <div ref={ctaRef} className={styles.ctaGroup}>
             <Link href="/reservas" className={styles.ctaPrimary}>
               <CalendarCheck size={19} strokeWidth={1.8} />
-              Reservar evaluación
+              Reservar valoración
               <ArrowRight size={18} strokeWidth={1.8} />
             </Link>
             <a href="#servicios" className={styles.ctaSecondary}>
@@ -124,8 +124,8 @@ export default function Hero() {
               <span>clientas atendidas</span>
             </div>
             <div>
-              <strong>0 Bs</strong>
-              <span>evaluación inicial</span>
+              <strong>1 a 1</strong>
+              <span>valoración con especialista</span>
             </div>
             <div>
               <CheckCircle2 size={18} strokeWidth={1.8} />
@@ -164,7 +164,7 @@ export default function Hero() {
             <div className={styles.decorDots} />
             <div className={styles.floatingCard}>
               <span>Reserva guiada</span>
-              <strong>Evaluación gratuita</strong>
+              <strong>Valoración personalizada</strong>
             </div>
           </div>
         </div>

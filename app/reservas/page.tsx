@@ -5,14 +5,14 @@ import ReservasLanding from './ReservasLanding';
 export const metadata: Metadata = {
   title: 'Reservas online de tratamientos esteticos',
   description:
-    'Agenda una evaluacion gratuita o reserva tratamientos corporales y faciales en AtrevidaFit Cochabamba. El equipo confirma tu horario y te orienta antes de comenzar.',
+    'Agenda una valoracion personalizada o reserva tratamientos corporales y faciales en AtrevidaFit Cochabamba. El equipo confirma tu horario y te orienta antes de comenzar.',
   alternates: {
     canonical: '/reservas',
   },
   openGraph: {
     title: 'Reservas online de tratamientos esteticos | AtrevidaFit',
     description:
-      'Reserva tu evaluacion gratuita o tratamiento estetico en Cochabamba con confirmacion del equipo AtrevidaFit.',
+      'Reserva tu valoracion personalizada o tratamiento estetico en Cochabamba con confirmacion del equipo AtrevidaFit.',
     url: '/reservas',
     images: [
       {
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Reservas online de tratamientos esteticos | AtrevidaFit',
     description:
-      'Agenda tu evaluacion gratuita o tratamiento estetico en Cochabamba con AtrevidaFit.',
+      'Agenda tu valoracion personalizada o tratamiento estetico en Cochabamba con AtrevidaFit.',
     images: [absoluteUrl('/reserva.jpg')],
   },
 };
