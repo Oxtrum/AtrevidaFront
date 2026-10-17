@@ -15,7 +15,6 @@ import {
   getServiciosDB,
   crearServicioDB,
   actualizarServicio,
-  eliminarServicioDB,
   activarServicioEnLocal,
   togglePacienteNuevo,
 } from '@/lib/api/servicios';
@@ -144,10 +143,11 @@ export default function ServiciosPage() {
   const [filtroSesiones, setFiltroSesiones] = useState('');
   /** 'all' | 'true' | 'false' — filtro tri-estado */
   const [filtroEvaluacion, setFiltroEvaluacion] = useState<'all' | 'true' | 'false'>('all');
+  /** Por defecto solo habilitados; 'inactivos' permite encontrar y volver a habilitar los deshabilitados. */
+  const [filtroEstado, setFiltroEstado] = useState<'activos' | 'inactivos' | 'todos'>('activos');
   const adminLocalScope = useAdminLocalScopeState();
   const scopedLocalName = adminLocalScope.workplace?.nombre_local ?? '';
   const effectiveFiltroLocal = scopedLocalName || filtroLocal;
-  const hasScopedLocal = !!scopedLocalName;
   const hasFilter = adminLocalScope.ready && !!(effectiveFiltroLocal || filtroCategoria);
 
   // Contar filtros secundarios activos para mostrar indicador
@@ -155,10 +155,10 @@ export default function ServiciosPage() {
     filtroNombre,
     filtroSesiones,
     filtroEvaluacion !== 'all' ? filtroEvaluacion : '',
+    filtroEstado !== 'activos' ? filtroEstado : '',
   ].filter(Boolean).length;
 
   // Row-action state
-  const [deletingId, setDeletingId] = useState<number | null>(null);
   const [activarLocalRow, setActivarLocalRow] = useState<ServicioRow | null>(null);
   const [activarLocalValue, setActivarLocalValue] = useState('');
   const [activarLocalSaving, setActivarLocalSaving] = useState(false);
@@ -180,10 +180,10 @@ export default function ServiciosPage() {
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const isEdit = editingId !== null;
   const formCategoriasLoading = modalOpen && !!form.local && formCategorias.local !== form.local;
-  const localOptions = useMemo(() => [
-    ...(hasScopedLocal ? [] : [{ value: '', label: 'Seleccionar local' }]),
-    ...locales.map((l) => ({ value: l.nombre, label: l.nombre })),
-  ], [hasScopedLocal, locales]);
+  const localOptions = useMemo(
+    () => locales.map((l) => ({ value: l.nombre, label: l.nombre })),
+    [locales],
+  );
   const categoriaOptions = useMemo(() => {
     const categoriasDisponibles = formCategorias.local === form.local ? formCategorias.categorias : [];
 
@@ -233,6 +233,7 @@ export default function ServiciosPage() {
         sesiones: filtroSesiones ? Number(filtroSesiones) : undefined,
         requiere_evaluacion:
           filtroEvaluacion === 'all' ? undefined : filtroEvaluacion === 'true',
+        estado: filtroEstado,
       }) as { data?: { servicios?: ServicioRow[]; total?: number } };
       setServicios(res?.data?.servicios ?? []);
       setTotal(res?.data?.total ?? 0);
@@ -241,7 +242,7 @@ export default function ServiciosPage() {
     } finally {
       setLoading(false);
     }
-  }, [adminLocalScope.ready, effectiveFiltroLocal, filtroCategoria, filtroNombreDebounced, filtroSesiones, filtroEvaluacion]);
+  }, [adminLocalScope.ready, effectiveFiltroLocal, filtroCategoria, filtroNombreDebounced, filtroSesiones, filtroEvaluacion, filtroEstado]);
 
   const fetchOptions = useCallback(async () => {
     if (!adminLocalScope.ready) return;
@@ -436,13 +437,15 @@ export default function ServiciosPage() {
 
   const handleToggleActivo = (row: ServicioRow) => {
     const next = !(row.activo ?? true);
-    const verb = next ? 'activar' : 'desactivar';
+    const verb = next ? 'habilitar' : 'deshabilitar';
     setConfirmState({
-      message: `¿Seguro que quieres ${verb} "${row.nombre}"?`,
+      message: next
+        ? `¿Habilitar "${row.nombre}"? Volverá a estar disponible para reservar.`
+        : `¿Deshabilitar "${row.nombre}"? Dejará de estar disponible para reservar. Podrás habilitarlo de nuevo cuando quieras.`,
       onConfirm: async () => {
         try {
           await actualizarServicio(row.id, { activo: next });
-          toast.success(next ? 'Servicio activado' : 'Servicio desactivado');
+          toast.success(next ? 'Servicio habilitado' : 'Servicio deshabilitado');
           await fetchServicios();
         } catch (err) {
           if (err instanceof Error) console.error('actualizarServicio.activo', err);
@@ -470,25 +473,6 @@ export default function ServiciosPage() {
         } catch (err) {
           if (err instanceof Error) console.error('togglePacienteNuevo', err);
           toast.error(`No se pudo ${verb} el servicio para pacientes nuevos.`);
-        }
-      },
-    });
-  };
-
-  const handleDelete = (row: ServicioRow) => {
-    setConfirmState({
-      message: `¿Eliminar el servicio "${row.nombre}"? Se hará borrado lógico.`,
-      onConfirm: async () => {
-        setDeletingId(row.id);
-        try {
-          await eliminarServicioDB(row.id);
-          toast.success('Servicio eliminado');
-          await fetchServicios();
-        } catch (err) {
-          if (err instanceof Error) console.error('eliminarServicioDB', err);
-          toast.error('No se pudo eliminar el servicio.');
-        } finally {
-          setDeletingId(null);
         }
       },
     });
@@ -568,10 +552,10 @@ export default function ServiciosPage() {
             type="button"
             onClick={() => handleToggleActivo(row)}
             className={activo ? styles.statusActive : styles.statusInactive}
-            aria-label={activo ? 'Desactivar servicio' : 'Activar servicio'}
-            title={activo ? 'Clic para desactivar' : 'Clic para activar'}
+            aria-label={activo ? 'Deshabilitar servicio' : 'Habilitar servicio'}
+            title={activo ? 'Clic para deshabilitar' : 'Clic para habilitar'}
           >
-            {activo ? 'Activo' : 'Inactivo'}
+            {activo ? 'Habilitado' : 'Deshabilitado'}
           </button>
         );
       },
@@ -602,7 +586,9 @@ export default function ServiciosPage() {
           ...(!scopedLocalName
             ? [{ label: 'Activar local', icon: <Plus size={12} strokeWidth={2} />, onClick: () => openActivarLocal(row) }]
             : []),
-          { label: 'Eliminar', icon: <Trash2 size={12} strokeWidth={2} />, onClick: () => handleDelete(row), variant: 'danger' as const, disabled: deletingId === row.id },
+          (row.activo ?? true)
+            ? { label: 'Deshabilitar', icon: <Trash2 size={12} strokeWidth={2} />, onClick: () => handleToggleActivo(row), variant: 'danger' as const }
+            : { label: 'Habilitar', icon: <Plus size={12} strokeWidth={2} />, onClick: () => handleToggleActivo(row) },
         ];
 
         return <RowActionsMenu actions={actions} />;
@@ -650,6 +636,7 @@ export default function ServiciosPage() {
                         setFiltroNombre('');
                         setFiltroSesiones('');
                         setFiltroEvaluacion('all');
+                        setFiltroEstado('activos');
                       }}
                       aria-label="Limpiar filtros secundarios"
                     >
@@ -671,6 +658,7 @@ export default function ServiciosPage() {
                     value={effectiveFiltroLocal}
                     onChange={(value) => setFiltroLocal(scopedLocalName || value)}
                     options={localOptions}
+                    placeholder="Seleccionar local"
                   />
                 </div>
 
@@ -740,6 +728,24 @@ export default function ServiciosPage() {
                     ]}
                   />
                 </div>
+
+                {/* Estado */}
+                <div className={styles.filterGroup}>
+                  <label id="lbl-filtro-estado" htmlFor="filtro-estado" className={styles.filterLabel}>
+                    Estado
+                  </label>
+                  <CustomSelect
+                    id="filtro-estado"
+                    ariaLabelledBy="lbl-filtro-estado"
+                    value={filtroEstado}
+                    onChange={(v) => setFiltroEstado(v as 'activos' | 'inactivos' | 'todos')}
+                    options={[
+                      { value: 'activos', label: 'Habilitados' },
+                      { value: 'inactivos', label: 'Deshabilitados' },
+                      { value: 'todos', label: 'Todos' },
+                    ]}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -786,9 +792,10 @@ export default function ServiciosPage() {
         title={isEdit ? 'Editar Servicio' : 'Nuevo Servicio'}
         onSubmit={handleSubmit}
         loading={saving}
+        size="lg"
         submitLabel={isEdit ? 'Guardar cambios' : 'Crear servicio'}
       >
-        <div className={styles.formGrid}>
+        <div className={styles.formGrid6}>
 
           {/* ── Sección: Información básica ── */}
           <div className={styles.formDivider}>
@@ -796,7 +803,7 @@ export default function ServiciosPage() {
           </div>
 
           {/* Nombre */}
-          <div className={`${styles.field} ${styles.colSpan2}`}>
+          <div className={`${styles.field} ${styles.span6}`}>
             <label htmlFor="srv-nombre">Nombre del servicio</label>
             <input
               id="srv-nombre"
@@ -815,7 +822,7 @@ export default function ServiciosPage() {
           </div>
 
           {/* Local */}
-          <div className={styles.field}>
+          <div className={`${styles.field} ${styles.span3}`}>
             <label id="lbl-srv-local" htmlFor="srv-local">Local</label>
             {isEdit ? (
               <input
@@ -838,6 +845,7 @@ export default function ServiciosPage() {
                   }
                 }}
                 options={localOptions}
+                placeholder="Seleccionar local"
                 hasError={!!formErrors.local}
               />
             )}
@@ -845,7 +853,7 @@ export default function ServiciosPage() {
           </div>
 
           {/* Categoría */}
-          <div className={styles.field}>
+          <div className={`${styles.field} ${styles.span3}`}>
             <label id="lbl-srv-categoria" htmlFor="srv-categoria">Categoría</label>
             <CustomSelect
               id="srv-categoria"
@@ -859,10 +867,10 @@ export default function ServiciosPage() {
               hasError={!!formErrors.categoria}
             />
             {!form.local && !isEdit && (
-              <p className={styles.localFirstHint}>Elige un local para ver sus categorias.</p>
+              <p className={styles.localFirstHint}>Elige un local para ver sus categorías.</p>
             )}
             {form.local && formCategoriasLoading && (
-              <p className={styles.localFirstHint}>Cargando categorias de {form.local}...</p>
+              <p className={styles.localFirstHint}>Cargando categorías de {form.local}...</p>
             )}
             {formErrors.categoria && <span className={styles.fieldError}>{formErrors.categoria}</span>}
           </div>
@@ -873,7 +881,7 @@ export default function ServiciosPage() {
           </div>
 
           {/* Tiempo */}
-          <div className={styles.field}>
+          <div className={`${styles.field} ${styles.span2}`}>
             <label htmlFor="srv-tiempo">Duración (min)</label>
             <input
               id="srv-tiempo"
@@ -891,23 +899,42 @@ export default function ServiciosPage() {
             {formErrors.tiempo && <span className={styles.fieldError}>{formErrors.tiempo}</span>}
           </div>
 
-          {/* Costo */}
-          <label className={`${styles.checkboxCard} ${styles.colSpan2}`} htmlFor="srv-costo-variable">
+          {/* Sesiones */}
+          <div className={`${styles.field} ${styles.span2}`}>
+            <label htmlFor="srv-sesiones">N.° de sesiones</label>
             <input
-              id="srv-costo-variable"
-              type="checkbox"
-              checked={form.costo_variable}
+              id="srv-sesiones"
+              type="number"
+              min={1}
+              value={form.sesiones}
               onChange={(e) => {
-                patchForm({ costo_variable: e.target.checked, costo: '' });
-                setFormErrors((prev) => ({ ...prev, costo: undefined }));
+                const n = Number(e.target.value);
+                patchForm({ sesiones: Number.isFinite(n) ? n : 1 });
+                if (formErrors.sesiones) setFormErrors((p) => ({ ...p, sesiones: undefined }));
               }}
+              aria-invalid={!!formErrors.sesiones}
+              className={formErrors.sesiones ? styles.inputError : ''}
             />
-            <div className={styles.checkboxCardContent}>
-              <span className={styles.checkboxCardTitle}>Costo variable</span>
-              <span className={styles.checkboxCardDesc}>El costo se define al cobrar, según las condiciones del servicio.</span>
-            </div>
-          </label>
-          <div className={styles.field}>
+            {formErrors.sesiones && <span className={styles.fieldError}>{formErrors.sesiones}</span>}
+          </div>
+
+          {/* Tipo espacio */}
+          <div className={`${styles.field} ${styles.span2}`}>
+            <label id="lbl-srv-espacio" htmlFor="srv-espacio">Tipo de espacio</label>
+            <CustomSelect
+              id="srv-espacio"
+              ariaLabelledBy="lbl-srv-espacio"
+              value={form.tipo_espacio_requerido}
+              onChange={(v) => patchForm({ tipo_espacio_requerido: v })}
+              options={[
+                { value: 'M', label: 'Mesas' },
+                { value: 'B', label: 'Bicicletas' },
+              ]}
+            />
+          </div>
+
+          {/* Costo */}
+          <div className={`${styles.field} ${styles.span3}`}>
             <label htmlFor="srv-costo">Costo de referencia (Bs.)</label>
             <input
               id="srv-costo"
@@ -928,47 +955,34 @@ export default function ServiciosPage() {
             {formErrors.costo && <span className={styles.fieldError}>{formErrors.costo}</span>}
           </div>
 
-          {/* Sesiones */}
-          <div className={styles.field}>
-            <label htmlFor="srv-sesiones">N.° de sesiones</label>
+          <label
+            className={`${styles.checkboxCard} ${styles.span3} ${styles.alignEnd}`}
+            htmlFor="srv-costo-variable"
+          >
             <input
-              id="srv-sesiones"
-              type="number"
-              min={1}
-              value={form.sesiones}
+              id="srv-costo-variable"
+              type="checkbox"
+              checked={form.costo_variable}
               onChange={(e) => {
-                const n = Number(e.target.value);
-                patchForm({ sesiones: Number.isFinite(n) ? n : 1 });
-                if (formErrors.sesiones) setFormErrors((p) => ({ ...p, sesiones: undefined }));
+                patchForm({ costo_variable: e.target.checked, costo: '' });
+                setFormErrors((prev) => ({ ...prev, costo: undefined }));
               }}
-              aria-invalid={!!formErrors.sesiones}
-              className={formErrors.sesiones ? styles.inputError : ''}
             />
-            {formErrors.sesiones && <span className={styles.fieldError}>{formErrors.sesiones}</span>}
-          </div>
-
-          {/* Tipo espacio */}
-          <div className={styles.field}>
-            <label id="lbl-srv-espacio" htmlFor="srv-espacio">Tipo de espacio</label>
-            <CustomSelect
-              id="srv-espacio"
-              ariaLabelledBy="lbl-srv-espacio"
-              value={form.tipo_espacio_requerido}
-              onChange={(v) => patchForm({ tipo_espacio_requerido: v })}
-              options={[
-                { value: 'M', label: 'Mesas' },
-                { value: 'B', label: 'Bicicletas' },
-              ]}
-            />
-          </div>
+            <div className={styles.checkboxCardContent}>
+              <span className={styles.checkboxCardTitle}>Costo variable</span>
+              <span className={styles.checkboxCardDesc}>Se define al cobrar, según las condiciones del servicio.</span>
+            </div>
+          </label>
 
           {/* ── Sección: Requisitos ── */}
           <div className={styles.formDivider}>
             <span className={styles.formDividerLabel}>Requisitos</span>
           </div>
 
-          {/* Requiere evaluación — card estilo mejorado */}
-          <label className={`${styles.checkboxCard} ${styles.colSpan2}`} htmlFor="srv-requiere-eval">
+          <label
+            className={`${styles.checkboxCard} ${isEdit ? styles.span3 : styles.span6}`}
+            htmlFor="srv-requiere-eval"
+          >
             <input
               id="srv-requiere-eval"
               type="checkbox"
@@ -978,14 +992,13 @@ export default function ServiciosPage() {
             <div className={styles.checkboxCardContent}>
               <span className={styles.checkboxCardTitle}>Requiere evaluación previa</span>
               <span className={styles.checkboxCardDesc}>
-                El cliente deberá completar una evaluación antes de poder reservar este servicio.
+                La reserva queda pendiente hasta que el equipo la apruebe tras evaluar al cliente.
               </span>
             </div>
           </label>
 
-          {/* Visible para pacientes nuevos */}
           {isEdit && (
-            <label className={`${styles.checkboxCard} ${styles.colSpan2}`} htmlFor="srv-paciente-nuevo">
+            <label className={`${styles.checkboxCard} ${styles.span3}`} htmlFor="srv-paciente-nuevo">
               <input
                 id="srv-paciente-nuevo"
                 type="checkbox"
@@ -995,7 +1008,7 @@ export default function ServiciosPage() {
               <div className={styles.checkboxCardContent}>
                 <span className={styles.checkboxCardTitle}>Visible para pacientes nuevos</span>
                 <span className={styles.checkboxCardDesc}>
-                  Este servicio aparecerá en el formulario de reserva para clientes que se registran por primera vez.
+                  Aparecerá en el formulario de reserva para clientes que se registran por primera vez.
                 </span>
               </div>
             </label>

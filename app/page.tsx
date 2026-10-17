@@ -34,13 +34,6 @@ export default function Home() {
           name: "Tratamientos corporales y faciales",
         },
       },
-      {
-        "@type": "Offer",
-        itemOffered: {
-          "@type": "Service",
-          name: "Valoracion estetica personalizada",
-        },
-      },
     ],
   };
 

@@ -1360,6 +1360,7 @@ export default function CajaPage() {
                           onChange={setPagosEstado}
                           options={ESTADO_OPTIONS.map((estado) => ({ value: estado, label: ESTADO_LABELS[estado] ?? estado }))}
                           placeholder="Todos los estados"
+                          allowClear
                         />
                       </div>
                     </div>

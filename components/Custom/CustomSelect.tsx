@@ -23,6 +23,8 @@ interface CustomSelectProps {
   hasError?: boolean;
   id?: string;
   ariaLabelledBy?: string;
+  /** true muestra el placeholder como opción seleccionable ("vaciar selección"). Por defecto no es seleccionable. */
+  allowClear?: boolean;
 }
 
 export function CustomSelect({
@@ -34,6 +36,7 @@ export function CustomSelect({
   hasError,
   id,
   ariaLabelledBy,
+  allowClear = false,
 }: CustomSelectProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -199,7 +202,7 @@ export function CustomSelect({
             </div>
           )}
 
-          {placeholder && !query && (
+          {placeholder && allowClear && !query && (
             <div
               className={`${styles.selectOption} ${!value ? styles.selectOptionActive : ''}`}
               onClick={() => handleSelect('')}

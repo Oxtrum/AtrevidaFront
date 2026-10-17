@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { ArrowRight, Heart } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import styles from './Footer.module.css';
 import { buildBusinessWhatsappUrl } from '@/lib/utils/whatsapp';
 
@@ -94,7 +94,7 @@ export default function Footer() {
           <div className={styles.ctaCol}>
             <h4 className={styles.colTitle}>¿Lista para tu cambio?</h4>
             <p className={styles.ctaText}>
-              Reserva tu primera consulta gratuita y descubre el tratamiento ideal para ti.
+              Reserva tu cita y descubre el tratamiento ideal para ti.
             </p>
             <a href="/reservas" className={styles.ctaBtn}>
               Reservar cita
@@ -107,9 +107,6 @@ export default function Footer() {
         <div className={styles.bottomBar}>
           <p className={styles.copyright}>
             © {new Date().getFullYear()} AtrevidaFit. Todos los derechos reservados.
-          </p>
-          <p className={styles.credits}>
-            Hecho con <Heart size={13} strokeWidth={1.8} fill="currentColor" /> para mujeres que se atreven
           </p>
         </div>
       </div>

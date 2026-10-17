@@ -161,7 +161,7 @@
 
 .proofStrip {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1px;
   width: min(690px, 100%);
   margin-top: clamp(1rem, 3.2vh, 2.1rem);
