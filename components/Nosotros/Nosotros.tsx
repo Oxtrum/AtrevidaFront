@@ -195,7 +195,7 @@ export default function Nosotros() {
             </div>
 
             <a href="/reservas" className={styles.ctaButton}>
-              Reservar evaluación
+              Reservar cita
               <ArrowRight size={17} strokeWidth={1.8} />
             </a>
           </div>

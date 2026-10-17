@@ -19,17 +19,6 @@ export interface ReservasBDApiResponse {
   status: string;
 }
 
-export const SERVICIO_EVALUACION_GRATUITA = {
-  value: 'evaluacion_gratuita',
-  label: 'Evaluación gratuita',
-  categoria: 'Reservas',
-  duracion: '60 min',
-  costo: '0 Bs',
-  precio: 0,
-  sucursal: 'ambos',
-  requiere_evaluacion: false,
-} as const;
-
 export const SERVICIO_TRATAMIENTO_ESPECIALIZADO = {
   value: 'tratamiento_especializado',
   label: 'Tratamiento especializado',
@@ -43,7 +32,6 @@ export const SERVICIO_TRATAMIENTO_ESPECIALIZADO = {
 } as const;
 
 export const SERVICIOS_ADMIN_DISPONIBLES = [
-  SERVICIO_EVALUACION_GRATUITA,
   { value: 'ultracavitacion', label: 'Ultracavitación', categoria: 'Apartología', duracion: '50 min', costo: '70 Bs', precio: 70, sucursal: 'ambos', requiere_evaluacion: true },
   { value: 'radiofrecuencia', label: 'Radiofrecuencia', categoria: 'Apartología', duracion: '50 min', costo: '70 Bs', precio: 70, sucursal: 'ambos', requiere_evaluacion: true },
   { value: 'ondas_rusas', label: 'Ondas Rusas', categoria: 'Apartología', duracion: '50 min', costo: '70 Bs', precio: 70, sucursal: 'ambos', requiere_evaluacion: true },
@@ -72,9 +60,8 @@ export const SERVICIOS_ADMIN_DISPONIBLES = [
 ] as const;
 
 export const SERVICIOS_DISPONIBLES = [
-  SERVICIO_EVALUACION_GRATUITA,
   ...SERVICIOS_ADMIN_DISPONIBLES.filter(
-    (servicio) => !servicio.requiere_evaluacion && servicio.value !== SERVICIO_EVALUACION_GRATUITA.value,
+    (servicio) => !servicio.requiere_evaluacion,
   ),
   SERVICIO_TRATAMIENTO_ESPECIALIZADO,
 ];

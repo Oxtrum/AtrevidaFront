@@ -63,11 +63,11 @@ export default function CtaBanner() {
             <span className={styles.titleAccent}>tu mejor versión</span>
           </h2>
           <p className={styles.subtitle}>
-            Primera consulta gratuita · Sin compromisos · Resultados reales
+            Sin compromisos · Atención personalizada · Resultados reales
           </p>
           <div className={styles.actions}>
             <a href="#contacto" className={styles.btnPrimary}>
-              ✦ Reservar cita gratuita
+              ✦ Reservar cita
             </a>
             <a href={buildBusinessWhatsappUrl() ?? '#'} className={styles.btnSecondary} target="_blank" rel="noopener noreferrer">
               WhatsApp →

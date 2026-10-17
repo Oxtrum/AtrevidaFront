@@ -25,7 +25,7 @@ interface CustomSelectProps {
   ariaLabelledBy?: string;
   /** false oculta el buscador aunque haya muchas opciones (p. ej. lista de semanas). */
   searchable?: boolean;
-  /** false oculta la opción del placeholder ("vaciar selección") en la lista. */
+  /** true muestra el placeholder como opción seleccionable ("vaciar selección", p. ej. "Todos"). Por defecto no es seleccionable. */
   allowClear?: boolean;
 }
 
@@ -39,7 +39,7 @@ export function CustomSelect({
   id,
   ariaLabelledBy,
   searchable = true,
-  allowClear = true,
+  allowClear = false,
 }: CustomSelectProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);

@@ -660,3 +660,58 @@
   font-size: 0.7rem;
   line-height: 1.45;
 }
+
+/* ── Formulario crear/editar servicio: grilla de 6 columnas ── */
+.formGrid6 {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 1.25rem 1.25rem;
+  padding-bottom: 0.25rem;
+}
+
+/* Más aire sobre cada sección que debajo de su título; la primera pegada al borde. */
+.formGrid6 .formDivider {
+  margin: 0.75rem 0 -0.25rem;
+}
+
+.formGrid6 .formDivider:first-child {
+  margin-top: 0;
+}
+
+/* La tarjeta de costo variable se alinea al borde inferior del input de costo. */
+.formGrid6 .checkboxCard {
+  align-items: center;
+  padding: 0.7rem 1rem;
+}
+
+.formGrid6 .checkboxCardTitle {
+  font-size: 0.875rem;
+}
+
+.formGrid6 .checkboxCardDesc {
+  font-size: 0.72rem;
+}
+
+.formGrid6 .checkboxCard input[type="checkbox"] {
+  margin-top: 0;
+}
+
+.alignEnd {
+  align-self: end;
+}
+
+.span2 { grid-column: span 2; }
+.span3 { grid-column: span 3; }
+.span6 { grid-column: 1 / -1; }
+
+@media (max-width: 640px) {
+  .formGrid6 {
+    grid-template-columns: 1fr;
+  }
+
+  .span2,
+  .span3,
+  .span6 {
+    grid-column: 1;
+  }
+}

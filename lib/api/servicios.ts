@@ -15,6 +15,8 @@ export interface GetServiciosParams {
   sesiones?: number;
   requiere_evaluacion?: boolean;
   paciente_nuevo?: boolean;
+  /** activos (default) | inactivos | todos — para ver y reactivar servicios dados de baja */
+  estado?: 'activos' | 'inactivos' | 'todos';
 }
 
 export interface GetCombosParams {
@@ -153,6 +155,7 @@ export async function getServiciosDB(
       sesiones: scopedParams.sesiones,
       requiere_evaluacion: scopedParams.requiere_evaluacion?.toString(),
       paciente_nuevo: scopedParams.paciente_nuevo?.toString(),
+      estado: scopedParams.estado,
     },
   });
 }

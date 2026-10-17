@@ -274,6 +274,7 @@ export default function PagosPage() {
                       onChange={setFilterEstado}
                       options={ESTADO_OPTIONS.map((estado) => ({ value: estado, label: ESTADO_LABELS[estado] ?? estado }))}
                       placeholder="Todos los estados"
+                      allowClear
                     />
                   </div>
                 </div>

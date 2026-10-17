@@ -5,7 +5,7 @@ import ReservasLanding from '../ReservasLanding';
 export const metadata: Metadata = {
   title: 'Crear reserva de tratamiento estetico',
   description:
-    'Completa el formulario para solicitar tu cita en AtrevidaFit. Puedes reservar evaluacion gratuita, tratamientos corporales o tratamientos faciales.',
+    'Completa el formulario para solicitar tu cita en AtrevidaFit. Puedes reservar tratamientos corporales o tratamientos faciales.',
   alternates: {
     canonical: '/reservas/crear',
   },
