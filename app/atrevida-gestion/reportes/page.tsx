@@ -30,7 +30,8 @@ import {
   YAxis,
 } from 'recharts';
 import Header from '@/components/AdminHeader/Header';
-import { PageHeader } from '@/components/AdminConfig';
+import { PageHeader, Tabs } from '@/components/AdminConfig';
+import { ReporteFinancieroPanel } from '@/components/AdminFinanzas/ReporteFinancieroPanel';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
 import { getPagosResumenDB, type PagosResumenResponse, type ReporteFinanciero } from '@/lib/api/pagos';
@@ -296,6 +297,7 @@ function reportToRow(report: ReporteFinanciero): CellValue[] {
 
 export default function ReportesFinancierosPage() {
   const router = useRouter();
+  const [reportTab, setReportTab] = useState<'ventas' | 'financiero'>('ventas');
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const initialRange = useMemo(getInitialRange, []);
@@ -603,6 +605,7 @@ export default function ReportesFinancierosPage() {
             accentWord="financieros"
             subtitle="Resumen de ingresos, servicios vendidos y rendimiento por local"
             actions={
+              reportTab === 'ventas' && (
               <button
                 type="button"
                 className="admin-button admin-button-primary"
@@ -612,9 +615,22 @@ export default function ReportesFinancierosPage() {
                 {exporting ? <RefreshCw size={17} strokeWidth={1.8} className={styles.spinIcon} /> : <Download size={17} strokeWidth={1.8} />}
                 Descargar Excel
               </button>
+              )
             }
           />
 
+          {authorized && (
+            <Tabs
+              tabs={[{ key: 'ventas', label: 'Ventas' }, { key: 'financiero', label: 'Financiero (ingresos vs egresos)' }]}
+              active={reportTab}
+              onChange={setReportTab}
+              ariaLabel="Tipo de reporte"
+            />
+          )}
+
+          {authorized && reportTab === 'financiero' ? (
+            <ReporteFinancieroPanel />
+          ) : (
           <div ref={contentRef} className={styles.contentStack}>
             {checkedAccess && !authorized ? (
               <section className={styles.accessPanel}>
@@ -879,6 +895,7 @@ export default function ReportesFinancierosPage() {
               </>
             )}
           </div>
+          )}
         </div>
       </main>
     </div>
