@@ -151,7 +151,8 @@ export default function ServiciosPage() {
   const adminLocalScope = useAdminLocalScopeState();
   const scopedLocalName = adminLocalScope.workplace?.nombre_local ?? '';
   const effectiveFiltroLocal = scopedLocalName || filtroLocal;
-  const hasFilter = adminLocalScope.ready && !!(effectiveFiltroLocal || filtroCategoria);
+  // Sin filtros principales se listan los servicios de todos los locales.
+  const hasFilter = adminLocalScope.ready;
 
   // Contar filtros secundarios activos para mostrar indicador
   const activeSecondaryFilters = [
@@ -186,6 +187,10 @@ export default function ServiciosPage() {
   const localOptions = useMemo(
     () => locales.map((l) => ({ value: l.nombre, label: l.nombre })),
     [locales],
+  );
+  const localFiltroOptions = useMemo(
+    () => [{ value: '', label: 'Todos los locales' }, ...localOptions],
+    [localOptions],
   );
   const categoriaOptions = useMemo(() => {
     const categoriasDisponibles = formCategorias.local === form.local ? formCategorias.categorias : [];
@@ -229,7 +234,7 @@ export default function ServiciosPage() {
   // ─── Data fetching ───────────────────────────────────────────────────────────
 
   const fetchServicios = useCallback(async () => {
-    if (!adminLocalScope.ready || (!effectiveFiltroLocal && !filtroCategoria)) return;
+    if (!adminLocalScope.ready) return;
     setLoading(true);
     setError(null);
     try {
@@ -660,7 +665,7 @@ export default function ServiciosPage() {
               </div>
 
               <div className={styles.filterBar}>
-                {/* Local — requerido */}
+                {/* Local — por defecto, todos */}
                 <div className={styles.filterGroup}>
                   <label id="lbl-filtro-local" htmlFor="filtro-local" className={styles.filterLabel}>
                     Local
@@ -670,8 +675,8 @@ export default function ServiciosPage() {
                     ariaLabelledBy="lbl-filtro-local"
                     value={effectiveFiltroLocal}
                     onChange={(value) => setFiltroLocal(scopedLocalName || value)}
-                    options={localOptions}
-                    placeholder="Seleccionar local"
+                    options={localFiltroOptions}
+                    placeholder="Todos los locales"
                   />
                 </div>
 
@@ -762,17 +767,6 @@ export default function ServiciosPage() {
               </div>
             </div>
           </div>
-
-          {/* ── Hint ── */}
-          {!hasFilter && (
-            <div className={styles.hint}>
-              <div className={styles.hintIcon}>
-                <Filter size={20} strokeWidth={1.5} />
-              </div>
-              <p className={styles.hintText}>Selecciona un <strong>local</strong> o una <strong>categoría</strong></p>
-              <p className={styles.hintSub}>Los servicios aparecerán aquí una vez que apliques al menos un filtro principal.</p>
-            </div>
-          )}
 
           {/* ── Tabla ── */}
           {hasFilter && (

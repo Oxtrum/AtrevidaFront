@@ -214,11 +214,13 @@ export default function EgresosPage() {
             <FilterBar.Item label="Local">
               <LocalSelect value={localId} onChange={setLocalId} emptyLabel="Todos" />
             </FilterBar.Item>
+            <FilterBar.Action full>
+              <AdminButton variant="secondary" onClick={handleGenerar} disabled={generating} title="Genera los gastos fijos que ya vencieron (idempotente)">
+                <RefreshCw size={15} strokeWidth={2} className={generating ? styles.spin : ''} />
+                Generar gastos fijos
+              </AdminButton>
+            </FilterBar.Action>
           </FilterBar>
-          <AdminButton variant="secondary" onClick={handleGenerar} disabled={generating} title="Genera los gastos fijos que ya vencieron (idempotente)">
-            <RefreshCw size={15} strokeWidth={2} className={generating ? styles.spin : ''} />
-            Generar gastos fijos
-          </AdminButton>
         </div>
 
         <DataTable<Row>
