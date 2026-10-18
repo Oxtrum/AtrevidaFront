@@ -1,10 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { AlertTriangle } from 'lucide-react';
-import { AlertBanner, DataTable, SectionLabel } from '@/components/AdminConfig';
+import { AlertBanner, DataTable, FilterBar, LocalSelect, SectionLabel } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import { getAlertasInventario } from '@/lib/api/inventario';
+import { getAdminLocalScope } from '@/lib/api/localScope';
 import { useAsyncData } from '@/lib/hooks/useAsyncData';
 import { formatDateISO, formatQty } from '@/lib/utils/format';
 import type { AlertaReservaInventario, InventarioItem } from '@/types/inventario';
@@ -16,7 +18,11 @@ type ReservaRow = AlertaReservaInventario & Record<string, unknown>;
 
 /** Qué hay que reponer ya: ítems bajo mínimo + reservas futuras sin stock para su servicio. */
 export function AlertasTab() {
-  const { data, loading, error, reload } = useAsyncData(getAlertasInventario, 'alertas');
+  const [localId, setLocalId] = useState(String(getAdminLocalScope()?.local_id ?? ''));
+  const { data, loading, error, reload } = useAsyncData(
+    () => getAlertasInventario(localId ? Number(localId) : undefined),
+    `alertas-${localId}`,
+  );
 
   const itemColumns: Column<ItemRow>[] = [
     {
@@ -31,6 +37,7 @@ export function AlertasTab() {
         </span>
       ),
     },
+    { key: 'local_nombre', label: 'Local', render: (v) => (v as string) || <span className={styles.muted}>—</span> },
     { key: 'stock_actual', label: 'Stock', render: (_v, r) => <span className={`${styles.num} ${r.stock_actual <= 0 ? styles.negative : ''}`}>{formatQty(r.stock_actual, r.unidad_medida)}</span> },
     { key: 'stock_minimo', label: 'Mínimo', render: (_v, r) => <span className={`${styles.num} ${styles.muted}`}>{formatQty(r.stock_minimo, r.unidad_medida)}</span> },
     { key: 'estado', label: 'Estado', searchable: false, render: (_v, r) => <StockBadge item={r} /> },
@@ -65,20 +72,27 @@ export function AlertasTab() {
 
   return (
     <div className={styles.stack}>
+      {!getAdminLocalScope() && (
+        <FilterBar>
+          <FilterBar.Item label="Local">
+            <LocalSelect value={localId} onChange={setLocalId} emptyLabel="Todos los locales" />
+          </FilterBar.Item>
+        </FilterBar>
+      )}
       {sinAlertas && (
         <AlertBanner tone="info" title="Todo en orden">
           No hay ítems bajo stock ni reservas con advertencia de inventario.
         </AlertBanner>
       )}
 
-      <SectionLabel icon={<AlertTriangle size={13} />}>Ítems bajo stock mínimo</SectionLabel>
+      <SectionLabel icon={<AlertTriangle size={13} />}>Ítems bajo stock mínimo (por local)</SectionLabel>
       <DataTable<ItemRow>
         columns={itemColumns}
         data={(data?.items_bajo_stock ?? []) as ItemRow[]}
         loading={loading}
         error={error}
         onRefresh={reload}
-        getRowKey={(i) => i.id}
+        getRowKey={(i) => `${i.id}-${i.local_id ?? 0}`}
         hideSearch
         emptyMessage="Ningún ítem bajo su mínimo"
       />

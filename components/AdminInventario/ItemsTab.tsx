@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { PackageMinus, Pencil, Plus, SlidersHorizontal } from 'lucide-react';
+import { PackageMinus, Pencil, Plus, Power, SlidersHorizontal } from 'lucide-react';
 import {
   AdminButton,
   ConfirmDialog,
@@ -13,7 +13,7 @@ import {
 import type { Column } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
-import { desactivarInventarioItem, getCategoriasInventario } from '@/lib/api/inventario';
+import { actualizarInventarioItem, desactivarInventarioItem, getCategoriasInventario } from '@/lib/api/inventario';
 import { getAdminLocalScope } from '@/lib/api/localScope';
 import { useAsyncData } from '@/lib/hooks/useAsyncData';
 import { useInventarioItems } from '@/lib/hooks/useInventarioItems';
@@ -47,6 +47,7 @@ export function ItemsTab({ canManage, canAdjust, moneda }: ItemsTabProps) {
       categoria_id: categoriaId ? Number(categoriaId) : undefined,
       bajo_stock: estado === 'bajo' || undefined,
       activo: estado === 'inactivos' ? false : true,
+      por_local: true,
     }),
     [q, localId, categoriaId, estado],
   );
@@ -62,6 +63,16 @@ export function ItemsTab({ canManage, canAdjust, moneda }: ItemsTabProps) {
   const openForm = (item: InventarioItem | null) => {
     setFormItem(item);
     setFormOpen(true);
+  };
+
+  const handleActivate = async (item: InventarioItem) => {
+    try {
+      await actualizarInventarioItem(item.id, { activo: true });
+      toast.success('Ítem activado');
+      await reload();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'No se pudo activar el ítem');
+    }
   };
 
   const handleDeactivate = async () => {
@@ -92,10 +103,11 @@ export function ItemsTab({ canManage, canAdjust, moneda }: ItemsTabProps) {
         </span>
       ),
     },
+    ...(!localId ? [{ key: 'local_nombre', label: 'Local', render: (v: unknown) => (v as string) || <span className={styles.muted}>Sin stock registrado</span> } as Column<ItemRow>] : []),
     { key: 'categoria_nombre', label: 'Categoría', render: (v) => (v as string) || <span className={styles.muted}>—</span> },
     {
       key: 'stock_actual',
-      label: localId ? 'Stock del local' : 'Stock total',
+      label: 'Stock',
       searchable: false,
       render: (_v, row) => (
         <span className={`${styles.num} ${row.stock_actual < 0 ? styles.negative : ''}`}>
@@ -124,6 +136,7 @@ export function ItemsTab({ canManage, canAdjust, moneda }: ItemsTabProps) {
         const actions = [
           ...(canAdjust && row.activo ? [{ label: 'Ajustar stock', icon: <SlidersHorizontal size={12} strokeWidth={2} />, onClick: () => setAjusteItem(row) }] : []),
           ...(canManage ? [{ label: 'Editar', icon: <Pencil size={12} strokeWidth={2} />, onClick: () => openForm(row) }] : []),
+          ...(canManage && !row.activo ? [{ label: 'Activar', icon: <Power size={12} strokeWidth={2} />, onClick: () => void handleActivate(row) }] : []),
           ...(canManage && row.activo ? [{ label: 'Desactivar', icon: <PackageMinus size={12} strokeWidth={2} />, onClick: () => setToDeactivate(row), variant: 'danger' as const }] : []),
         ];
         return actions.length ? <RowActionsMenu actions={actions} /> : null;
@@ -165,15 +178,15 @@ export function ItemsTab({ canManage, canAdjust, moneda }: ItemsTabProps) {
               searchable={false}
             />
           </FilterBar.Item>
+          {canManage && (
+            <FilterBar.Action>
+              <AdminButton variant="primary" onClick={() => openForm(null)}>
+                <Plus size={18} strokeWidth={2} />
+                Nuevo ítem
+              </AdminButton>
+            </FilterBar.Action>
+          )}
         </FilterBar>
-        {canManage && (
-          <div className={styles.toolbarActions}>
-            <AdminButton variant="primary" onClick={() => openForm(null)}>
-              <Plus size={18} strokeWidth={2} />
-              Nuevo ítem
-            </AdminButton>
-          </div>
-        )}
       </div>
 
       <DataTable<ItemRow>
@@ -182,7 +195,7 @@ export function ItemsTab({ canManage, canAdjust, moneda }: ItemsTabProps) {
         loading={loading}
         error={error}
         onRefresh={reload}
-        getRowKey={(i) => i.id}
+        getRowKey={(i) => `${i.id}-${i.local_id ?? 0}`}
         hideSearch
         emptyMessage={estado === 'bajo' ? 'Ningún ítem está bajo su stock mínimo' : 'No hay ítems de inventario'}
       />
@@ -194,7 +207,7 @@ export function ItemsTab({ canManage, canAdjust, moneda }: ItemsTabProps) {
         onClose={() => setFormOpen(false)}
         onSaved={reload}
       />
-      <AjusteModal isOpen={ajusteItem !== null} item={ajusteItem} defaultLocalId={localId} onClose={() => setAjusteItem(null)} onSaved={reload} />
+      <AjusteModal isOpen={ajusteItem !== null} item={ajusteItem} defaultLocalId={ajusteItem?.local_id ? String(ajusteItem.local_id) : localId} onClose={() => setAjusteItem(null)} onSaved={reload} />
       <ConfirmDialog
         isOpen={toDeactivate !== null}
         danger

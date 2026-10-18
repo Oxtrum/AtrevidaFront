@@ -68,6 +68,9 @@ export interface InventarioItem {
   activo: boolean;
   /** Solo en el detalle. */
   stock_por_local?: StockLocal[];
+  /** Solo en alertas: el stock se evalúa por local. */
+  local_id?: number;
+  local_nombre?: string;
 }
 
 export interface InventarioItemInput {
@@ -112,6 +115,8 @@ export interface GetInventarioItemsParams {
   bajo_stock?: boolean;
   activo?: boolean;
   limit?: number;
+  /** Sin local_id: una fila por ítem y local, sin sumar el stock entre locales. */
+  por_local?: boolean;
 }
 
 export interface GetMovimientosParams {
@@ -120,7 +125,11 @@ export interface GetMovimientosParams {
   tipo?: TipoMovimientoInventario;
   fecha_desde?: string;
   fecha_hasta?: string;
+  /** Busca por ítem, local o motivo. */
+  q?: string;
   limit?: number;
+  cursor?: string;
+  include_total?: boolean;
 }
 
 /** Advertencia devuelta al crear/agendar una reserva sin stock suficiente (RN-12). */

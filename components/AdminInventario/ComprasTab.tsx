@@ -69,8 +69,7 @@ export function ComprasTab({ canAnular, moneda }: ComprasTabProps) {
   return (
     <>
       <div className={styles.toolbar}>
-        <span />
-        <AdminButton variant="primary" onClick={() => setCreating(true)}>
+        <AdminButton style={{ marginLeft: 'auto' }} variant="primary" onClick={() => setCreating(true)}>
           <Plus size={18} strokeWidth={2} />
           Registrar compra
         </AdminButton>
@@ -92,17 +91,17 @@ export function ComprasTab({ canAnular, moneda }: ComprasTabProps) {
       <FormModal isOpen={detail !== null} onClose={() => setDetail(null)} title={`Compra ${detail?.codigo ?? ''}`} hideFooter size="lg">
         {detail && (
           <div className={styles.stack}>
-            <dl className={styles.detailList}>
-              <dt>Local</dt><dd>{detail.local_nombre}</dd>
-              <dt>Fecha</dt><dd>{formatDateISO(detail.fecha)}</dd>
-              <dt>Proveedor</dt><dd>{detail.proveedor || '—'}</dd>
-              <dt>Registrada por</dt><dd>{detail.nombre_usuario || '—'}</dd>
-              <dt>Egreso asociado</dt><dd>{detail.movimiento_financiero_codigo || '—'}</dd>
-              <dt>Estado</dt><dd><StatusBadge tone={detail.estado === 'ANULADA' ? 'danger' : 'success'}>{detail.estado}</StatusBadge></dd>
+            <dl className={styles.metaGrid}>
+              <div><dt>Local</dt><dd>{detail.local_nombre}</dd></div>
+              <div><dt>Fecha</dt><dd>{formatDateISO(detail.fecha)}</dd></div>
+              <div><dt>Estado</dt><dd><StatusBadge tone={detail.estado === 'ANULADA' ? 'danger' : 'success'}>{detail.estado}</StatusBadge></dd></div>
+              <div><dt>Proveedor</dt><dd>{detail.proveedor || '—'}</dd></div>
+              <div><dt>Registrada por</dt><dd>{detail.nombre_usuario || '—'}</dd></div>
+              <div><dt>Egreso asociado</dt><dd>{detail.movimiento_financiero_codigo || '—'}</dd></div>
             </dl>
-            <table style={{ width: '100%', fontSize: '0.85rem', borderCollapse: 'collapse' }}>
+            <table className={styles.detailTable}>
               <thead>
-                <tr style={{ textAlign: 'left', color: 'var(--admin-text-dim)' }}>
+                <tr>
                   <th>Ítem</th><th className={styles.num}>Cantidad</th><th className={styles.num}>Costo unit.</th><th className={styles.num}>Subtotal</th>
                 </tr>
               </thead>
@@ -117,7 +116,7 @@ export function ComprasTab({ canAnular, moneda }: ComprasTabProps) {
                 ))}
               </tbody>
             </table>
-            <div className={styles.total}><span>Total</span><span>{formatMoney(detail.total, moneda)}</span></div>
+            <div className={styles.detailTotal}><span>Total</span><strong>{formatMoney(detail.total, moneda)}</strong></div>
           </div>
         )}
       </FormModal>

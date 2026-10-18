@@ -4,11 +4,20 @@ export function formatMoney(value: number | null | undefined, moneda = 'Bs'): st
   return `${moneda} ${n.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
+/** "unidad"/"caja" van en plural salvo para exactamente 1; ml y gr son símbolos y no cambian. */
+function pluralizeUnit(unidad: string, n: number): string {
+  const u = unidad.toLowerCase();
+  if (n === 1) return u;
+  if (u === 'unidad') return 'unidades';
+  if (u === 'caja') return 'cajas';
+  return u;
+}
+
 /** Cantidades con hasta 3 decimales (NUMERIC(12,3)), sin ceros sobrantes. */
 export function formatQty(value: number | null | undefined, unidad?: string): string {
   const n = Number(value ?? 0);
   const text = n.toLocaleString('es-BO', { maximumFractionDigits: 3 });
-  return unidad ? `${text} ${unidad.toLowerCase()}` : text;
+  return unidad ? `${text} ${pluralizeUnit(unidad, n)}` : text;
 }
 
 /** "2026-10-16" → "16/10/2026" sin pasar por Date (evita desfase de zona horaria). */

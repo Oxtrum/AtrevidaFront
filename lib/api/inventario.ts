@@ -1,5 +1,6 @@
 import { apiClient } from './client';
 import { withLocalIdScope } from './localScope';
+import type { PaginationMetadata } from './pagination';
 import type { ApiResponse } from '@/types/reserva';
 import type {
   AjusteInventarioInput,
@@ -22,6 +23,7 @@ export async function getInventarioItems(params: GetInventarioItemsParams = {}):
     params: {
       ...scoped,
       bajo_stock: scoped.bajo_stock ? 'true' : undefined,
+      por_local: scoped.por_local ? 'true' : undefined,
       activo: scoped.activo === undefined ? undefined : String(scoped.activo),
       limit: scoped.limit ?? 200,
     },
@@ -65,20 +67,27 @@ export async function guardarCategoriaInventario(
 
 // ── Kardex y ajustes ──
 
-export async function getMovimientosInventario(params: GetMovimientosParams = {}): Promise<MovimientoInventario[]> {
+export interface MovimientosPage {
+  movimientos: MovimientoInventario[];
+  paginacion?: PaginationMetadata;
+}
+
+/** Una página del kardex (más reciente primero). Sin `limit`/`cursor` el backend devuelve los 200 más recientes. */
+export async function getMovimientosInventario(params: GetMovimientosParams = {}, signal?: AbortSignal): Promise<MovimientosPage> {
   const scoped = withLocalIdScope(params);
-  const res = await apiClient.get<ApiResponse<{ movimientos: MovimientoInventario[] }>>('/bd/inventario/movimientos', {
-    params: { ...scoped, limit: scoped.limit ?? 200 },
+  const res = await apiClient.get<ApiResponse<MovimientosPage>>('/bd/inventario/movimientos', {
+    params: { ...scoped, include_total: scoped.include_total ? 'true' : undefined },
+    signal,
   });
-  return res.data?.movimientos ?? [];
+  return { movimientos: res.data?.movimientos ?? [], paginacion: res.data?.paginacion };
 }
 
 export async function ajustarInventario(data: AjusteInventarioInput): Promise<void> {
   await apiClient.post('/bd/inventario/ajustes', data);
 }
 
-export async function getAlertasInventario(): Promise<AlertasInventario> {
-  const scoped = withLocalIdScope<{ local_id?: number }>({});
+export async function getAlertasInventario(localId?: number): Promise<AlertasInventario> {
+  const scoped = withLocalIdScope<{ local_id?: number }>({ local_id: localId });
   const res = await apiClient.get<ApiResponse<AlertasInventario>>('/bd/inventario/alertas', { params: scoped });
   return res.data;
 }
