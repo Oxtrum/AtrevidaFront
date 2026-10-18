@@ -3,11 +3,14 @@
 import { useState, useCallback } from 'react';
 import { crearReservaDB } from '@/lib/api/reservas';
 import type { ReservaTipoBody } from '@/lib/api/reservas';
+import type { AdvertenciaInventario } from '@/types/inventario';
 import type { DiaSemana, EstadoReserva, ReservaFormData } from '@/types/reserva';
 
 interface CrearReservaResult {
     id: string;
     mensaje: string;
+    alerta_inventario?: boolean;
+    advertencias_inventario?: AdvertenciaInventario[];
 }
 
 interface UseCrearReservaReturn {

@@ -14,6 +14,7 @@ import { getServiciosDB } from '@/lib/api/servicios';
 import { formatCostoServicio } from '@/lib/utils/serviceCost';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import { toast } from '../Shared/Toast';
+import { describirAdvertencias } from '@/lib/utils/format';
 import { getPlanByID } from '@/lib/api/planes';
 import { validateReservationForm, } from '@/lib/utils/reservationValidation';
 import { type SlotStatus, capacidadDeLocal, estadoOcupaCapacidad, normalizarHoraSlot } from '@/lib/utils/hoursAvailability';
@@ -597,12 +598,16 @@ export function useReservationForm(
           estado: agendarDirecto ? 'AGENDADO' as const : 'PENDIENTE' as const,
         };
 
-        await crearReserva(payload);
+        const creada = await crearReserva(payload);
         toast.success(
           agendarDirecto
             ? '¡Reserva agendada con éxito!'
             : 'Reserva registrada. Quedará pendiente de aprobación.',
         );
+        // La reserva ya está guardada: la falta de insumos solo se informa (RN-12). El formulario público nunca lo muestra.
+        if (initialData?.isAdmin && creada.advertencias_inventario?.length) {
+          toast.info(`Falta stock para este servicio — ${describirAdvertencias(creada.advertencias_inventario)}`, 10000);
+        }
 
         if (onSuccess) {
           onSuccess();

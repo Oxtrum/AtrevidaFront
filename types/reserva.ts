@@ -408,6 +408,8 @@ export interface ReservaBD {
   notas?: string;
   estado?: EstadoReserva;
   notificado?: boolean;
+  /** true si, al agendar, faltaba stock de insumos para el servicio (trastienda, RN-12). */
+  alerta_inventario?: boolean;
   creado_en?: string;
   actualizado_en?: string;
 }

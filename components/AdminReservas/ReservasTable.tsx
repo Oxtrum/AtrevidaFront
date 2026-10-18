@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { AlertTriangle, ClipboardList, Pencil, Trash2 } from 'lucide-react';
+import { InventarioAlertBadge } from '@/components/AdminInventario/InventarioWarnings';
 import type { ReservaBD } from '@/types/reserva';
 import styles from './ReservasTable.module.css';
 
@@ -166,6 +167,7 @@ export function ReservasTable({
                   <span className={`${styles.estadoBadge} ${getEstadoClass(reserva.estado)}`}>
                     {reserva.estado || 'PENDIENTE'}
                   </span>
+                  {reserva.alerta_inventario && <InventarioAlertBadge />}
                 </div>
 
                 <div className={styles.cell} data-label="Local">

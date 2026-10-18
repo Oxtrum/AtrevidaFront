@@ -7,6 +7,7 @@ import { ApiError, apiClient } from './client';
 import { withNombreLocalScope } from './localScope';
 import type { ApiResponse, EstadoReserva, ReservaBD, ReservaFormData, ReservasBDApiResponse } from '@/types/reserva';
 import type { PaginationParams } from './pagination';
+import type { AdvertenciaInventario } from '@/types/inventario';
 
 // ─── Parámetros (Sheets - DEPRECATED) ──────────────────────────────────────
 
@@ -162,6 +163,9 @@ export interface ActualizarReservaNotificadoDBData {
 export interface CrearReservaResult {
   id: string;
   mensaje: string;
+  /** Solo en el panel interno: la reserva se guardó pero falta stock de insumos (RN-12). */
+  alerta_inventario?: boolean;
+  advertencias_inventario?: AdvertenciaInventario[];
 }
 
 // ─── Queries (Sheets - DEPRECATED) ──────────────────────────────────────────
