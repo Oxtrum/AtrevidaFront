@@ -8,6 +8,7 @@ import gsap from 'gsap';
 import {
   Banknote,
   BarChart2,
+  Boxes,
   CalendarDays,
   Clock3,
   CreditCard,
@@ -19,6 +20,7 @@ import {
   Settings,
   ShieldCheck,
   Users,
+  Wallet,
   X,
 } from 'lucide-react';
 import styles from './Header.module.css';
@@ -69,6 +71,19 @@ const NAV_LINKS = [
     detail: 'Finanzas y locales',
     href: '/atrevida-gestion/reportes',
     icon: BarChart2,
+    financialOnly: true,
+  },
+  {
+    label: 'Inventario',
+    detail: 'Stock y compras',
+    href: '/atrevida-gestion/inventario',
+    icon: Boxes,
+  },
+  {
+    label: 'Egresos',
+    detail: 'Gastos e ingresos',
+    href: '/atrevida-gestion/egresos',
+    icon: Wallet,
     financialOnly: true,
   },
   {

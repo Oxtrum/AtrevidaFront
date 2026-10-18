@@ -17,6 +17,7 @@ import {
 
 import Header from '@/components/AdminHeader/Header';
 import { PageHeader } from '@/components/AdminConfig';
+import { DashboardTrastienda } from '@/components/AdminInventario/DashboardTrastienda';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import {
   getReservasResumenDB,
@@ -321,6 +322,8 @@ export default function AdminDashboardPage() {
               }
             />
           </div>
+
+          <DashboardTrastienda />
 
           {/* ── KPIs — fila principal ── */}
           <div className={styles.kpiGridPrimary}>
