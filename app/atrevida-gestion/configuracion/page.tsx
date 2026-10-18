@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { useRouter } from 'next/navigation';
 import {
+  Boxes,
   Building2,
+  CalendarClock,
   Eye,
   EyeOff,
   KeyRound,
@@ -12,14 +14,16 @@ import {
   Package2,
   Scissors,
   ShieldCheck,
+  SlidersHorizontal,
   Tags,
   UserRound,
+  Wallet,
 } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
 import { FormModal, PageHeader } from '@/components/AdminConfig';
 import { toast } from '@/components/Shared/Toast';
 import { cambiarPassword } from '@/lib/api/auth';
-import { getStoredAdminRole, getStoredAdminTokenClaims, getStoredAdminUser } from '@/lib/auth/adminSession';
+import { getStoredAdminRole, getStoredAdminTokenClaims, getStoredAdminUser, isAdminSys } from '@/lib/auth/adminSession';
 import styles from './page.module.css';
 
 interface ProfileInfo {
@@ -87,6 +91,41 @@ const OPTIONS = [
     color: '#f59e0b',
     colorRgb: '245, 158, 11',
   },
+  {
+    title: 'Gastos fijos',
+    description: 'Alquiler, banco y sueldos que se generan cada mes',
+    icon: <CalendarClock size={24} strokeWidth={1.5} />,
+    href: '/atrevida-gestion/configuracion/gastos-fijos',
+    color: '#EF4444',
+    colorRgb: '239, 68, 68',
+    adminSysOnly: true,
+  },
+  {
+    title: 'Categorías financieras',
+    description: 'Clasifica egresos y otros ingresos',
+    icon: <Wallet size={24} strokeWidth={1.5} />,
+    href: '/atrevida-gestion/configuracion/categorias-financieras',
+    color: '#8B5CF6',
+    colorRgb: '139, 92, 246',
+    adminSysOnly: true,
+  },
+  {
+    title: 'Categorías de inventario',
+    description: 'Agrupa productos e insumos de la trastienda',
+    icon: <Boxes size={24} strokeWidth={1.5} />,
+    href: '/atrevida-gestion/configuracion/categorias-inventario',
+    color: '#06B6D4',
+    colorRgb: '6, 182, 212',
+    adminSysOnly: true,
+  },
+  {
+    title: 'Inventario y finanzas',
+    description: 'Parámetros: política de stock, avisos y moneda',
+    icon: <SlidersHorizontal size={24} strokeWidth={1.5} />,
+    href: '/atrevida-gestion/configuracion/parametros',
+    color: '#F97316',
+    colorRgb: '249, 115, 22',
+  },
 ];
 
 const EMPTY_PASSWORD_FORM: PasswordForm = {
@@ -125,6 +164,7 @@ function readProfileInfo(): ProfileInfo {
 export default function ConfiguracionPage() {
   const router = useRouter();
   const [profile, setProfile] = useState<ProfileInfo | null>(null);
+  const [adminSys, setAdminSys] = useState(false);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [passwordForm, setPasswordForm] = useState<PasswordForm>(EMPTY_PASSWORD_FORM);
   const [passwordErrors, setPasswordErrors] = useState<PasswordErrors>({});
@@ -139,6 +179,7 @@ export default function ConfiguracionPage() {
     }
 
     setProfile(readProfileInfo());
+    setAdminSys(isAdminSys());
   }, [router]);
 
   const resetPasswordState = () => {
@@ -253,7 +294,7 @@ export default function ConfiguracionPage() {
           </section>
 
           <div className={styles.grid}>
-            {OPTIONS.map((opt) => (
+            {OPTIONS.filter((opt) => !('adminSysOnly' in opt && opt.adminSysOnly) || adminSys).map((opt) => (
               <div
                 key={opt.href}
                 className={styles.card}
