@@ -5,3 +5,8 @@ export * from './clientes';
 export * from './auth';
 export * from './pagos';
 export * from './planes';
+export * from './inventario';
+export * from './compras';
+export * from './finanzas';
+export * from './configuracion';
+export * from './reportes';
