@@ -715,3 +715,8 @@
     grid-column: 1;
   }
 }
+
+.helperText {
+  font-size: 0.8rem;
+  color: var(--admin-text-muted);
+}

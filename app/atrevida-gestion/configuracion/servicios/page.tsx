@@ -8,6 +8,8 @@ import Header from '@/components/AdminHeader/Header';
 import { PageHeader, DataTable, FormModal, RowActionsMenu } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
+import { InsumosEditor } from '@/components/AdminInventario/InsumosEditor';
+import type { InsumosEditorHandle } from '@/components/AdminInventario/InsumosEditor';
 import { toast } from '@/components/Shared/Toast';
 import {
   getCategoriasDB,
@@ -18,6 +20,7 @@ import {
   activarServicioEnLocal,
   togglePacienteNuevo,
 } from '@/lib/api/servicios';
+import { isAdminSys } from '@/lib/auth/adminSession';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import { tiempoAMinutos } from '@/lib/constants/reservationForm';
 import { formatCostoServicio } from '@/lib/utils/serviceCost';
@@ -211,6 +214,10 @@ export default function ServiciosPage() {
 
   // ─── Confirm dialog ───────────────────────────────────────────────────────
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
+  // Insumos (trastienda): solo admin_sys y solo al editar, cuando el servicio ya tiene id.
+  const insumosRef = useRef<InsumosEditorHandle | null>(null);
+  const [canEditInsumos, setCanEditInsumos] = useState(false);
+  useEffect(() => setCanEditInsumos(isAdminSys()), []);
 
   // ─── Debounced nombre filter ──────────────────────────────────────────────
   const [filtroNombreDebounced, setFiltroNombreDebounced] = useState('');
@@ -376,6 +383,11 @@ export default function ServiciosPage() {
       errors.sesiones = 'Mínimo 1 sesión';
     }
 
+    if (isEdit && canEditInsumos) {
+      const insumosError = insumosRef.current?.validate();
+      if (insumosError) errors.submit = insumosError;
+    }
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -401,6 +413,7 @@ export default function ServiciosPage() {
           tipo_espacio_requerido: form.tipo_espacio_requerido,
           requiere_evaluacion: form.requiere_evaluacion,
         });
+        if (canEditInsumos) await insumosRef.current?.save(editingId);
         const localForToggle = locales.find((l) => l.nombre === form.local);
         if (localForToggle) {
           await togglePacienteNuevo(editingId, localForToggle.id, form.visible_paciente_nuevo);
@@ -1012,6 +1025,23 @@ export default function ServiciosPage() {
                 </span>
               </div>
             </label>
+          )}
+
+          {canEditInsumos && (
+            <>
+              <div className={styles.formDivider}>
+                <span className={styles.formDividerLabel}>Insumos por sesión</span>
+              </div>
+              <div className={styles.span6}>
+                {isEdit && editingId !== null ? (
+                  <InsumosEditor servicioId={editingId} onReady={(handle) => { insumosRef.current = handle; }} />
+                ) : (
+                  <span className={styles.helperText}>
+                    Guarda el servicio y vuelve a editarlo para definir qué insumos de inventario consume cada sesión.
+                  </span>
+                )}
+              </div>
+            </>
           )}
 
         </div>
