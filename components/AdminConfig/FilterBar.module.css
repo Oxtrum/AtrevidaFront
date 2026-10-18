@@ -1,0 +1,65 @@
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-lg);
+  background: var(--admin-surface-1);
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 170px;
+}
+
+.grow {
+  flex: 1;
+  min-width: 220px;
+}
+
+.label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--admin-text-dim);
+}
+
+.item input[type='date'],
+.item input[type='month'],
+.item input[type='text'] {
+  min-height: 42px;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-input-bg);
+  color: var(--admin-foreground);
+  font-family: inherit;
+  font-size: 0.875rem;
+}
+
+.item input:focus {
+  outline: none;
+  border-color: var(--admin-accent-primary);
+  box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.16);
+}
+
+@media (max-width: 600px) {
+  .item {
+    min-width: 100%;
+  }
+}
+
+.item input[type='date'],
+.item input[type='month'] {
+  color-scheme: dark;
+}
+
+:global([data-admin-theme='light']) .item input[type='date'],
+:global([data-admin-theme='light']) .item input[type='month'] {
+  color-scheme: light;
+}

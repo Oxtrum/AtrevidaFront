@@ -191,3 +191,8 @@
 .selectDropdown::-webkit-scrollbar-thumb:hover {
   background: rgba(236, 0, 140, 0.68);
 }
+
+.customSelectCompact {
+  min-height: 36px;
+  padding: 0.4rem 0.75rem;
+}

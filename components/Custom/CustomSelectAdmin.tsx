@@ -27,6 +27,8 @@ interface CustomSelectProps {
   searchable?: boolean;
   /** true muestra el placeholder como opción seleccionable ("vaciar selección", p. ej. "Todos"). Por defecto no es seleccionable. */
   allowClear?: boolean;
+  /** Altura reducida (36px) para filas de tablas/editores. */
+  compact?: boolean;
 }
 
 export function CustomSelect({
@@ -40,6 +42,7 @@ export function CustomSelect({
   ariaLabelledBy,
   searchable = true,
   allowClear = false,
+  compact = false,
 }: CustomSelectProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -246,7 +249,7 @@ export function CustomSelect({
       <div
         ref={triggerRef}
         id={id}
-        className={styles.customSelectTrigger}
+        className={`${styles.customSelectTrigger} ${compact ? styles.customSelectCompact : ''}`}
         onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(prev => !prev); }}
         tabIndex={0}
         onKeyDown={(e) => {
