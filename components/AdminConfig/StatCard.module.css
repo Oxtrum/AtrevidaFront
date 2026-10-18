@@ -4,6 +4,17 @@
   gap: 0.75rem;
 }
 
+/* En pantallas angostas, dos columnas; una tarjeta sola en la última fila ocupa el ancho completo. */
+@media (max-width: 700px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grid > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+}
+
 .card {
   position: relative;
   background: var(--admin-surface-1);

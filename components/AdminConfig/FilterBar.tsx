@@ -14,4 +14,10 @@ function Item({ label, children, grow }: { label: string; children: React.ReactN
   );
 }
 
+/** Acción principal (p. ej. "Nuevo ítem") como una celda más de la cuadrícula: ocupa su ancho y alinea con los controles. */
+function Action({ children, full }: { children: React.ReactNode; full?: boolean }) {
+  return <div className={`${styles.action} ${full ? styles.actionFull : ''}`}>{children}</div>;
+}
+
 FilterBar.Item = Item;
+FilterBar.Action = Action;

@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { MoreHorizontal } from 'lucide-react';
+import { ModalPortal } from './ModalPortal';
 import styles from './RowActionsMenu.module.css';
 
 export interface RowAction {
@@ -106,7 +106,7 @@ export function RowActionsMenu({ actions }: RowActionsMenuProps) {
         <MoreHorizontal size={14} strokeWidth={2} />
       </button>
 
-      {typeof document !== 'undefined' && createPortal(menu, document.body)}
+      {menu && <ModalPortal>{menu}</ModalPortal>}
     </div>
   );
 }

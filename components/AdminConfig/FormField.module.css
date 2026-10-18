@@ -6,7 +6,7 @@
 }
 
 .label {
-  font-size: 0.8rem;
+  font-size: var(--admin-fs-body, 0.875rem);
   font-weight: 500;
   color: var(--admin-foreground);
 }
@@ -17,13 +17,13 @@
 }
 
 .hint {
-  font-size: 0.75rem;
+  font-size: var(--admin-fs-sm, 0.8125rem);
   color: var(--admin-text-dim);
-  line-height: 1.4;
+  line-height: 1.45;
 }
 
 .error {
-  font-size: 0.75rem;
+  font-size: var(--admin-fs-sm, 0.8125rem);
   color: var(--admin-accent-danger);
 }
 
@@ -38,7 +38,7 @@
   border-radius: var(--admin-radius-md);
   background: var(--admin-input-bg);
   color: var(--admin-foreground);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-family: inherit;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }

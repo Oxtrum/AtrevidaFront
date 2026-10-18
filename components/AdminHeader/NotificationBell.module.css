@@ -501,9 +501,6 @@
   }
 
   .userButton {
-    width: 42px;
-    height: 42px;
-    padding: 0;
     justify-content: center;
   }
 
@@ -523,4 +520,13 @@
     width: min(390px, calc(100vw - 1.5rem));
     max-height: calc(100dvh - 5.25rem);
   }
+}
+
+.userStatic,
+.userStatic:hover,
+.userStatic:active {
+  cursor: default;
+  transform: none;
+  border-color: var(--admin-border-subtle);
+  background: var(--admin-panel-elevated);
 }

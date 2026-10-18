@@ -1,6 +1,7 @@
 'use client';
 
 import { X } from 'lucide-react';
+import { ModalPortal } from './ModalPortal';
 import styles from './FormModal.module.css';
 
 interface FormModalProps {
@@ -29,6 +30,7 @@ export function FormModal({
   if (!isOpen) return null;
 
   return (
+    <ModalPortal>
     <div className={styles.overlay} onClick={onClose}>
       <div
         className={`${styles.modal} ${size === 'lg' ? styles.modalLg : ''} ${size === 'xl' ? styles.modalXl : ''}`}
@@ -53,5 +55,6 @@ export function FormModal({
         )}
       </div>
     </div>
+    </ModalPortal>
   );
 }

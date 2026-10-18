@@ -1,5 +1,6 @@
 'use client';
 
+import { ModalPortal } from './ModalPortal';
 import modal from './FormModal.module.css';
 
 interface ConfirmDialogProps {
@@ -32,6 +33,7 @@ export function ConfirmDialog({
   if (!isOpen) return null;
 
   return (
+    <ModalPortal>
     <div className={modal.overlay} onClick={onClose}>
       <div className={modal.modal} onClick={(e) => e.stopPropagation()}>
         <div className={modal.header}>
@@ -59,5 +61,6 @@ export function ConfirmDialog({
         </div>
       </div>
     </div>
+    </ModalPortal>
   );
 }

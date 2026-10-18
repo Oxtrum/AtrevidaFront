@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Pencil, Plus } from 'lucide-react';
+import { Pencil, Plus, Power, PowerOff } from 'lucide-react';
 import { toast } from '@/components/Shared/Toast';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
+import { ConfirmDialog } from './ConfirmDialog';
 import { DataTable } from './DataTable';
 import type { Column } from './DataTable';
 import { FormField, FormSubmitError } from './FormField';
@@ -45,7 +46,8 @@ export function CatalogManager({ noun, rows, loading, error, onReload, onSave, w
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<CatalogRow | null>(null);
   const [nombre, setNombre] = useState('');
-  const [activo, setActivo] = useState(true);
+  const [toggling, setToggling] = useState<CatalogRow | null>(null);
+  const [toggleBusy, setToggleBusy] = useState(false);
   const [naturaleza, setNaturaleza] = useState<'INGRESO' | 'EGRESO'>('EGRESO');
   const [formError, setFormError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -53,7 +55,6 @@ export function CatalogManager({ noun, rows, loading, error, onReload, onSave, w
   const openForm = (row: CatalogRow | null) => {
     setEditing(row);
     setNombre(row?.nombre ?? '');
-    setActivo(row?.activo ?? true);
     setNaturaleza(row?.naturaleza ?? 'EGRESO');
     setFormError('');
     setOpen(true);
@@ -70,7 +71,7 @@ export function CatalogManager({ noun, rows, loading, error, onReload, onSave, w
     }
     setSaving(true);
     try {
-      await onSave({ nombre: nombre.trim(), activo, ...(withNaturaleza && { naturaleza }) }, editing?.id);
+      await onSave({ nombre: nombre.trim(), activo: editing?.activo ?? true, ...(withNaturaleza && { naturaleza }) }, editing?.id);
       toast.success(editing ? 'Cambios guardados' : 'Creado correctamente');
       setOpen(false);
       onReload();
@@ -78,6 +79,20 @@ export function CatalogManager({ noun, rows, loading, error, onReload, onSave, w
       setFormError(err instanceof Error ? err.message : 'No se pudo guardar');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const applyToggle = async (row: CatalogRow) => {
+    setToggleBusy(true);
+    try {
+      await onSave({ nombre: row.nombre, activo: !row.activo, ...(withNaturaleza && { naturaleza: row.naturaleza }) }, row.id);
+      toast.success(row.activo ? 'Desactivada' : 'Activada');
+      setToggling(null);
+      onReload();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'No se pudo cambiar el estado');
+    } finally {
+      setToggleBusy(false);
     }
   };
 
@@ -91,7 +106,16 @@ export function CatalogManager({ noun, rows, loading, error, onReload, onSave, w
       key: 'acciones',
       label: '',
       searchable: false,
-      render: (_v, row) => <RowActionsMenu actions={[{ label: 'Editar', icon: <Pencil size={12} strokeWidth={2} />, onClick: () => openForm(row) }]} />,
+      render: (_v, row) => (
+        <RowActionsMenu
+          actions={[
+            { label: 'Editar', icon: <Pencil size={12} strokeWidth={2} />, onClick: () => openForm(row) },
+            row.activo
+              ? { label: 'Desactivar', icon: <PowerOff size={12} strokeWidth={2} />, variant: 'danger', onClick: () => setToggling(row) }
+              : { label: 'Activar', icon: <Power size={12} strokeWidth={2} />, onClick: () => void applyToggle(row) },
+          ]}
+        />
+      ),
     },
   ];
 
@@ -131,15 +155,20 @@ export function CatalogManager({ noun, rows, loading, error, onReload, onSave, w
               />
             </FormField>
           )}
-          {editing && (
-            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}>
-              <input type="checkbox" checked={activo} onChange={(e) => setActivo(e.target.checked)} style={{ accentColor: 'var(--admin-accent-primary)' }} />
-              Activa
-            </label>
-          )}
         </div>
         <FormSubmitError message={formError} />
       </FormModal>
+
+      <ConfirmDialog
+        isOpen={!!toggling}
+        title={`Desactivar ${noun}`}
+        message={<>“{toggling?.nombre}” dejará de aparecer al crear registros nuevos. Los registros existentes no cambian y puedes volver a activarla cuando quieras.</>}
+        confirmLabel="Desactivar"
+        danger
+        loading={toggleBusy}
+        onConfirm={() => toggling && void applyToggle(toggling)}
+        onClose={() => setToggling(null)}
+      />
     </>
   );
 }

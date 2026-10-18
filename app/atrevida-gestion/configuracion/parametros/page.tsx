@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { SlidersHorizontal } from 'lucide-react';
-import { AdminButton, AdminPageShell, AdminPanel, AlertBanner, FormField, FormSubmitError, PageHeader, SectionLabel } from '@/components/AdminConfig';
+import { Boxes, Landmark, SlidersHorizontal } from 'lucide-react';
+import { AdminButton, AdminPageShell, AdminPanel, AlertBanner, FormField, FormSubmitError, PageHeader } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
 import { getStoredAdminRole } from '@/lib/auth/adminSession';
@@ -72,19 +72,11 @@ export default function ParametrosPage() {
         accentWord="Parámetros"
         subtitle="Reglas de stock en reservas y de generación de gastos fijos"
         backHref="/atrevida-gestion/configuracion"
-        actions={
-          canEdit && (
-            <AdminButton variant="primary" onClick={handleSave} disabled={saving || !dirty || loading}>
-              {saving ? 'Guardando…' : 'Guardar cambios'}
-            </AdminButton>
-          )
-        }
       />
-      {!canEdit && <AlertBanner tone="info">Solo el administrador del sistema puede modificar estos parámetros.</AlertBanner>}
+      {!canEdit && <AlertBanner tone="info">Modo lectura: solo el administrador del sistema puede modificar estos parámetros. Tu rol actual puede consultarlos.</AlertBanner>}
 
       <fieldset className={styles.fieldset} disabled={!canEdit || saving}>
-        <AdminPanel>
-          <SectionLabel>Inventario</SectionLabel>
+        <AdminPanel card title="Inventario" description="Qué pasa con el stock cuando se agenda o completa una reserva." icon={<Boxes size={18} strokeWidth={1.75} />}>
           <div className={styles.grid}>
             <FormField label="Si no hay stock al reservar" labelId="p-pol-lbl" hint="Advertir: la reserva se guarda con aviso. Bloquear: el panel interno rechaza la reserva (el formulario público siempre registra).">
               <CustomSelect
@@ -107,14 +99,13 @@ export default function ParametrosPage() {
             <FormField label="Permitir stock negativo al completar" labelId="p-neg-lbl" hint="Si no alcanza el stock, permite completar y deja el faltante por regularizar. En “No” se rechaza.">
               <div id="p-neg-lbl">{bool('inventario.permitir_stock_negativo')}</div>
             </FormField>
-            <FormField label="Considerar reservas agendadas futuras" labelId="p-comp-lbl" hint="Al estimar disponibilidad, resta lo comprometido por otras reservas del mismo local.">
+            <FormField label="Considerar reservas agendadas futuras" labelId="p-comp-lbl" hint="Al calcular si alcanza el stock, también cuenta lo que necesitan las reservas agendadas de los próximos días en este local. Así no se promete un insumo que ya está reservado para otra clienta.">
               <div id="p-comp-lbl">{bool('inventario.considerar_comprometido')}</div>
             </FormField>
           </div>
         </AdminPanel>
 
-        <AdminPanel>
-          <SectionLabel>Finanzas</SectionLabel>
+        <AdminPanel card tone="info" title="Finanzas" description="Cómo se generan y avisan los gastos fijos." icon={<Landmark size={18} strokeWidth={1.75} />}>
           <div className={styles.grid}>
             <FormField label="Estado del gasto fijo generado" labelId="p-gf-lbl" hint="Pendiente: alguien confirma que se pagó. Pagado: nace ya confirmado.">
               <CustomSelect
@@ -126,7 +117,10 @@ export default function ParametrosPage() {
               />
             </FormField>
             <FormField label="Días de aviso antes del cobro" htmlFor="p-aviso" hint="Los gastos fijos que vencen en este plazo aparecen en el dashboard.">
-              <input id="p-aviso" type="number" min={0} max={31} value={form['finanzas.dias_aviso_gasto_fijo']} onChange={(e) => set('finanzas.dias_aviso_gasto_fijo', Number(e.target.value))} />
+              <div className={styles.suffixWrap}>
+                <input id="p-aviso" type="number" min={0} max={31} value={form['finanzas.dias_aviso_gasto_fijo']} onChange={(e) => set('finanzas.dias_aviso_gasto_fijo', Number(e.target.value))} />
+                <span className={styles.suffix} aria-hidden>días</span>
+              </div>
             </FormField>
             <FormField label="Zona horaria" labelId="p-tz-lbl" hint="Define cuándo vence cada gasto fijo.">
               <CustomSelect
@@ -144,6 +138,18 @@ export default function ParametrosPage() {
         </AdminPanel>
       </fieldset>
       <FormSubmitError message={error} />
+
+      {canEdit && dirty && (
+        <div className={styles.saveBar} role="region" aria-label="Cambios sin guardar">
+          <span className={styles.saveMsg}><span className={styles.dot} aria-hidden />Cambios sin guardar</span>
+          <div className={styles.saveActions}>
+            <AdminButton variant="secondary" onClick={() => { setForm(config); setError(''); }} disabled={saving}>Descartar</AdminButton>
+            <AdminButton variant="primary" onClick={handleSave} disabled={saving || loading}>
+              {saving ? 'Guardando…' : 'Guardar cambios'}
+            </AdminButton>
+          </div>
+        </div>
+      )}
     </AdminPageShell>
   );
 }

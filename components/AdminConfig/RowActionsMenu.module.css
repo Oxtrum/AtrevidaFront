@@ -35,9 +35,10 @@
 
 .menu {
   z-index: 9999;
-  min-width: 160px;
-  background: #15151d;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  min-width: 180px;
+  background: var(--admin-panel-elevated, #15151d);
+  border: 1px solid var(--admin-border-subtle);
+  font-family: var(--admin-font-family, inherit);
   border-radius: var(--admin-radius-xl);
   box-shadow:
     0 0 0 1px rgba(0, 0, 0, 0.5),
@@ -88,15 +89,14 @@
   align-items: center;
   gap: 0.55rem;
   width: 100%;
-  padding: 0.5rem 0.7rem;
+  padding: 0.6rem 0.75rem;
   border: none;
   border-radius: calc(var(--admin-radius-md) - 2px);
   background: transparent;
-  color: rgba(250, 250, 250, 0.85);
+  color: var(--admin-foreground);
   font-family: inherit;
-  font-size: 0.78rem;
+  font-size: var(--admin-fs-body, 0.875rem);
   font-weight: 500;
-  letter-spacing: 0.2px;
   text-align: left;
   cursor: pointer;
   transition: background 0.13s ease, color 0.13s ease;
@@ -119,12 +119,12 @@
 }
 
 .itemDanger {
-  color: rgb(220, 38, 38);
+  color: var(--admin-accent-danger);
 }
 
 .itemDanger:hover:not(:disabled) {
   background: rgba(255, 77, 109, 0.1);
-  color: rgb(239, 68, 68);
+  color: var(--admin-accent-danger);
 }
 
 /* ── Icon ────────────────────────────────────────────────────────────────── */

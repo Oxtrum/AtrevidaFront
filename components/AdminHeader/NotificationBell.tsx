@@ -21,7 +21,14 @@ import {
   marcarReservasNotificacionesLeidas,
   type ReservaNotificacion,
 } from '@/lib/api/notificaciones';
+import { getStoredAdminRole } from '@/lib/auth/adminSession';
 import styles from './NotificationBell.module.css';
+
+const ROLE_LABELS: Record<string, string> = {
+  admin_sys: 'Admin sistema',
+  admin: 'Administrador',
+  gerencia: 'Recepción',
+};
 
 const FOREGROUND_POLL_MS = 5 * 60 * 1000;
 const BACKGROUND_POLL_MS = 30 * 60 * 1000;
@@ -98,6 +105,7 @@ export function NotificationBell() {
   const [lastFetch, setLastFetch] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userName, setUserName] = useState('Admin');
+  const [role, setRole] = useState<string | null>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const bellRef = useRef<HTMLButtonElement>(null);
   const requestInFlightRef = useRef<Promise<void> | null>(null);
@@ -145,6 +153,7 @@ export function NotificationBell() {
   useEffect(() => {
     setIsAuthenticated(hasAdminToken());
     setUserName(getMockedUserName());
+    setRole(getStoredAdminRole());
     void fetchNotifications();
   }, [fetchNotifications]);
 
@@ -419,14 +428,25 @@ export function NotificationBell() {
         )}
       </div>
 
-      <Link href="/atrevida-gestion/configuracion/usuarios" className={styles.userButton} aria-label="Ver usuario">
+      {role === 'admin_sys' ? (
+        <Link href="/atrevida-gestion/configuracion/usuarios" className={styles.userButton} aria-label="Gestionar usuarios">
         <span className={styles.avatar}>{initials}</span>
         <span className={styles.userCopy}>
           <span className={styles.userName}>{userName}</span>
-          <span className={styles.userRole}>Administrador</span>
+          <span className={styles.userRole}>{role ? (ROLE_LABELS[role] ?? role) : 'Usuario'}</span>
         </span>
         <UserRound size={16} strokeWidth={1.7} />
-      </Link>
+        </Link>
+      ) : (
+        <div className={`${styles.userButton} ${styles.userStatic}`} aria-label="Usuario actual">
+        <span className={styles.avatar}>{initials}</span>
+        <span className={styles.userCopy}>
+          <span className={styles.userName}>{userName}</span>
+          <span className={styles.userRole}>{role ? (ROLE_LABELS[role] ?? role) : 'Usuario'}</span>
+        </span>
+        <UserRound size={16} strokeWidth={1.7} />
+        </div>
+      )}
     </div>
   );
 }

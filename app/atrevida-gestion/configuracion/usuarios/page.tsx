@@ -152,7 +152,10 @@ export default function UsuariosPage() {
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
     if (!token) { router.push('/atrevida-gestion/login'); return; }
-    setCanManageUserLocales(isAdminSys());
+    const admin = isAdminSys();
+    setCanManageUserLocales(admin);
+    // /auth/usuarios es solo admin_sys: con otro rol responde 403.
+    if (!admin) { router.push('/atrevida-gestion/configuracion'); return; }
     fetchData();
     fetchLocales();
   }, [router, fetchData, fetchLocales]);

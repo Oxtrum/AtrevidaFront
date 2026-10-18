@@ -1,9 +1,10 @@
 .bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 0.75rem;
-  padding: 0.85rem 1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-auto-flow: row dense;
+  align-items: end;
+  gap: 0.875rem 0.75rem;
+  padding: 1rem;
   border: 1px solid var(--admin-border-subtle);
   border-radius: var(--admin-radius-lg);
   background: var(--admin-surface-1);
@@ -12,17 +13,32 @@
 .item {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-  min-width: 170px;
+  gap: 0.35rem;
+  min-width: 0;
 }
 
+/* El buscador ocupa dos columnas; en pantallas angostas, la fila completa. */
 .grow {
+  grid-column: span 2;
+}
+
+.action {
+  display: flex;
+  min-width: 0;
+}
+
+.actionFull {
+  grid-column: 1 / -1;
+}
+
+.action > * {
   flex: 1;
-  min-width: 220px;
+  justify-content: center;
+  min-height: 42px;
 }
 
 .label {
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -48,9 +64,12 @@
   box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.16);
 }
 
-@media (max-width: 600px) {
-  .item {
-    min-width: 100%;
+@media (max-width: 520px) {
+  .bar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .grow {
+    grid-column: 1 / -1;
   }
 }
 

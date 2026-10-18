@@ -90,6 +90,7 @@ const OPTIONS = [
     href: '/atrevida-gestion/configuracion/usuarios',
     color: '#f59e0b',
     colorRgb: '245, 158, 11',
+    adminSysOnly: true,
   },
   {
     title: 'Gastos fijos',
@@ -143,7 +144,7 @@ const EMPTY_PASSWORD_VISIBILITY: PasswordVisibility = {
 const ROLE_LABELS: Record<string, string> = {
   admin_sys: 'Administrador del sistema',
   admin: 'Administrador',
-  gerencia: 'Gerencia',
+  gerencia: 'Recepción',
 };
 
 function getRoleLabel(roleCode: string) {
