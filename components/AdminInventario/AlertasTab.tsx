@@ -8,7 +8,6 @@ import { getAlertasInventario } from '@/lib/api/inventario';
 import { useAsyncData } from '@/lib/hooks/useAsyncData';
 import { formatDateISO, formatQty } from '@/lib/utils/format';
 import type { AlertaReservaInventario, InventarioItem } from '@/types/inventario';
-import { ItemThumb } from './ItemThumb';
 import { StockBadge } from './StockBadge';
 import styles from './AdminInventario.module.css';
 
@@ -25,7 +24,6 @@ export function AlertasTab() {
       label: 'Ítem',
       render: (_v, row) => (
         <span className={styles.itemCell}>
-          <ItemThumb url={row.imagen_url} name={row.nombre} />
           <span>
             <span className={styles.itemName}>{row.nombre}</span>
             <span className={styles.itemCode}>{row.codigo}</span>

@@ -17,7 +17,6 @@ export { Tabs } from './Tabs';
 export type { TabItem } from './Tabs';
 export { FilterBar } from './FilterBar';
 export { AdminPageShell } from './AdminPageShell';
-export { ImageUploader } from './ImageUploader';
 export { LocalSelect } from './LocalSelect';
 export { ReasonDialog } from './ReasonDialog';
 export { CatalogManager } from './CatalogManager';

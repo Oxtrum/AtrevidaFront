@@ -21,14 +21,13 @@ import { formatMoney, formatQty } from '@/lib/utils/format';
 import type { InventarioItem } from '@/types/inventario';
 import { AjusteModal } from './AjusteModal';
 import { ItemFormModal } from './ItemFormModal';
-import { ItemThumb } from './ItemThumb';
 import { StockBadge } from './StockBadge';
 import styles from './AdminInventario.module.css';
 
 type ItemRow = InventarioItem & Record<string, unknown>;
 
 interface ItemsTabProps {
-  /** Crear/editar/desactivar ítems y subir imagen: solo admin_sys (§7). */
+  /** Crear/editar/desactivar ítems: solo admin_sys (§7). */
   canManage: boolean;
   /** Ajustes de stock: admin_sys y gerencia (su local). */
   canAdjust: boolean;
@@ -86,7 +85,6 @@ export function ItemsTab({ canManage, canAdjust, moneda }: ItemsTabProps) {
       label: 'Ítem',
       render: (_v, row) => (
         <span className={styles.itemCell}>
-          <ItemThumb url={row.imagen_url} name={row.nombre} />
           <span>
             <span className={styles.itemName}>{row.nombre}</span>
             <span className={styles.itemCode}>{row.codigo}</span>

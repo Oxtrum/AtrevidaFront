@@ -1,14 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { FormField, FormGrid, FormModal, FormSubmitError, ImageUploader } from '@/components/AdminConfig';
+import { FormField, FormGrid, FormModal, FormSubmitError } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
 import {
   actualizarInventarioItem,
   crearInventarioItem,
-  quitarImagenInventarioItem,
-  subirImagenInventarioItem,
 } from '@/lib/api/inventario';
 import { UNIDADES_MEDIDA } from '@/types/inventario';
 import type { CategoriaInventario, InventarioItem, UnidadMedida } from '@/types/inventario';
@@ -44,8 +42,6 @@ const toNumber = (v: string) => Number(v.replace(',', '.'));
 
 export function ItemFormModal({ isOpen, item, categorias, onClose, onSaved }: ItemFormModalProps) {
   const [form, setForm] = useState<FormState>(EMPTY);
-  const [file, setFile] = useState<File | null>(null);
-  const [imageRemoved, setImageRemoved] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState | 'submit', string>>>({});
   const [saving, setSaving] = useState(false);
 
@@ -63,8 +59,6 @@ export function ItemFormModal({ isOpen, item, categorias, onClose, onSaved }: It
           }
         : EMPTY,
     );
-    setFile(null);
-    setImageRemoved(false);
     setErrors({});
   }, [isOpen, item]);
 
@@ -96,19 +90,8 @@ export function ItemFormModal({ isOpen, item, categorias, onClose, onSaved }: It
     };
 
     try {
-      let id = item?.id;
       if (item) await actualizarInventarioItem(item.id, payload);
-      else id = (await crearInventarioItem(payload)).id;
-
-      // La imagen va aparte (upload-url → PUT → confirmar): si falla, el ítem ya quedó guardado.
-      if (id !== undefined && (file || imageRemoved)) {
-        try {
-          if (file) await subirImagenInventarioItem(id, file);
-          else await quitarImagenInventarioItem(id);
-        } catch (err) {
-          toast.error(err instanceof Error ? `Ítem guardado, pero la imagen falló: ${err.message}` : 'Ítem guardado, pero la imagen falló');
-        }
-      }
+      else await crearInventarioItem(payload);
       toast.success(item ? 'Ítem actualizado' : 'Ítem creado');
       onSaved();
       onClose();
@@ -174,16 +157,6 @@ export function ItemFormModal({ isOpen, item, categorias, onClose, onSaved }: It
           <textarea id="inv-desc" value={form.descripcion} onChange={(e) => patch({ descripcion: e.target.value })} />
         </FormField>
 
-        <FormField label="Imagen" wide>
-          <ImageUploader
-            currentUrl={item?.imagen_url}
-            removed={imageRemoved}
-            disabled={saving}
-            onFileChange={setFile}
-            onRemoveChange={setImageRemoved}
-            onError={(m) => toast.error(m)}
-          />
-        </FormField>
       </FormGrid>
       <FormSubmitError message={errors.submit} />
     </FormModal>

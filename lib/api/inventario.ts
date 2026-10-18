@@ -48,31 +48,6 @@ export async function desactivarInventarioItem(id: number): Promise<void> {
   await apiClient.delete(`/bd/inventario/items/${id}`);
 }
 
-// ── Imagen: upload-url → PUT directo al storage → PUT imagen (confirmar key) ──
-
-interface UploadUrlResponse {
-  upload_url: string;
-  imagen_key: string;
-}
-
-export async function subirImagenInventarioItem(id: number, file: File): Promise<void> {
-  const signed = await apiClient.post<ApiResponse<UploadUrlResponse>>(
-    `/bd/inventario/items/${id}/imagen/upload-url`,
-    { content_type: file.type, size: file.size },
-  );
-  const put = await fetch(signed.data.upload_url, {
-    method: 'PUT',
-    headers: { 'Content-Type': file.type },
-    body: file,
-  });
-  if (!put.ok) throw new Error('No se pudo subir la imagen al almacenamiento');
-  await apiClient.put(`/bd/inventario/items/${id}/imagen`, { imagen_key: signed.data.imagen_key });
-}
-
-export async function quitarImagenInventarioItem(id: number): Promise<void> {
-  await apiClient.delete(`/bd/inventario/items/${id}/imagen`);
-}
-
 // ── Categorías ──
 
 export async function getCategoriasInventario(): Promise<CategoriaInventario[]> {

@@ -65,7 +65,6 @@ export interface InventarioItem {
   /** Stock del local consultado (o suma si no se filtra por local). */
   stock_actual: number;
   bajo_stock: boolean;
-  imagen_url?: string | null;
   activo: boolean;
   /** Solo en el detalle. */
   stock_por_local?: StockLocal[];
