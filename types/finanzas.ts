@@ -99,6 +99,61 @@ export interface GastoFijoPendiente {
   local_nombre?: string | null;
 }
 
+// ── Flujo de caja unificado ──
+export type FlujoOrigen = 'VENTA' | 'COMPRA' | 'GASTO_FIJO' | 'GASTO_VARIABLE' | 'OTRO_INGRESO';
+
+export interface FlujoMovimiento {
+  clave: string;
+  fecha: string;
+  origen: FlujoOrigen;
+  codigo: string;
+  naturaleza: NaturalezaFinanciera;
+  categoria: string;
+  detalle: string;
+  local_id?: number | null;
+  local_nombre?: string | null;
+  monto: number;
+  estado: EstadoMovimiento;
+  /** Saldo acumulado del rango filtrado (solo cuentan los PAGADO). */
+  saldo: number;
+}
+
+export interface FlujoTotales {
+  ingresos: number;
+  egresos: number;
+  balance: number;
+  por_cobrar: number;
+  por_pagar: number;
+  movimientos: number;
+}
+
+export interface FlujoLocal {
+  local_id: number;
+  local: string;
+  ingresos: number;
+  egresos: number;
+  balance: number;
+}
+
+export interface FlujoFinancieroResponse {
+  fecha_desde: string;
+  fecha_hasta: string;
+  movimientos: FlujoMovimiento[];
+  truncado: boolean;
+  totales: FlujoTotales;
+  por_local: FlujoLocal[];
+}
+
+export interface GetFlujoFinancieroParams {
+  fecha_desde?: string;
+  fecha_hasta?: string;
+  local_id?: number;
+  origen?: FlujoOrigen;
+  estado?: EstadoMovimiento;
+  q?: string;
+  limit?: number;
+}
+
 // ── Reporte financiero (§5.6) ──
 export interface ReporteFinancieroResumen {
   ingresos_ventas: number;

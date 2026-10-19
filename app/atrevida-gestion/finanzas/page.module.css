@@ -1,0 +1,47 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.entrada {
+  color: var(--admin-accent-success, #22c55e);
+}
+
+.salida {
+  color: var(--admin-accent-danger, #ff4d4d);
+}
+
+/* Pendientes y anulados no suman al saldo: se leen como secundarios. */
+.inactivo {
+  opacity: 0.55;
+}
+
+.muted {
+  color: var(--admin-text-dim);
+}
+
+.sub {
+  display: block;
+  color: var(--admin-text-dim);
+  font-size: 0.75rem;
+}
+
+.note {
+  margin: 0;
+  color: var(--admin-text-dim);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}

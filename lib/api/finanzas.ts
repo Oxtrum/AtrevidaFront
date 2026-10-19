@@ -5,7 +5,9 @@ import type {
   CategoriaFinanciera,
   GastoFijo,
   GastoFijoInput,
+  FlujoFinancieroResponse,
   GastoFijoPendiente,
+  GetFlujoFinancieroParams,
   GastoFijoProximo,
   GetMovimientosFinancierosParams,
   MovimientoFinanciero,
@@ -94,4 +96,14 @@ export async function getGastosFijosPendientes(): Promise<GastoFijoPendiente[]> 
 /** Dispara la generación idempotente (RN-32). Botón manual; el job diario la llama aparte. */
 export async function generarGastosFijos(): Promise<void> {
   await apiClient.post('/bd/finanzas/gastos-fijos/generar', {});
+}
+
+/** Libro unificado de ventas, compras, gastos y otros ingresos, con saldo acumulado. */
+export async function getFlujoFinanciero(params: GetFlujoFinancieroParams): Promise<FlujoFinancieroResponse> {
+  const qs = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== undefined && v !== '') qs.set(k, String(v));
+  });
+  const res = await apiClient.get<ApiResponse<FlujoFinancieroResponse>>(`/bd/finanzas/flujo?${qs.toString()}`);
+  return res.data;
 }

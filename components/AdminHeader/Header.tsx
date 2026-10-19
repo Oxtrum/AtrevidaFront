@@ -21,6 +21,7 @@ import {
   ShieldCheck,
   Users,
   Wallet,
+  ArrowLeftRight,
   X,
 } from 'lucide-react';
 import styles from './Header.module.css';
@@ -78,6 +79,13 @@ const NAV_LINKS = [
     detail: 'Stock y compras',
     href: '/atrevida-gestion/inventario',
     icon: Boxes,
+  },
+  {
+    label: 'Finanzas',
+    detail: 'Flujo de caja',
+    href: '/atrevida-gestion/finanzas',
+    icon: ArrowLeftRight,
+    financialOnly: true,
   },
   {
     label: 'Egresos',
