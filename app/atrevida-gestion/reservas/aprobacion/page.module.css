@@ -1612,3 +1612,129 @@
     width: 100%;
   }
 }
+
+
+/* ── Rediseño compacto de la bandeja ────────────────────────────────────── */
+
+/* Sin franja de color ni halo decorativo: el estado lo dice la etiqueta. */
+.pendingCard::before,
+.pendingCard::after {
+  content: none;
+}
+
+.pendingCard {
+  grid-template-columns: minmax(0, 1fr) 200px;
+  gap: 0;
+}
+
+.pendingCard:hover {
+  transform: none;
+  border-color: rgba(var(--card-accent-rgb), 0.35);
+}
+
+.pendingContent {
+  display: grid;
+  gap: 0.7rem;
+  padding: 1rem 1.15rem;
+}
+
+.pendingContent > * {
+  margin: 0;
+}
+
+.pendingTop {
+  margin-bottom: 0;
+}
+
+.pendingBadges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.clientHeader {
+  margin-bottom: 0;
+}
+
+.clientAvatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
+
+.confirmationStatus {
+  min-height: 0;
+  margin: 0;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.68rem;
+}
+
+.serviceTrace {
+  margin: 0;
+}
+
+/* Fecha, hora, local y teléfono en una sola línea, sin cajas por dato. */
+.pendingMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.1rem;
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: rgba(255, 255, 255, 0.022);
+}
+
+.pendingMeta span {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 0.82rem;
+}
+
+.pendingMetaAudit {
+  margin: 0;
+}
+
+.pendingNotes {
+  margin: 0;
+  padding: 0.55rem 0.75rem;
+}
+
+.pendingActions {
+  align-content: start;
+  padding: 1rem;
+  border-left: 1px solid var(--admin-border-subtle);
+  background: rgba(255, 255, 255, 0.015);
+}
+
+/* Contadores dentro de las pestañas de estado */
+.filterCount {
+  min-width: 1.4rem;
+  margin-left: 0.5rem;
+  padding: 0.05rem 0.45rem;
+  border-radius: var(--admin-radius-full);
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 0.72rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.filterButtonActive .filterCount {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+@media (max-width: 760px) {
+  .pendingCard {
+    grid-template-columns: 1fr;
+  }
+
+  .pendingActions {
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    border-left: 0;
+    border-top: 1px solid var(--admin-border-subtle);
+  }
+}

@@ -24,7 +24,7 @@ import {
 
 import Header from '@/components/AdminHeader/Header';
 import { WhatsappIcon } from '@/components/icons/WhatsappIcon';
-import { PageHeader, StatGrid, StatCard, AdminPanel, CursorPagination } from '@/components/AdminConfig';
+import { PageHeader, AdminPanel, CursorPagination } from '@/components/AdminConfig';
 import { CATEGORIAS_ORDEN } from '@/components/AdminReservationForm/constants';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { actualizarEstadoReservaDB, actualizarReservaDB, actualizarReservaNotificadoDB, eliminarReservaDB, getReservasDB } from '@/lib/api/reservas';
@@ -839,30 +839,6 @@ export default function AdminReservasAprobacionPage() {
           </div>
 
           <AdminPanel>
-            <StatGrid>
-              <StatCard
-                value={reservasPendientes.length}
-                label="Pendientes"
-                sublabel="Necesitan revisión"
-                accentColor="var(--admin-accent-yellow)"
-                loading={initialLoading}
-              />
-              <StatCard
-                value={reservasAgendadas.length}
-                label="Agendadas"
-                sublabel="Ya confirmadas"
-                accentColor="var(--admin-accent-tertiary)"
-                loading={initialLoading}
-              />
-              <StatCard
-                value={reservasRechazadas.length}
-                label="Rechazadas"
-                sublabel="Con causa registrada"
-                accentColor="var(--admin-accent-danger)"
-                loading={initialLoading}
-              />
-            </StatGrid>
-
             <div className={styles.boardHeader}>
               <div>
                 <h2>{estadoFiltro === 'TODOS' ? 'Todas las solicitudes' : `Reservas ${ESTADO_OPTIONS.find((option) => option.value === estadoFiltro)?.label.toLowerCase()}`}</h2>
@@ -934,6 +910,11 @@ export default function AdminReservasAprobacionPage() {
                   disabled={initialLoading || isFetching || estadoFiltro === option.value}
                 >
                   {option.label}
+                  {option.value !== 'TODOS' && (
+                    <span className={styles.filterCount}>
+                      {initialLoading ? '–' : option.value === 'PENDIENTE' ? reservasPendientes.length : option.value === 'AGENDADO' ? reservasAgendadas.length : reservasRechazadas.length}
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
@@ -1034,9 +1015,16 @@ export default function AdminReservasAprobacionPage() {
                   <article key={reserva.id} className={`approval-card ${styles.pendingCard} ${styles[`card${estadoNormalizado}`]}`}>
                     <div className={styles.pendingContent}>
                       <div className={styles.pendingTop}>
-                        <span className={`${styles.pendingState} ${styles[`state${isCompleted ? 'COMPLETADO' : estadoNormalizado}`]}`}>
-                          {isCompleted ? 'COMPLETADO' : estadoNormalizado}
-                        </span>
+                        <div className={styles.pendingBadges}>
+                          <span className={`${styles.pendingState} ${styles[`state${isCompleted ? 'COMPLETADO' : estadoNormalizado}`]}`}>
+                            {isCompleted ? 'COMPLETADO' : estadoNormalizado}
+                          </span>
+                          {estadoNormalizado === 'AGENDADO' && (
+                            <span className={`${styles.confirmationStatus} ${isCompleted ? styles.confirmationCompleted : confirmationSent ? styles.confirmationSent : styles.confirmationPending}`}>
+                              {isCompleted ? 'Servicio completado' : confirmationSent ? 'Confirmación enviada' : 'Confirmación pendiente'}
+                            </span>
+                          )}
+                        </div>
                         <span className={styles.pendingId}>#{reserva.id}</span>
                       </div>
 
@@ -1049,7 +1037,8 @@ export default function AdminReservasAprobacionPage() {
                           <p className={styles.pendingService}>{reserva.servicio || 'Servicio por definir'}</p>
                         </div>
                       </div>
-                      {(reserva.servicio_solicitado || reserva.servicio_confirmado) && (
+                      {(reserva.servicio_solicitado || reserva.servicio_confirmado) &&
+                        (reserva.servicio_solicitado ?? '').trim().toLowerCase() !== (reserva.servicio_confirmado ?? '').trim().toLowerCase() && (
                         <div className={styles.serviceTrace}>
                           {reserva.servicio_solicitado && (
                             <span>Solicitado: <strong>{reserva.servicio_solicitado}</strong></span>
@@ -1058,12 +1047,6 @@ export default function AdminReservasAprobacionPage() {
                             <span>Confirmado: <strong>{reserva.servicio_confirmado}</strong></span>
                           )}
                         </div>
-                      )}
-
-                      {estadoNormalizado === 'AGENDADO' && (
-                        <p className={`${styles.confirmationStatus} ${isCompleted ? styles.confirmationCompleted : confirmationSent ? styles.confirmationSent : styles.confirmationPending}`}>
-                          {isCompleted ? 'Servicio completado' : confirmationSent ? 'Confirmación enviada' : 'Confirmación pendiente'}
-                        </p>
                       )}
 
                       <div className={styles.pendingMeta}>
@@ -1090,7 +1073,7 @@ export default function AdminReservasAprobacionPage() {
                       {reserva.creado_en && (
                         <div className={styles.pendingMetaAudit}>
                           <History size={13} strokeWidth={1.6} />
-                          Solicitada: {formatDateTime(reserva.creado_en)}
+                          Solicitada el {formatDateTime(reserva.creado_en)}
                         </div>
                       )}
 
