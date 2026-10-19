@@ -1,36 +1,57 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { ArrowLeftRight } from 'lucide-react';
+import { ArrowLeftRight, Ban, CalendarClock, CheckCircle2, Pencil, Plus, TrendingUp } from 'lucide-react';
 import {
+  AdminButton,
   AdminPageShell,
   AlertBanner,
+  ConfirmDialog,
   DataTable,
   FilterBar,
   LocalSelect,
   MonthPicker,
   PageHeader,
+  ReasonDialog,
+  RowActionsMenu,
   SectionLabel,
   StatCard,
   StatGrid,
   StatusBadge,
   Tabs,
+  formatMes,
 } from '@/components/AdminConfig';
 import type { BadgeTone, Column, TabItem } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
-import { getFlujoFinanciero } from '@/lib/api/finanzas';
+import { MovimientoFormModal } from '@/components/AdminFinanzas/MovimientoFormModal';
+import { toast } from '@/components/Shared/Toast';
+import {
+  cambiarEstadoMovimientoFinanciero,
+  generarGastosFijos,
+  getCategoriasFinancieras,
+  getFlujoFinanciero,
+  getGastosFijosPendientes,
+  getMovimientosFinancieros,
+} from '@/lib/api/finanzas';
 import { useAsyncData } from '@/lib/hooks/useAsyncData';
 import { useConfiguracion } from '@/lib/hooks/useConfiguracion';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { formatDateISO, formatMoney, monthRange, todayISO } from '@/lib/utils/format';
-import type { FlujoLocal, FlujoMovimiento, FlujoOrigen } from '@/types/finanzas';
+import type {
+  CategoriaFinanciera,
+  FlujoLocal,
+  FlujoMovimiento,
+  FlujoOrigen,
+  MovimientoFinanciero,
+  NaturalezaFinanciera,
+} from '@/types/finanzas';
 import styles from './page.module.css';
 
 type Row = FlujoMovimiento & Record<string, unknown>;
 type LocalRow = FlujoLocal & Record<string, unknown>;
 type EstadoTab = '' | 'PAGADO' | 'PENDIENTE' | 'ANULADO';
 
-// Libro financiero completo: solo admin_sys, igual que Egresos.
+// Libro financiero completo y registro de egresos: solo admin_sys.
 const ROLES = ['admin_sys'];
 
 const ORIGEN_LABEL: Record<FlujoOrigen, string> = {
@@ -50,6 +71,8 @@ const ORIGEN_TONE: Record<FlujoOrigen, BadgeTone> = {
 const ESTADO_TONE: Record<string, BadgeTone> = { PAGADO: 'success', PENDIENTE: 'warning', ANULADO: 'danger' };
 const EMPTY: FlujoMovimiento[] = [];
 const EMPTY_LOCALES: FlujoLocal[] = [];
+const EMPTY_MOVS: MovimientoFinanciero[] = [];
+const EMPTY_CATS: CategoriaFinanciera[] = [];
 
 export default function FinanzasPage() {
   const { moneda } = useConfiguracion();
@@ -60,24 +83,75 @@ export default function FinanzasPage() {
   const [estadoTab, setEstadoTab] = useState<EstadoTab>('');
   const [q, setQ] = useState('');
 
-  const params = useMemo(() => {
-    const { desde, hasta } = monthRange(month);
-    return {
-      fecha_desde: desde,
-      fecha_hasta: hasta,
-      local_id: localId ? Number(localId) : undefined,
-      origen: (origen || undefined) as FlujoOrigen | undefined,
-      estado: estadoTab || undefined,
-      q: q.trim() || undefined,
-      limit: 500,
-    };
-  }, [month, localId, origen, estadoTab, q]);
+  const { desde, hasta } = monthRange(month);
+  const params = useMemo(() => ({
+    fecha_desde: desde,
+    fecha_hasta: hasta,
+    local_id: localId ? Number(localId) : undefined,
+    origen: (origen || undefined) as FlujoOrigen | undefined,
+    estado: estadoTab || undefined,
+    q: q.trim() || undefined,
+    limit: 500,
+  }), [desde, hasta, localId, origen, estadoTab, q]);
 
   const { data, loading, error, reload } = useAsyncData(() => getFlujoFinanciero(params), JSON.stringify(params));
   const movimientos = data?.movimientos ?? EMPTY;
   const porLocal = data?.por_local ?? EMPTY_LOCALES;
   const totales = data?.totales;
   const money = (v: number) => formatMoney(v, moneda);
+
+  // Los movimientos manuales se editan con su registro completo; el libro solo trae lo necesario para mostrarlos.
+  const { data: movsData, reload: recargarMovs } = useAsyncData(
+    () => getMovimientosFinancieros({ fecha_desde: desde, fecha_hasta: hasta, local_id: localId ? Number(localId) : undefined }),
+    `movs|${month}|${localId}`,
+  );
+  const movsPorId = useMemo(() => new Map((movsData ?? EMPTY_MOVS).map((m) => [m.id, m])), [movsData]);
+  const { data: cats } = useAsyncData(getCategoriasFinancieras, 'cats-fin');
+  const categorias = cats ?? EMPTY_CATS;
+
+  const { data: pendientesData, reload: recargarPendientes } = useAsyncData(getGastosFijosPendientes, 'gf-pendientes');
+  const pendientes = pendientesData ?? [];
+
+  const [formOpen, setFormOpen] = useState(false);
+  const [formNat, setFormNat] = useState<NaturalezaFinanciera>('EGRESO');
+  const [editing, setEditing] = useState<MovimientoFinanciero | null>(null);
+  const [anulando, setAnulando] = useState<MovimientoFinanciero | null>(null);
+  const [confirmandoGenerar, setConfirmandoGenerar] = useState(false);
+  const [generating, setGenerating] = useState(false);
+
+  const recargarTodo = async () => {
+    await Promise.all([reload(), recargarMovs(), recargarPendientes()]);
+  };
+
+  const openForm = (nat: NaturalezaFinanciera, mov: MovimientoFinanciero | null) => {
+    setFormNat(nat);
+    setEditing(mov);
+    setFormOpen(true);
+  };
+
+  const marcarPagado = async (mov: MovimientoFinanciero) => {
+    try {
+      await cambiarEstadoMovimientoFinanciero(mov.id, 'PAGADO');
+      toast.success(`${mov.codigo} marcado como ${mov.naturaleza === 'EGRESO' ? 'pagado' : 'cobrado'}`);
+      await recargarTodo();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'No se pudo actualizar el estado');
+    }
+  };
+
+  const handleGenerar = async () => {
+    setGenerating(true);
+    try {
+      await generarGastosFijos();
+      toast.success(`${pendientes.length} gasto${pendientes.length === 1 ? '' : 's'} fijo${pendientes.length === 1 ? '' : 's'} registrado${pendientes.length === 1 ? '' : 's'}`);
+      setConfirmandoGenerar(false);
+      await recargarTodo();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'No se pudieron generar los gastos fijos');
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const tabs: TabItem<EstadoTab>[] = [
     { key: '', label: 'Todos' },
@@ -95,12 +169,16 @@ export default function FinanzasPage() {
       render: (v) => <StatusBadge tone={ORIGEN_TONE[v as FlujoOrigen]}>{ORIGEN_LABEL[v as FlujoOrigen]}</StatusBadge>,
     },
     { key: 'codigo', label: 'Código' },
-    { key: 'detalle', label: 'Detalle', render: (_v, r) => (
-      <span>
-        {r.detalle || '—'}
-        <small className={styles.sub}>{r.categoria}</small>
-      </span>
-    ) },
+    {
+      key: 'detalle',
+      label: 'Detalle',
+      render: (_v, r) => (
+        <span>
+          {r.detalle || '—'}
+          <small className={styles.sub}>{r.categoria}</small>
+        </span>
+      ),
+    },
     { key: 'local_nombre', label: 'Local', render: (v) => (v as string) || <span className={styles.muted}>General</span> },
     {
       key: 'entrada',
@@ -118,13 +196,33 @@ export default function FinanzasPage() {
       key: 'estado',
       label: 'Estado',
       searchable: false,
-      render: (v) => <StatusBadge tone={ESTADO_TONE[v as string] ?? 'neutral'}>{String(v)}</StatusBadge>,
+      render: (v, r) => <StatusBadge tone={ESTADO_TONE[v as string] ?? 'neutral'}>{r.naturaleza === 'INGRESO' && v === 'PAGADO' ? 'COBRADO' : String(v)}</StatusBadge>,
     },
     {
       key: 'saldo',
       label: 'Saldo',
       searchable: false,
       render: (v) => <span className={`${styles.num} ${(v as number) < 0 ? styles.salida : ''}`}>{money(v as number)}</span>,
+    },
+    {
+      key: 'acciones',
+      label: '',
+      searchable: false,
+      // Las ventas se gestionan en Cobros / Historial de Pagos; solo los movimientos manuales se editan aquí.
+      render: (_v, r) => {
+        if (r.origen === 'VENTA' || r.estado === 'ANULADO') return null;
+        const mov = movsPorId.get(Number(r.clave.replace('mov-', '')));
+        if (!mov) return null;
+        return (
+          <RowActionsMenu
+            actions={[
+              ...(mov.estado === 'PENDIENTE' ? [{ label: mov.naturaleza === 'EGRESO' ? 'Marcar pagado' : 'Marcar cobrado', icon: <CheckCircle2 size={12} strokeWidth={2} />, onClick: () => marcarPagado(mov) }] : []),
+              { label: mov.clase === 'FIJO' ? 'Editar monto de este mes' : 'Editar', icon: <Pencil size={12} strokeWidth={2} />, onClick: () => openForm(mov.naturaleza, mov) },
+              ...(mov.compra_id ? [] : [{ label: 'Anular', icon: <Ban size={12} strokeWidth={2} />, onClick: () => setAnulando(mov), variant: 'danger' as const }]),
+            ]}
+          />
+        );
+      },
     },
   ];
 
@@ -144,14 +242,33 @@ export default function FinanzasPage() {
         kickerIcon={<ArrowLeftRight size={14} strokeWidth={2} />}
         title="Finanzas"
         accentWord="Finanzas"
-        subtitle="Todo el dinero que entra y sale: ventas, cobros, compras y gastos, con saldo por movimiento"
+        subtitle="Todo el dinero del negocio en un solo lugar: ventas, compras, gastos y otros ingresos, con saldo por movimiento. Registra egresos e ingresos desde aquí."
+        actions={
+          <>
+            <AdminButton
+              variant="secondary"
+              onClick={() => setConfirmandoGenerar(true)}
+              disabled={pendientes.length === 0}
+              icon={<CalendarClock size={16} strokeWidth={2} />}
+              title={pendientes.length === 0 ? 'Todos los gastos fijos vencidos ya están registrados' : 'Ver y registrar los gastos fijos vencidos que faltan'}
+            >
+              {pendientes.length === 0 ? 'Gastos fijos al día' : `Registrar gastos fijos vencidos (${pendientes.length})`}
+            </AdminButton>
+            <AdminButton variant="secondary" onClick={() => openForm('INGRESO', null)} icon={<TrendingUp size={16} strokeWidth={2} />}>
+              Otro ingreso
+            </AdminButton>
+            <AdminButton onClick={() => openForm('EGRESO', null)} icon={<Plus size={18} strokeWidth={2} />}>
+              Registrar egreso
+            </AdminButton>
+          </>
+        }
       />
 
       <div className={styles.stack}>
         <StatGrid>
           <StatCard label="Ingresos cobrados" value={money(totales?.ingresos ?? 0)} sublabel="Ventas y otros ingresos" loading={loading} accentColor="#22c55e" />
           <StatCard label="Egresos pagados" value={money(totales?.egresos ?? 0)} sublabel="Gastos fijos, variables y compras" loading={loading} accentColor="#ec008c" />
-          <StatCard label="Balance" value={money(totales?.balance ?? 0)} sublabel={nombreLocal ? nombreLocal : 'Todas las sucursales'} loading={loading} accentColor="#14aeef" />
+          <StatCard label="Balance" value={money(totales?.balance ?? 0)} sublabel={nombreLocal ?? 'Todas las sucursales'} loading={loading} accentColor="#14aeef" />
           <StatCard
             label="Pendientes"
             value={`${money(totales?.por_cobrar ?? 0)} / ${money(totales?.por_pagar ?? 0)}`}
@@ -210,17 +327,60 @@ export default function FinanzasPage() {
             data={movimientos as Row[]}
             loading={loading}
             error={error}
-            onRefresh={reload}
+            onRefresh={recargarTodo}
             getRowKey={(r) => r.clave}
             hideSearch
             emptyMessage="No hay movimientos con estos filtros"
           />
           <p className={styles.note}>
             El saldo acumula solo lo cobrado y pagado del periodo filtrado; los pendientes y anulados se muestran atenuados y no suman.
-            Las ventas vienen de Caja y Pagos; las compras de inventario ya aparecen como egreso.
+            Las ventas vienen de Cobros (ver Historial de Pagos) y no se editan aquí; las compras de inventario ya aparecen como egreso.
           </p>
         </section>
       </div>
+
+      <MovimientoFormModal isOpen={formOpen} naturaleza={formNat} movimiento={editing} categorias={categorias} onClose={() => setFormOpen(false)} onSaved={() => { void recargarTodo(); }} />
+
+      <ConfirmDialog
+        isOpen={confirmandoGenerar}
+        title="Registrar gastos fijos vencidos"
+        confirmLabel={`Registrar ${pendientes.length} egreso${pendientes.length === 1 ? '' : 's'}`}
+        loading={generating}
+        onConfirm={handleGenerar}
+        onClose={() => setConfirmandoGenerar(false)}
+        message={
+          <>
+            <p style={{ margin: '0 0 0.75rem' }}>
+              Estos gastos fijos ya vencieron y todavía no tienen su egreso. Se registrarán uno por mes, con el
+              estado definido en Parámetros. Los que ya existen no se duplican.
+            </p>
+            <ul className={styles.pendList}>
+              {pendientes.map((p) => (
+                <li key={`${p.gasto_fijo_id}-${p.periodo}`}>
+                  <span>
+                    <strong>{p.nombre}</strong> · {formatMes(p.periodo)}
+                    <small>{p.local_nombre || 'General'} · cobro {formatDateISO(p.fecha_cobro)}</small>
+                  </span>
+                  <span className={styles.num}>{formatMoney(p.monto, moneda)}</span>
+                </li>
+              ))}
+            </ul>
+          </>
+        }
+      />
+
+      <ReasonDialog
+        isOpen={anulando !== null}
+        title={`Anular ${anulando?.codigo ?? ''}`}
+        message="El movimiento deja de contar en reportes. No se borra: queda en el historial con el motivo."
+        confirmLabel="Anular"
+        onConfirm={async (motivo) => {
+          await cambiarEstadoMovimientoFinanciero(anulando!.id, 'ANULADO', motivo);
+          toast.success('Movimiento anulado');
+          await recargarTodo();
+        }}
+        onClose={() => setAnulando(null)}
+      />
     </AdminPageShell>
   );
 }

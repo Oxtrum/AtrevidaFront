@@ -20,7 +20,6 @@ import {
   Settings,
   ShieldCheck,
   Users,
-  Wallet,
   ArrowLeftRight,
   X,
 } from 'lucide-react';
@@ -87,13 +86,7 @@ const NAV_LINKS = [
     icon: ArrowLeftRight,
     financialOnly: true,
   },
-  {
-    label: 'Egresos',
-    detail: 'Gastos y compras',
-    href: '/atrevida-gestion/egresos',
-    icon: Wallet,
-    financialOnly: true,
-  },
+
   {
     label: 'Clientes',
     detail: 'Directorio de clientes',

@@ -52,7 +52,7 @@ export function DashboardTrastienda() {
         </Link>
       )}
       {!gastos.error && proximos.length > 0 && (
-        <Link href="/atrevida-gestion/egresos" className={styles.card}>
+        <Link href="/atrevida-gestion/finanzas" className={styles.card}>
           <span className={styles.icon}><CalendarClock size={18} strokeWidth={1.8} /></span>
           <div>
             <strong className={styles.value}>{proximos.length}</strong>
