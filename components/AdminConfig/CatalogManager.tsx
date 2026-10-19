@@ -13,17 +13,19 @@ import { RowActionsMenu } from './RowActionsMenu';
 import { StatusBadge } from './StatusBadge';
 import { AdminButton } from './AdminButton';
 
+export type CatalogNaturaleza = 'INGRESO' | 'EGRESO' | 'AMBOS';
+
 export interface CatalogRow {
   id: number;
   nombre: string;
   activo: boolean;
-  naturaleza?: 'INGRESO' | 'EGRESO';
+  naturaleza?: CatalogNaturaleza;
 }
 
 export interface CatalogValues {
   nombre: string;
   activo: boolean;
-  naturaleza?: 'INGRESO' | 'EGRESO';
+  naturaleza?: CatalogNaturaleza;
 }
 
 interface CatalogManagerProps {
@@ -34,7 +36,7 @@ interface CatalogManagerProps {
   error: string | null;
   onReload: () => void;
   onSave: (values: CatalogValues, id?: number) => Promise<void>;
-  /** Pide también la naturaleza (ingreso/egreso). Solo se elige al crear. */
+  /** Pide también la naturaleza (ingreso, egreso o ambos). */
   withNaturaleza?: boolean;
   placeholder?: string;
 }
@@ -48,7 +50,7 @@ export function CatalogManager({ noun, rows, loading, error, onReload, onSave, w
   const [nombre, setNombre] = useState('');
   const [toggling, setToggling] = useState<CatalogRow | null>(null);
   const [toggleBusy, setToggleBusy] = useState(false);
-  const [naturaleza, setNaturaleza] = useState<'INGRESO' | 'EGRESO'>('EGRESO');
+  const [naturaleza, setNaturaleza] = useState<CatalogNaturaleza>('EGRESO');
   const [formError, setFormError] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -99,7 +101,7 @@ export function CatalogManager({ noun, rows, loading, error, onReload, onSave, w
   const columns: Column<Row>[] = [
     { key: 'nombre', label: 'Nombre' },
     ...(withNaturaleza
-      ? [{ key: 'naturaleza', label: 'Tipo', render: (v: unknown) => <StatusBadge tone={v === 'INGRESO' ? 'success' : 'info'}>{v === 'INGRESO' ? 'Ingreso' : 'Egreso'}</StatusBadge> } as Column<Row>]
+      ? [{ key: 'naturaleza', label: 'Tipo', render: (v: unknown) => <StatusBadge tone={v === 'INGRESO' ? 'success' : v === 'AMBOS' ? 'neutral' : 'info'}>{v === 'INGRESO' ? 'Ingreso' : v === 'AMBOS' ? 'Ambos' : 'Egreso'}</StatusBadge> } as Column<Row>]
       : []),
     { key: 'activo', label: 'Estado', searchable: false, render: (v) => <StatusBadge tone={v ? 'success' : 'neutral'}>{v ? 'Activa' : 'Inactiva'}</StatusBadge> },
     {
@@ -145,11 +147,11 @@ export function CatalogManager({ noun, rows, loading, error, onReload, onSave, w
             <input id="catalog-nombre" type="text" value={nombre} onChange={(e) => { setNombre(e.target.value); setFormError(''); }} placeholder={placeholder} autoFocus />
           </FormField>
           {withNaturaleza && (
-            <FormField label="Tipo" labelId="catalog-nat-lbl" hint={editing ? 'No se puede cambiar una vez creada.' : undefined}>
+            <FormField label="Tipo" labelId="catalog-nat-lbl" hint="Ambos: la categoría se podrá usar en ingresos y en egresos.">
               <CustomSelect
                 value={naturaleza}
-                onChange={(v) => setNaturaleza(v as 'INGRESO' | 'EGRESO')}
-                options={[{ value: 'EGRESO', label: 'Egreso' }, { value: 'INGRESO', label: 'Ingreso' }]}
+                onChange={(v) => setNaturaleza(v as CatalogNaturaleza)}
+                options={[{ value: 'EGRESO', label: 'Egreso' }, { value: 'INGRESO', label: 'Ingreso' }, { value: 'AMBOS', label: 'Ambos (ingreso y egreso)' }]}
                 searchable={false}
                 ariaLabelledBy="catalog-nat-lbl"
               />

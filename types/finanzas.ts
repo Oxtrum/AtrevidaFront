@@ -2,13 +2,19 @@
 import type { MetodoPago } from './inventario';
 
 export type NaturalezaFinanciera = 'INGRESO' | 'EGRESO';
+/** Una categoría puede servir solo a ingresos, solo a egresos, o a ambos. */
+export type NaturalezaCategoria = NaturalezaFinanciera | 'AMBOS';
+
+/** ¿La categoría se puede usar en un movimiento de esta naturaleza? */
+export const categoriaSirvePara = (categoria: NaturalezaCategoria, naturaleza: NaturalezaFinanciera) =>
+  categoria === 'AMBOS' || categoria === naturaleza;
 export type ClaseEgreso = 'FIJO' | 'VARIABLE';
 export type EstadoMovimiento = 'PENDIENTE' | 'PAGADO' | 'ANULADO';
 
 export interface CategoriaFinanciera {
   id: number;
   nombre: string;
-  naturaleza: NaturalezaFinanciera;
+  naturaleza: NaturalezaCategoria;
   activo: boolean;
 }
 

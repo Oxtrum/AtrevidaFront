@@ -100,7 +100,7 @@ export default function GastosFijosPage() {
         isOpen={toDeactivate !== null}
         danger
         title="Desactivar gasto fijo"
-        message={`¿Desactivar "${toDeactivate?.nombre}"? Dejará de generarse desde el próximo mes. Los egresos ya generados se conservan.`}
+        message={`¿Desactivar "${toDeactivate?.nombre}"? Dejará de generarse y se anularán sus egresos que sigan pendientes de pago. Los ya pagados se conservan.`}
         confirmLabel="Desactivar"
         loading={busy}
         onConfirm={handleDeactivate}

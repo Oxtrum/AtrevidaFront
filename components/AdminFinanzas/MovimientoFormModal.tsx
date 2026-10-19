@@ -8,7 +8,7 @@ import { actualizarMovimientoFinanciero, crearMovimientoFinanciero } from '@/lib
 import { todayISO } from '@/lib/utils/format';
 import { METODOS_PAGO } from '@/types/inventario';
 import type { MetodoPago } from '@/types/inventario';
-import type { CategoriaFinanciera, MovimientoFinanciero, NaturalezaFinanciera } from '@/types/finanzas';
+import { categoriaSirvePara, type CategoriaFinanciera, type MovimientoFinanciero, type NaturalezaFinanciera } from '@/types/finanzas';
 
 interface MovimientoFormModalProps {
   isOpen: boolean;
@@ -133,7 +133,7 @@ export function MovimientoFormModal({ isOpen, naturaleza, movimiento, categorias
           <CustomSelect
             value={form.categoria_id}
             onChange={(v) => patch({ categoria_id: v })}
-            options={categorias.filter((c) => c.naturaleza === nat && (c.activo || String(c.id) === form.categoria_id)).map((c) => ({ value: String(c.id), label: c.nombre }))}
+            options={categorias.filter((c) => categoriaSirvePara(c.naturaleza, nat) && (c.activo || String(c.id) === form.categoria_id)).map((c) => ({ value: String(c.id), label: c.nombre }))}
             placeholder="Seleccionar categoría…"
             hasError={!!errors.categoria_id}
             ariaLabelledBy="mov-cat-lbl"

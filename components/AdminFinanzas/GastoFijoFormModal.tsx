@@ -8,7 +8,7 @@ import { guardarGastoFijo } from '@/lib/api/finanzas';
 import { todayISO } from '@/lib/utils/format';
 import { METODOS_PAGO } from '@/types/inventario';
 import type { MetodoPago } from '@/types/inventario';
-import type { CategoriaFinanciera, GastoFijo } from '@/types/finanzas';
+import { categoriaSirvePara, type CategoriaFinanciera, type GastoFijo } from '@/types/finanzas';
 
 interface GastoFijoFormModalProps {
   isOpen: boolean;
@@ -127,7 +127,7 @@ export function GastoFijoFormModal({ isOpen, gasto, categorias, onClose, onSaved
           <CustomSelect
             value={form.categoria_id}
             onChange={(v) => patch({ categoria_id: v })}
-            options={categorias.filter((c) => c.naturaleza === 'EGRESO' && (c.activo || String(c.id) === form.categoria_id)).map((c) => ({ value: String(c.id), label: c.nombre }))}
+            options={categorias.filter((c) => categoriaSirvePara(c.naturaleza, 'EGRESO') && (c.activo || String(c.id) === form.categoria_id)).map((c) => ({ value: String(c.id), label: c.nombre }))}
             placeholder="Seleccionar categoría…"
             hasError={!!errors.categoria_id}
             ariaLabelledBy="gf-cat-lbl"

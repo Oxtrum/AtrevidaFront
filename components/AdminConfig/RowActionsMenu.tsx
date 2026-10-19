@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreVertical } from 'lucide-react';
 import { ModalPortal } from './ModalPortal';
 import styles from './RowActionsMenu.module.css';
 
@@ -122,7 +122,7 @@ export function RowActionsMenu({
         aria-expanded={open}
         aria-haspopup="menu"
       >
-        <MoreHorizontal size={14} strokeWidth={2} />
+        <MoreVertical size={16} strokeWidth={2} />
       </button>
 
       {menu && <ModalPortal>{menu}</ModalPortal>}

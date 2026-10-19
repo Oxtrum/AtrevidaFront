@@ -1,12 +1,11 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { ArrowLeftRight, Ban, CalendarClock, CheckCircle2, Pencil, Plus, TrendingUp } from 'lucide-react';
+import { ArrowLeftRight, Ban, Banknote, CheckCircle2, Pencil, Plus, TrendingUp } from 'lucide-react';
 import {
   AdminButton,
   AdminPageShell,
   AlertBanner,
-  ConfirmDialog,
   DataTable,
   FilterBar,
   LocalSelect,
@@ -19,15 +18,14 @@ import {
   StatGrid,
   StatusBadge,
   Tabs,
-  formatMes,
 } from '@/components/AdminConfig';
 import type { BadgeTone, Column, TabItem } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { MovimientoFormModal } from '@/components/AdminFinanzas/MovimientoFormModal';
+import { PagarEgresosFijosModal } from '@/components/AdminFinanzas/PagarEgresosFijosModal';
 import { toast } from '@/components/Shared/Toast';
 import {
   cambiarEstadoMovimientoFinanciero,
-  generarGastosFijos,
   getCategoriasFinancieras,
   getFlujoFinanciero,
   getGastosFijosPendientes,
@@ -57,7 +55,7 @@ const ROLES = ['admin_sys'];
 const ORIGEN_LABEL: Record<FlujoOrigen, string> = {
   VENTA: 'Venta',
   COMPRA: 'Compra de inventario',
-  GASTO_FIJO: 'Gasto fijo',
+  GASTO_FIJO: 'Egreso fijo',
   GASTO_VARIABLE: 'Gasto variable',
   OTRO_INGRESO: 'Otro ingreso',
 };
@@ -112,15 +110,22 @@ export default function FinanzasPage() {
   const { data: pendientesData, reload: recargarPendientes } = useAsyncData(getGastosFijosPendientes, 'gf-pendientes');
   const pendientes = pendientesData ?? [];
 
+  // Egresos fijos ya registrados que siguen sin pagar (de cualquier mes).
+  const { data: fijosData, reload: recargarFijos } = useAsyncData(
+    () => getMovimientosFinancieros({ clase: 'FIJO', estado: 'PENDIENTE' }),
+    'fijos-por-pagar',
+  );
+  const fijosPorPagar = fijosData ?? EMPTY_MOVS;
+  const totalFijosPorPagar = fijosPorPagar.length + pendientes.length;
+
   const [formOpen, setFormOpen] = useState(false);
   const [formNat, setFormNat] = useState<NaturalezaFinanciera>('EGRESO');
   const [editing, setEditing] = useState<MovimientoFinanciero | null>(null);
   const [anulando, setAnulando] = useState<MovimientoFinanciero | null>(null);
-  const [confirmandoGenerar, setConfirmandoGenerar] = useState(false);
-  const [generating, setGenerating] = useState(false);
+  const [pagandoFijos, setPagandoFijos] = useState(false);
 
   const recargarTodo = async () => {
-    await Promise.all([reload(), recargarMovs(), recargarPendientes()]);
+    await Promise.all([reload(), recargarMovs(), recargarPendientes(), recargarFijos()]);
   };
 
   const openForm = (nat: NaturalezaFinanciera, mov: MovimientoFinanciero | null) => {
@@ -136,20 +141,6 @@ export default function FinanzasPage() {
       await recargarTodo();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'No se pudo actualizar el estado');
-    }
-  };
-
-  const handleGenerar = async () => {
-    setGenerating(true);
-    try {
-      await generarGastosFijos();
-      toast.success(`${pendientes.length} gasto${pendientes.length === 1 ? '' : 's'} fijo${pendientes.length === 1 ? '' : 's'} registrado${pendientes.length === 1 ? '' : 's'}`);
-      setConfirmandoGenerar(false);
-      await recargarTodo();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'No se pudieron generar los gastos fijos');
-    } finally {
-      setGenerating(false);
     }
   };
 
@@ -247,12 +238,11 @@ export default function FinanzasPage() {
           <>
             <AdminButton
               variant="secondary"
-              onClick={() => setConfirmandoGenerar(true)}
-              disabled={pendientes.length === 0}
-              icon={<CalendarClock size={16} strokeWidth={2} />}
-              title={pendientes.length === 0 ? 'Todos los gastos fijos vencidos ya están registrados' : 'Ver y registrar los gastos fijos vencidos que faltan'}
+              onClick={() => setPagandoFijos(true)}
+              icon={<Banknote size={16} strokeWidth={2} />}
+              title="Paga los egresos fijos (alquiler, sueldos, servicios…) que ya vencieron"
             >
-              {pendientes.length === 0 ? 'Gastos fijos al día' : `Registrar gastos fijos vencidos (${pendientes.length})`}
+              {totalFijosPorPagar > 0 ? `Pagar egreso fijo (${totalFijosPorPagar})` : 'Pagar egreso fijo'}
             </AdminButton>
             <AdminButton variant="secondary" onClick={() => openForm('INGRESO', null)} icon={<TrendingUp size={16} strokeWidth={2} />}>
               Otro ingreso
@@ -341,32 +331,14 @@ export default function FinanzasPage() {
 
       <MovimientoFormModal isOpen={formOpen} naturaleza={formNat} movimiento={editing} categorias={categorias} onClose={() => setFormOpen(false)} onSaved={() => { void recargarTodo(); }} />
 
-      <ConfirmDialog
-        isOpen={confirmandoGenerar}
-        title="Registrar gastos fijos vencidos"
-        confirmLabel={`Registrar ${pendientes.length} egreso${pendientes.length === 1 ? '' : 's'}`}
-        loading={generating}
-        onConfirm={handleGenerar}
-        onClose={() => setConfirmandoGenerar(false)}
-        message={
-          <>
-            <p style={{ margin: '0 0 0.75rem' }}>
-              Estos gastos fijos ya vencieron y todavía no tienen su egreso. Se registrarán uno por mes, con el
-              estado definido en Parámetros. Los que ya existen no se duplican.
-            </p>
-            <ul className={styles.pendList}>
-              {pendientes.map((p) => (
-                <li key={`${p.gasto_fijo_id}-${p.periodo}`}>
-                  <span>
-                    <strong>{p.nombre}</strong> · {formatMes(p.periodo)}
-                    <small>{p.local_nombre || 'General'} · cobro {formatDateISO(p.fecha_cobro)}</small>
-                  </span>
-                  <span className={styles.num}>{formatMoney(p.monto, moneda)}</span>
-                </li>
-              ))}
-            </ul>
-          </>
-        }
+      <PagarEgresosFijosModal
+        key={pagandoFijos ? 'abierto' : 'cerrado'}
+        isOpen={pagandoFijos}
+        onClose={() => setPagandoFijos(false)}
+        registrados={fijosPorPagar}
+        sinRegistrar={pendientes}
+        moneda={moneda}
+        onPaid={() => { void recargarTodo(); }}
       />
 
       <ReasonDialog

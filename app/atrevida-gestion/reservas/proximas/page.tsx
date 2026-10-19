@@ -7,17 +7,14 @@ import {
   AlertCircle,
   ArrowLeft,
   CalendarCheck,
-  Clock,
-  MapPin,
   MessageCircle,
-  Phone,
   RefreshCw,
   ShieldCheck,
 } from 'lucide-react';
 
 import Header from '@/components/AdminHeader/Header';
 import { AdminButton, AdminPanel, CursorPagination, PageHeader, StatCard, StatGrid, StatusBadge } from '@/components/AdminConfig';
-import { InventarioAlertBadge } from '@/components/AdminInventario/InventarioWarnings';
+import { ReservaContacto, ReservaRow, ReservaStockHint, formatDuracion, formatFalta } from '@/components/AdminReservas';
 import { getReservasDB } from '@/lib/api/reservas';
 import { buildReminderWhatsappHref } from '@/lib/utils/whatsapp';
 import type { ReservaBD, EstadoReserva } from '@/types/reserva';
@@ -65,16 +62,6 @@ const formatDate = (fecha: string) => {
     day: 'numeric',
     month: 'long',
   });
-};
-
-const getClientInitials = (name?: string) => {
-  const parts = (name || 'Cliente')
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2);
-
-  return parts.map((part) => part[0]?.toUpperCase()).join('') || 'CL';
 };
 
 export default function AdminReservasProximasPage() {
@@ -214,50 +201,35 @@ export default function AdminReservasProximasPage() {
             const finalService = reserva.servicio_confirmado || reserva.servicio_solicitado || reserva.servicio || 'Tratamiento confirmado';
 
             return (
-              <article key={`${relativeDay}-${reserva.id}`} className={`${styles.reminderCard} reminderCard`}>
-                <div className={styles.timeBlock}>
-                  <Clock size={18} strokeWidth={1.8} />
-                  <strong>{reserva.hora_desde}</strong>
-                  <span>{reserva.hora_hasta}</span>
-                </div>
-
-                <div className={styles.cardBody}>
-                  <div className={styles.clientRow}>
-                    <span className={styles.clientAvatar}>{getClientInitials(reserva.cliente)}</span>
-                    <div>
-                      <h3>{reserva.cliente || 'Cliente sin nombre'}</h3>
-                      <p>{finalService}</p>
-                      {reserva.alerta_inventario && <InventarioAlertBadge />}
-                    </div>
-                  </div>
-
-                  <div className={styles.metaGrid}>
-                    <span>
-                      <MapPin size={14} strokeWidth={1.7} />
-                      {reserva.local}
-                    </span>
-                    {reserva.numero_telefono && (
-                      <span>
-                        <Phone size={14} strokeWidth={1.7} />
-                        {reserva.numero_telefono}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className={styles.cardActions}>
+              <ReservaRow
+                key={`${relativeDay}-${reserva.id}`}
+                className="reminderCard"
+                variant="compact"
+                tone="agendado"
+                time={reserva.hora_desde}
+                timeSub={formatDuracion(reserva.hora_desde, reserva.hora_hasta) || reserva.hora_hasta}
+                title={reserva.cliente || 'Cliente sin nombre'}
+                service={finalService}
+                titleHint={
+                  <>
+                    {relativeDay === 'HOY' && formatFalta(reserva.hora_desde) && <span className={styles.falta}>{formatFalta(reserva.hora_desde)}</span>}
+                    {reserva.alerta_inventario && <ReservaStockHint />}
+                  </>
+                }
+                meta={<ReservaContacto local={reserva.local} telefono={reserva.numero_telefono} />}
+                actions={
                   <AdminButton
-                    fullWidth
-                    icon={<MessageCircle size={16} strokeWidth={1.8} />}
+                    size="sm"
+                    icon={<MessageCircle size={14} strokeWidth={2} />}
                     href={reminderHref ?? undefined}
                     target="_blank"
                     rel="noopener noreferrer"
                     disabled={!reminderHref}
                   >
-                    {reminderHref ? 'Mandar recordatorio' : 'Sin teléfono'}
+                    {reminderHref ? 'Recordar' : 'Sin teléfono'}
                   </AdminButton>
-                </div>
-              </article>
+                }
+              />
             );
           })}
         </div>
