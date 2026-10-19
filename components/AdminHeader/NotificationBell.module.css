@@ -132,8 +132,8 @@
   position: absolute;
   top: calc(100% + 0.7rem);
   right: 0;
-  width: min(390px, calc(100vw - 1.5rem));
-  max-height: min(680px, calc(100dvh - 5.5rem));
+  width: min(430px, calc(100vw - 1.5rem));
+  max-height: min(700px, calc(100dvh - 5.5rem));
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -349,139 +349,384 @@
   transform: scale(0.98);
 }
 
-.item {
+.card {
   display: grid;
-  grid-template-columns: 24px 38px minmax(0, 1fr);
-  gap: 0.64rem;
-  padding: 0.72rem;
-  border: 1px solid transparent;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 0.6rem;
+  padding: 0.8rem 0.75rem;
+  border: 1px solid var(--admin-border-subtle);
   border-radius: var(--admin-radius-lg);
+  background: var(--admin-surface-1);
   color: var(--admin-foreground);
-  text-decoration: none;
   transition:
-    transform var(--admin-t-normal) var(--admin-ease),
     border-color var(--admin-t-normal) var(--admin-ease),
     background var(--admin-t-normal) var(--admin-ease);
 }
 
-.item:hover {
-  transform: translateY(-1px);
-  border-color: var(--admin-border-subtle);
-  background: var(--admin-pill-bg);
+.card:hover {
+  border-color: var(--admin-border-hover);
 }
 
 .itemSelected {
-  border-color: rgba(20, 174, 239, 0.26);
-  background: rgba(20, 174, 239, 0.08);
+  border-color: rgba(20, 174, 239, 0.34);
+  background: rgba(20, 174, 239, 0.07);
+}
+
+.cardIconRow {
+  grid-template-columns: 36px minmax(0, 1fr);
 }
 
 .selectButton {
-  width: 24px;
-  height: 38px;
+  width: 22px;
+  height: 24px;
   display: grid;
   place-items: center;
   color: var(--admin-accent-tertiary);
 }
 
-.itemIcon {
-  width: 38px;
-  height: 38px;
+.cardIcon {
+  width: 36px;
+  height: 36px;
   display: grid;
   place-items: center;
-  border-radius: var(--admin-radius-full);
-  background: rgba(236, 0, 140, 0.12);
-  color: var(--admin-accent-primary);
+  border-radius: var(--admin-radius-md);
 }
 
-.itemBody {
+/* Las tarjetas son neutras: el color vive solo en el ícono, la etiqueta y los números. */
+.cardIcon {
+  border: 1px solid var(--admin-border-subtle);
+  background: var(--admin-pill-bg);
+}
+
+.iconWarn {
+  color: var(--admin-accent-warning);
+}
+
+.iconDanger {
+  color: var(--admin-accent-danger);
+}
+
+.cardBody {
   min-width: 0;
   display: grid;
-  gap: 0.42rem;
+  gap: 0.4rem;
 }
 
-.itemTop {
+.cardTop {
   display: flex;
-  align-items: flex-start;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 0.7rem;
-}
-
-.itemTitle {
-  min-width: 0;
-  display: grid;
-  gap: 0.12rem;
+  gap: 0.75rem;
 }
 
 .client {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.88rem;
-  font-weight: 900;
-  line-height: 1.15;
+  font-size: 0.92rem;
+  font-weight: 800;
+  line-height: 1.2;
 }
 
 .service {
   display: -webkit-box;
   overflow: hidden;
   color: var(--admin-text-muted);
-  font-size: 0.78rem;
-  line-height: 1.25;
+  font-size: 0.82rem;
+  line-height: 1.3;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
 
 .createdAt {
-  color: var(--admin-accent-tertiary);
-  font-family: var(--admin-font-mono);
-  font-size: 0.66rem;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-}
-
-.dot {
-  width: 8px;
-  height: 8px;
-  flex: 0 0 auto;
-  margin-top: 0.25rem;
-  border-radius: var(--admin-radius-full);
-  background: var(--admin-accent-tertiary);
-  box-shadow: 0 0 0 5px rgba(20, 174, 239, 0.12);
-}
-
-.itemMeta {
-  display: grid;
-  gap: 0.24rem;
-  color: var(--admin-text-dim);
-  font-size: 0.74rem;
-  line-height: 1.25;
-}
-
-.metaLine {
-  min-width: 0;
+  flex: none;
   display: inline-flex;
   align-items: center;
-  gap: 0.36rem;
-}
-
-.metaLine span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  gap: 0.4rem;
+  color: var(--admin-accent-tertiary);
+  font-family: var(--admin-font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   white-space: nowrap;
 }
 
-.markButton {
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--admin-radius-full);
+  background: var(--admin-accent-tertiary);
+  box-shadow: 0 0 0 4px rgba(20, 174, 239, 0.14);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.chip {
+  min-width: 0;
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.22rem 0.55rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-full);
+  background: var(--admin-pill-bg);
+  color: var(--admin-text-muted);
+  font-size: 0.74rem;
+  line-height: 1.2;
+}
+
+.chip strong {
+  color: var(--admin-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.markButton,
+.linkButton {
   width: fit-content;
   min-height: 32px;
   display: inline-flex;
   align-items: center;
   gap: 0.42rem;
-  padding: 0.45rem 0.62rem;
+  padding: 0.4rem 0.7rem;
   border-radius: var(--admin-radius-md);
   color: var(--admin-text-light);
-  font-size: 0.74rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.linkButton {
+  border: 1px solid var(--admin-border-subtle);
+  background: var(--admin-panel-elevated);
+  text-decoration: none;
+  transition: border-color var(--admin-t-normal) var(--admin-ease), background var(--admin-t-normal) var(--admin-ease);
+}
+
+.linkButtonGhost {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--admin-radius-md);
+  color: var(--admin-text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: color var(--admin-t-normal) var(--admin-ease), background var(--admin-t-normal) var(--admin-ease);
+}
+
+.linkButtonGhost:hover {
+  color: var(--admin-foreground);
+  background: var(--admin-pill-bg);
+}
+
+.actionRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.linkButton:hover {
+  border-color: var(--admin-border-hover);
+  background: var(--admin-surface-2);
+}
+
+.shortList {
+  margin: 0;
+  padding: 0.15rem 0;
+  list-style: none;
+  border-top: 1px solid var(--admin-border-subtle);
+}
+
+.shortRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.4rem 0 0.1rem;
+  font-size: 0.82rem;
+}
+
+.shortName {
+  color: inherit;
+  text-decoration: none;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.shortName:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.shortNums {
+  flex: none;
+  color: var(--admin-text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.shortNums strong {
+  color: var(--admin-foreground);
+  font-weight: 700;
+}
+
+.sep {
+  margin: 0 0.35rem;
+  opacity: 0.5;
+}
+
+.shortNums .neg,
+.stockText .neg {
+  color: var(--admin-accent-danger);
+}
+
+.stockRow {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.stockBar {
+  flex: 1;
+  height: 5px;
+  overflow: hidden;
+  border-radius: var(--admin-radius-full);
+  background: var(--admin-pill-bg);
+}
+
+.stockFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--admin-accent-warning);
+}
+
+.stockFillOut {
+  background: var(--admin-accent-danger);
+}
+
+.stockText {
+  flex: none;
+  color: var(--admin-text-dim);
+  font-size: 0.76rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.stockText strong {
+  color: var(--admin-foreground);
+}
+
+.stockTag {
+  flex: none;
+  padding: 0.12rem 0.5rem;
+  border-radius: var(--admin-radius-full);
+  background: rgba(255, 230, 0, 0.14);
+  color: var(--admin-accent-warning);
+  font-size: 0.68rem;
   font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.stockTagOut {
+  background: rgba(255, 77, 109, 0.14);
+  color: var(--admin-accent-danger);
+}
+
+.groupTitle {
+  margin: 0.6rem 0.25rem 0.1rem;
+  color: var(--admin-text-dim);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.groupTitle:first-child {
+  margin-top: 0.2rem;
+}
+
+.footLink {
+  align-self: center;
+  margin: 0.4rem 0 0.2rem;
+  color: var(--admin-accent-tertiary);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.footLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Pestañas Reservas / Stock */
+.tabs {
+  display: flex;
+  gap: 0.35rem;
+  padding: 0.55rem 0.75rem 0;
+  border-bottom: 1px solid var(--admin-border-subtle);
+}
+
+.tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.7rem 0.65rem;
+  border: 0;
+  background: transparent;
+  color: var(--admin-text-muted);
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color var(--admin-t-normal) var(--admin-ease);
+}
+
+.tab:hover {
+  color: var(--admin-foreground);
+}
+
+.tabActive {
+  color: var(--admin-foreground);
+}
+
+.tabActive::after {
+  content: '';
+  position: absolute;
+  left: 0.7rem;
+  right: 0.7rem;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--admin-accent-primary);
+}
+
+.tabCount {
+  min-width: 20px;
+  padding: 0.05rem 0.4rem;
+  border-radius: var(--admin-radius-full);
+  background: rgba(236, 0, 140, 0.16);
+  color: var(--admin-accent-primary);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.tabCountWarn {
+  background: rgba(255, 230, 0, 0.16);
+  color: var(--admin-accent-warning);
 }
 
 .panelFooter {
@@ -517,7 +762,7 @@
     position: fixed;
     top: 66px;
     right: 0.75rem;
-    width: min(390px, calc(100vw - 1.5rem));
+    width: min(430px, calc(100vw - 1.5rem));
     max-height: calc(100dvh - 5.25rem);
   }
 }

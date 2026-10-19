@@ -8,10 +8,12 @@ import {
   Check,
   Clock3,
   MapPin,
+  PackageMinus,
   Phone,
   RefreshCw,
   Square,
   SquareCheckBig,
+  TriangleAlert,
   UserRound,
   X,
 } from 'lucide-react';
@@ -21,7 +23,10 @@ import {
   marcarReservasNotificacionesLeidas,
   type ReservaNotificacion,
 } from '@/lib/api/notificaciones';
+import { getAlertasInventario } from '@/lib/api/inventario';
 import { getStoredAdminRole } from '@/lib/auth/adminSession';
+import { formatQty } from '@/lib/utils/format';
+import type { AlertasInventario } from '@/types/inventario';
 import styles from './NotificationBell.module.css';
 
 const ROLE_LABELS: Record<string, string> = {
@@ -61,6 +66,15 @@ function getService(reserva: ReservaNotificacion) {
   return reserva.servicio_confirmado || reserva.servicio || reserva.servicio_solicitado || 'Servicio por confirmar';
 }
 
+/** Enlace a Inventario ya filtrado por ítem (y local) para llegar directo al stock. */
+function inventarioHref(params: { tab?: 'items' | 'compras'; q?: string; localId?: number }) {
+  const sp = new URLSearchParams();
+  sp.set('tab', params.tab ?? 'items');
+  if (params.q) sp.set('q', params.q);
+  if (params.localId) sp.set('local_id', String(params.localId));
+  return `/atrevida-gestion/inventario?${sp.toString()}`;
+}
+
 function getCreatedTime(value?: string) {
   if (!value) return 0;
   const time = new Date(value).getTime();
@@ -93,8 +107,12 @@ function formatCreatedAt(value?: string) {
   return createdAt.toLocaleDateString('es-BO', { day: '2-digit', month: 'short' });
 }
 
+type Tab = 'reservas' | 'stock';
+
 export function NotificationBell() {
   const [open, setOpen] = useState(false);
+  const [tab, setTab] = useState<Tab>('reservas');
+  const [alertas, setAlertas] = useState<AlertasInventario | null>(null);
   const [reservas, setReservas] = useState<ReservaNotificacion[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -126,7 +144,12 @@ export function NotificationBell() {
       setError(null);
 
       try {
-        const response = await getReservasNotificaciones(20);
+        // Las alertas de stock no deben tumbar las notificaciones de reservas (ni al revés).
+        const [response, alertasResult] = await Promise.all([
+          getReservasNotificaciones(20),
+          getAlertasInventario().catch(() => null),
+        ]);
+        setAlertas(alertasResult);
         const data = response.data ?? { total: 0, reservas: [] };
         const nextReservas = sortByNewestCreated(data.reservas ?? []);
         setReservas(nextReservas);
@@ -265,7 +288,16 @@ export function NotificationBell() {
   const initials = useMemo(() => userName.slice(0, 2).toUpperCase(), [userName]);
   const selectedCount = selectedIds.size;
   const allVisibleSelected = reservas.length > 0 && reservas.every((reserva) => selectedIds.has(reserva.id));
-  const displayTotal = total > 99 ? '99+' : String(total);
+  const reposicion = alertas?.reposicion ?? [];
+  // La reposición ya resume las reservas afectadas; solo se cuentan aparte si no hay reposición.
+  const stockCount =
+    reposicion.length + (alertas?.items_bajo_stock.length ?? 0) + (reposicion.length === 0 ? (alertas?.reservas_con_alerta.length ?? 0) : 0);
+  const badgeTotal = total + stockCount;
+  const displayTotal = badgeTotal > 99 ? '99+' : String(badgeTotal);
+  const panelMeta =
+    tab === 'reservas'
+      ? total === 1 ? '1 reserva agendada pendiente' : `${total} reservas agendadas pendientes`
+      : stockCount === 0 ? 'Sin alertas de stock' : stockCount === 1 ? '1 alerta de stock' : `${stockCount} alertas de stock`;
 
   return (
     <div className={styles.actions}>
@@ -279,7 +311,7 @@ export function NotificationBell() {
           aria-expanded={open}
         >
           <Bell size={19} strokeWidth={1.8} />
-          {total > 0 && <span className={styles.badge}>{displayTotal}</span>}
+          {badgeTotal > 0 && <span className={styles.badge}>{displayTotal}</span>}
         </button>
 
         {open && (
@@ -287,20 +319,20 @@ export function NotificationBell() {
             <div className={styles.panelHeader}>
               <div>
                 <h2 className={styles.panelTitle}>Notificaciones</h2>
-                <span className={styles.panelMeta}>
-                  {total === 1 ? '1 reserva agendada pendiente' : `${total} reservas agendadas pendientes`}
-                </span>
+                <span className={styles.panelMeta}>{panelMeta}</span>
               </div>
               <div className={styles.headerTools}>
-                <button
-                  type="button"
-                  className={styles.markAllButton}
-                  onClick={handleMarkSelectedAsRead}
-                  disabled={loading || markingSelected || selectedCount === 0}
-                >
-                  <Check size={14} strokeWidth={2} />
-                  {markingSelected ? 'Marcando...' : selectedCount > 0 ? `Marcar ${selectedCount}` : 'Marcar'}
-                </button>
+                {tab === 'reservas' && (
+                  <button
+                    type="button"
+                    className={styles.markAllButton}
+                    onClick={handleMarkSelectedAsRead}
+                    disabled={loading || markingSelected || selectedCount === 0}
+                  >
+                    <Check size={14} strokeWidth={2} />
+                    {markingSelected ? 'Marcando...' : selectedCount > 0 ? `Marcar ${selectedCount}` : 'Marcar'}
+                  </button>
+                )}
                 <button
                   type="button"
                   className={styles.refreshButton}
@@ -321,10 +353,174 @@ export function NotificationBell() {
               </div>
             </div>
 
+            <div className={styles.tabs} role="tablist" aria-label="Tipo de notificación">
+              <button type="button" role="tab" aria-selected={tab === 'reservas'} className={`${styles.tab} ${tab === 'reservas' ? styles.tabActive : ''}`} onClick={() => setTab('reservas')}>
+                <CalendarClock size={15} strokeWidth={1.9} />
+                Reservas
+                {total > 0 && <span className={styles.tabCount}>{total}</span>}
+              </button>
+              <button type="button" role="tab" aria-selected={tab === 'stock'} className={`${styles.tab} ${tab === 'stock' ? styles.tabActive : ''}`} onClick={() => setTab('stock')}>
+                <TriangleAlert size={15} strokeWidth={1.9} />
+                Stock
+                {stockCount > 0 && <span className={`${styles.tabCount} ${styles.tabCountWarn}`}>{stockCount}</span>}
+              </button>
+            </div>
+
             <div className={styles.content}>
               {error && <p className={styles.notice}>{error}</p>}
 
-              {loading ? (
+              {tab === 'stock' ? (
+                loading ? (
+                  <div className={styles.skeletonList} aria-label="Cargando alertas">
+                    <span className={styles.skeletonItem} />
+                    <span className={styles.skeletonItem} />
+                  </div>
+                ) : alertas === null ? (
+                  <p className={styles.notice}>No se pudieron cargar las alertas de stock.</p>
+                ) : stockCount === 0 ? (
+                  <div className={styles.empty}>
+                    <span className={styles.emptyIcon}>
+                      <Check size={21} strokeWidth={1.7} />
+                    </span>
+                    <strong>Todo el stock en orden</strong>
+                    <span>No hay ítems bajo su mínimo ni reservas con insumos faltantes.</span>
+                  </div>
+                ) : (
+                  <div className={styles.list}>
+                    {reposicion.length > 0 && (
+                      <>
+                        <h3 className={styles.groupTitle}>Hay que reponer</h3>
+                        {reposicion.map((r) => (
+                          <article key={`rp-${r.item_id}-${r.local_id}`} className={`${styles.card} ${styles.cardIconRow}`}>
+                            <span className={`${styles.cardIcon} ${styles.iconDanger}`}>
+                              <PackageMinus size={18} strokeWidth={1.8} />
+                            </span>
+                            <div className={styles.cardBody}>
+                              <div className={styles.cardTop}>
+                                <span className={styles.client}>{r.item_nombre}</span>
+                                <span className={`${styles.stockTag} ${styles.stockTagOut}`}>Faltan {formatQty(r.faltante, r.unidad)}</span>
+                              </div>
+                              <div className={styles.chips}>
+                                <span className={styles.chip}><MapPin size={12} strokeWidth={1.9} />{r.local_nombre}</span>
+                                <span className={styles.chip}>{r.reservas} {r.reservas === 1 ? 'reserva agendada' : 'reservas agendadas'} desde {formatDate(r.proxima)}</span>
+                              </div>
+                              <ul className={styles.shortList}>
+                                <li className={styles.shortRow}>
+                                  <span className={styles.shortName}>Necesitan</span>
+                                  <span className={styles.shortNums}><strong>{formatQty(r.comprometido, r.unidad)}</strong></span>
+                                </li>
+                                <li className={styles.shortRow}>
+                                  <span className={styles.shortName}>Hay en stock</span>
+                                  <span className={styles.shortNums}><strong className={r.stock <= 0 ? styles.neg : undefined}>{formatQty(r.stock, r.unidad)}</strong></span>
+                                </li>
+                              </ul>
+                              <div className={styles.actionRow}>
+                                <Link href={inventarioHref({ tab: 'compras' })} className={styles.linkButton} onClick={() => setOpen(false)}>
+                                  Registrar compra
+                                </Link>
+                                <Link href={inventarioHref({ q: r.item_nombre, localId: r.local_id })} className={styles.linkButtonGhost} onClick={() => setOpen(false)}>
+                                  Ver stock
+                                </Link>
+                              </div>
+                            </div>
+                          </article>
+                        ))}
+                      </>
+                    )}
+                    {alertas.reservas_con_alerta.length > 0 && (
+                      <>
+                        <h3 className={styles.groupTitle}>Reservas sin insumos suficientes</h3>
+                        {alertas.reservas_con_alerta.map((r) => (
+                          <article key={`r-${r.reserva_id}`} className={`${styles.card} ${styles.cardIconRow}`}>
+                            <span className={`${styles.cardIcon} ${styles.iconWarn}`}>
+                              <TriangleAlert size={18} strokeWidth={1.8} />
+                            </span>
+                            <div className={styles.cardBody}>
+                              <div className={styles.cardTop}>
+                                <span className={styles.client}>{r.cliente}</span>
+                                <span className={styles.createdAt}>{formatDate(r.fecha)} · {r.hora_desde}</span>
+                              </div>
+                              <span className={styles.service}>{r.servicio}</span>
+                              <div className={styles.chips}>
+                                <span className={styles.chip}><MapPin size={12} strokeWidth={1.9} />{r.local}</span>
+                              </div>
+                              <ul className={styles.shortList}>
+                                {r.advertencias.map((a) => (
+                                  <li key={a.item_id} className={styles.shortRow}>
+                                    <Link href={inventarioHref({ q: a.item_nombre })} className={styles.shortName} onClick={() => setOpen(false)}>
+                                      {a.item_nombre}
+                                    </Link>
+                                    <span className={styles.shortNums}>
+                                      necesita <strong>{formatQty(a.requerido, a.unidad)}</strong>
+                                      <span className={styles.sep}>·</span>
+                                      hay <strong className={a.disponible <= 0 ? styles.neg : undefined}>{formatQty(a.disponible, a.unidad)}</strong>
+                                    </span>
+                                  </li>
+                                ))}
+                              </ul>
+                              <div className={styles.actionRow}>
+                                <Link href={inventarioHref({ q: r.advertencias[0]?.item_nombre })} className={styles.linkButton} onClick={() => setOpen(false)}>
+                                  <PackageMinus size={14} strokeWidth={2} />
+                                  Ver stock
+                                </Link>
+                                <Link href={`/atrevida-gestion/reservas/editar/${r.reserva_id}`} className={styles.linkButtonGhost} onClick={() => setOpen(false)}>
+                                  Ver reserva
+                                </Link>
+                              </div>
+                            </div>
+                          </article>
+                        ))}
+                      </>
+                    )}
+                    {alertas.items_bajo_stock.length > 0 && (
+                      <>
+                        <h3 className={styles.groupTitle}>Ítems bajo su mínimo</h3>
+                        {alertas.items_bajo_stock.map((i) => (
+                          <article key={`i-${i.id}-${i.local_id ?? 0}`} className={`${styles.card} ${styles.cardIconRow}`}>
+                            <span className={`${styles.cardIcon} ${i.stock_actual <= 0 ? styles.iconDanger : styles.iconWarn}`}>
+                              <PackageMinus size={18} strokeWidth={1.8} />
+                            </span>
+                            <div className={styles.cardBody}>
+                              <div className={styles.cardTop}>
+                                <span className={styles.client}>{i.nombre}</span>
+                                <span className={`${styles.stockTag} ${i.stock_actual <= 0 ? styles.stockTagOut : ''}`}>
+                                  {i.stock_actual <= 0 ? 'Agotado' : 'Bajo mínimo'}
+                                </span>
+                              </div>
+                              <div className={styles.chips}>
+                                {i.local_nombre && <span className={styles.chip}><MapPin size={12} strokeWidth={1.9} />{i.local_nombre}</span>}
+                              </div>
+                              <div className={styles.stockRow}>
+                                <span className={styles.stockBar} aria-hidden="true">
+                                  <span
+                                    className={`${styles.stockFill} ${i.stock_actual <= 0 ? styles.stockFillOut : ''}`}
+                                    style={{ width: `${i.stock_minimo > 0 ? Math.min(100, Math.max(4, (i.stock_actual / i.stock_minimo) * 100)) : 4}%` }}
+                                  />
+                                </span>
+                                <span className={styles.stockText}>
+                                  <strong className={i.stock_actual <= 0 ? styles.neg : undefined}>{formatQty(i.stock_actual, i.unidad_medida)}</strong>
+                                  {' '}de {formatQty(i.stock_minimo, i.unidad_medida)} mín.
+                                </span>
+                              </div>
+                              <div className={styles.actionRow}>
+                                <Link href={inventarioHref({ q: i.nombre, localId: i.local_id })} className={styles.linkButton} onClick={() => setOpen(false)}>
+                                  <PackageMinus size={14} strokeWidth={2} />
+                                  Ver stock
+                                </Link>
+                                <Link href={inventarioHref({ tab: 'compras' })} className={styles.linkButtonGhost} onClick={() => setOpen(false)}>
+                                  Registrar compra
+                                </Link>
+                              </div>
+                            </div>
+                          </article>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                )
+              ) : null}
+
+              {tab !== 'reservas' ? null : loading ? (
                 <div className={styles.skeletonList} aria-label="Cargando notificaciones">
                   <span className={styles.skeletonItem} />
                   <span className={styles.skeletonItem} />
@@ -362,7 +558,7 @@ export function NotificationBell() {
                     return (
                       <article
                         key={reserva.id}
-                        className={`${styles.item} ${selectedIds.has(reserva.id) ? styles.itemSelected : ''}`}
+                        className={`${styles.card} ${selectedIds.has(reserva.id) ? styles.itemSelected : ''}`}
                       >
                         <button
                           type="button"
@@ -372,35 +568,34 @@ export function NotificationBell() {
                           aria-label={selectedIds.has(reserva.id) ? 'Quitar selección' : 'Seleccionar notificación'}
                         >
                           {selectedIds.has(reserva.id) ? (
-                            <SquareCheckBig size={18} strokeWidth={1.9} />
+                            <SquareCheckBig size={17} strokeWidth={1.9} />
                           ) : (
-                            <Square size={18} strokeWidth={1.9} />
+                            <Square size={17} strokeWidth={1.9} />
                           )}
                         </button>
-                        <span className={styles.itemIcon}>
-                          <CalendarClock size={18} strokeWidth={1.8} />
-                        </span>
-                        <div className={styles.itemBody}>
-                          <div className={styles.itemTop}>
-                            <div className={styles.itemTitle}>
-                              <span className={styles.client}>{reserva.cliente}</span>
-                              <span className={styles.service}>{getService(reserva)}</span>
-                              {createdLabel && <span className={styles.createdAt}>{createdLabel}</span>}
-                            </div>
-                            <span className={styles.dot} aria-hidden="true" />
+                        <div className={styles.cardBody}>
+                          <div className={styles.cardTop}>
+                            <span className={styles.client}>{reserva.cliente}</span>
+                            {createdLabel && (
+                              <span className={styles.createdAt}>
+                                <span className={styles.dot} aria-hidden="true" />
+                                {createdLabel}
+                              </span>
+                            )}
                           </div>
-                          <div className={styles.itemMeta}>
-                            <span className={styles.metaLine}>
-                              <MapPin size={14} strokeWidth={1.8} />
-                              <span>{reserva.local}</span>
+                          <span className={styles.service}>{getService(reserva)}</span>
+                          <div className={styles.chips}>
+                            <span className={styles.chip}>
+                              <MapPin size={12} strokeWidth={1.9} />
+                              {reserva.local}
                             </span>
-                            <span className={styles.metaLine}>
-                              <Clock3 size={14} strokeWidth={1.8} />
-                              <span>{formatDate(reserva.fecha)} · {reserva.hora_desde} - {reserva.hora_hasta}</span>
+                            <span className={styles.chip}>
+                              <Clock3 size={12} strokeWidth={1.9} />
+                              {formatDate(reserva.fecha)} · {reserva.hora_desde} - {reserva.hora_hasta}
                             </span>
-                            <span className={styles.metaLine}>
-                              <Phone size={14} strokeWidth={1.8} />
-                              <span>{reserva.numero_telefono || 'Sin teléfono registrado'}</span>
+                            <span className={styles.chip}>
+                              <Phone size={12} strokeWidth={1.9} />
+                              {reserva.numero_telefono || 'Sin teléfono'}
                             </span>
                           </div>
                           <button
@@ -421,7 +616,7 @@ export function NotificationBell() {
             </div>
 
             <div className={styles.panelFooter}>
-              <span>{isAuthenticated ? 'Polling activo cada 5 min' : 'Sesión no iniciada'}</span>
+              <span>{isAuthenticated ? 'Se actualiza cada 5 min' : 'Sesión no iniciada'}</span>
               {lastFetch && <span>Actualizado {lastFetch}</span>}
             </div>
           </div>

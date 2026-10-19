@@ -1,11 +1,16 @@
 // Tipos del módulo Inventario (contrato: PLAN_TRASTIENDA_INVENTARIOS.md §4–§5)
 
-export type UnidadMedida = 'UNIDAD' | 'ML' | 'GR' | 'CAJA';
+export type UnidadMedida = 'UNIDAD' | 'ML' | 'GR' | 'LT' | 'KG' | 'FRASCO' | 'PAQUETE' | 'SOBRE' | 'CAJA';
 
 export const UNIDADES_MEDIDA: { value: UnidadMedida; label: string }[] = [
   { value: 'UNIDAD', label: 'Unidad' },
   { value: 'ML', label: 'Mililitros (ml)' },
+  { value: 'LT', label: 'Litros (lt)' },
   { value: 'GR', label: 'Gramos (gr)' },
+  { value: 'KG', label: 'Kilogramos (kg)' },
+  { value: 'FRASCO', label: 'Frasco' },
+  { value: 'PAQUETE', label: 'Paquete' },
+  { value: 'SOBRE', label: 'Sobre' },
   { value: 'CAJA', label: 'Caja' },
 ];
 
@@ -151,9 +156,26 @@ export interface AlertaReservaInventario {
   advertencias: AdvertenciaInventario[];
 }
 
+/** Demanda total de un insumo en un local (reservas agendadas futuras) frente a su stock. */
+export interface ReposicionInsumo {
+  item_id: number;
+  item_nombre: string;
+  unidad: UnidadMedida | string;
+  local_id: number;
+  local_nombre: string;
+  stock: number;
+  comprometido: number;
+  /** Cuánto comprar para cubrir todas las reservas agendadas. */
+  faltante: number;
+  reservas: number;
+  /** Fecha (YYYY-MM-DD) de la primera reserva que lo consume. */
+  proxima: string;
+}
+
 export interface AlertasInventario {
   items_bajo_stock: InventarioItem[];
   reservas_con_alerta: AlertaReservaInventario[];
+  reposicion?: ReposicionInsumo[];
 }
 
 /** Insumo que consume un servicio por sesión (RN-10). */

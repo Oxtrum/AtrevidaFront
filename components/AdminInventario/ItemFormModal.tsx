@@ -135,7 +135,7 @@ export function ItemFormModal({ isOpen, item, categorias, onClose, onSaved }: It
           />
         </FormField>
 
-        <FormField label="Unidad de medida" labelId="inv-unidad-lbl" hint="Las cantidades admiten hasta 3 decimales (ml, gr).">
+        <FormField label="Unidad de medida" labelId="inv-unidad-lbl" hint="Las cantidades admiten hasta 3 decimales: 0,5 es la mitad de la unidad.">
           <CustomSelect
             value={form.unidad_medida}
             onChange={(v) => patch({ unidad_medida: v as UnidadMedida })}
@@ -145,7 +145,7 @@ export function ItemFormModal({ isOpen, item, categorias, onClose, onSaved }: It
           />
         </FormField>
 
-        <FormField label="Stock mínimo" htmlFor="inv-min" error={errors.stock_minimo} hint="Por debajo de este valor se marca como bajo stock.">
+        <FormField label="Stock mínimo" htmlFor="inv-min" error={errors.stock_minimo} hint="Con esta cantidad o menos se marca como bajo stock.">
           <input id="inv-min" type="text" inputMode="decimal" value={form.stock_minimo} onChange={(e) => patch({ stock_minimo: e.target.value })} />
         </FormField>
 

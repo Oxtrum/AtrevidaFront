@@ -32,11 +32,14 @@ interface ItemsTabProps {
   /** Ajustes de stock: admin_sys y gerencia (su local). */
   canAdjust: boolean;
   moneda: string;
+  /** Filtros iniciales (enlaces desde las notificaciones). */
+  initialQ?: string;
+  initialLocalId?: string;
 }
 
-export function ItemsTab({ canManage, canAdjust, moneda }: ItemsTabProps) {
-  const [q, setQ] = useState('');
-  const [localId, setLocalId] = useState(String(getAdminLocalScope()?.local_id ?? ''));
+export function ItemsTab({ canManage, canAdjust, moneda, initialQ = '', initialLocalId = '' }: ItemsTabProps) {
+  const [q, setQ] = useState(initialQ);
+  const [localId, setLocalId] = useState(String(getAdminLocalScope()?.local_id ?? initialLocalId));
   const [categoriaId, setCategoriaId] = useState('');
   const [estado, setEstado] = useState<'activos' | 'bajo' | 'inactivos'>('activos');
 

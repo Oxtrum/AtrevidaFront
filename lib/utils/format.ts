@@ -4,13 +4,18 @@ export function formatMoney(value: number | null | undefined, moneda = 'Bs'): st
   return `${moneda} ${n.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-/** "unidad"/"caja" van en plural salvo para exactamente 1; ml y gr son símbolos y no cambian. */
+/** Unidades contables van en plural salvo para exactamente 1; ml, gr, lt y kg son símbolos y no cambian. */
 function pluralizeUnit(unidad: string, n: number): string {
   const u = unidad.toLowerCase();
   if (n === 1) return u;
-  if (u === 'unidad') return 'unidades';
-  if (u === 'caja') return 'cajas';
-  return u;
+  const plurales: Record<string, string> = {
+    unidad: 'unidades',
+    caja: 'cajas',
+    frasco: 'frascos',
+    paquete: 'paquetes',
+    sobre: 'sobres',
+  };
+  return plurales[u] ?? u;
 }
 
 /** Cantidades con hasta 3 decimales (NUMERIC(12,3)), sin ceros sobrantes. */
@@ -35,10 +40,11 @@ export function formatDateTimeISO(iso: string): string {
 /** "Gel: requiere 30 ml, disponible 0 ml; …" para toasts de advertencia de inventario. */
 export function describirAdvertencias(
   advertencias: { item_nombre: string; requerido: number; disponible: number; unidad: string }[],
+  separador = ' · ',
 ): string {
   return advertencias
     .map((a) => `${a.item_nombre}: requiere ${formatQty(a.requerido, a.unidad)}, disponible ${formatQty(a.disponible, a.unidad)}`)
-    .join(' · ');
+    .join(separador);
 }
 
 export function todayISO(): string {

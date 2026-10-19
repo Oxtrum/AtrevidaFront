@@ -18,8 +18,23 @@ type TabKey = 'items' | 'movimientos' | 'compras' | 'alertas';
 // Gerencia opera su local (ajustes, compras); crear/editar ítems y anular compras es de admin_sys (§7).
 const ROLES = ['admin_sys', 'gerencia'];
 
+const TAB_KEYS: TabKey[] = ['items', 'movimientos', 'compras', 'alertas'];
+
+/** Enlaces directos (p. ej. desde las notificaciones): ?tab=items&q=Gel&local_id=2. */
+function readDeepLink() {
+  if (typeof window === 'undefined') return { tab: 'items' as TabKey, q: '', localId: '' };
+  const params = new URLSearchParams(window.location.search);
+  const tab = params.get('tab') as TabKey | null;
+  return {
+    tab: tab && TAB_KEYS.includes(tab) ? tab : ('items' as TabKey),
+    q: params.get('q') ?? '',
+    localId: params.get('local_id') ?? '',
+  };
+}
+
 export default function InventarioPage() {
-  const [tab, setTab] = useState<TabKey>('items');
+  const [link] = useState(readDeepLink);
+  const [tab, setTab] = useState<TabKey>(link.tab);
   const { moneda } = useConfiguracion();
   const { data: alertas } = useAsyncData(getAlertasInventario, 'alertas-count');
   // Rol leído en render: la página solo se monta tras el guard de AdminPageShell.
@@ -47,7 +62,7 @@ export default function InventarioPage() {
         subtitle="Productos e insumos por local, movimientos de stock y compras"
       />
       <Tabs tabs={tabs} active={tab} onChange={setTab} ariaLabel="Secciones de inventario" />
-      {tab === 'items' && <ItemsTab canManage={isAdminSys} canAdjust moneda={moneda} />}
+      {tab === 'items' && <ItemsTab canManage={isAdminSys} canAdjust moneda={moneda} initialQ={link.q} initialLocalId={link.localId} />}
       {tab === 'movimientos' && <MovimientosTab />}
       {tab === 'compras' && <ComprasTab canAnular={isAdminSys} moneda={moneda} />}
       {tab === 'alertas' && <AlertasTab />}

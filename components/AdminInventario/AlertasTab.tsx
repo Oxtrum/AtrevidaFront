@@ -9,12 +9,13 @@ import { getAlertasInventario } from '@/lib/api/inventario';
 import { getAdminLocalScope } from '@/lib/api/localScope';
 import { useAsyncData } from '@/lib/hooks/useAsyncData';
 import { formatDateISO, formatQty } from '@/lib/utils/format';
-import type { AlertaReservaInventario, InventarioItem } from '@/types/inventario';
+import type { AlertaReservaInventario, InventarioItem, ReposicionInsumo } from '@/types/inventario';
 import { StockBadge } from './StockBadge';
 import styles from './AdminInventario.module.css';
 
 type ItemRow = InventarioItem & Record<string, unknown>;
 type ReservaRow = AlertaReservaInventario & Record<string, unknown>;
+type ReposicionRow = ReposicionInsumo & Record<string, unknown>;
 
 /** Qué hay que reponer ya: ítems bajo mínimo + reservas futuras sin stock para su servicio. */
 export function AlertasTab() {
@@ -43,6 +44,24 @@ export function AlertasTab() {
     { key: 'estado', label: 'Estado', searchable: false, render: (_v, r) => <StockBadge item={r} /> },
   ];
 
+  const reposicionColumns: Column<ReposicionRow>[] = [
+    { key: 'item_nombre', label: 'Insumo' },
+    { key: 'local_nombre', label: 'Local' },
+    { key: 'stock', label: 'Stock', searchable: false, render: (_v, r) => <span className={`${styles.num} ${r.stock <= 0 ? styles.negative : ''}`}>{formatQty(r.stock, r.unidad)}</span> },
+    {
+      key: 'comprometido',
+      label: 'Necesitan las reservas',
+      searchable: false,
+      render: (_v, r) => (
+        <span className={styles.num}>
+          {formatQty(r.comprometido, r.unidad)} <span className={styles.muted}>({r.reservas} {r.reservas === 1 ? 'reserva' : 'reservas'})</span>
+        </span>
+      ),
+    },
+    { key: 'faltante', label: 'Hay que reponer', searchable: false, render: (_v, r) => <strong className={`${styles.num} ${styles.negative}`}>{formatQty(r.faltante, r.unidad)}</strong> },
+    { key: 'proxima', label: 'Desde', searchable: false, render: (_v, r) => formatDateISO(r.proxima) },
+  ];
+
   const reservaColumns: Column<ReservaRow>[] = [
     { key: 'fecha', label: 'Fecha', render: (_v, r) => `${formatDateISO(r.fecha)} ${r.hora_desde}` },
     { key: 'cliente', label: 'Cliente' },
@@ -68,7 +87,7 @@ export function AlertasTab() {
     },
   ];
 
-  const sinAlertas = data && data.items_bajo_stock.length === 0 && data.reservas_con_alerta.length === 0;
+  const sinAlertas = data && data.items_bajo_stock.length === 0 && data.reservas_con_alerta.length === 0 && (data.reposicion?.length ?? 0) === 0;
 
   return (
     <div className={styles.stack}>
@@ -84,6 +103,17 @@ export function AlertasTab() {
           No hay ítems bajo stock ni reservas con advertencia de inventario.
         </AlertBanner>
       )}
+
+      <SectionLabel icon={<AlertTriangle size={13} />}>Hay que reponer para cumplir las reservas agendadas</SectionLabel>
+      <DataTable<ReposicionRow>
+        columns={reposicionColumns}
+        data={(data?.reposicion ?? []) as ReposicionRow[]}
+        loading={loading}
+        error={error}
+        getRowKey={(r) => `${r.item_id}-${r.local_id}`}
+        hideSearch
+        emptyMessage="El stock alcanza para todas las reservas agendadas"
+      />
 
       <SectionLabel icon={<AlertTriangle size={13} />}>Ítems bajo stock mínimo (por local)</SectionLabel>
       <DataTable<ItemRow>
