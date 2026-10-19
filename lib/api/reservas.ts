@@ -265,9 +265,15 @@ export async function crearReservaDB(data: CrearReservaDBData): Promise<CrearRes
     if (!response.ok) {
       throw new ApiError(result?.message || `HTTP ${response.status}`, response.status, result);
     }
-    return result as CrearReservaResult;
+    return unwrapCrearReserva(result);
   }
-  return apiClient.post<CrearReservaResult>('/bd/reservas', data);
+  return unwrapCrearReserva(await apiClient.post<unknown>('/bd/reservas', data));
+}
+
+/** El backend envuelve el resultado en `{ code, data: { id, mensaje, advertencias_inventario… } }`. */
+function unwrapCrearReserva(body: unknown): CrearReservaResult {
+  const envelope = body as { data?: CrearReservaResult } & Partial<CrearReservaResult>;
+  return (envelope.data ?? envelope) as CrearReservaResult;
 }
 
 /** Actualiza una reserva existente en la base de datos. */

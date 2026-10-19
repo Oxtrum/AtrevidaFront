@@ -27,12 +27,17 @@
   inset: 0;
   border-radius: 16px;
   padding: 1.5px;
-  background: linear-gradient(135deg, #EC008C, #14AEEF);
+  background: var(--toast-grad, linear-gradient(135deg, #EC008C, #14AEEF));
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   opacity: 0.5;
+  pointer-events: none;
+}
+
+.warning::after {
+  opacity: 0.7;
 }
 
 .iconContainer {
@@ -56,15 +61,52 @@
   filter: drop-shadow(0 0 8px rgba(255, 68, 68, 0.5));
 }
 
+.info .icon {
+  color: #14AEEF;
+  filter: drop-shadow(0 0 8px rgba(20, 174, 239, 0.5));
+}
+
+.warning .icon {
+  color: #FFE600;
+  filter: drop-shadow(0 0 8px rgba(255, 230, 0, 0.45));
+}
+
+/* Advertencia: amarillo en borde, ícono y barra de progreso (no rosa/cyan de marca). */
+.warning {
+  --toast-grad: linear-gradient(135deg, #FFE600, #F59E0B);
+}
+
+.warning .iconContainer {
+  background: rgba(255, 230, 0, 0.1);
+}
+
 .content {
   flex: 1;
+  min-width: 0;
+}
+
+.title {
+  margin: 0 0 0.25rem;
+  color: #FAFAFA;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .message {
   color: #F5F5F5;
   font-size: 0.9rem;
   font-weight: 500;
+  line-height: 1.45;
   margin: 0;
+  /* Respeta saltos de línea (una advertencia por línea). */
+  white-space: pre-line;
+  text-wrap: pretty;
+}
+
+.warning .message {
+  color: rgba(250, 250, 250, 0.82);
+  font-weight: 400;
 }
 
 .closeBtn {
@@ -90,9 +132,13 @@
   bottom: 0;
   left: 0;
   height: 3px;
-  background: linear-gradient(90deg, #EC008C, #14AEEF);
+  background: var(--toast-bar, linear-gradient(90deg, #EC008C, #14AEEF));
   width: 100%;
   animation: progress 4s linear forwards;
+}
+
+.warning .progressBar {
+  --toast-bar: linear-gradient(90deg, #FFE600, #F59E0B);
 }
 
 @keyframes progress {

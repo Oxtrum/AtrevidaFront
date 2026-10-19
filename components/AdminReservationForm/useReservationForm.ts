@@ -606,7 +606,10 @@ export function useReservationForm(
         );
         // La reserva ya está guardada: la falta de insumos solo se informa (RN-12). El formulario público nunca lo muestra.
         if (initialData?.isAdmin && creada.advertencias_inventario?.length) {
-          toast.info(`Falta stock para este servicio — ${describirAdvertencias(creada.advertencias_inventario)}`, 10000);
+          toast.warning(describirAdvertencias(creada.advertencias_inventario, '\n'), {
+            title: 'Falta stock para este servicio',
+            duration: 10000,
+          });
         }
 
         if (onSuccess) {
