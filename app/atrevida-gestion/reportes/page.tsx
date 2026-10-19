@@ -603,7 +603,7 @@ export default function ReportesFinancierosPage() {
             kickerIcon={<BarChart2 size={14} strokeWidth={2} />}
             title="Reportes financieros"
             accentWord="financieros"
-            subtitle="Resumen de ingresos, servicios vendidos y rendimiento por local"
+            subtitle="Resumen por periodo: ventas, servicios y utilidad por local. Para ver cada movimiento de dinero, ve a Finanzas."
             actions={
               reportTab === 'ventas' && (
               <button

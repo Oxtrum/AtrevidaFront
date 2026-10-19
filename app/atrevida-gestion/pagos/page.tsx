@@ -209,7 +209,7 @@ export default function PagosPage() {
             kickerIcon={<CreditCard size={14} strokeWidth={2} />}
             title="Historial de Pagos"
             accentWord="Pagos"
-            subtitle="Consulta administrativa de pagos, locales y clientes"
+            subtitle="Historial de ventas ya cobradas, por local y cliente. Para registrar un cobro nuevo usa Cobros."
           />
 
           <div ref={contentRef} className={styles.contentStack}>

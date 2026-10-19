@@ -852,7 +852,7 @@ export default function CajaPage() {
             kickerIcon={<Banknote size={14} strokeWidth={2} />}
             title="Cobros"
             accentWord="Cobros"
-            subtitle={selectedLocal ? `Registrando pagos en ${selectedLocal.nombre}` : 'Selecciona el local para iniciar el registro de pagos'}
+            subtitle={selectedLocal ? `Registrando cobros de ventas en ${selectedLocal.nombre}. El historial está en Historial de Pagos.` : 'Selecciona el local para registrar el cobro de una venta. El historial está en Historial de Pagos.'}
           />
 
           <div ref={contentRef} className={styles.contentStack}>

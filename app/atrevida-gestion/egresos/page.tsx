@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Ban, CalendarClock, CheckCircle2, Pencil, Plus, TrendingDown, TrendingUp } from 'lucide-react';
+import { ArrowLeftRight, Ban, CalendarClock, CheckCircle2, Pencil, Plus, TrendingDown, TrendingUp } from 'lucide-react';
 import {
   AdminButton,
   AdminPageShell,
@@ -38,7 +38,7 @@ import type { CategoriaFinanciera, EstadoMovimiento, MovimientoFinanciero, Natur
 import styles from './page.module.css';
 
 type Row = MovimientoFinanciero & Record<string, unknown>;
-type Vista = 'TODOS' | NaturalezaFinanciera;
+type Vista = NaturalezaFinanciera;
 const EMPTY: MovimientoFinanciero[] = [];
 const EMPTY_CATS: CategoriaFinanciera[] = [];
 const ESTADO_TONE: Record<EstadoMovimiento, BadgeTone> = { PAGADO: 'success', PENDIENTE: 'warning', ANULADO: 'danger' };
@@ -53,8 +53,7 @@ export default function EgresosPage() {
   const [estado, setEstado] = useState('');
   const [categoriaId, setCategoriaId] = useState('');
   const [localId, setLocalId] = useState('');
-  const [vista, setVista] = useState<Vista>('TODOS');
-  const soloEgresos = vista === 'EGRESO';
+  const [vista, setVista] = useState<Vista>('EGRESO');
   const soloIngresos = vista === 'INGRESO';
 
   const params = useMemo(() => {
@@ -62,7 +61,7 @@ export default function EgresosPage() {
     return {
       fecha_desde: desde,
       fecha_hasta: hasta,
-      naturaleza: vista === 'TODOS' ? undefined : vista,
+      naturaleza: vista,
       clase: (clase || undefined) as 'FIJO' | 'VARIABLE' | undefined,
       estado: (estado || undefined) as EstadoMovimiento | undefined,
       categoria_id: categoriaId ? Number(categoriaId) : undefined,
@@ -180,11 +179,14 @@ export default function EgresosPage() {
       <PageHeader
         kicker="Trastienda"
         kickerIcon={<TrendingDown size={14} strokeWidth={2} />}
-        title="Egresos e Ingresos"
+        title="Egresos"
         accentWord="Egresos"
-        subtitle="Gastos fijos y variables, compras y otros ingresos del mes"
+        subtitle="Gastos fijos y variables, compras de inventario y otros ingresos que se registran aquí. Las ventas se cobran en Cobros; para ver todo el dinero junto, ve a Finanzas."
         actions={
           <>
+            <AdminButton variant="secondary" href="/atrevida-gestion/finanzas" icon={<ArrowLeftRight size={16} strokeWidth={2} />}>
+              Ver todo en Finanzas
+            </AdminButton>
             <AdminButton
               variant="secondary"
               onClick={() => setConfirmandoGenerar(true)}
@@ -208,28 +210,17 @@ export default function EgresosPage() {
 
       <div className={styles.stack}>
         <StatGrid>
-          {!soloEgresos && (
-            <StatCard label="Ventas cobradas" value={formatMoney(resumen?.ingresos_ventas ?? 0, moneda)} sublabel="Caja y pagos de clientes" loading={loadingReporte} accentColor="#22c55e" />
-          )}
-          {!soloEgresos && (
-            <StatCard label="Otros ingresos" value={formatMoney(resumen?.ingresos_otros ?? 0, moneda)} sublabel="Registrados aquí" loading={loadingReporte} accentColor="#10b981" />
-          )}
-          {!soloIngresos && (
-            <StatCard label="Egresos pagados" value={formatMoney(resumen?.egresos_total ?? 0, moneda)} sublabel="Fijos, variables y compras" loading={loadingReporte} accentColor="#ec008c" />
-          )}
-          {vista === 'TODOS' && (
-            <StatCard
-              label="Utilidad del mes"
-              value={formatMoney(resumen?.utilidad_neta ?? 0, moneda)}
-              sublabel="Todos los ingresos − todos los egresos"
-              loading={loadingReporte}
-              accentColor="#14aeef"
-            />
-          )}
-          {soloEgresos && <StatCard label="Fijos" value={formatMoney(resumen?.egresos_fijos ?? 0, moneda)} loading={loadingReporte} accentColor="#14aeef" />}
-          {soloEgresos && <StatCard label="Variables y compras" value={formatMoney(resumen?.egresos_variables ?? 0, moneda)} loading={loadingReporte} accentColor="#92278f" />}
-          {!soloIngresos && (
-            <StatCard label="Egresos pendientes" value={formatMoney(resumen?.egresos_pendientes ?? 0, moneda)} sublabel="No entran en la utilidad" loading={loadingReporte} accentColor="#f59e0b" />
+          {soloIngresos ? (
+            <>
+              <StatCard label="Otros ingresos cobrados" value={formatMoney(resumen?.ingresos_otros ?? 0, moneda)} sublabel="No incluye ventas (ver Finanzas)" loading={loadingReporte} accentColor="#10b981" />
+            </>
+          ) : (
+            <>
+              <StatCard label="Egresos pagados" value={formatMoney(resumen?.egresos_total ?? 0, moneda)} sublabel="Fijos, variables y compras" loading={loadingReporte} accentColor="#ec008c" />
+              <StatCard label="Fijos" value={formatMoney(resumen?.egresos_fijos ?? 0, moneda)} loading={loadingReporte} accentColor="#14aeef" />
+              <StatCard label="Variables y compras" value={formatMoney(resumen?.egresos_variables ?? 0, moneda)} loading={loadingReporte} accentColor="#92278f" />
+              <StatCard label="Egresos pendientes" value={formatMoney(resumen?.egresos_pendientes ?? 0, moneda)} sublabel="No entran en la utilidad" loading={loadingReporte} accentColor="#f59e0b" />
+            </>
           )}
         </StatGrid>
 
@@ -238,19 +229,18 @@ export default function EgresosPage() {
             <FilterBar.Item label="Mes">
               <MonthPicker value={month} onChange={setMonth} />
             </FilterBar.Item>
-            <FilterBar.Item label="Mostrar">
+            <FilterBar.Item label="Ver">
               <CustomSelect
                 value={vista}
                 onChange={(v) => { setVista(v as Vista); setClase(''); setCategoriaId(''); }}
                 options={[
-                  { value: 'TODOS', label: 'Ingresos y egresos' },
-                  { value: 'EGRESO', label: 'Solo egresos' },
-                  { value: 'INGRESO', label: 'Solo otros ingresos' },
+                  { value: 'EGRESO', label: 'Egresos' },
+                  { value: 'INGRESO', label: 'Otros ingresos' },
                 ]}
                 searchable={false}
               />
             </FilterBar.Item>
-            {soloEgresos && (
+            {!soloIngresos && (
               <FilterBar.Item label="Clase">
                 <CustomSelect value={clase} onChange={setClase} options={[{ value: 'FIJO', label: 'Fijos' }, { value: 'VARIABLE', label: 'Variables' }]} placeholder="Todas" allowClear searchable={false} />
               </FilterBar.Item>
@@ -262,7 +252,7 @@ export default function EgresosPage() {
               <CustomSelect
                 value={categoriaId}
                 onChange={setCategoriaId}
-                options={categorias.filter((c) => vista === 'TODOS' || c.naturaleza === vista).map((c) => ({ value: String(c.id), label: c.nombre }))}
+                options={categorias.filter((c) => c.naturaleza === vista).map((c) => ({ value: String(c.id), label: c.nombre }))}
                 placeholder="Todas"
                 allowClear
                 searchable={false}
@@ -282,7 +272,7 @@ export default function EgresosPage() {
           onRefresh={reload}
           getRowKey={(r) => r.id}
           searchPlaceholder="Buscar por código, categoría o detalle…"
-          emptyMessage={soloIngresos ? 'No hay otros ingresos en este mes' : soloEgresos ? 'No hay egresos en este mes' : 'No hay ingresos ni egresos en este mes'}
+          emptyMessage={soloIngresos ? 'No hay otros ingresos en este mes' : 'No hay egresos en este mes'}
         />
       </div>
 
