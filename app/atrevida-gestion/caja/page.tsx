@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
 import {
@@ -16,7 +16,9 @@ import {
   WalletCards,
 } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
-import { PageHeader, DataTable, FormModal, CursorPagination } from '@/components/AdminConfig';
+import { AdminButton, AlertBanner, PageHeader, DataTable, FormModal, CursorPagination } from '@/components/AdminConfig';
+import { CobroReservaLoader } from './CobroReservaLoader';
+import type { ReservaBD } from '@/types/reserva';
 import type { Column } from '@/components/AdminConfig';
 import { toast } from '@/components/Shared/Toast';
 import { crearClienteDB, getClientesDB } from '@/lib/api/clientes';
@@ -215,6 +217,9 @@ export default function CajaPage() {
   const [planesReservados, setPlanesReservados] = useState<PlanItem[]>([]);
   const [loadingPlanesReservados, setLoadingPlanesReservados] = useState(false);
   const [planReservado, setPlanReservado] = useState<PlanItem | null>(null);
+  // Reserva completada que se está cobrando (viene de ?reserva=<id>); el pago queda ligado a ella.
+  const [reservaCobro, setReservaCobro] = useState<ReservaBD | null>(null);
+  const reservaAplicadaRef = useRef<number | null>(null);
   const adminLocalScope = useAdminLocalScopeState();
   const scopedWorkplace = adminLocalScope.workplace;
   const hasScopedLocal = !!scopedWorkplace;
@@ -412,6 +417,65 @@ export default function CajaPage() {
     }, containerRef);
     return () => ctx.revert();
   }, [selectedLocal]);
+
+  const handleReservaCargada = useCallback((reserva: ReservaBD) => {
+    if (reserva.estado_cobro === 'COBRADA') {
+      toast.info(`La reserva #${reserva.id} ya tiene un cobro registrado.`);
+      return;
+    }
+    if (reserva.estado_cobro === 'CUBIERTA_PAQUETE') {
+      toast.info(`La reserva #${reserva.id} la cubre un paquete: no hay nada que cobrar.`);
+      return;
+    }
+    reservaAplicadaRef.current = null;
+    setReservaCobro(reserva);
+  }, []);
+  const handleReservaError = useCallback(() => toast.error('No se pudo cargar la reserva a cobrar.'), []);
+
+  useEffect(() => {
+    const reserva = reservaCobro;
+    if (!reserva || reservaAplicadaRef.current === reserva.id) return;
+    const local = locales.find((l) => l.nombre === reserva.local);
+    if (!local) return;
+    if (selectedLocal?.id !== local.id) {
+      localStorage.setItem(CAJA_LOCAL_STORAGE_KEY, JSON.stringify(local));
+      setSelectedLocal(local);
+      return;
+    }
+    if (loadingServicios) return;
+
+    reservaAplicadaRef.current = reserva.id;
+    const nombreServicio = reserva.servicio_confirmado || reserva.servicio || 'Servicio';
+    const servicio = servicios.find((item) => item.nombre.trim().toLowerCase() === nombreServicio.trim().toLowerCase());
+    const precio = reserva.precio ?? (servicio && !servicio.costo_variable ? Number(servicio.costo) : null);
+    setDetalle([{
+      servicio_id: servicio?.id ?? null,
+      servicio: nombreServicio,
+      precio_unitario: precio ?? '',
+      cantidad: 1,
+      subtotal: precio === null ? null : subtotalDetallePago(1, precio),
+    }]);
+    setClienteNombre(reserva.cliente);
+    setSelectedClienteId(null);
+    setClienteNit('');
+    // Si el cliente está registrado, se enlaza (por teléfono o nombre exacto) para heredar su NIT.
+    void getClientesDB({ busqueda: reserva.cliente, limit: PAGE_LIMIT })
+      .then((res) => {
+        const lista = res?.data?.clientes ?? [];
+        const digitos = (reserva.numero_telefono ?? '').replace(/\D/g, '');
+        const encontrado = lista.find((c) => digitos && (c.numero_telefono ?? '').replace(/\D/g, '') === digitos)
+          ?? lista.find((c) => getClienteNombreCompleto(c).trim().toLowerCase() === reserva.cliente.trim().toLowerCase());
+        if (encontrado) selectCliente(encontrado as ClienteOption);
+      })
+      .catch(() => { /* sin cliente registrado: se cobra con el nombre de la reserva */ });
+  }, [reservaCobro, locales, selectedLocal, loadingServicios, servicios]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const quitarReservaCobro = () => {
+    setReservaCobro(null);
+    reservaAplicadaRef.current = null;
+    resetSale();
+    router.replace('/atrevida-gestion/caja');
+  };
 
   const selectLocal = (local: LocalOption) => {
     if (scopedWorkplace && local.id !== scopedWorkplace.local_id && local.nombre !== scopedWorkplace.nombre_local) {
@@ -689,6 +753,7 @@ export default function CajaPage() {
         estado: 'PAGADO',
         tipo_pago: tipoPago,
         activo: true,
+        reserva_id: modo === 'venta' ? reservaCobro?.id ?? null : null,
         detalle: detallePreparado.detalle,
       };
       const pagoRes = await crearPagoDB(payload);
@@ -722,7 +787,12 @@ export default function CajaPage() {
         }
       }
 
-      toast.success(modo === 'cobrarReserva' ? 'Paquete cobrado y activado' : 'Pago registrado en caja');
+      toast.success(modo === 'cobrarReserva' ? 'Paquete cobrado y activado' : reservaCobro ? `Reserva #${reservaCobro.id} cobrada` : 'Pago registrado en caja');
+      if (reservaCobro) {
+        setReservaCobro(null);
+        reservaAplicadaRef.current = null;
+        router.replace('/atrevida-gestion/caja');
+      }
       resetSale();
       pagosPagination.resetAfterMutation();
     } catch (err) {
@@ -855,7 +925,20 @@ export default function CajaPage() {
             subtitle={selectedLocal ? `Registrando cobros de ventas en ${selectedLocal.nombre}. El historial está en Historial de Pagos.` : 'Selecciona el local para registrar el cobro de una venta. El historial está en Historial de Pagos.'}
           />
 
+          <Suspense fallback={null}>
+            <CobroReservaLoader onLoad={handleReservaCargada} onError={handleReservaError} />
+          </Suspense>
+
           <div ref={contentRef} className={styles.contentStack}>
+            {reservaCobro && (
+              <AlertBanner
+                tone="info"
+                title={`Cobrando la reserva #${reservaCobro.id}`}
+                action={<AdminButton variant="secondary" size="sm" onClick={quitarReservaCobro}>Quitar</AdminButton>}
+              >
+                {reservaCobro.cliente} · {reservaCobro.servicio_confirmado || reservaCobro.servicio} · {reservaCobro.fecha}. Revisa el precio y el método de pago; al registrar el pago la reserva queda como cobrada.
+              </AlertBanner>
+            )}
             {!selectedLocal ? (
               <section className={styles.localPicker}>
                 <div className={styles.localPickerHeader}>

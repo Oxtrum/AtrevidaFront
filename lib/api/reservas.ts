@@ -5,7 +5,7 @@
 
 import { ApiError, apiClient } from './client';
 import { withNombreLocalScope } from './localScope';
-import type { ApiResponse, EstadoReserva, ReservaBD, ReservaFormData, ReservasBDApiResponse } from '@/types/reserva';
+import type { ApiResponse, EstadoCobroReserva, EstadoReserva, ReservaBD, ReservaFormData, ReservasBDApiResponse } from '@/types/reserva';
 import type { PaginationParams } from './pagination';
 import type { AdvertenciaInventario } from '@/types/inventario';
 
@@ -41,6 +41,7 @@ export interface GetReservasDBParams extends PaginationParams {
   servicio_confirmado?: string;
 	busqueda?: string;
 	excluir_estado?: EstadoReserva;
+	estado_cobro?: EstadoCobroReserva;
 	vigente_fecha?: string;
 	vigente_hora?: string;
 	vigencia_solo_pendientes?: boolean;
@@ -204,6 +205,7 @@ export async function getReservasDB(params: GetReservasDBParams, signal?: AbortS
       servicio_confirmado: scopedParams.servicio_confirmado,
 	  busqueda: scopedParams.busqueda,
 	  excluir_estado: scopedParams.excluir_estado,
+	  estado_cobro: scopedParams.estado_cobro,
 	  vigente_fecha: scopedParams.vigente_fecha,
 	  vigente_hora: scopedParams.vigente_hora,
 	  vigencia_solo_pendientes: scopedParams.vigencia_solo_pendientes,

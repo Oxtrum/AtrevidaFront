@@ -21,6 +21,8 @@ export interface CrearPagoData {
   estado: string;
   tipo_pago: 'qr' | 'efectivo';
   activo: boolean;
+  /** Reserva que se cobra con este pago (opcional; una reserva admite un solo cobro). */
+  reserva_id?: number | null;
   detalle: DetalleServicio[];
 }
 

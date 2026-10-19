@@ -11,7 +11,7 @@ import { useLocales } from '@/lib/hooks/useLocales';
 import { useReservasFiltradas } from '@/lib/hooks/useReservasFiltradas';
 import type { ReservaTipoBackend } from '@/lib/api/reservas';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
-import { DataTable, Column, RowActionsMenu, PageHeader, AdminPanel, ConfirmDialog, CursorPagination } from '@/components/AdminConfig';
+import { DataTable, Column, RowActionsMenu, PageHeader, AdminPanel, ConfirmDialog, CursorPagination, StatusBadge } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { Input } from '@/components/Shared';
 import Header from '@/components/AdminHeader/Header';
@@ -40,6 +40,7 @@ interface ReservaRow extends Record<string, unknown> {
   estado?: EstadoReserva;
   /** Faltaba stock de insumos al agendar (trastienda). */
   alerta_inventario?: boolean;
+  estado_cobro?: 'COBRADA' | 'CUBIERTA_PAQUETE' | 'POR_COBRAR';
 }
 
 const DEFAULT_LOCAL = 'SAN MARTIN';
@@ -358,6 +359,11 @@ export default function AdminReservasPage() {
               {e}
             </span>
             {row.alerta_inventario === true && <InventarioAlertBadge />}
+            {e === 'COMPLETADO' && row.estado_cobro && (
+              <StatusBadge tone={row.estado_cobro === 'COBRADA' ? 'success' : row.estado_cobro === 'POR_COBRAR' ? 'warning' : 'info'}>
+                {row.estado_cobro === 'COBRADA' ? 'Cobrada' : row.estado_cobro === 'POR_COBRAR' ? 'Por cobrar' : 'Paquete'}
+              </StatusBadge>
+            )}
           </span>
         );
       },

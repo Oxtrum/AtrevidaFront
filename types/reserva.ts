@@ -4,6 +4,7 @@ import type { PaginationMetadata } from '@/lib/api/pagination';
 
 export type TipoReserva = 'm' | 'b' | 'M' | 'B' | 'feriado';
 export type EstadoReserva = 'PENDIENTE' | 'AGENDADO' | 'RECHAZADO' | 'COMPLETADO';
+export type EstadoCobroReserva = 'COBRADA' | 'CUBIERTA_PAQUETE' | 'POR_COBRAR';
 
 export interface FechaDia {
   dia: number;
@@ -410,6 +411,8 @@ export interface ReservaBD {
   notificado?: boolean;
   /** true si, al agendar, faltaba stock de insumos para el servicio (trastienda, RN-12). */
   alerta_inventario?: boolean;
+  /** Solo en reservas COMPLETADAS: COBRADA, CUBIERTA_PAQUETE (la paga un paquete) o POR_COBRAR. */
+  estado_cobro?: EstadoCobroReserva;
   creado_en?: string;
   actualizado_en?: string;
 }

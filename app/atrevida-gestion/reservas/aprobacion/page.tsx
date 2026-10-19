@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
 import {
   AlertCircle,
+  Banknote,
   Calendar,
   CalendarCheck,
   Check,
@@ -47,7 +48,7 @@ import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
 
 type EstadoGestion = Extract<EstadoReserva, 'PENDIENTE' | 'AGENDADO' | 'RECHAZADO'>;
 type EstadoNormalizado = EstadoGestion | 'COMPLETADO';
-type EstadoFiltro = EstadoGestion | 'TODOS';
+type EstadoFiltro = EstadoGestion | 'TODOS' | 'POR_COBRAR';
 type ApprovalDraft = {
   fecha: string;
   horaDesde: string;
@@ -68,6 +69,7 @@ const ESTADO_OPTIONS: Array<{ value: EstadoFiltro; label: string }> = [
   { value: 'PENDIENTE', label: 'Pendientes' },
   { value: 'AGENDADO', label: 'Agendadas' },
   { value: 'RECHAZADO', label: 'Rechazadas' },
+  { value: 'POR_COBRAR', label: 'Por cobrar' },
   { value: 'TODOS', label: 'Todas' },
 ];
 const COMPLETION_REASON_DONE = 'Ya se brindo el servicio';
@@ -197,6 +199,8 @@ const getClientInitials = (name?: string) => {
   return parts.map((part) => part[0]?.toUpperCase()).join('') || 'CL';
 };
 
+const COBRO_LABEL = { COBRADA: 'Cobrada', POR_COBRAR: 'Por cobrar', CUBIERTA_PAQUETE: 'Cubierta por paquete' } as const;
+const COBRO_TONE = { COBRADA: 'success', POR_COBRAR: 'warning', CUBIERTA_PAQUETE: 'info' } as const;
 const ESTADO_TONE = { PENDIENTE: 'warning', AGENDADO: 'info', RECHAZADO: 'danger', COMPLETADO: 'success' } as const;
 
 /** Datos de la reserva que se confirman en los diálogos de completar y eliminar. */
@@ -237,7 +241,8 @@ export default function AdminReservasAprobacionPage() {
   const [isFetching, setIsFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
 	const [totalRegistros, setTotalRegistros] = useState<number | null>(null);
-  const [conteosEstado, setConteosEstado] = useState<Partial<Record<'PENDIENTE' | 'AGENDADO' | 'RECHAZADO', number>>>({});
+  const [conteosEstado, setConteosEstado] = useState<Partial<Record<'PENDIENTE' | 'AGENDADO' | 'RECHAZADO' | 'POR_COBRAR', number>>>({});
+  const [cobroSugerido, setCobroSugerido] = useState<ReservaBD | null>(null);
   const [actionId, setActionId] = useState<number | null>(null);
   const [rejectingId, setRejectingId] = useState<number | null>(null);
   const [rejectCauses, setRejectCauses] = useState<Record<number, string>>({});
@@ -305,7 +310,8 @@ export default function AdminReservasAprobacionPage() {
       const response = await getReservasDB({
         fecha_desde: getDateISOWithOffset(-14),
 		local: effectiveLocalFiltro !== ALL_LOCALS_FILTER && effectiveLocalFiltro !== LOCAL_SCOPE_PENDING ? effectiveLocalFiltro : undefined,
-		estado: estadoFiltro !== 'TODOS' ? estadoFiltro : undefined,
+		estado: estadoFiltro === 'POR_COBRAR' ? 'COMPLETADO' : estadoFiltro !== 'TODOS' ? estadoFiltro : undefined,
+		estado_cobro: estadoFiltro === 'POR_COBRAR' ? 'POR_COBRAR' : undefined,
 		fecha: fechaFiltro || undefined,
 		tipo: tipoFiltro !== 'TODOS' ? tipoFiltro.toLowerCase() as 'mesa' | 'bicicleta' : undefined,
 		busqueda: debouncedSearchQuery || undefined,
@@ -436,10 +442,10 @@ export default function AdminReservasAprobacionPage() {
       limit: 1,
       include_total: true,
     };
-    (['PENDIENTE', 'AGENDADO', 'RECHAZADO'] as const).forEach((estado) => {
+    (['PENDIENTE', 'AGENDADO', 'RECHAZADO', 'POR_COBRAR'] as const).forEach((estado) => {
       getReservasDB({
         ...base,
-        estado,
+        ...(estado === 'POR_COBRAR' ? { estado: 'COMPLETADO' as const, estado_cobro: 'POR_COBRAR' as const } : { estado }),
         ...(estado === 'PENDIENTE' && { vigente_fecha: vigenteFecha, vigente_hora: vigenteHora }),
       }, controller.signal)
         .then((response) => {
@@ -595,6 +601,8 @@ export default function AdminReservasAprobacionPage() {
       setNotificationReserva((current) => current?.id === reservaId ? null : current);
       setCompletionDraft(null);
       toast.success(`Reserva #${reservaId} marcada como completada.`);
+      // Si la paga un paquete no hay nada que cobrar; si no, se sugiere cobrarla (sin obligar).
+      if (!completionDraft.reserva.plan_id) setCobroSugerido({ ...completionDraft.reserva, estado: 'COMPLETADO', estado_cobro: 'POR_COBRAR' });
       pagination.resetAfterMutation();
     } catch (updateError) {
       toast.error(updateError instanceof Error ? updateError.message : 'No se pudo completar la reserva.');
@@ -995,6 +1003,9 @@ export default function AdminReservasAprobacionPage() {
                           <StatusBadge tone={ESTADO_TONE[isCompleted ? 'COMPLETADO' : estadoNormalizado]}>
                             {isCompleted ? 'COMPLETADO' : estadoNormalizado}
                           </StatusBadge>
+                          {isCompleted && reserva.estado_cobro && (
+                            <StatusBadge tone={COBRO_TONE[reserva.estado_cobro]}>{COBRO_LABEL[reserva.estado_cobro]}</StatusBadge>
+                          )}
                           {reserva.alerta_inventario && !isCompleted && <InventarioAlertBadge />}
                           {estadoNormalizado === 'AGENDADO' && (
                             <StatusBadge tone={isCompleted ? 'success' : confirmationSent ? 'info' : 'warning'}>
@@ -1125,6 +1136,11 @@ export default function AdminReservasAprobacionPage() {
                     )}
                     {(estadoNormalizado === 'RECHAZADO' || isCompleted) && (
                       <div className={styles.pendingActions}>
+                        {isCompleted && reserva.estado_cobro === 'POR_COBRAR' && (
+                          <AdminButton fullWidth icon={<Banknote size={15} strokeWidth={1.8} />} href={`/atrevida-gestion/caja?reserva=${reserva.id}`}>
+                            Cobrar
+                          </AdminButton>
+                        )}
                         {cardActionMenu}
                       </div>
                     )}
@@ -1291,6 +1307,29 @@ export default function AdminReservasAprobacionPage() {
           )}
         </FormModal>
       )}
+
+      <ConfirmDialog
+        isOpen={cobroSugerido !== null}
+        title="Reserva completada: ¿cobrarla ahora?"
+        message={cobroSugerido && (
+          <>
+            <p style={{ margin: '0 0 0.6rem' }}>
+              La reserva #{cobroSugerido.id} de <strong>{cobroSugerido.cliente || 'cliente sin nombre'}</strong> ya se brindó pero todavía no tiene cobro registrado.
+            </p>
+            <p style={{ margin: 0 }}>
+              Si lo dejas para después, aparecerá en la pestaña <strong>Por cobrar</strong> para que no se olvide.
+            </p>
+          </>
+        )}
+        confirmLabel="Cobrar ahora"
+        cancelLabel="Después"
+        onConfirm={() => {
+          const id = cobroSugerido?.id;
+          setCobroSugerido(null);
+          if (id) router.push(`/atrevida-gestion/caja?reserva=${id}`);
+        }}
+        onClose={() => setCobroSugerido(null)}
+      />
 
       <ConfirmDialog
         isOpen={!!deleteReserva}

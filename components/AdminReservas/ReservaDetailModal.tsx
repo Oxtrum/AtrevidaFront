@@ -2,7 +2,8 @@
 
 import { useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Pencil, Trash2, Clock, CalendarDays } from 'lucide-react';
+import { X, Pencil, Trash2, Clock, CalendarDays, Banknote } from 'lucide-react';
+import { AdminButton, StatusBadge } from '@/components/AdminConfig';
 import type { ReservaBD } from '@/types/reserva';
 import { WhatsappIcon } from '@/components/icons/WhatsappIcon';
 import { buildReminderWhatsappHref } from '@/lib/utils/whatsapp';
@@ -110,6 +111,11 @@ export function ReservaDetailModal({
               <span className={styles.fieldValue}>
                 <span className={`${styles.badge} ${estadoClass}`}>{estado}</span>
                 {reserva.alerta_inventario && estado !== 'COMPLETADO' && <InventarioAlertBadge />}
+                {estado === 'COMPLETADO' && reserva.estado_cobro && (
+                  <StatusBadge tone={reserva.estado_cobro === 'COBRADA' ? 'success' : reserva.estado_cobro === 'POR_COBRAR' ? 'warning' : 'info'}>
+                    {reserva.estado_cobro === 'COBRADA' ? 'Cobrada' : reserva.estado_cobro === 'POR_COBRAR' ? 'Por cobrar' : 'Cubierta por paquete'}
+                  </StatusBadge>
+                )}
               </span>
             </div>
 
@@ -219,6 +225,11 @@ export function ReservaDetailModal({
               <WhatsappIcon size={15} />
               Enviar recordatorio
             </button>
+          )}
+          {reserva.estado === 'COMPLETADO' && reserva.estado_cobro === 'POR_COBRAR' && (
+            <AdminButton size="sm" href={`/atrevida-gestion/caja?reserva=${reserva.id}`} icon={<Banknote size={14} strokeWidth={2} />}>
+              Cobrar
+            </AdminButton>
           )}
           <button
             className={styles.deleteButton}
