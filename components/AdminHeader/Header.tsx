@@ -241,10 +241,6 @@ export default function Header() {
               <span>Admin Studio</span>
             </span>
           </Link>
-          <span className={styles.liveBadge}>
-            <span className={styles.liveDot} />
-            Panel activo
-          </span>
         </div>
 
         <nav className={styles.nav} aria-label="Navegación administrativa">
