@@ -20,7 +20,6 @@ import {
   activarServicioEnLocal,
   togglePacienteNuevo,
 } from '@/lib/api/servicios';
-import { isAdminSys } from '@/lib/auth/adminSession';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import { tiempoAMinutos } from '@/lib/constants/reservationForm';
 import { formatCostoServicio } from '@/lib/utils/serviceCost';
@@ -219,10 +218,8 @@ export default function ServiciosPage() {
 
   // ─── Confirm dialog ───────────────────────────────────────────────────────
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
-  // Insumos (trastienda): solo admin_sys y solo al editar, cuando el servicio ya tiene id.
+  // Insumos (trastienda): quien puede crear/editar el servicio define sus insumos. Al crear se guardan tras obtener el id.
   const insumosRef = useRef<InsumosEditorHandle | null>(null);
-  const [canEditInsumos, setCanEditInsumos] = useState(false);
-  useEffect(() => setCanEditInsumos(isAdminSys()), []);
 
   // ─── Debounced nombre filter ──────────────────────────────────────────────
   const [filtroNombreDebounced, setFiltroNombreDebounced] = useState('');
@@ -388,10 +385,8 @@ export default function ServiciosPage() {
       errors.sesiones = 'Mínimo 1 sesión';
     }
 
-    if (isEdit && canEditInsumos) {
-      const insumosError = insumosRef.current?.validate();
-      if (insumosError) errors.submit = insumosError;
-    }
+    const insumosError = insumosRef.current?.validate();
+    if (insumosError) errors.submit = insumosError;
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -418,14 +413,14 @@ export default function ServiciosPage() {
           tipo_espacio_requerido: form.tipo_espacio_requerido,
           requiere_evaluacion: form.requiere_evaluacion,
         });
-        if (canEditInsumos) await insumosRef.current?.save(editingId);
+        await insumosRef.current?.save(editingId);
         const localForToggle = locales.find((l) => l.nombre === form.local);
         if (localForToggle) {
           await togglePacienteNuevo(editingId, localForToggle.id, form.visible_paciente_nuevo);
         }
         toast.success('Servicio actualizado correctamente');
       } else {
-        await crearServicioDB({
+        const created = (await crearServicioDB({
           nombre: form.nombre.trim(),
           categoria: form.categoria,
           tiempo,
@@ -435,8 +430,22 @@ export default function ServiciosPage() {
           tipo_espacio_requerido: form.tipo_espacio_requerido,
           local: scopedLocalName || form.local,
           requiere_evaluacion: form.requiere_evaluacion,
-        });
-        toast.success('Servicio creado correctamente');
+        })) as { data?: { id?: number } };
+        const newId = created?.data?.id;
+        let insumosFailed = false;
+        if (newId) {
+          try {
+            await insumosRef.current?.save(newId);
+          } catch (err) {
+            if (err instanceof Error) console.error('guardarInsumosServicio', err);
+            insumosFailed = true;
+          }
+        }
+        if (insumosFailed) {
+          toast.error('El servicio se creó, pero no se pudieron guardar los insumos. Edítalo para volver a intentarlo.');
+        } else {
+          toast.success('Servicio creado correctamente');
+        }
       }
       setModalOpen(false);
       resetModal();
@@ -709,7 +718,6 @@ export default function ServiciosPage() {
                     value={filtroNombre}
                     onChange={(e) => setFiltroNombre(e.target.value)}
                     placeholder="Buscar por nombre…"
-                    disabled={!hasFilter}
                   />
                 </div>
 
@@ -725,7 +733,6 @@ export default function ServiciosPage() {
                     value={filtroSesiones}
                     onChange={(e) => setFiltroSesiones(e.target.value)}
                     placeholder="Ej: 10"
-                    disabled={!hasFilter}
                   />
                 </div>
 
@@ -1021,22 +1028,12 @@ export default function ServiciosPage() {
             </label>
           )}
 
-          {canEditInsumos && (
-            <>
-              <div className={styles.formDivider}>
-                <span className={styles.formDividerLabel}>Insumos por sesión</span>
-              </div>
-              <div className={styles.span6}>
-                {isEdit && editingId !== null ? (
-                  <InsumosEditor servicioId={editingId} onReady={(handle) => { insumosRef.current = handle; }} />
-                ) : (
-                  <span className={styles.helperText}>
-                    Guarda el servicio y vuelve a editarlo para definir qué insumos de inventario consume cada sesión.
-                  </span>
-                )}
-              </div>
-            </>
-          )}
+          <div className={styles.formDivider}>
+            <span className={styles.formDividerLabel}>Insumos por sesión</span>
+          </div>
+          <div className={styles.span6}>
+            <InsumosEditor servicioId={isEdit ? editingId : null} onReady={(handle) => { insumosRef.current = handle; }} />
+          </div>
 
         </div>
 
