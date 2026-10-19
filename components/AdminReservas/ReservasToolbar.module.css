@@ -13,21 +13,31 @@
 .row {
   display: flex;
   align-items: center;
-  gap: 0.75rem 1.5rem; /* entre grupos: holgado; dentro de cada grupo: justo */
+  gap: 0.75rem 1rem;
   flex-wrap: wrap;
 }
 
 /* Semana: ‹ [selector] 📅 › como un solo grupo, para leerse como un control. */
 .weekGroup {
-  display: inline-flex;
+  display: flex;
+  flex: 1 1 22rem; /* ocupa el espacio libre; al envolver, llena su fila */
+  min-width: 0;
   align-items: center;
   gap: 0.35rem;
+}
+
+.weekGroup .chipSelectWide {
+  flex: 1;
+  min-width: 0;
+  width: auto;
 }
 
 /* Chips de ancho propio: el problema anterior era que cada control ocupaba
    media pantalla con flex: 1. */
 .chip {
   display: inline-flex;
+  flex: 0 1 15rem;
+  min-width: 0;
   align-items: center;
   gap: 0.4rem;
 }
@@ -39,7 +49,8 @@
 
 /* Anchos fluidos: crecen con el viewport entre un piso legible y un tope. */
 .chipSelect {
-  width: clamp(10rem, 16vw, 13rem);
+  flex: 1;
+  min-width: 0;
 }
 
 .chipSelectWide {
@@ -86,6 +97,7 @@
 /* El toggle se va al extremo derecho */
 .vistaToggle {
   display: inline-flex;
+  flex: 0 1 auto;
   margin-left: auto;
   background: var(--admin-pill-bg);
   border: 1px solid var(--admin-border-subtle);
@@ -95,6 +107,7 @@
 }
 
 .vistaButton {
+  flex: 1;
   min-height: 34px;
   padding: 0.4rem 0.9rem;
   border-radius: var(--admin-radius-md);
@@ -119,23 +132,17 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-/* Buscar manda (más ancho); fechas, tipo y estado comparten una sola fila. */
+/* Buscar ocupa dos columnas; el resto se reparte sin dejar huecos. */
 .filtrosRow {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
   gap: 1rem;
   padding-top: 0.9rem;
   border-top: 1px solid var(--admin-border-subtle);
 }
 
-@media (max-width: 1200px) {
-  .filtrosRow {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .filtrosRow > :first-child {
-    grid-column: 1 / -1;
-  }
+.filtrosRow > :first-child {
+  grid-column: span 2;
 }
 
 @media (max-width: 768px) {
@@ -168,17 +175,11 @@
     width: 100%;
   }
 
-  .vistaButton {
-    flex: 1;
-  }
-
   .filtrosRow {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-}
 
-@media (max-width: 480px) {
-  .filtrosRow {
-    grid-template-columns: 1fr;
+  .filtrosRow > :first-child {
+    grid-column: 1 / -1;
   }
 }

@@ -18,6 +18,7 @@ import Header from '@/components/AdminHeader/Header';
 import { eliminarReservaDB } from '@/lib/api/reservas';
 import { toast } from '@/components/Shared/Toast';
 import { ReservaDetailModal, ReservasToolbar } from '@/components/AdminReservas';
+import { InventarioAlertBadge } from '@/components/AdminInventario/InventarioWarnings';
 import styles from './page.module.css';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
 import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
@@ -37,6 +38,8 @@ interface ReservaRow extends Record<string, unknown> {
   precio?: number;
   notas?: string;
   estado?: EstadoReserva;
+  /** Faltaba stock de insumos al agendar (trastienda). */
+  alerta_inventario?: boolean;
 }
 
 const DEFAULT_LOCAL = 'SAN MARTIN';
@@ -350,8 +353,11 @@ export default function AdminReservasPage() {
         const e = (row.estado as string) || 'PENDIENTE';
         const c = ESTADO_COLORS[e] ?? { bg: 'rgba(255,255,255,0.08)', color: 'inherit' };
         return (
-          <span style={{ background: c.bg, color: c.color, borderRadius: 6, padding: '2px 8px', fontSize: '0.73rem', fontWeight: 600, whiteSpace: 'nowrap' }}>
-            {e}
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+            <span style={{ background: c.bg, color: c.color, borderRadius: 6, padding: '2px 8px', fontSize: '0.73rem', fontWeight: 600, whiteSpace: 'nowrap' }}>
+              {e}
+            </span>
+            {row.alerta_inventario === true && <InventarioAlertBadge />}
           </span>
         );
       },
