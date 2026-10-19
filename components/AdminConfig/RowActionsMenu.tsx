@@ -15,9 +15,21 @@ export interface RowAction {
 
 interface RowActionsMenuProps {
   actions: RowAction[];
+  /** Clase extra para el contenedor, p. ej. para que el disparador ocupe todo el ancho. */
+  wrapperClassName?: string;
+  /** Clase extra para el botón disparador. */
+  triggerClassName?: string;
+  ariaLabel?: string;
+  disabled?: boolean;
 }
 
-export function RowActionsMenu({ actions }: RowActionsMenuProps) {
+export function RowActionsMenu({
+  actions,
+  wrapperClassName = '',
+  triggerClassName = '',
+  ariaLabel = 'Más acciones',
+  disabled = false,
+}: RowActionsMenuProps) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ top: number; left: number; openUp: boolean }>({
     top: 0,
@@ -53,11 +65,17 @@ export function RowActionsMenu({ actions }: RowActionsMenuProps) {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false);
     };
+    const close = () => setOpen(false);
     document.addEventListener('mousedown', onMouseDown);
     document.addEventListener('keydown', onKeyDown);
+    // El menú es fixed: si la página se desplaza o cambia de tamaño queda flotando lejos del botón.
+    window.addEventListener('scroll', close, true);
+    window.addEventListener('resize', close);
     return () => {
       document.removeEventListener('mousedown', onMouseDown);
       document.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('scroll', close, true);
+      window.removeEventListener('resize', close);
     };
   }, [open]);
 
@@ -93,13 +111,14 @@ export function RowActionsMenu({ actions }: RowActionsMenuProps) {
   ) : null;
 
   return (
-    <div className={styles.wrapper}>
+    <div className={`${styles.wrapper} ${wrapperClassName}`}>
       <button
         ref={triggerRef}
         type="button"
-        className={`${styles.trigger} ${open ? styles.triggerOpen : ''}`}
+        className={`${styles.trigger} ${open ? styles.triggerOpen : ''} ${triggerClassName}`}
         onClick={handleOpen}
-        aria-label="Más acciones"
+        disabled={disabled}
+        aria-label={ariaLabel}
         aria-expanded={open}
         aria-haspopup="menu"
       >

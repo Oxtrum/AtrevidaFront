@@ -298,10 +298,8 @@ export default function CategoriasPage() {
                 setLocalId(v);
                 if (formErrors.local) setFormErrors((p) => ({ ...p, local: undefined }));
               }}
-              options={[
-                { value: '', label: 'Seleccionar local…' },
-                ...locales.map((l) => ({ value: String(l.id), label: l.nombre })),
-              ]}
+              options={locales.map((l) => ({ value: String(l.id), label: l.nombre }))}
+              placeholder="Seleccionar local…"
               hasError={!!formErrors.local}
             />
             {formErrors.local && (

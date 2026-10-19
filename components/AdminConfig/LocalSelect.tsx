@@ -19,6 +19,7 @@ interface LocalSelectProps {
  */
 export function LocalSelect({ value, onChange, emptyLabel, hasError, id }: LocalSelectProps) {
   const { locales } = useLocales();
+  // La opción vacía ("General (sin local)", "Todos") ya es una opción real; el placeholder queda como título.
   const options = [
     ...(emptyLabel ? [{ value: '', label: emptyLabel }] : []),
     ...locales.map((l) => ({ value: String(l.id), label: l.nombre })),
@@ -32,7 +33,6 @@ export function LocalSelect({ value, onChange, emptyLabel, hasError, id }: Local
       options={options}
       placeholder="Seleccionar local…"
       hasError={hasError}
-      allowClear={Boolean(emptyLabel)}
       searchable={false}
     />
   );

@@ -370,9 +370,7 @@ export default function UsuariosPage() {
   // ─── Columns ─────────────────────────────────────────────────────────────
 
   const newUserRequiresLocal = newUserForm.rolCodigo !== 'admin_sys';
-  const localOptions = locales.length > 0
-    ? locales.map((local) => ({ value: String(local.id), label: local.nombre }))
-    : [{ value: '', label: localesLoading ? 'Cargando locales...' : 'Sin locales activos', disabled: true }];
+  const localOptions = locales.map((local) => ({ value: String(local.id), label: local.nombre }));
   const selectedChangeLocal = changeLocalState
     ? locales.find((local) => String(local.id) === changeLocalState.localId)
     : null;

@@ -1,3 +1,4 @@
+
 .pageContainer {
   min-height: 100vh;
   color: var(--admin-foreground);
@@ -6,73 +7,24 @@
   isolation: isolate;
   overflow-x: hidden;
 }
-
 .main {
   position: relative;
   z-index: 1;
   min-height: 100vh;
   padding: 2rem 1.5rem 4rem;
 }
-
 .container {
   position: relative;
   z-index: 1;
   max-width: 1440px;
   margin: 0 auto;
 }
-
-
 .headerActions {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 0.65rem;
 }
-
-.backButton,
-.refreshButton,
-.whatsappButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.48rem;
-  min-height: 42px;
-  border: 0;
-  border-radius: var(--admin-radius-full);
-  font-family: var(--admin-font-family);
-  font-weight: 850;
-  text-decoration: none;
-  cursor: pointer;
-  transition:
-    transform var(--admin-t-normal) var(--admin-ease),
-    border-color var(--admin-t-normal) var(--admin-ease),
-    background var(--admin-t-normal) var(--admin-ease),
-    opacity var(--admin-t-normal) var(--admin-ease);
-}
-
-.backButton,
-.refreshButton {
-  padding: 0.72rem 0.95rem;
-  color: var(--admin-foreground);
-  background: var(--admin-panel-bg);
-  border: 1px solid var(--admin-border-subtle);
-  box-shadow: var(--admin-shadow-sm);
-  white-space: nowrap;
-}
-
-.backButton:hover,
-.refreshButton:hover,
-.whatsappButton:hover {
-  transform: translateY(-2px);
-}
-
-.refreshButton:disabled,
-.whatsappButton:disabled {
-  cursor: not-allowed;
-  opacity: 0.58;
-  transform: none;
-}
-
 .spinIcon {
   animation: spin 0.9s linear infinite;
 }
@@ -82,7 +34,6 @@
     transform: rotate(360deg);
   }
 }
-
 .board {
   padding: clamp(0.9rem, 2.5vw, 1.15rem);
   border: 1px solid var(--admin-border-subtle);
@@ -93,14 +44,11 @@
     var(--admin-shadow-sm);
   backdrop-filter: blur(20px);
 }
-
-
 .columnsGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
 }
-
 .dayColumn {
   min-width: 0;
   padding: clamp(0.9rem, 2vw, 1rem);
@@ -109,7 +57,6 @@
   background: var(--admin-surface-1);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055);
 }
-
 .dayHeader {
   display: flex;
   align-items: center;
@@ -119,7 +66,6 @@
   padding-bottom: 0.82rem;
   border-bottom: 1px solid var(--admin-border-subtle);
 }
-
 .dayHeader span {
   color: var(--admin-accent-success);
   font-size: 0.7rem;
@@ -127,7 +73,6 @@
   letter-spacing: 0.9px;
   text-transform: uppercase;
 }
-
 .dayHeader h2 {
   margin: 0.2rem 0 0;
   color: var(--admin-foreground);
@@ -135,7 +80,6 @@
   line-height: 1.1;
   letter-spacing: -0.03em;
 }
-
 .dayHeader > strong {
   display: grid;
   place-items: center;
@@ -147,12 +91,10 @@
   background: rgba(20, 174, 239, 0.08);
   font-size: 1.05rem;
 }
-
 .cardList {
   display: grid;
   gap: 0.8rem;
 }
-
 .reminderCard {
   display: grid;
   grid-template-columns: 96px minmax(0, 1fr) 190px;
@@ -169,7 +111,6 @@
     border-color var(--admin-t-normal) var(--admin-ease),
     background var(--admin-t-normal) var(--admin-ease);
 }
-
 .reminderCard:hover {
   transform: translateY(-2px);
   border-color: rgba(20, 174, 239, 0.32);
@@ -177,7 +118,6 @@
     radial-gradient(ellipse 80% 120% at 0% 0%, rgba(20, 174, 239, 0.12), transparent 62%),
     rgba(255, 255, 255, 0.036);
 }
-
 .timeBlock {
   display: grid;
   place-items: center;
@@ -189,33 +129,28 @@
   color: var(--admin-accent-success);
   background: rgba(20, 174, 239, 0.075);
 }
-
 .timeBlock strong {
   color: var(--admin-foreground);
   font-size: 1.18rem;
   line-height: 1;
 }
-
 .timeBlock span {
   color: var(--admin-text-dim);
   font-size: 0.76rem;
   font-weight: 850;
 }
-
 .cardBody {
   display: grid;
   align-content: center;
   gap: 0.72rem;
   min-width: 0;
 }
-
 .clientRow {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 0.78rem;
 }
-
 .clientAvatar {
   display: inline-grid;
   place-items: center;
@@ -231,7 +166,6 @@
   font-size: 0.82rem;
   font-weight: 950;
 }
-
 .clientRow h3 {
   margin: 0;
   color: var(--admin-foreground);
@@ -241,7 +175,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
 .clientRow p {
   margin: 0.26rem 0 0;
   color: var(--admin-text-muted);
@@ -249,13 +182,11 @@
   font-weight: 820;
   line-height: 1.35;
 }
-
 .metaGrid {
   display: flex;
   flex-wrap: wrap;
   gap: 0.46rem;
 }
-
 .metaGrid span {
   display: inline-flex;
   align-items: center;
@@ -269,33 +200,17 @@
   font-size: 0.76rem;
   font-weight: 800;
 }
-
 .metaGrid svg {
   color: var(--admin-accent-success);
 }
-
 .cardActions {
   display: grid;
   align-content: center;
 }
-
-.whatsappButton {
-  width: 100%;
-  min-height: 44px;
-  padding: 0.72rem 0.9rem;
-  border-radius: 13px;
-  color: #ffffff;
-  background: var(--admin-grad-success);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  font-size: 0.8rem;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
 .loadingGrid {
   display: grid;
   gap: 0.8rem;
 }
-
 .loadingGrid span {
   display: block;
   height: 104px;
@@ -314,7 +229,6 @@
     background-position: -100% 0;
   }
 }
-
 .emptyDay,
 .errorState {
   display: grid;
@@ -328,22 +242,18 @@
   border-radius: var(--admin-radius-lg);
   background: rgba(255, 255, 255, 0.018);
 }
-
 .emptyDay svg,
 .errorState svg {
   color: var(--admin-accent-success);
 }
-
 .errorState svg {
   color: var(--admin-accent-danger);
 }
-
 .emptyDay strong,
 .errorState strong {
   color: var(--admin-foreground);
   font-size: 1rem;
 }
-
 .emptyDay span,
 .errorState span {
   max-width: 420px;
@@ -352,36 +262,30 @@
 }
 
 @media (max-width: 1180px) {
-  .columnsGrid {
+.columnsGrid {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 900px) {
-  .main {
+.main {
     padding: 1.25rem 1rem 3rem;
   }
-
-  .headerActions {
+.headerActions {
     justify-content: flex-start;
     flex-wrap: wrap;
   }
 }
 
 @media (max-width: 680px) {
-  .reminderCard {
+.reminderCard {
     grid-template-columns: 1fr;
   }
-
-  .timeBlock {
+.timeBlock {
     grid-template-columns: auto auto auto;
     justify-content: start;
     place-items: center start;
     min-height: 48px;
     padding: 0 0.8rem;
-  }
-
-  .whatsappButton {
-    width: 100%;
   }
 }

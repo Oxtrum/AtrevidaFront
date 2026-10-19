@@ -1,12 +1,14 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Ban, CheckCircle2, Pencil, Plus, RefreshCw, TrendingDown, TrendingUp } from 'lucide-react';
+import { Ban, CalendarClock, CheckCircle2, Pencil, Plus, TrendingDown, TrendingUp } from 'lucide-react';
 import {
   AdminButton,
   AdminPageShell,
+  ConfirmDialog,
   DataTable,
   FilterBar,
+  MonthPicker,
   PageHeader,
   ReasonDialog,
   RowActionsMenu,
@@ -23,15 +25,20 @@ import {
   cambiarEstadoMovimientoFinanciero,
   generarGastosFijos,
   getCategoriasFinancieras,
+  getGastosFijosPendientes,
   getMovimientosFinancieros,
 } from '@/lib/api/finanzas';
+import { getReporteFinancieroDB } from '@/lib/api/reportes';
 import { useAsyncData } from '@/lib/hooks/useAsyncData';
+import { useLocales } from '@/lib/hooks/useLocales';
 import { useConfiguracion } from '@/lib/hooks/useConfiguracion';
+import { formatMes } from '@/components/AdminConfig';
 import { formatDateISO, formatMoney, monthRange, todayISO } from '@/lib/utils/format';
 import type { CategoriaFinanciera, EstadoMovimiento, MovimientoFinanciero, NaturalezaFinanciera } from '@/types/finanzas';
 import styles from './page.module.css';
 
 type Row = MovimientoFinanciero & Record<string, unknown>;
+type Vista = 'TODOS' | NaturalezaFinanciera;
 const EMPTY: MovimientoFinanciero[] = [];
 const EMPTY_CATS: CategoriaFinanciera[] = [];
 const ESTADO_TONE: Record<EstadoMovimiento, BadgeTone> = { PAGADO: 'success', PENDIENTE: 'warning', ANULADO: 'danger' };
@@ -46,20 +53,22 @@ export default function EgresosPage() {
   const [estado, setEstado] = useState('');
   const [categoriaId, setCategoriaId] = useState('');
   const [localId, setLocalId] = useState('');
-  const [verIngresos, setVerIngresos] = useState(false);
+  const [vista, setVista] = useState<Vista>('TODOS');
+  const soloEgresos = vista === 'EGRESO';
+  const soloIngresos = vista === 'INGRESO';
 
   const params = useMemo(() => {
     const { desde, hasta } = monthRange(month);
     return {
       fecha_desde: desde,
       fecha_hasta: hasta,
-      naturaleza: (verIngresos ? 'INGRESO' : 'EGRESO') as NaturalezaFinanciera,
+      naturaleza: vista === 'TODOS' ? undefined : vista,
       clase: (clase || undefined) as 'FIJO' | 'VARIABLE' | undefined,
       estado: (estado || undefined) as EstadoMovimiento | undefined,
       categoria_id: categoriaId ? Number(categoriaId) : undefined,
       local_id: localId ? Number(localId) : undefined,
     };
-  }, [month, clase, estado, categoriaId, localId, verIngresos]);
+  }, [month, clase, estado, categoriaId, localId, vista]);
 
   const { data, loading, error, reload } = useAsyncData(() => getMovimientosFinancieros(params), JSON.stringify(params));
   const { data: cats } = useAsyncData(getCategoriasFinancieras, 'cats-fin');
@@ -71,17 +80,21 @@ export default function EgresosPage() {
   const [editing, setEditing] = useState<MovimientoFinanciero | null>(null);
   const [anulando, setAnulando] = useState<MovimientoFinanciero | null>(null);
   const [generating, setGenerating] = useState(false);
+  const [confirmandoGenerar, setConfirmandoGenerar] = useState(false);
+  const { data: pendientesData, reload: recargarPendientes } = useAsyncData(getGastosFijosPendientes, 'gf-pendientes');
+  const pendientes = pendientesData ?? [];
 
-  const stats = useMemo(() => {
-    const active = rows.filter((r) => r.estado !== 'ANULADO');
-    const sum = (f: (r: MovimientoFinanciero) => boolean) => active.filter(f).reduce((a, r) => a + r.monto, 0);
-    return {
-      total: sum((r) => r.estado === 'PAGADO'),
-      fijos: sum((r) => r.clase === 'FIJO' && r.estado === 'PAGADO'),
-      variables: sum((r) => r.clase === 'VARIABLE' && r.estado === 'PAGADO'),
-      pendientes: sum((r) => r.estado === 'PENDIENTE'),
-    };
-  }, [rows]);
+  // Los totales salen del reporte financiero del mes: ingresos = ventas (caja) + otros ingresos;
+  // egresos = fijos + variables + compras de inventario. La tabla de abajo solo lista movimientos
+  // manuales y generados; las ventas viven en Pagos, por eso no se pueden sumar desde las filas.
+  const { locales } = useLocales();
+  const localNombre = locales.find((l) => String(l.id) === localId)?.nombre ?? '';
+  const { desde: mesDesde, hasta: mesHasta } = monthRange(month);
+  const { data: reporte, loading: loadingReporte, reload: recargarReporte } = useAsyncData(
+    () => getReporteFinancieroDB({ fecha_desde: mesDesde, fecha_hasta: mesHasta, local: localNombre || undefined, agrupar: 'mes' }),
+    `rep|${month}|${localNombre}`,
+  );
+  const resumen = reporte?.resumen;
 
   const openForm = (nat: NaturalezaFinanciera, mov: MovimientoFinanciero | null) => {
     setFormNat(nat);
@@ -93,7 +106,7 @@ export default function EgresosPage() {
     try {
       await cambiarEstadoMovimientoFinanciero(row.id, 'PAGADO');
       toast.success(`${row.codigo} marcado como pagado`);
-      await reload();
+      await Promise.all([reload(), recargarReporte()]);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'No se pudo actualizar el estado');
     }
@@ -103,8 +116,9 @@ export default function EgresosPage() {
     setGenerating(true);
     try {
       await generarGastosFijos();
-      toast.success('Gastos fijos al día');
-      await reload();
+      toast.success(`${pendientes.length} gasto${pendientes.length === 1 ? '' : 's'} fijo${pendientes.length === 1 ? '' : 's'} registrado${pendientes.length === 1 ? '' : 's'}`);
+      setConfirmandoGenerar(false);
+      await Promise.all([reload(), recargarReporte(), recargarPendientes()]);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'No se pudieron generar los gastos fijos');
     } finally {
@@ -115,6 +129,12 @@ export default function EgresosPage() {
   const columns: Column<Row>[] = [
     { key: 'fecha', label: 'Fecha', searchable: false, render: (v) => formatDateISO(v as string) },
     { key: 'codigo', label: 'Código' },
+    {
+      key: 'naturaleza',
+      label: 'Tipo',
+      searchable: false,
+      render: (v) => <StatusBadge tone={v === 'INGRESO' ? 'success' : 'danger'}>{v === 'INGRESO' ? 'Ingreso' : 'Egreso'}</StatusBadge>,
+    },
     { key: 'categoria_nombre', label: 'Categoría' },
     {
       key: 'clase',
@@ -124,7 +144,12 @@ export default function EgresosPage() {
     },
     { key: 'descripcion', label: 'Detalle', render: (_v, r) => r.descripcion || r.proveedor || '—' },
     { key: 'local_nombre', label: 'Local', render: (v) => (v as string) || <span className={styles.muted}>General</span> },
-    { key: 'monto', label: 'Monto', searchable: false, render: (v) => <span className={styles.num}>{formatMoney(v as number, moneda)}</span> },
+    { key: 'monto', label: 'Monto', searchable: false, render: (v, r) => (
+        <span className={`${styles.num} ${r.naturaleza === 'INGRESO' ? styles.ingreso : ''}`}>
+          {r.naturaleza === 'INGRESO' ? '+' : '−'} {formatMoney(v as number, moneda)}
+        </span>
+      ),
+    },
     {
       key: 'estado',
       label: 'Estado',
@@ -160,6 +185,15 @@ export default function EgresosPage() {
         subtitle="Gastos fijos y variables, compras y otros ingresos del mes"
         actions={
           <>
+            <AdminButton
+              variant="secondary"
+              onClick={() => setConfirmandoGenerar(true)}
+              disabled={pendientes.length === 0}
+              icon={<CalendarClock size={16} strokeWidth={2} />}
+              title={pendientes.length === 0 ? 'Todos los gastos fijos vencidos ya están registrados' : 'Ver y registrar los gastos fijos vencidos que faltan'}
+            >
+              {pendientes.length === 0 ? 'Gastos fijos al día' : `Registrar gastos fijos vencidos (${pendientes.length})`}
+            </AdminButton>
             <AdminButton variant="secondary" onClick={() => openForm('INGRESO', null)}>
               <TrendingUp size={16} strokeWidth={2} />
               Otro ingreso
@@ -174,26 +208,49 @@ export default function EgresosPage() {
 
       <div className={styles.stack}>
         <StatGrid>
-          <StatCard label={verIngresos ? 'Ingresos cobrados' : 'Egresos pagados'} value={formatMoney(stats.total, moneda)} loading={loading} accentColor="#ec008c" />
-          {!verIngresos && <StatCard label="Fijos" value={formatMoney(stats.fijos, moneda)} loading={loading} accentColor="#14aeef" />}
-          {!verIngresos && <StatCard label="Variables" value={formatMoney(stats.variables, moneda)} loading={loading} accentColor="#92278f" />}
-          <StatCard label="Pendientes" value={formatMoney(stats.pendientes, moneda)} sublabel="No entran en la utilidad" loading={loading} accentColor="#f59e0b" />
+          {!soloEgresos && (
+            <StatCard label="Ventas cobradas" value={formatMoney(resumen?.ingresos_ventas ?? 0, moneda)} sublabel="Caja y pagos de clientes" loading={loadingReporte} accentColor="#22c55e" />
+          )}
+          {!soloEgresos && (
+            <StatCard label="Otros ingresos" value={formatMoney(resumen?.ingresos_otros ?? 0, moneda)} sublabel="Registrados aquí" loading={loadingReporte} accentColor="#10b981" />
+          )}
+          {!soloIngresos && (
+            <StatCard label="Egresos pagados" value={formatMoney(resumen?.egresos_total ?? 0, moneda)} sublabel="Fijos, variables y compras" loading={loadingReporte} accentColor="#ec008c" />
+          )}
+          {vista === 'TODOS' && (
+            <StatCard
+              label="Utilidad del mes"
+              value={formatMoney(resumen?.utilidad_neta ?? 0, moneda)}
+              sublabel="Todos los ingresos − todos los egresos"
+              loading={loadingReporte}
+              accentColor="#14aeef"
+            />
+          )}
+          {soloEgresos && <StatCard label="Fijos" value={formatMoney(resumen?.egresos_fijos ?? 0, moneda)} loading={loadingReporte} accentColor="#14aeef" />}
+          {soloEgresos && <StatCard label="Variables y compras" value={formatMoney(resumen?.egresos_variables ?? 0, moneda)} loading={loadingReporte} accentColor="#92278f" />}
+          {!soloIngresos && (
+            <StatCard label="Egresos pendientes" value={formatMoney(resumen?.egresos_pendientes ?? 0, moneda)} sublabel="No entran en la utilidad" loading={loadingReporte} accentColor="#f59e0b" />
+          )}
         </StatGrid>
 
         <div className={styles.toolbar}>
           <FilterBar>
             <FilterBar.Item label="Mes">
-              <input type="month" value={month} onChange={(e) => e.target.value && setMonth(e.target.value)} />
+              <MonthPicker value={month} onChange={setMonth} />
             </FilterBar.Item>
-            <FilterBar.Item label="Ver">
+            <FilterBar.Item label="Mostrar">
               <CustomSelect
-                value={verIngresos ? 'INGRESO' : 'EGRESO'}
-                onChange={(v) => { setVerIngresos(v === 'INGRESO'); setClase(''); setCategoriaId(''); }}
-                options={[{ value: 'EGRESO', label: 'Egresos' }, { value: 'INGRESO', label: 'Otros ingresos' }]}
+                value={vista}
+                onChange={(v) => { setVista(v as Vista); setClase(''); setCategoriaId(''); }}
+                options={[
+                  { value: 'TODOS', label: 'Ingresos y egresos' },
+                  { value: 'EGRESO', label: 'Solo egresos' },
+                  { value: 'INGRESO', label: 'Solo otros ingresos' },
+                ]}
                 searchable={false}
               />
             </FilterBar.Item>
-            {!verIngresos && (
+            {soloEgresos && (
               <FilterBar.Item label="Clase">
                 <CustomSelect value={clase} onChange={setClase} options={[{ value: 'FIJO', label: 'Fijos' }, { value: 'VARIABLE', label: 'Variables' }]} placeholder="Todas" allowClear searchable={false} />
               </FilterBar.Item>
@@ -205,7 +262,7 @@ export default function EgresosPage() {
               <CustomSelect
                 value={categoriaId}
                 onChange={setCategoriaId}
-                options={categorias.filter((c) => c.naturaleza === (verIngresos ? 'INGRESO' : 'EGRESO')).map((c) => ({ value: String(c.id), label: c.nombre }))}
+                options={categorias.filter((c) => vista === 'TODOS' || c.naturaleza === vista).map((c) => ({ value: String(c.id), label: c.nombre }))}
                 placeholder="Todas"
                 allowClear
                 searchable={false}
@@ -214,12 +271,6 @@ export default function EgresosPage() {
             <FilterBar.Item label="Local">
               <LocalSelect value={localId} onChange={setLocalId} emptyLabel="Todos" />
             </FilterBar.Item>
-            <FilterBar.Action full>
-              <AdminButton variant="secondary" onClick={handleGenerar} disabled={generating} title="Genera los gastos fijos que ya vencieron (idempotente)">
-                <RefreshCw size={15} strokeWidth={2} className={generating ? styles.spin : ''} />
-                Generar gastos fijos
-              </AdminButton>
-            </FilterBar.Action>
           </FilterBar>
         </div>
 
@@ -231,11 +282,39 @@ export default function EgresosPage() {
           onRefresh={reload}
           getRowKey={(r) => r.id}
           searchPlaceholder="Buscar por código, categoría o detalle…"
-          emptyMessage={verIngresos ? 'No hay otros ingresos en este mes' : 'No hay egresos en este mes'}
+          emptyMessage={soloIngresos ? 'No hay otros ingresos en este mes' : soloEgresos ? 'No hay egresos en este mes' : 'No hay ingresos ni egresos en este mes'}
         />
       </div>
 
-      <MovimientoFormModal isOpen={formOpen} naturaleza={formNat} movimiento={editing} categorias={categorias} onClose={() => setFormOpen(false)} onSaved={reload} />
+      <MovimientoFormModal isOpen={formOpen} naturaleza={formNat} movimiento={editing} categorias={categorias} onClose={() => setFormOpen(false)} onSaved={() => { void reload(); void recargarReporte(); }} />
+
+      <ConfirmDialog
+        isOpen={confirmandoGenerar}
+        title="Registrar gastos fijos vencidos"
+        confirmLabel={`Registrar ${pendientes.length} egreso${pendientes.length === 1 ? '' : 's'}`}
+        loading={generating}
+        onConfirm={handleGenerar}
+        onClose={() => setConfirmandoGenerar(false)}
+        message={
+          <>
+            <p style={{ margin: '0 0 0.75rem' }}>
+              Estos gastos fijos ya vencieron y todavía no tienen su egreso. Se registrarán uno por mes, con el
+              estado definido en Parámetros. Los que ya existen no se duplican.
+            </p>
+            <ul className={styles.pendList}>
+              {pendientes.map((p) => (
+                <li key={`${p.gasto_fijo_id}-${p.periodo}`}>
+                  <span>
+                    <strong>{p.nombre}</strong> · {formatMes(p.periodo)}
+                    <small>{p.local_nombre || 'General'} · cobro {formatDateISO(p.fecha_cobro)}</small>
+                  </span>
+                  <span className={styles.num}>{formatMoney(p.monto, moneda)}</span>
+                </li>
+              ))}
+            </ul>
+          </>
+        }
+      />
 
       <ReasonDialog
         isOpen={anulando !== null}
@@ -245,7 +324,7 @@ export default function EgresosPage() {
         onConfirm={async (motivo) => {
           await cambiarEstadoMovimientoFinanciero(anulando!.id, 'ANULADO', motivo);
           toast.success('Movimiento anulado');
-          await reload();
+          await Promise.all([reload(), recargarReporte()]);
         }}
         onClose={() => setAnulando(null)}
       />

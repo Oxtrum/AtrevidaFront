@@ -5,6 +5,7 @@ import type {
   CategoriaFinanciera,
   GastoFijo,
   GastoFijoInput,
+  GastoFijoPendiente,
   GastoFijoProximo,
   GetMovimientosFinancierosParams,
   MovimientoFinanciero,
@@ -80,6 +81,14 @@ export async function getGastosFijosProximos(): Promise<GastoFijoProximo[]> {
     '/bd/finanzas/gastos-fijos/proximos',
   );
   return res.data?.proximos ?? [];
+}
+
+/** Vista previa (sin crear nada) de lo que `generarGastosFijos` registraría ahora. */
+export async function getGastosFijosPendientes(): Promise<GastoFijoPendiente[]> {
+  const res = await apiClient.get<ApiResponse<{ pendientes: GastoFijoPendiente[] }>>(
+    '/bd/finanzas/gastos-fijos/pendientes',
+  );
+  return res.data?.pendientes ?? [];
 }
 
 /** Dispara la generación idempotente (RN-32). Botón manual; el job diario la llama aparte. */

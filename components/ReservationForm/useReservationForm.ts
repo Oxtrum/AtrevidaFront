@@ -13,6 +13,7 @@ import { useCrearReserva } from '@/lib/hooks/useCrearReserva';
 import { useReservas } from '@/lib/hooks/useReservas';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { useServiciosPublicos } from '@/lib/hooks/useServiciosPublicos';
+import { TURNSTILE_DISABLED, TURNSTILE_DEV_TOKEN } from '@/lib/constants/turnstile';
 import { toast } from '../Shared/Toast';
 import {
   getReservationDateRestriction,
@@ -130,7 +131,8 @@ export function useReservationForm(
   const [numeroTelefono, setNumeroTelefono] = useState('');
   const [telefonoE164, setTelefonoE164] = useState<string | undefined>();
   const [notas, setNotas] = useState('');
-  const [turnstileToken, setTurnstileToken] = useState('');
+  const turnstileTokenInicial = TURNSTILE_DISABLED ? TURNSTILE_DEV_TOKEN : '';
+  const [turnstileToken, setTurnstileToken] = useState(turnstileTokenInicial);
   const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const [servicio, setServicio] = useState(initialData?.servicio || '');
   const [servicioSolicitado, setServicioSolicitado] = useState('');
@@ -654,7 +656,7 @@ export function useReservationForm(
         toast.error(mensaje);
       } finally {
         if (!initialData?.isAdmin) {
-          setTurnstileToken('');
+          setTurnstileToken(turnstileTokenInicial);
           setTurnstileResetKey(key => key + 1);
         }
       }

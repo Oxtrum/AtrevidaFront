@@ -7,6 +7,7 @@ import type { ReservaBD } from '@/types/reserva';
 import { WhatsappIcon } from '@/components/icons/WhatsappIcon';
 import { buildReminderWhatsappHref } from '@/lib/utils/whatsapp';
 import { formatCostoReserva } from '@/lib/utils/serviceCost';
+import { InventarioAlertBadge } from '@/components/AdminInventario/InventarioWarnings';
 import styles from './ReservaDetailModal.module.css';
 
 interface ReservaDetailModalProps {
@@ -108,6 +109,7 @@ export function ReservaDetailModal({
               <span className={styles.fieldLabel}>Estado</span>
               <span className={styles.fieldValue}>
                 <span className={`${styles.badge} ${estadoClass}`}>{estado}</span>
+                {reserva.alerta_inventario && estado !== 'COMPLETADO' && <InventarioAlertBadge />}
               </span>
             </div>
 

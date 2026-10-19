@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
 import {
@@ -17,7 +16,8 @@ import {
 } from 'lucide-react';
 
 import Header from '@/components/AdminHeader/Header';
-import { PageHeader, StatGrid, StatCard, AdminPanel, CursorPagination } from '@/components/AdminConfig';
+import { AdminButton, AdminPanel, CursorPagination, PageHeader, StatCard, StatGrid, StatusBadge } from '@/components/AdminConfig';
+import { InventarioAlertBadge } from '@/components/AdminInventario/InventarioWarnings';
 import { getReservasDB } from '@/lib/api/reservas';
 import { buildReminderWhatsappHref } from '@/lib/utils/whatsapp';
 import type { ReservaBD, EstadoReserva } from '@/types/reserva';
@@ -198,7 +198,7 @@ export default function AdminReservasProximasPage() {
           <span>{formatDate(fecha)}</span>
           <h2 id={`day-${relativeDay}`}>{title}</h2>
         </div>
-        <strong>{items.length}</strong>
+        <StatusBadge>{items.length}</StatusBadge>
       </div>
 
       {items.length === 0 ? (
@@ -227,6 +227,7 @@ export default function AdminReservasProximasPage() {
                     <div>
                       <h3>{reserva.cliente || 'Cliente sin nombre'}</h3>
                       <p>{finalService}</p>
+                      {reserva.alerta_inventario && <InventarioAlertBadge />}
                     </div>
                   </div>
 
@@ -245,17 +246,16 @@ export default function AdminReservasProximasPage() {
                 </div>
 
                 <div className={styles.cardActions}>
-                  {reminderHref ? (
-                    <a href={reminderHref} target="_blank" rel="noopener noreferrer" className={styles.whatsappButton}>
-                      <MessageCircle size={16} strokeWidth={1.8} />
-                      Mandar recordatorio
-                    </a>
-                  ) : (
-                    <button type="button" className={styles.whatsappButton} disabled>
-                      <MessageCircle size={16} strokeWidth={1.8} />
-                      Sin teléfono
-                    </button>
-                  )}
+                  <AdminButton
+                    fullWidth
+                    icon={<MessageCircle size={16} strokeWidth={1.8} />}
+                    href={reminderHref ?? undefined}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    disabled={!reminderHref}
+                  >
+                    {reminderHref ? 'Mandar recordatorio' : 'Sin teléfono'}
+                  </AdminButton>
                 </div>
               </article>
             );
@@ -282,14 +282,17 @@ export default function AdminReservasProximasPage() {
               subtitle="Vista limpia para contactar a las clientas de hoy y mañana."
               actions={
                 <div className={styles.headerActions}>
-                  <Link href="/atrevida-gestion/reservas/aprobacion" className={styles.backButton}>
-                    <ArrowLeft size={16} strokeWidth={1.8} />
+                  <AdminButton variant="secondary" href="/atrevida-gestion/reservas/aprobacion" icon={<ArrowLeft size={16} strokeWidth={1.8} />}>
                     Aprobaciones
-                  </Link>
-                  <button type="button" className={styles.refreshButton} onClick={() => void fetchReservas(true)} disabled={loading || refreshing}>
-                    <RefreshCw size={16} strokeWidth={1.8} className={refreshing ? styles.spinIcon : ''} />
+                  </AdminButton>
+                  <AdminButton
+                    variant="secondary"
+                    icon={<RefreshCw size={16} strokeWidth={1.8} className={refreshing ? styles.spinIcon : ''} />}
+                    onClick={() => void fetchReservas(true)}
+                    disabled={loading || refreshing}
+                  >
                     {refreshing ? 'Actualizando' : 'Actualizar'}
-                  </button>
+                  </AdminButton>
                 </div>
               }
             />

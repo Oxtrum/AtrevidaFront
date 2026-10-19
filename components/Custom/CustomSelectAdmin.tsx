@@ -212,6 +212,11 @@ export function CustomSelect({
           </div>
         )}
 
+        {/* Sin allowClear el placeholder no es una opción: se muestra como título de la lista. */}
+        {placeholder && !allowClear && !query && (
+          <div className={styles.selectGroup} role="presentation">{placeholder}</div>
+        )}
+
         {placeholder && allowClear && !query && (
           <div
             className={`${styles.selectOption} ${!value ? styles.selectOptionActive : ''}`}

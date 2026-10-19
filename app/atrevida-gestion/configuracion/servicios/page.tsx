@@ -191,29 +191,20 @@ export default function ServiciosPage() {
     () => [{ value: '', label: 'Todos los locales' }, ...localOptions],
     [localOptions],
   );
-  const categoriaOptions = useMemo(() => {
+  // El texto de estado ("Elige un local primero", "Cargando…") va como placeholder, no como opción.
+  const { options: categoriaOptions, placeholder: categoriaPlaceholder } = useMemo(() => {
     const categoriasDisponibles = formCategorias.local === form.local ? formCategorias.categorias : [];
+    const sinOpciones = (placeholder: string) => ({ options: [] as { value: string; label: string }[], placeholder });
 
-    if (!form.local) {
-      return [{ value: '', label: 'Elige un local primero', disabled: true }];
-    }
+    if (!form.local) return sinOpciones('Elige un local primero');
+    if (formCategoriasLoading) return sinOpciones('Cargando categorías...');
+    if (formCategorias.error && formCategorias.local === form.local) return sinOpciones('No se cargaron categorías');
+    if (categoriasDisponibles.length === 0) return sinOpciones('Sin categorías para este local');
 
-    if (formCategoriasLoading) {
-      return [{ value: '', label: 'Cargando categorías...', disabled: true }];
-    }
-
-    if (formCategorias.error && formCategorias.local === form.local) {
-      return [{ value: '', label: 'No se cargaron categorías', disabled: true }];
-    }
-
-    if (categoriasDisponibles.length === 0) {
-      return [{ value: '', label: 'Sin categorías para este local', disabled: true }];
-    }
-
-    return [
-      { value: '', label: 'Seleccionar' },
-      ...categoriasDisponibles.map((c) => ({ value: c.nombre, label: c.nombre })),
-    ];
+    return {
+      options: categoriasDisponibles.map((c) => ({ value: c.nombre, label: c.nombre })),
+      placeholder: 'Seleccionar categoría',
+    };
   }, [form.local, formCategorias.categorias, formCategorias.error, formCategorias.local, formCategoriasLoading]);
 
   // ─── Confirm dialog ───────────────────────────────────────────────────────
@@ -878,6 +869,7 @@ export default function ServiciosPage() {
                 if (formErrors.categoria) setFormErrors((p) => ({ ...p, categoria: undefined }));
               }}
               options={categoriaOptions}
+              placeholder={categoriaPlaceholder}
               hasError={!!formErrors.categoria}
             />
             {!form.local && !isEdit && (
@@ -1097,12 +1089,10 @@ export default function ServiciosPage() {
                 ariaLabelledBy="lbl-act-local"
                 value={activarLocalValue}
                 onChange={setActivarLocalValue}
-                options={[
-                  { value: '', label: 'Seleccionar local' },
-                  ...locales
-                    .filter((l) => l.nombre !== activarLocalRow?.local)
-                    .map((l) => ({ value: l.nombre, label: l.nombre })),
-                ]}
+                options={locales
+                  .filter((l) => l.nombre !== activarLocalRow?.local)
+                  .map((l) => ({ value: l.nombre, label: l.nombre }))}
+                placeholder="Seleccionar local"
               />
               <p className={styles.helpText}>
                 El servicio quedará disponible también en el local seleccionado sin modificar el original.

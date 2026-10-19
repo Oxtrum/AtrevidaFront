@@ -522,7 +522,7 @@ export default function AdminReservasPage() {
           <ConfirmDialog
             isOpen={confirmDelete !== null}
             title="Eliminar reserva"
-            message={`¿Eliminar la reserva de ${confirmDelete?.cliente || `#${confirmDelete?.id}`}? Si usa un paquete, la sesión se devuelve. Es un borrado lógico, reversible desde el backend.`}
+            message={`¿Eliminar la reserva de ${confirmDelete?.cliente || `#${confirmDelete?.id}`}? Si usa un paquete, la sesión se devuelve. Si ya se había descontado stock de insumos, también se devuelve.`}
             confirmLabel="Eliminar"
             danger
             loading={deletingId != null}

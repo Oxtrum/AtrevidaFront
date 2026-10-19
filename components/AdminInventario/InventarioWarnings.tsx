@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { AlertTriangle } from 'lucide-react';
-import { AlertBanner } from '@/components/AdminConfig';
+import { AlertBanner, StatusBadge } from '@/components/AdminConfig';
 import { formatQty } from '@/lib/utils/format';
 import type { AdvertenciaInventario } from '@/types/inventario';
 import styles from './AdminInventario.module.css';
@@ -28,12 +28,11 @@ export function InventarioWarningBanner({ advertencias }: { advertencias: Advert
   );
 }
 
-/** Badge "⚠ inventario" para listados de reservas (alerta_inventario = true). */
+/** Badge "Inventario" para listados de reservas (alerta_inventario = true). */
 export function InventarioAlertBadge({ title = 'Stock insuficiente para los insumos de este servicio' }: { title?: string }) {
   return (
-    <span className={styles.alertBadge} title={title}>
-      <AlertTriangle size={11} strokeWidth={2.2} />
+    <StatusBadge tone="warning" title={title} icon={<AlertTriangle size={11} strokeWidth={2.2} />}>
       Inventario
-    </span>
+    </StatusBadge>
   );
 }

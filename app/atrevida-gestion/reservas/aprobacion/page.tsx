@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
 import {
@@ -9,10 +8,11 @@ import {
   Calendar,
   CalendarCheck,
   Check,
+  CheckCircle2,
   Clock,
   History,
   MapPin,
-  MoreHorizontal,
+  Pencil,
   Phone,
   RefreshCw,
   Search,
@@ -23,8 +23,10 @@ import {
 } from 'lucide-react';
 
 import Header from '@/components/AdminHeader/Header';
+import { InventarioAlertBadge } from '@/components/AdminInventario/InventarioWarnings';
 import { WhatsappIcon } from '@/components/icons/WhatsappIcon';
-import { PageHeader, AdminPanel, CursorPagination } from '@/components/AdminConfig';
+import { toast } from '@/components/Shared/Toast';
+import { AdminButton, AdminPanel, ConfirmDialog, CursorPagination, FormField, FormGrid, FormModal, FormSubmitError, PageHeader, RowActionsMenu, StatusBadge, Tabs } from '@/components/AdminConfig';
 import { CATEGORIAS_ORDEN } from '@/components/AdminReservationForm/constants';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { actualizarEstadoReservaDB, actualizarReservaDB, actualizarReservaNotificadoDB, eliminarReservaDB, getReservasDB } from '@/lib/api/reservas';
@@ -195,6 +197,29 @@ const getClientInitials = (name?: string) => {
   return parts.map((part) => part[0]?.toUpperCase()).join('') || 'CL';
 };
 
+const ESTADO_TONE = { PENDIENTE: 'warning', AGENDADO: 'info', RECHAZADO: 'danger', COMPLETADO: 'success' } as const;
+
+/** Datos de la reserva que se confirman en los diálogos de completar y eliminar. */
+function ReservaResumen({ reserva, servicios }: { reserva: ReservaBD; servicios: { visible: string[]; remaining: number } }) {
+  return (
+    <div className={styles.resumen}>
+      <dl className={styles.resumenGrid}>
+        <div><dt>Cliente</dt><dd>{reserva.cliente || 'Cliente sin nombre'}</dd></div>
+        <div><dt>Fecha</dt><dd>{formatDate(reserva.fecha)}</dd></div>
+        <div><dt>Horario</dt><dd>{reserva.hora_desde} - {reserva.hora_hasta}</dd></div>
+        <div><dt>Local</dt><dd>{reserva.local}</dd></div>
+      </dl>
+      <div className={styles.resumenServicios}>
+        <span>Servicios</span>
+        <ul>
+          {servicios.visible.map((service) => <li key={service}>{service}</li>)}
+          {servicios.remaining > 0 && <li>+{servicios.remaining}</li>}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminReservasAprobacionPage() {
   const router = useRouter();
   const pageRef = useRef<HTMLDivElement>(null);
@@ -212,6 +237,7 @@ export default function AdminReservasAprobacionPage() {
   const [isFetching, setIsFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
 	const [totalRegistros, setTotalRegistros] = useState<number | null>(null);
+  const [conteosEstado, setConteosEstado] = useState<Partial<Record<'PENDIENTE' | 'AGENDADO' | 'RECHAZADO', number>>>({});
   const [actionId, setActionId] = useState<number | null>(null);
   const [rejectingId, setRejectingId] = useState<number | null>(null);
   const [rejectCauses, setRejectCauses] = useState<Record<number, string>>({});
@@ -219,12 +245,10 @@ export default function AdminReservasAprobacionPage() {
   const [approvalDraft, setApprovalDraft] = useState<ApprovalDraft | null>(null);
   const [approvalError, setApprovalError] = useState<string | null>(null);
   const [approvalCatalog, setApprovalCatalog] = useState<{ local: string; servicios: ServicioRow[]; error?: string } | null>(null);
-  const [openActionMenuId, setOpenActionMenuId] = useState<number | null>(null);
   const [completionDraft, setCompletionDraft] = useState<CompletionDraft | null>(null);
   const [completionError, setCompletionError] = useState<string | null>(null);
   const [deleteReserva, setDeleteReserva] = useState<ReservaBD | null>(null);
   const [notificationReserva, setNotificationReserva] = useState<ReservaBD | null>(null);
-  const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [estadoFiltro, setEstadoFiltro] = useState<EstadoFiltro>('PENDIENTE');
   const [searchQuery, setSearchQuery] = useState('');
 	const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
@@ -341,11 +365,7 @@ export default function AdminReservasAprobacionPage() {
         current.map((item) => item.id === reservaId ? { ...item, notificado: false } : item),
       );
       setNotificationReserva((current) => current?.id === reservaId ? { ...current, notificado: false } : current);
-      setStatusMessage({
-        type: 'error',
-        text: updateError instanceof Error ? updateError.message : 'No se pudo marcar la reserva como notificada.',
-      });
-      window.setTimeout(() => setStatusMessage(null), 3600);
+      toast.error(updateError instanceof Error ? updateError.message : 'No se pudo marcar la reserva como notificada.');
     }
   }, []);
 
@@ -402,20 +422,36 @@ export default function AdminReservasAprobacionPage() {
     setFechaFiltro('');
   });
 
-  const reservasPendientes = useMemo(
-    () => reservas.filter((reserva) => normalizeEstado(reserva.estado) === 'PENDIENTE'),
-    [reservas],
-  );
-
-  const reservasAgendadas = useMemo(
-    () => reservas.filter((reserva) => normalizeEstado(reserva.estado) === 'AGENDADO'),
-    [reservas],
-  );
-
-  const reservasRechazadas = useMemo(
-    () => reservas.filter((reserva) => normalizeEstado(reserva.estado) === 'RECHAZADO'),
-    [reservas],
-  );
+  // Conteo de cada pestaña: independiente de la pestaña activa, con los mismos filtros de la lista.
+  useEffect(() => {
+    void requestRevision;
+    if (!adminLocalScope.ready) return;
+    const controller = new AbortController();
+    const base = {
+      fecha_desde: getDateISOWithOffset(-14),
+      local: effectiveLocalFiltro !== ALL_LOCALS_FILTER && effectiveLocalFiltro !== LOCAL_SCOPE_PENDING ? effectiveLocalFiltro : undefined,
+      fecha: fechaFiltro || undefined,
+      tipo: tipoFiltro !== 'TODOS' ? tipoFiltro.toLowerCase() as 'mesa' | 'bicicleta' : undefined,
+      busqueda: debouncedSearchQuery || undefined,
+      limit: 1,
+      include_total: true,
+    };
+    (['PENDIENTE', 'AGENDADO', 'RECHAZADO'] as const).forEach((estado) => {
+      getReservasDB({
+        ...base,
+        estado,
+        ...(estado === 'PENDIENTE' && { vigente_fecha: vigenteFecha, vigente_hora: vigenteHora }),
+      }, controller.signal)
+        .then((response) => {
+          const total = response.data?.paginacion?.total_registros;
+          if (!controller.signal.aborted && total !== undefined) {
+            setConteosEstado((current) => ({ ...current, [estado]: total }));
+          }
+        })
+        .catch(() => { /* el contador es informativo: si falla se conserva el último valor */ });
+    });
+    return () => controller.abort();
+  }, [adminLocalScope.ready, debouncedSearchQuery, effectiveLocalFiltro, fechaFiltro, requestRevision, tipoFiltro, vigenteFecha, vigenteHora]);
 
   const approvalServiceGroups = useMemo(() => {
     if (!approvalReserva || approvalCatalog?.local !== approvalReserva.local) return [];
@@ -473,7 +509,6 @@ export default function AdminReservasAprobacionPage() {
       servicioConfirmado: getDefaultConfirmedService(reserva),
     });
     setApprovalError(null);
-    setStatusMessage(null);
   };
 
   const closeApprovalModal = useCallback(() => {
@@ -484,14 +519,12 @@ export default function AdminReservasAprobacionPage() {
   }, [actionId]);
 
   const openCompletionModal = (reserva: ReservaBD) => {
-    setOpenActionMenuId(null);
     setCompletionDraft({
       reserva,
       reasonMode: 'DONE',
       otherReason: '',
     });
     setCompletionError(null);
-    setStatusMessage(null);
   };
 
   const closeCompletionModal = useCallback(() => {
@@ -501,9 +534,7 @@ export default function AdminReservasAprobacionPage() {
   }, [actionId]);
 
   const openDeleteModal = (reserva: ReservaBD) => {
-    setOpenActionMenuId(null);
     setDeleteReserva(reserva);
-    setStatusMessage(null);
   };
 
   const closeDeleteModal = useCallback(() => {
@@ -516,7 +547,6 @@ export default function AdminReservasAprobacionPage() {
 
     const reservaId = deleteReserva.id;
     setActionId(reservaId);
-    setStatusMessage(null);
 
     try {
       await eliminarReservaDB(reservaId);
@@ -524,14 +554,10 @@ export default function AdminReservasAprobacionPage() {
       setReservas((current) => current.filter((item) => item.id !== reservaId));
       setNotificationReserva((current) => current?.id === reservaId ? null : current);
       setDeleteReserva(null);
-      setStatusMessage({ type: 'success', text: `Reserva #${reservaId} eliminada.` });
+      toast.success(`Reserva #${reservaId} eliminada.`);
       pagination.resetAfterMutation();
-      window.setTimeout(() => setStatusMessage(null), 3600);
     } catch (deleteError) {
-      setStatusMessage({
-        type: 'error',
-        text: deleteError instanceof Error ? deleteError.message : 'No se pudo eliminar la reserva.',
-      });
+      toast.error(deleteError instanceof Error ? deleteError.message : 'No se pudo eliminar la reserva.');
     } finally {
       setActionId(null);
     }
@@ -552,7 +578,6 @@ export default function AdminReservasAprobacionPage() {
     const reservaId = completionDraft.reserva.id;
     setActionId(reservaId);
     setCompletionError(null);
-    setStatusMessage(null);
 
     try {
       await actualizarEstadoReservaDB({
@@ -569,14 +594,10 @@ export default function AdminReservasAprobacionPage() {
       );
       setNotificationReserva((current) => current?.id === reservaId ? null : current);
       setCompletionDraft(null);
-      setStatusMessage({ type: 'success', text: `Reserva #${reservaId} marcada como completada.` });
+      toast.success(`Reserva #${reservaId} marcada como completada.`);
       pagination.resetAfterMutation();
-      window.setTimeout(() => setStatusMessage(null), 3600);
     } catch (updateError) {
-      setStatusMessage({
-        type: 'error',
-        text: updateError instanceof Error ? updateError.message : 'No se pudo completar la reserva.',
-      });
+      toast.error(updateError instanceof Error ? updateError.message : 'No se pudo completar la reserva.');
     } finally {
       setActionId(null);
     }
@@ -587,7 +608,7 @@ export default function AdminReservasAprobacionPage() {
 
     if (estado === 'RECHAZADO' && !causa) {
       setRejectingId(reserva.id);
-      setStatusMessage({ type: 'error', text: 'Agrega una causa para rechazar la reserva.' });
+      toast.error('Agrega una causa para rechazar la reserva.');
       return;
     }
 
@@ -597,7 +618,6 @@ export default function AdminReservasAprobacionPage() {
     }
 
     setActionId(reserva.id);
-    setStatusMessage(null);
 
     try {
       await actualizarEstadoReservaDB({
@@ -614,17 +634,10 @@ export default function AdminReservasAprobacionPage() {
       );
       setRejectingId(null);
       setRejectCauses((current) => ({ ...current, [reserva.id]: '' }));
-      setStatusMessage({
-        type: 'success',
-        text: 'Reserva rechazada correctamente.',
-      });
+      toast.success('Reserva rechazada correctamente.');
       pagination.resetAfterMutation();
-      window.setTimeout(() => setStatusMessage(null), 3600);
     } catch (updateError) {
-      setStatusMessage({
-        type: 'error',
-        text: updateError instanceof Error ? updateError.message : 'No se pudo actualizar el estado.',
-      });
+      toast.error(updateError instanceof Error ? updateError.message : 'No se pudo actualizar el estado.');
     } finally {
       setActionId(null);
     }
@@ -674,7 +687,6 @@ export default function AdminReservasAprobacionPage() {
 
     setActionId(approvalReserva.id);
     setApprovalError(null);
-    setStatusMessage(null);
 
     try {
       // El backend aplica el horario final, servicio, precio, tipo y estado
@@ -705,9 +717,8 @@ export default function AdminReservasAprobacionPage() {
       setApprovalReserva(null);
       setApprovalDraft(null);
       setNotificationReserva(updatedReserva);
-      setStatusMessage({ type: 'success', text: `Reserva #${approvalReserva.id} agendada correctamente.` });
+      toast.success(`Reserva #${approvalReserva.id} agendada correctamente.`);
       pagination.resetAfterMutation();
-      window.setTimeout(() => setStatusMessage(null), 3600);
     } catch (updateError) {
       const message = updateError instanceof Error ? updateError.message : 'No se pudo agendar la reserva.';
       setApprovalError(message.replace(/^capacidad de reserva no disponible:\s*/i, ''));
@@ -820,19 +831,17 @@ export default function AdminReservasAprobacionPage() {
               subtitle="Administra las solicitudes que llegan desde la web. Agenda una cita cuando esté validada o recházala con una causa para mantener trazabilidad."
               actions={
                 <div className={styles.headerActions}>
-                  <Link href="/atrevida-gestion/reservas/proximas" className={styles.secondaryNavButton}>
-                    <Clock size={16} strokeWidth={1.8} />
+                  <AdminButton variant="secondary" href="/atrevida-gestion/reservas/proximas" icon={<Clock size={16} strokeWidth={1.8} />}>
                     Citas próximas
-                  </Link>
-                  <button
-                    type="button"
-                    className={styles.refreshButton}
+                  </AdminButton>
+                  <AdminButton
+                    variant="secondary"
+                    icon={<RefreshCw size={16} strokeWidth={1.8} className={isFetching ? styles.spinIcon : ''} />}
                     onClick={() => preserveScrollPosition(() => { void fetchReservas(); })}
                     disabled={initialLoading || isFetching}
                   >
-                    <RefreshCw size={16} strokeWidth={1.8} className={isFetching ? styles.spinIcon : ''} />
                     {isFetching ? 'Actualizando' : 'Actualizar'}
-                  </button>
+                  </AdminButton>
                 </div>
               }
             />
@@ -843,7 +852,7 @@ export default function AdminReservasAprobacionPage() {
               <div>
                 <h2>{estadoFiltro === 'TODOS' ? 'Todas las solicitudes' : `Reservas ${ESTADO_OPTIONS.find((option) => option.value === estadoFiltro)?.label.toLowerCase()}`}</h2>
               </div>
-              <span className={styles.countPill}>{totalRegistros ?? reservasVisibles.length} resultado{(totalRegistros ?? reservasVisibles.length) === 1 ? '' : 's'}</span>
+              <StatusBadge>{totalRegistros ?? reservasVisibles.length} resultado{(totalRegistros ?? reservasVisibles.length) === 1 ? '' : 's'}</StatusBadge>
             </div>
 
             <div className={styles.controlsPanel}>
@@ -889,35 +898,26 @@ export default function AdminReservasAprobacionPage() {
                 </div>
               </label>
 
-              <button
-                type="button"
-                className={styles.clearFiltersButton}
+              <AdminButton
+                variant="secondary"
+                icon={<SlidersHorizontal size={15} strokeWidth={1.8} />}
                 onClick={resetFilters}
                 disabled={!hasAdvancedFilters}
               >
-                <SlidersHorizontal size={15} strokeWidth={1.8} />
                 Limpiar
-              </button>
+              </AdminButton>
             </div>
 
-            <div className={styles.filterBar} aria-label="Filtrar reservas por estado">
-              {ESTADO_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  className={`${styles.filterButton} ${estadoFiltro === option.value ? styles.filterButtonActive : ''}`}
-                  onClick={() => preserveScrollPosition(() => setEstadoFiltro(option.value))}
-                  disabled={initialLoading || isFetching || estadoFiltro === option.value}
-                >
-                  {option.label}
-                  {option.value !== 'TODOS' && (
-                    <span className={styles.filterCount}>
-                      {initialLoading ? '–' : option.value === 'PENDIENTE' ? reservasPendientes.length : option.value === 'AGENDADO' ? reservasAgendadas.length : reservasRechazadas.length}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
+            <Tabs
+              ariaLabel="Filtrar reservas por estado"
+              active={estadoFiltro}
+              onChange={(value) => preserveScrollPosition(() => setEstadoFiltro(value))}
+              tabs={ESTADO_OPTIONS.map((option) => ({
+                key: option.value,
+                label: option.label,
+                count: option.value === 'TODOS' ? undefined : conteosEstado[option.value],
+              }))}
+            />
 
             <div className={styles.resultsSurface}>
               {isFetching && !initialLoading && (
@@ -959,73 +959,50 @@ export default function AdminReservasAprobacionPage() {
                   const confirmationWhatsappHref = getConfirmationWhatsappHref(reserva);
                   const confirmationSent = Boolean(reserva.notificado);
                   const isCompleted = reserva.estado === 'COMPLETADO';
-                  const canShowCardMenu = estadoNormalizado === 'PENDIENTE' || estadoNormalizado === 'RECHAZADO' || (estadoNormalizado === 'AGENDADO' && !isCompleted);
                   const canMarkCompleted = estadoNormalizado === 'AGENDADO' && !isCompleted && confirmationSent;
-                  const cardActionMenu = canShowCardMenu ? (
-                    <div className={styles.cardMenuWrapper}>
-                      <button
-                        type="button"
-                        className={styles.cardMenuButton}
-                        onClick={() => setOpenActionMenuId((current) => current === reserva.id ? null : reserva.id)}
-                        disabled={actionId === reserva.id}
-                        aria-label={`Acciones de reserva ${reserva.id}`}
-                        aria-haspopup="menu"
-                        aria-expanded={openActionMenuId === reserva.id}
-                      >
-                        <MoreHorizontal size={18} strokeWidth={2} />
-                      </button>
-                      {openActionMenuId === reserva.id && (
-                        <div className={styles.cardMenu} role="menu">
-                          {canMarkCompleted && (
-                            <button
-                              type="button"
-                              role="menuitem"
-                              onClick={() => openCompletionModal(reserva)}
-                              disabled={actionId === reserva.id}
-                            >
-                              Marcar como completada
-                            </button>
-                          )}
-                          {!isCompleted && (
-                            <button
-                              type="button"
-                              role="menuitem"
-                              onClick={() => router.push(`/atrevida-gestion/reservas/editar/${reserva.id}`)}
-                              disabled={actionId === reserva.id}
-                            >
-                              Editar o reprogramar
-                            </button>
-                          )}
-                          <button
-                            type="button"
-                            role="menuitem"
-                            className={styles.cardMenuDanger}
-                            onClick={() => openDeleteModal(reserva)}
-                            disabled={actionId === reserva.id}
-                          >
-                            <Trash2 size={14} strokeWidth={1.8} />
-                            Eliminar reserva
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  ) : null;
+                  const cardActionMenu = (
+                    <RowActionsMenu
+                      wrapperClassName={styles.cardMenuWrapper}
+                      triggerClassName={styles.cardMenuButton}
+                      ariaLabel={`Acciones de reserva ${reserva.id}`}
+                      disabled={actionId === reserva.id}
+                      actions={[
+                        ...(canMarkCompleted ? [{
+                          label: 'Marcar como completada',
+                          icon: <CheckCircle2 size={14} strokeWidth={1.8} />,
+                          onClick: () => openCompletionModal(reserva),
+                        }] : []),
+                        ...(!isCompleted ? [{
+                          label: 'Editar o reprogramar',
+                          icon: <Pencil size={14} strokeWidth={1.8} />,
+                          onClick: () => router.push(`/atrevida-gestion/reservas/editar/${reserva.id}`),
+                        }] : []),
+                        {
+                          label: 'Eliminar reserva',
+                          icon: <Trash2 size={14} strokeWidth={1.8} />,
+                          variant: 'danger' as const,
+                          onClick: () => openDeleteModal(reserva),
+                        },
+                      ]}
+                    />
+                  );
 
                   return (
                   <article key={reserva.id} className={`approval-card ${styles.pendingCard} ${styles[`card${estadoNormalizado}`]}`}>
                     <div className={styles.pendingContent}>
                       <div className={styles.pendingTop}>
                         <div className={styles.pendingBadges}>
-                          <span className={`${styles.pendingState} ${styles[`state${isCompleted ? 'COMPLETADO' : estadoNormalizado}`]}`}>
+                          <StatusBadge tone={ESTADO_TONE[isCompleted ? 'COMPLETADO' : estadoNormalizado]}>
                             {isCompleted ? 'COMPLETADO' : estadoNormalizado}
-                          </span>
+                          </StatusBadge>
+                          {reserva.alerta_inventario && !isCompleted && <InventarioAlertBadge />}
                           {estadoNormalizado === 'AGENDADO' && (
-                            <span className={`${styles.confirmationStatus} ${isCompleted ? styles.confirmationCompleted : confirmationSent ? styles.confirmationSent : styles.confirmationPending}`}>
+                            <StatusBadge tone={isCompleted ? 'success' : confirmationSent ? 'info' : 'warning'}>
                               {isCompleted ? 'Servicio completado' : confirmationSent ? 'Confirmación enviada' : 'Confirmación pendiente'}
-                            </span>
+                            </StatusBadge>
                           )}
                         </div>
-                        <span className={styles.pendingId}>#{reserva.id}</span>
+                        <StatusBadge>#{reserva.id}</StatusBadge>
                       </div>
 
                       <div className={styles.clientHeader}>
@@ -1098,75 +1075,56 @@ export default function AdminReservasAprobacionPage() {
 
                     {estadoNormalizado === 'PENDIENTE' && (
                       <div className={styles.pendingActions}>
-                        <button
-                          type="button"
-                          className={styles.approveButton}
+                        <AdminButton
+                          fullWidth
+                          icon={<Check size={15} strokeWidth={1.8} />}
                           onClick={() => updateReservaEstado(reserva, 'AGENDADO')}
                           disabled={actionId === reserva.id}
                         >
-                          <Check size={15} strokeWidth={1.8} />
                           Aprobar
-                        </button>
-                        {whatsappHref ? (
-                          <a
-                            href={whatsappHref}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={styles.contactButton}
-                          >
-                            <WhatsappIcon size={15} />
-                            Contactar
-                          </a>
-                        ) : (
-                          <button
-                            type="button"
-                            className={styles.contactButton}
-                            disabled
-                          >
-                            <WhatsappIcon size={15} />
-                            Contactar
-                          </button>
-                        )}
-                        <button
-                          type="button"
-                          className={styles.rejectButton}
+                        </AdminButton>
+                        <AdminButton
+                          variant="secondary"
+                          fullWidth
+                          icon={<WhatsappIcon size={15} />}
+                          href={whatsappHref ?? undefined}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          disabled={!whatsappHref}
+                        >
+                          Contactar
+                        </AdminButton>
+                        <AdminButton
+                          variant="danger"
+                          fullWidth
+                          icon={<XCircle size={15} strokeWidth={1.8} />}
                           onClick={() => rejectingId === reserva.id ? updateReservaEstado(reserva, 'RECHAZADO') : setRejectingId(reserva.id)}
                           disabled={actionId === reserva.id}
                         >
-                          <XCircle size={15} strokeWidth={1.8} />
                           {rejectingId === reserva.id ? 'Confirmar rechazo' : 'Rechazar'}
-                        </button>
+                        </AdminButton>
                         {cardActionMenu}
                       </div>
                     )}
                     {estadoNormalizado === 'AGENDADO' && !isCompleted && (
-                      <div className={`${styles.pendingActions} ${styles.notifyActions}`}>
-                        {confirmationWhatsappHref ? (
-                          <a
-                            href={confirmationWhatsappHref}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={`${styles.notifyButton} ${confirmationSent ? styles.notifyButtonSent : ''}`}
-                            onClick={() => { void markConfirmationSent(reserva.id); }}
-                          >
-                            <WhatsappIcon size={15} />
-                            {confirmationSent ? 'Reenviar confirmación' : 'Enviar confirmación'}
-                          </a>
-                        ) : (
-                          <button
-                            type="button"
-                            className={styles.notifyButton}
-                            disabled
-                          >
-                            <WhatsappIcon size={15} />
-                            Sin teléfono
-                          </button>
-                        )}
+                      <div className={styles.pendingActions}>
+                        <AdminButton
+                          variant={confirmationSent ? 'secondary' : 'primary'}
+                          fullWidth
+                          icon={<WhatsappIcon size={15} />}
+                          href={confirmationWhatsappHref ?? undefined}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => { void markConfirmationSent(reserva.id); }}
+                          disabled={!confirmationWhatsappHref}
+                        >
+                          {!confirmationWhatsappHref ? 'Sin teléfono' : confirmationSent ? 'Reenviar confirmación' : 'Enviar confirmación'}
+                        </AdminButton>
                         {cardActionMenu}
                       </div>
                     )}
-                    {estadoNormalizado === 'RECHAZADO' && (
-                      <div className={`${styles.pendingActions} ${styles.notifyActions}`}>
+                    {(estadoNormalizado === 'RECHAZADO' || isCompleted) && (
+                      <div className={styles.pendingActions}>
                         {cardActionMenu}
                       </div>
                     )}
@@ -1185,385 +1143,165 @@ export default function AdminReservasAprobacionPage() {
       </main>
 
       {approvalReserva && approvalDraft && (
-        <div
-          className={styles.approvalModalOverlay}
-          role="presentation"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) closeApprovalModal();
-          }}
+        <FormModal
+          isOpen
+          size="lg"
+          title={`Aprobar reserva #${approvalReserva.id}`}
+          onClose={closeApprovalModal}
+          onSubmit={approveReservaFromModal}
+          loading={actionId === approvalReserva.id}
+          submitDisabled={approvalCatalog?.local !== approvalReserva.local || !!approvalCatalog.error || approvalCatalog.servicios.length === 0}
+          submitLabel={approvalError ? 'Reintentar aprobación' : 'Aprobar y agendar'}
         >
-          <section
-            className={styles.approvalModal}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="approval-modal-title"
-          >
-            <div className={styles.modalTop}>
-              <div>
-                <span className={styles.modalEyebrow}>Revisión final</span>
-                <h2 id="approval-modal-title">Aprobar reserva #{approvalReserva.id}</h2>
-                <p>
-                  Confirma los datos de la solicitud y el servicio definitivo antes de pasarla a agenda.
-                </p>
-              </div>
-              <button
-                type="button"
-                className={styles.modalClose}
-                onClick={closeApprovalModal}
-                disabled={actionId === approvalReserva.id}
-                aria-label="Cerrar modal de aprobación"
-              >
-                <XCircle size={20} strokeWidth={1.8} />
-              </button>
-            </div>
+          <p className={styles.dialogLead}>
+            Confirma los datos de la solicitud y el servicio definitivo antes de pasarla a agenda.
+            {' '}Solicitado: <strong>{approvalReserva.servicio_solicitado || approvalReserva.servicio || 'Por definir'}</strong>
+            {approvalReserva.servicio_confirmado && <> · Confirmado previo: <strong>{approvalReserva.servicio_confirmado}</strong></>}
+          </p>
 
-            <div className={styles.modalSummary}>
-              <span>
-                Solicitado: <strong>{approvalReserva.servicio_solicitado || approvalReserva.servicio || 'Por definir'}</strong>
-              </span>
-              {approvalReserva.servicio_confirmado && (
-                <span>
-                  Confirmado previo: <strong>{approvalReserva.servicio_confirmado}</strong>
-                </span>
-              )}
-            </div>
+          <FormGrid>
+            <FormField label="Cliente" htmlFor="approval-cliente">
+              <input id="approval-cliente" value={approvalReserva.cliente || 'Cliente sin nombre'} disabled />
+            </FormField>
+            <FormField label="Local" htmlFor="approval-local">
+              <input id="approval-local" value={approvalReserva.local} disabled />
+            </FormField>
+            <FormField label="Teléfono">
+              <PhoneInput
+                value={approvalDraft.telefono}
+                e164={approvalDraft.telefonoE164}
+                onChange={(phone) => {
+                  setApprovalError(null);
+                  setApprovalDraft((current) => current ? {
+                    ...current,
+                    telefono: phone.nationalNumber,
+                    telefonoE164: phone.e164,
+                  } : current);
+                }}
+                placeholder="77777777"
+              />
+            </FormField>
+            <FormField label="Fecha" htmlFor="approval-fecha">
+              <input
+                id="approval-fecha"
+                type="date"
+                value={approvalDraft.fecha}
+                onChange={(event) => {
+                  setApprovalError(null);
+                  setApprovalDraft((current) => current ? { ...current, fecha: event.target.value } : current);
+                }}
+              />
+            </FormField>
+            <FormField label="Hora inicio" htmlFor="approval-hora-desde">
+              <input
+                id="approval-hora-desde"
+                type="time"
+                value={approvalDraft.horaDesde}
+                onChange={(event) => {
+                  setApprovalError(null);
+                  setApprovalDraft((current) => current ? { ...current, horaDesde: event.target.value } : current);
+                }}
+              />
+            </FormField>
+            <FormField label="Hora fin" htmlFor="approval-hora-hasta">
+              <input
+                id="approval-hora-hasta"
+                type="time"
+                value={approvalDraft.horaHasta}
+                onChange={(event) => {
+                  setApprovalError(null);
+                  setApprovalDraft((current) => current ? { ...current, horaHasta: event.target.value } : current);
+                }}
+              />
+            </FormField>
+            <FormField label="Servicio definitivo" labelId="approval-servicio-lbl" wide error={approvalCatalog?.error || undefined}>
+              <CustomSelect
+                value={approvalDraft.servicioConfirmado}
+                onChange={(value) => {
+                  setApprovalError(null);
+                  setApprovalDraft((current) => current ? { ...current, servicioConfirmado: value } : current);
+                }}
+                groups={approvalServiceGroups}
+                placeholder={approvalCatalog?.local === approvalReserva.local ? 'Seleccionar servicio' : 'Cargando servicios...'}
+                hasError={false}
+              />
+            </FormField>
+            <FormField label="Notas" htmlFor="approval-notas" wide>
+              <textarea
+                id="approval-notas"
+                value={approvalDraft.notas}
+                onChange={(event) => {
+                  setApprovalError(null);
+                  setApprovalDraft((current) => current ? { ...current, notas: event.target.value } : current);
+                }}
+                placeholder="Añade una observación para el equipo si hace falta."
+              />
+            </FormField>
+          </FormGrid>
 
-            <div className={styles.modalGrid}>
-              <label className={styles.modalField}>
-                Cliente
-                <input value={approvalReserva.cliente || 'Cliente sin nombre'} disabled />
-              </label>
-              <label className={styles.modalField}>
-                Local
-                <input value={approvalReserva.local} disabled />
-              </label>
-              <label className={styles.modalField}>
-                Teléfono
-                <PhoneInput
-                  value={approvalDraft.telefono}
-                  e164={approvalDraft.telefonoE164}
-                  onChange={(phone) => {
-                    setApprovalError(null);
-                    setApprovalDraft((current) => current ? {
-                      ...current,
-                      telefono: phone.nationalNumber,
-                      telefonoE164: phone.e164,
-                    } : current);
-                  }}
-                  placeholder="77777777"
-                />
-              </label>
-              <label className={styles.modalField}>
-                Fecha
-                <input
-                  type="date"
-                  value={approvalDraft.fecha}
-                  onChange={(event) => {
-                    setApprovalError(null);
-                    setApprovalDraft((current) => current ? {
-                      ...current,
-                      fecha: event.target.value,
-                    } : current);
-                  }}
-                />
-              </label>
-              <label className={styles.modalField}>
-                Hora inicio
-                <input
-                  type="time"
-                  value={approvalDraft.horaDesde}
-                  onChange={(event) => {
-                    setApprovalError(null);
-                    setApprovalDraft((current) => current ? {
-                      ...current,
-                      horaDesde: event.target.value,
-                    } : current);
-                  }}
-                />
-              </label>
-              <label className={styles.modalField}>
-                Hora fin
-                <input
-                  type="time"
-                  value={approvalDraft.horaHasta}
-                  onChange={(event) => {
-                    setApprovalError(null);
-                    setApprovalDraft((current) => current ? {
-                      ...current,
-                      horaHasta: event.target.value,
-                    } : current);
-                  }}
-                />
-              </label>
-              <label className={`${styles.modalField} ${styles.modalFieldWide}`}>
-                Servicio definitivo
-                <CustomSelect
-                  value={approvalDraft.servicioConfirmado}
-                  onChange={(value) => {
-                    setApprovalError(null);
-                    setApprovalDraft((current) => current ? {
-                      ...current,
-                      servicioConfirmado: value,
-                    } : current);
-                  }}
-                  groups={approvalServiceGroups}
-                  placeholder={approvalCatalog?.local === approvalReserva.local ? 'Seleccionar servicio' : 'Cargando servicios...'}
-                  hasError={false}
-                />
-              </label>
-              {approvalCatalog?.error && <p role="alert">{approvalCatalog.error}</p>}
-              <label className={`${styles.modalField} ${styles.modalFieldWide}`}>
-                Notas
-                <textarea
-                  value={approvalDraft.notas}
-                  onChange={(event) => {
-                    setApprovalError(null);
-                    setApprovalDraft((current) => current ? {
-                      ...current,
-                      notas: event.target.value,
-                    } : current);
-                  }}
-                  placeholder="Añade una observación para el equipo si hace falta."
-                />
-              </label>
-            </div>
-
-            {approvalError && (
-              <div className={`${styles.statusMessage} ${styles.statusError} ${styles.approvalError}`} role="alert" aria-live="assertive">
-                <AlertCircle size={17} strokeWidth={1.9} />
-                <span>{approvalError}</span>
-              </div>
-            )}
-
-            <div className={styles.modalActions}>
-              <button
-                type="button"
-                className={styles.modalGhost}
-                onClick={closeApprovalModal}
-                disabled={actionId === approvalReserva.id}
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                className={styles.modalPrimary}
-                onClick={approveReservaFromModal}
-                disabled={actionId === approvalReserva.id || approvalCatalog?.local !== approvalReserva.local || !!approvalCatalog.error || approvalCatalog.servicios.length === 0}
-              >
-                <Check size={16} strokeWidth={1.8} />
-                {actionId === approvalReserva.id ? 'Agendando...' : approvalError ? 'Reintentar aprobación' : 'Aprobar y agendar'}
-              </button>
-            </div>
-          </section>
-        </div>
+          <FormSubmitError message={approvalError ?? undefined} />
+        </FormModal>
       )}
 
       {completionDraft && (
-        <div
-          className={styles.approvalModalOverlay}
-          role="presentation"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) closeCompletionModal();
-          }}
+        <FormModal
+          isOpen
+          title="¿Esta reserva ya cumplió su propósito?"
+          onClose={closeCompletionModal}
+          onSubmit={markReservaCompleted}
+          loading={actionId === completionDraft.reserva.id}
+          submitLabel="Marcar como completada"
         >
-          <section
-            className={`${styles.approvalModal} ${styles.completionModal}`}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="completion-modal-title"
-          >
-            <div className={styles.modalTop}>
-              <div>
-                <h2 id="completion-modal-title">¿Esta reserva ya cumplió su proposito?</h2>
-                <p>
-                  Registra la causa de cierre de esta reserva para darla por completada.
-                </p>
-              </div>
-              <button
-                type="button"
-                className={styles.modalClose}
-                onClick={closeCompletionModal}
-                disabled={actionId === completionDraft.reserva.id}
-                aria-label="Cerrar modal de completado"
+          <ReservaResumen reserva={completionDraft.reserva} servicios={completionServiceSummary} />
+
+          <fieldset className={styles.reasonGroup}>
+            <legend>Causa del cierre</legend>
+            {([['DONE', COMPLETION_REASON_DONE], ['OTHER', 'Otro']] as const).map(([mode, label]) => (
+              <label
+                key={mode}
+                className={`${styles.reasonOption} ${completionDraft.reasonMode === mode ? styles.reasonOptionActive : ''}`}
               >
-                <XCircle size={20} strokeWidth={1.8} />
-              </button>
-            </div>
+                <input
+                  type="radio"
+                  name="completion-reason"
+                  checked={completionDraft.reasonMode === mode}
+                  onChange={() => {
+                    setCompletionDraft((current) => current ? { ...current, reasonMode: mode } : current);
+                    setCompletionError(null);
+                  }}
+                />
+                <span>{label}</span>
+              </label>
+            ))}
+          </fieldset>
 
-            <div className={styles.modalSummary}>
-              <span>
-                Cliente: <strong>{completionDraft.reserva.cliente || 'Cliente sin nombre'}</strong>
-              </span>
-              <span>
-                Fecha: <strong>{formatDate(completionDraft.reserva.fecha)}</strong>
-              </span>
-              <span>
-                Horario: <strong>{completionDraft.reserva.hora_desde} - {completionDraft.reserva.hora_hasta}</strong>
-              </span>
-              <span>
-                Local: <strong>{completionDraft.reserva.local}</strong>
-              </span>
-            </div>
-
-            <div className={styles.completionBody}>
-              <div className={styles.completionServicesBlock}>
-                <span className={styles.completionSectionLabel}>Servicios</span>
-                <div className={styles.completionServicesList}>
-                  {completionServiceSummary.visible.map((service) => (
-                    <span key={service} className={styles.completionServicePill}>{service}</span>
-                  ))}
-                  {completionServiceSummary.remaining > 0 && (
-                    <span className={styles.serviceOverflowPill}>+{completionServiceSummary.remaining}</span>
-                  )}
-                </div>
-              </div>
-
-              <span className={styles.completionSectionLabel}>Causa/Motivo:</span>
-              <div className={styles.reasonOptions} role="radiogroup" aria-label="Causa de completado">
-                <label className={`${styles.reasonOption} ${completionDraft.reasonMode === 'DONE' ? styles.reasonOptionActive : ''}`}>
-                  <input
-                    type="radio"
-                    name="completion-reason"
-                    checked={completionDraft.reasonMode === 'DONE'}
-                    onChange={() => {
-                      setCompletionDraft((current) => current ? { ...current, reasonMode: 'DONE' } : current);
-                      setCompletionError(null);
-                    }}
-                  />
-                  <span>{COMPLETION_REASON_DONE}</span>
-                </label>
-                <label className={`${styles.reasonOption} ${completionDraft.reasonMode === 'OTHER' ? styles.reasonOptionActive : ''}`}>
-                  <input
-                    type="radio"
-                    name="completion-reason"
-                    checked={completionDraft.reasonMode === 'OTHER'}
-                    onChange={() => setCompletionDraft((current) => current ? { ...current, reasonMode: 'OTHER' } : current)}
-                  />
-                  <span>Otro</span>
-                </label>
-              </div>
-
-              {completionDraft.reasonMode === 'OTHER' && (
-                <label className={`${styles.modalField} ${styles.completionOtherField}`}>
-                  Detalle
-                  <textarea
-                    value={completionDraft.otherReason}
-                    onChange={(event) => {
-                      setCompletionDraft((current) => current ? { ...current, otherReason: event.target.value } : current);
-                      if (completionError) setCompletionError(null);
-                    }}
-                    placeholder="Describe el motivo de cierre..."
-                    autoFocus
-                  />
-                </label>
-              )}
-
-              {completionError && <p className={styles.completionError}>{completionError}</p>}
-            </div>
-
-            <div className={styles.modalActions}>
-              <button
-                type="button"
-                className={styles.modalGhost}
-                onClick={closeCompletionModal}
-                disabled={actionId === completionDraft.reserva.id}
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                className={styles.modalPrimary}
-                onClick={markReservaCompleted}
-                disabled={actionId === completionDraft.reserva.id}
-              >
-                <Check size={16} strokeWidth={1.8} />
-                {actionId === completionDraft.reserva.id ? 'Marcando...' : 'Marcar como completado'}
-              </button>
-            </div>
-          </section>
-        </div>
+          {completionDraft.reasonMode === 'OTHER' && (
+            <FormField label="Detalle" htmlFor="completion-detalle" required error={completionError ?? undefined}>
+              <textarea
+                id="completion-detalle"
+                value={completionDraft.otherReason}
+                onChange={(event) => {
+                  setCompletionDraft((current) => current ? { ...current, otherReason: event.target.value } : current);
+                  if (completionError) setCompletionError(null);
+                }}
+                placeholder="Describe el motivo de cierre..."
+                autoFocus
+              />
+            </FormField>
+          )}
+        </FormModal>
       )}
 
-      {deleteReserva && (
-        <div
-          className={styles.approvalModalOverlay}
-          role="presentation"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) closeDeleteModal();
-          }}
-        >
-          <section
-            className={`${styles.approvalModal} ${styles.completionModal}`}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="delete-modal-title"
-          >
-            <div className={styles.modalTop}>
-              <div>
-                <h2 id="delete-modal-title">¿Seguro que quieres eliminar la reserva?</h2>
-              </div>
-              <button
-                type="button"
-                className={styles.modalClose}
-                onClick={closeDeleteModal}
-                disabled={actionId === deleteReserva.id}
-                aria-label="Cerrar modal de eliminación"
-              >
-                <XCircle size={20} strokeWidth={1.8} />
-              </button>
-            </div>
-
-            <div className={styles.modalSummary}>
-              <span>
-                Cliente: <strong>{deleteReserva.cliente || 'Cliente sin nombre'}</strong>
-              </span>
-              <span>
-                Fecha: <strong>{formatDate(deleteReserva.fecha)}</strong>
-              </span>
-              <span>
-                Horario: <strong>{deleteReserva.hora_desde} - {deleteReserva.hora_hasta}</strong>
-              </span>
-              <span>
-                Local: <strong>{deleteReserva.local}</strong>
-              </span>
-            </div>
-
-            <div className={styles.completionBody}>
-              <div className={styles.completionServicesBlock}>
-                <span className={styles.completionSectionLabel}>Servicios</span>
-                <div className={styles.completionServicesList}>
-                  {deleteServiceSummary.visible.map((service) => (
-                    <span key={service} className={styles.completionServicePill}>{service}</span>
-                  ))}
-                  {deleteServiceSummary.remaining > 0 && (
-                    <span className={styles.serviceOverflowPill}>+{deleteServiceSummary.remaining}</span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className={styles.modalActions}>
-              <button
-                type="button"
-                className={styles.modalGhost}
-                onClick={closeDeleteModal}
-                disabled={actionId === deleteReserva.id}
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                className={styles.modalDanger}
-                onClick={deleteReservaFromModal}
-                disabled={actionId === deleteReserva.id}
-              >
-                <Trash2 size={16} strokeWidth={1.8} />
-                {actionId === deleteReserva.id ? 'Borrando...' : 'Borrar'}
-              </button>
-            </div>
-          </section>
-        </div>
-      )}
+      <ConfirmDialog
+        isOpen={!!deleteReserva}
+        title="¿Seguro que quieres eliminar la reserva?"
+        message={deleteReserva && <ReservaResumen reserva={deleteReserva} servicios={deleteServiceSummary} />}
+        confirmLabel="Eliminar reserva"
+        danger
+        loading={actionId === deleteReserva?.id}
+        onConfirm={deleteReservaFromModal}
+        onClose={closeDeleteModal}
+      />
 
       {notificationReserva && (
         <div className={styles.confirmationPrompt} role="status" aria-live="polite">
@@ -1571,42 +1309,22 @@ export default function AdminReservasAprobacionPage() {
             <span>Reserva agendada</span>
             <strong>Envía la confirmación por WhatsApp al cliente.</strong>
           </div>
-          {getConfirmationWhatsappHref(notificationReserva) ? (
-            <a
-              href={getConfirmationWhatsappHref(notificationReserva) ?? undefined}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.promptAction}
-              onClick={() => { void markConfirmationSent(notificationReserva.id); }}
-            >
-              <WhatsappIcon size={16} />
-              Enviar WhatsApp
-            </a>
-          ) : (
-            <button type="button" className={styles.promptAction} disabled>
-              <WhatsappIcon size={16} />
-              Sin teléfono
-            </button>
-          )}
-          <button
-            type="button"
-            className={styles.promptClose}
+          <AdminButton
+            icon={<WhatsappIcon size={16} />}
+            href={getConfirmationWhatsappHref(notificationReserva) ?? undefined}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => { void markConfirmationSent(notificationReserva.id); }}
+            disabled={!getConfirmationWhatsappHref(notificationReserva)}
+          >
+            {getConfirmationWhatsappHref(notificationReserva) ? 'Enviar WhatsApp' : 'Sin teléfono'}
+          </AdminButton>
+          <AdminButton
+            variant="secondary"
+            icon={<XCircle size={18} strokeWidth={1.8} />}
             onClick={() => setNotificationReserva(null)}
             aria-label="Ocultar aviso de confirmación"
-          >
-            <XCircle size={18} strokeWidth={1.8} />
-          </button>
-        </div>
-      )}
-
-      {statusMessage && (statusMessage.type === 'success' || !approvalReserva) && (
-        <div
-          className={`${styles.toastMessage} ${statusMessage.type === 'success' ? styles.statusSuccess : styles.statusError}`}
-          role="status"
-          aria-live="polite"
-        >
-          {statusMessage.type === 'success' ? <Check size={16} strokeWidth={1.8} /> : <AlertCircle size={16} strokeWidth={1.8} />}
-          {statusMessage.text}
+          />
         </div>
       )}
     </div>

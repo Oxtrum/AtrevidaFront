@@ -22,3 +22,4 @@ export { ReasonDialog } from './ReasonDialog';
 export { CatalogManager } from './CatalogManager';
 export type { CatalogRow, CatalogValues } from './CatalogManager';
 export { AdminButton } from './AdminButton';
+export { MonthPicker, formatMes } from './MonthPicker';

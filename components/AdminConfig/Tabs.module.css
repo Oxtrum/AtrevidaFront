@@ -54,3 +54,38 @@
   outline-offset: -2px;
   border-radius: var(--admin-radius-sm);
 }
+
+.countZero {
+  background: var(--admin-pill-bg);
+  color: var(--admin-text-dim);
+}
+
+/* Barra con fondo propio: no se pierde sobre paneles oscuros. */
+.segmented {
+  gap: 0.35rem;
+  padding: 0.35rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-lg);
+  background: var(--admin-surface-3, var(--admin-pill-bg));
+}
+
+.segmented .tab {
+  flex: 1 1 auto;
+  justify-content: center;
+  margin-bottom: 0;
+  border-bottom: 0;
+  border-radius: var(--admin-radius-md);
+  color: var(--admin-foreground);
+  opacity: 0.8;
+}
+
+.segmented .tab:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.segmented .active {
+  opacity: 1;
+  color: #fff;
+  background: var(--admin-grad-primary);
+}

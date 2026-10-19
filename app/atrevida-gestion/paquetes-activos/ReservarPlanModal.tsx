@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { FormModal } from '@/components/AdminConfig';
+import { UserPlus } from 'lucide-react';
+import { AdminButton, FormModal } from '@/components/AdminConfig';
+import { ClienteFormModal } from '@/components/AdminClientes';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
 import { crearPlan } from '@/lib/api/planes';
@@ -32,6 +34,7 @@ export default function ReservarPlanModal({ locales, onClose, onReservado }: Pro
   const [loadingCombos, setLoadingCombos] = useState(false);
   const [saving, setSaving] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [clienteModalOpen, setClienteModalOpen] = useState(false);
 	const query = normalizeSearch(clienteQuery);
 
   useEffect(() => {
@@ -82,6 +85,13 @@ export default function ReservarPlanModal({ locales, onClose, onReservado }: Pro
     setDropdownOpen(false);
   };
 
+  // El cliente recién creado queda seleccionado: no hay que volver a buscarlo.
+  const handleClienteCreado = (nuevo: ClientePG) => {
+    setClienteQuery(getClienteNombreCompleto(nuevo));
+    setClienteId(String(nuevo.id));
+    setDropdownOpen(false);
+  };
+
   const handleSubmit = async () => {
     if (!clienteId || !localId || !comboId) {
       toast.error('Completa cliente, local y paquete.');
@@ -116,7 +126,12 @@ export default function ReservarPlanModal({ locales, onClose, onReservado }: Pro
     >
       <div className={styles.formStack}>
         <div className={styles.field}>
-          <label id="lbl-reservar-cliente" htmlFor="reservar-cliente">Cliente</label>
+          <div className={styles.labelRow}>
+            <label id="lbl-reservar-cliente" htmlFor="reservar-cliente">Cliente</label>
+            <AdminButton variant="inline" icon={<UserPlus size={13} strokeWidth={2} />} onClick={() => setClienteModalOpen(true)}>
+              Nuevo
+            </AdminButton>
+          </div>
           <div className={styles.clientAutocomplete}>
             <div className={styles.clientTrigger}>
               <input
@@ -160,7 +175,20 @@ export default function ReservarPlanModal({ locales, onClose, onReservado }: Pro
                     </button>
                   ))
                 ) : (
-                  <div className={styles.clientDropdownStatus}>Sin coincidencias</div>
+                  <>
+                    <div className={styles.clientDropdownStatus}>Sin coincidencias registradas</div>
+                    <button
+                      type="button"
+                      className={styles.clientRegisterOption}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        setClienteModalOpen(true);
+                      }}
+                    >
+                      <UserPlus size={14} strokeWidth={2} />
+                      Registrar «{clienteQuery.trim()}» como cliente nuevo
+                    </button>
+                  </>
                 )}
               </div>
             )}
@@ -191,6 +219,12 @@ export default function ReservarPlanModal({ locales, onClose, onReservado }: Pro
           />
         </div>
       </div>
+      <ClienteFormModal
+        isOpen={clienteModalOpen}
+        onClose={() => setClienteModalOpen(false)}
+        initialNombre={clienteQuery}
+        onSaved={handleClienteCreado}
+      />
     </FormModal>
   );
 }

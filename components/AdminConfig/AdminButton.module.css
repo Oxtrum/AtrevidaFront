@@ -36,3 +36,23 @@
   opacity: 0.55;
   cursor: not-allowed;
 }
+
+.fullWidth {
+  width: 100%;
+}
+
+.danger {
+  color: var(--admin-accent-danger);
+  border-color: rgba(255, 77, 109, 0.3);
+}
+
+.danger:hover:not(:disabled) {
+  background: rgba(255, 77, 109, 0.1);
+  border-color: rgba(255, 77, 109, 0.5);
+}
+
+/* Los botones deshabilitados de las variantes `admin-button*` no traen estilo propio. */
+:global(.admin-button):disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

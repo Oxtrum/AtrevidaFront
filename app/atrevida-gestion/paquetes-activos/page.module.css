@@ -497,3 +497,31 @@
   color: var(--admin-foreground);
   font-weight: 600;
 }
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.clientRegisterOption {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border: none;
+  border-top: 1px solid var(--admin-border-subtle);
+  background: transparent;
+  color: var(--admin-accent-primary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.clientRegisterOption:hover {
+  background: rgba(236, 0, 140, 0.1);
+}

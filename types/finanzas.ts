@@ -87,6 +87,18 @@ export interface GastoFijoProximo {
   local_nombre?: string | null;
 }
 
+/** Egreso fijo ya vencido que aún no se generó (vista previa de "generar"). */
+export interface GastoFijoPendiente {
+  gasto_fijo_id: number;
+  nombre: string;
+  categoria: string;
+  /** YYYY-MM */
+  periodo: string;
+  fecha_cobro: string;
+  monto: number;
+  local_nombre?: string | null;
+}
+
 // ── Reporte financiero (§5.6) ──
 export interface ReporteFinancieroResumen {
   ingresos_ventas: number;
