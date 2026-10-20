@@ -33,6 +33,8 @@ interface Item {
   monto: number;
   movimientoId?: number;
   gastoFijoId?: number;
+  /** Aún no vence: se ofrece para pagarlo por adelantado y arranca desmarcado. */
+  adelantado?: boolean;
 }
 
 const periodoDe = (valor?: string | null) => (valor ?? '').slice(0, 7);
@@ -40,6 +42,7 @@ const periodoDe = (valor?: string | null) => (valor ?? '').slice(0, 7);
 /**
  * Lista los egresos fijos por pagar (ya registrados + vencidos sin registrar) y paga los marcados.
  * Los vencidos sin registrar se generan primero (la generación es idempotente) y luego se marcan pagados.
+ * También ofrece adelantar el siguiente cobro de cada gasto fijo (desmarcado por defecto).
  */
 export function PagarEgresosFijosModal({ isOpen, onClose, registrados, sinRegistrar, moneda, onPaid }: PagarEgresosFijosModalProps) {
   const items = useMemo<Item[]>(() => [
@@ -61,17 +64,20 @@ export function PagarEgresosFijosModal({ isOpen, onClose, registrados, sinRegist
       fecha: p.fecha_cobro,
       monto: p.monto,
       gastoFijoId: p.gasto_fijo_id,
+      adelantado: p.adelantado,
     })),
   ].sort((a, b) => a.fecha.localeCompare(b.fecha)), [registrados, sinRegistrar]);
 
-  // Por defecto todo marcado; `omitidos` guarda lo que la persona desmarcó.
-  const [omitidos, setOmitidos] = useState<Set<string>>(new Set());
+  // Vencidos marcados y adelantados desmarcados por defecto; `invertidos` guarda lo que la persona cambió.
+  const [invertidos, setInvertidos] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
 
-  const seleccionados = items.filter((i) => !omitidos.has(i.key));
+  const marcado = (i: Item) => !i.adelantado !== invertidos.has(i.key);
+  const seleccionados = items.filter(marcado);
   const total = seleccionados.reduce((acc, i) => acc + i.monto, 0);
+  const hayAdelantados = items.some((i) => i.adelantado);
 
-  const toggle = (key: string) => setOmitidos((prev) => {
+  const toggle = (key: string) => setInvertidos((prev) => {
     const next = new Set(prev);
     if (next.has(key)) next.delete(key);
     else next.add(key);
@@ -86,7 +92,7 @@ export function PagarEgresosFijosModal({ isOpen, onClose, registrados, sinRegist
       const porRegistrar = seleccionados.filter((i) => !i.movimientoId);
 
       if (porRegistrar.length > 0) {
-        await generarGastosFijos();
+        await generarGastosFijos(porRegistrar.some((i) => i.adelantado));
         const frescos = await getMovimientosFinancieros({ clase: 'FIJO', estado: 'PENDIENTE' });
         porRegistrar.forEach((i) => {
           const mov = frescos.find((m) => m.gasto_fijo_id === i.gastoFijoId && periodoDe(m.periodo ?? m.fecha) === i.periodo);
@@ -120,21 +126,23 @@ export function PagarEgresosFijosModal({ isOpen, onClose, registrados, sinRegist
     >
       {items.length === 0 ? (
         <AlertBanner tone="info" title="No hay egresos fijos por pagar">
-          Todos los egresos fijos vencidos ya están pagados. Los próximos aparecerán aquí cuando venzan.
+          No hay gastos fijos vigentes. Crea uno en Configuración › Gastos fijos.
         </AlertBanner>
       ) : (
         <>
-          <p className={styles.lead}>Marca los egresos fijos que quieres pagar ahora. Se registran como pagados.</p>
+          <p className={styles.lead}>Marca los egresos fijos que quieres pagar ahora. Se registran como pagados.{hayAdelantados && ' Los que aún no vencen quedan desmarcados: márcalos para adelantar el pago.'}</p>
           <ul className={styles.list}>
             {items.map((i) => (
               <li key={i.key}>
                 <label className={styles.row}>
-                  <input type="checkbox" checked={!omitidos.has(i.key)} onChange={() => toggle(i.key)} />
+                  <input type="checkbox" checked={marcado(i)} onChange={() => toggle(i.key)} />
                   <span className={styles.info}>
                     <strong>{i.nombre}</strong>
                     <small>{formatMes(i.periodo)} · {i.local} · vence {formatDateISO(i.fecha)}</small>
                   </span>
-                  {!i.movimientoId && <StatusBadge tone="neutral">Sin registrar</StatusBadge>}
+                  {i.adelantado
+                    ? <StatusBadge tone="info">Adelantar</StatusBadge>
+                    : !i.movimientoId && <StatusBadge tone="neutral">Sin registrar</StatusBadge>}
                   <span className={styles.monto}>{formatMoney(i.monto, moneda)}</span>
                 </label>
               </li>

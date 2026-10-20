@@ -85,17 +85,20 @@ export async function getGastosFijosProximos(): Promise<GastoFijoProximo[]> {
   return res.data?.proximos ?? [];
 }
 
-/** Vista previa (sin crear nada) de lo que `generarGastosFijos` registraría ahora. */
-export async function getGastosFijosPendientes(): Promise<GastoFijoPendiente[]> {
+/**
+ * Vista previa (sin crear nada) de lo que `generarGastosFijos` registraría ahora.
+ * Con `adelantar` suma el siguiente cobro aún no vencido de cada gasto fijo (`adelantado: true`).
+ */
+export async function getGastosFijosPendientes(adelantar = false): Promise<GastoFijoPendiente[]> {
   const res = await apiClient.get<ApiResponse<{ pendientes: GastoFijoPendiente[] }>>(
-    '/bd/finanzas/gastos-fijos/pendientes',
+    `/bd/finanzas/gastos-fijos/pendientes${adelantar ? '?adelantar=true' : ''}`,
   );
   return res.data?.pendientes ?? [];
 }
 
 /** Dispara la generación idempotente (RN-32). Botón manual; el job diario la llama aparte. */
-export async function generarGastosFijos(): Promise<void> {
-  await apiClient.post('/bd/finanzas/gastos-fijos/generar', {});
+export async function generarGastosFijos(adelantar = false): Promise<void> {
+  await apiClient.post(`/bd/finanzas/gastos-fijos/generar${adelantar ? '?adelantar=true' : ''}`, {});
 }
 
 /** Libro unificado de ventas, compras, gastos y otros ingresos, con saldo acumulado. */

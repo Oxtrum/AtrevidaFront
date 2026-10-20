@@ -28,6 +28,8 @@ export interface MovimientoFinanciero {
   gasto_fijo_id?: number | null;
   periodo?: string | null;
   compra_id?: number | null;
+  /** Egreso nacido de una planilla de sueldos: se gestiona desde Recursos Humanos. */
+  planilla_id?: number | null;
   local_id?: number | null;
   local_nombre?: string | null;
   fecha: string;
@@ -103,6 +105,8 @@ export interface GastoFijoPendiente {
   fecha_cobro: string;
   monto: number;
   local_nombre?: string | null;
+  /** true si el cobro aún no vence (se ofrece para pagarlo por adelantado). */
+  adelantado?: boolean;
 }
 
 // ── Flujo de caja unificado ──
@@ -218,4 +222,8 @@ export interface ConfiguracionSistema {
   'finanzas.dias_aviso_gasto_fijo': number;
   'finanzas.zona_horaria': string;
   'finanzas.moneda': string;
+  'rrhh.dia_pago_defecto': number;
+  'rrhh.aporte_laboral_pct': number;
+  'rrhh.aporte_patronal_pct': number;
+  'rrhh.dias_mes_faltas': number;
 }

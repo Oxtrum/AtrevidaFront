@@ -107,8 +107,10 @@ export default function FinanzasPage() {
   const { data: cats } = useAsyncData(getCategoriasFinancieras, 'cats-fin');
   const categorias = cats ?? EMPTY_CATS;
 
-  const { data: pendientesData, reload: recargarPendientes } = useAsyncData(getGastosFijosPendientes, 'gf-pendientes');
+  const { data: pendientesData, reload: recargarPendientes } = useAsyncData(() => getGastosFijosPendientes(true), 'gf-pendientes');
   const pendientes = pendientesData ?? [];
+  // Los adelantados (aún no vencen) se pueden pagar desde el modal pero no cuentan como "por pagar".
+  const vencidosSinRegistrar = pendientes.filter((p) => !p.adelantado);
 
   // Egresos fijos ya registrados que siguen sin pagar (de cualquier mes).
   const { data: fijosData, reload: recargarFijos } = useAsyncData(
@@ -116,7 +118,7 @@ export default function FinanzasPage() {
     'fijos-por-pagar',
   );
   const fijosPorPagar = fijosData ?? EMPTY_MOVS;
-  const totalFijosPorPagar = fijosPorPagar.length + pendientes.length;
+  const totalFijosPorPagar = fijosPorPagar.length + vencidosSinRegistrar.length;
 
   const [formOpen, setFormOpen] = useState(false);
   const [formNat, setFormNat] = useState<NaturalezaFinanciera>('EGRESO');
@@ -208,8 +210,9 @@ export default function FinanzasPage() {
           <RowActionsMenu
             actions={[
               ...(mov.estado === 'PENDIENTE' ? [{ label: mov.naturaleza === 'EGRESO' ? 'Marcar pagado' : 'Marcar cobrado', icon: <CheckCircle2 size={12} strokeWidth={2} />, onClick: () => marcarPagado(mov) }] : []),
-              { label: mov.clase === 'FIJO' ? 'Editar monto de este mes' : 'Editar', icon: <Pencil size={12} strokeWidth={2} />, onClick: () => openForm(mov.naturaleza, mov) },
-              ...(mov.compra_id ? [] : [{ label: 'Anular', icon: <Ban size={12} strokeWidth={2} />, onClick: () => setAnulando(mov), variant: 'danger' as const }]),
+              // El egreso de una planilla se corrige o anula desde Recursos Humanos.
+              ...(mov.planilla_id ? [] : [{ label: mov.clase === 'FIJO' ? 'Editar monto de este mes' : 'Editar', icon: <Pencil size={12} strokeWidth={2} />, onClick: () => openForm(mov.naturaleza, mov) }]),
+              ...(mov.compra_id || mov.planilla_id ? [] : [{ label: 'Anular', icon: <Ban size={12} strokeWidth={2} />, onClick: () => setAnulando(mov), variant: 'danger' as const }]),
             ]}
           />
         );
