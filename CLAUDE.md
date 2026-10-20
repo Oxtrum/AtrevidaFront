@@ -97,6 +97,7 @@ Domain notes:
 | `lib/utils/` | Calendar helpers, hours availability, reservation validation |
 | `app/api/bd/` | Next.js proxy routes to backend |
 | `app/atrevida-gestion/configuracion/` | Hub page linking to sub-pages: categorias, combos, locales, servicios, usuarios |
+| `app/atrevida-gestion/rrhh/` + `components/AdminRRHH/` + `lib/api/rrhh.ts` | Recursos Humanos (solo `admin_sys`): empleados, adelantos y planillas de sueldo. La planilla se genera sola el día de pago y crea su egreso "Sueldos y personal" en Finanzas (que no se edita ni anula desde ahí). Parámetros `rrhh.*` en Configuración → Parámetros |
 | `design.md` | Brand token source (colors, typography) for public-facing pages — not admin |
 
 ## API Response Shape

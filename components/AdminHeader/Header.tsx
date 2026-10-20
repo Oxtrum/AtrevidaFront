@@ -21,6 +21,7 @@ import {
   ShieldCheck,
   Users,
   ArrowLeftRight,
+  UsersRound,
   X,
 } from 'lucide-react';
 import styles from './Header.module.css';
@@ -84,6 +85,13 @@ const NAV_LINKS = [
     detail: 'Todo el dinero',
     href: '/atrevida-gestion/finanzas',
     icon: ArrowLeftRight,
+    financialOnly: true,
+  },
+  {
+    label: 'Recursos Humanos',
+    detail: 'Empleados y planillas',
+    href: '/atrevida-gestion/rrhh',
+    icon: UsersRound,
     financialOnly: true,
   },
 

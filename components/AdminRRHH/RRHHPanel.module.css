@@ -1,0 +1,42 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.salida {
+  color: var(--admin-accent-danger, #ff4d4d);
+}
+
+.muted {
+  color: var(--admin-text-dim);
+}
+
+.sub {
+  display: block;
+  color: var(--admin-text-dim);
+  font-size: 0.75rem;
+}
+
+.note {
+  margin: 0;
+  color: var(--admin-text-dim);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.inactivo {
+  opacity: 0.55;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}

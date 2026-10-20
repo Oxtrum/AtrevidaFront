@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Boxes, Landmark, SlidersHorizontal } from 'lucide-react';
+import { Boxes, Landmark, SlidersHorizontal, UsersRound } from 'lucide-react';
 import { AdminButton, AdminPageShell, AdminPanel, AlertBanner, FormField, FormSubmitError, PageHeader } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
@@ -42,6 +42,23 @@ export default function ParametrosPage() {
     if (!form['finanzas.moneda'].trim()) {
       setError('La moneda es obligatoria');
       return;
+    }
+    const diaPago = Number(form['rrhh.dia_pago_defecto']);
+    if (!Number.isInteger(diaPago) || diaPago < 1 || diaPago > 31) {
+      setError('El día de pago por defecto debe estar entre 1 y 31');
+      return;
+    }
+    const diasFalta = Number(form['rrhh.dias_mes_faltas']);
+    if (!Number.isInteger(diasFalta) || diasFalta < 1 || diasFalta > 31) {
+      setError('Los días base para valorar una falta deben estar entre 1 y 31');
+      return;
+    }
+    for (const k of ['rrhh.aporte_laboral_pct', 'rrhh.aporte_patronal_pct'] as const) {
+      const pct = Number(form[k]);
+      if (Number.isNaN(pct) || pct < 0 || pct > 100) {
+        setError('Los porcentajes de aportes deben estar entre 0 y 100');
+        return;
+      }
     }
     setSaving(true);
     try {
@@ -133,6 +150,35 @@ export default function ParametrosPage() {
             </FormField>
             <FormField label="Moneda" htmlFor="p-moneda" hint="Símbolo que se muestra en pantallas y reportes.">
               <input id="p-moneda" type="text" maxLength={5} value={form['finanzas.moneda']} onChange={(e) => set('finanzas.moneda', e.target.value)} />
+            </FormField>
+          </div>
+        </AdminPanel>
+
+        <AdminPanel card tone="info" title="Recursos Humanos" description="Cuándo se pagan los sueldos y cómo se calculan los aportes de ley." icon={<UsersRound size={18} strokeWidth={1.75} />}>
+          <div className={styles.grid}>
+            <FormField label="Día de pago por defecto" htmlFor="p-rrhh-dia" hint="Cada empleado puede tener su propio día. Si el mes no tiene ese día se usa el último.">
+              <div className={styles.suffixWrap}>
+                <input id="p-rrhh-dia" type="number" min={1} max={31} value={form['rrhh.dia_pago_defecto']} onChange={(e) => set('rrhh.dia_pago_defecto', Number(e.target.value))} />
+                <span className={styles.suffix} aria-hidden>de cada mes</span>
+              </div>
+            </FormField>
+            <FormField label="Días base para valorar una falta" htmlFor="p-rrhh-faltas" hint="Una falta descuenta sueldo base ÷ este número.">
+              <div className={styles.suffixWrap}>
+                <input id="p-rrhh-faltas" type="number" min={1} max={31} value={form['rrhh.dias_mes_faltas']} onChange={(e) => set('rrhh.dias_mes_faltas', Number(e.target.value))} />
+                <span className={styles.suffix} aria-hidden>días</span>
+              </div>
+            </FormField>
+            <FormField label="Aporte laboral (se retiene al empleado)" htmlFor="p-rrhh-lab" hint="AFP: 10% jubilación + 1.71% riesgo común + 0.5% comisión + 0.5% solidario = 12.71%. Verifícalo con tu contador.">
+              <div className={styles.suffixWrap}>
+                <input id="p-rrhh-lab" type="number" min={0} max={100} step="0.01" value={form['rrhh.aporte_laboral_pct']} onChange={(e) => set('rrhh.aporte_laboral_pct', Number(e.target.value))} />
+                <span className={styles.suffix} aria-hidden>%</span>
+              </div>
+            </FormField>
+            <FormField label="Aporte patronal (lo paga la empresa)" htmlFor="p-rrhh-pat" hint="CNS 10% + riesgo profesional 1.71% + vivienda 2% + solidario 3% = 16.71%. Verifícalo con tu contador.">
+              <div className={styles.suffixWrap}>
+                <input id="p-rrhh-pat" type="number" min={0} max={100} step="0.01" value={form['rrhh.aporte_patronal_pct']} onChange={(e) => set('rrhh.aporte_patronal_pct', Number(e.target.value))} />
+                <span className={styles.suffix} aria-hidden>%</span>
+              </div>
             </FormField>
           </div>
         </AdminPanel>

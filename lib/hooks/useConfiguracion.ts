@@ -13,6 +13,10 @@ export const CONFIG_DEFAULTS: ConfiguracionSistema = {
   'finanzas.dias_aviso_gasto_fijo': 3,
   'finanzas.zona_horaria': 'America/La_Paz',
   'finanzas.moneda': 'Bs',
+  'rrhh.dia_pago_defecto': 1,
+  'rrhh.aporte_laboral_pct': 12.71,
+  'rrhh.aporte_patronal_pct': 16.71,
+  'rrhh.dias_mes_faltas': 30,
 };
 
 // Caché a nivel de módulo: moneda y política se leen en muchas pantallas.
