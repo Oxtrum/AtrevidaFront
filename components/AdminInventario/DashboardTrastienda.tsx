@@ -12,6 +12,9 @@ import styles from './DashboardTrastienda.module.css';
 
 const noop = async () => [];
 
+/** Singular si hay exactamente 1, plural si no. */
+const plural = (n: number, uno: string, varios: string) => (n === 1 ? uno : varios);
+
 /**
  * Resumen de trastienda para el dashboard: bajo stock, reservas con alerta de
  * inventario y gastos fijos por vencer. Si el backend aún no responde, no se
@@ -32,34 +35,44 @@ export function DashboardTrastienda() {
 
   return (
     <section className={styles.grid} aria-label="Trastienda">
-      {!alertas.error && (bajo.length > 0 || reservas.length > 0) && (
+      {!alertas.error && bajo.length > 0 && (
         <Link href="/atrevida-gestion/inventario" className={styles.card}>
           <span className={styles.icon}><PackageX size={18} strokeWidth={1.8} /></span>
-          <div>
-            <strong className={styles.value}>{bajo.length}</strong>
-            <span className={styles.label}>ítems bajo stock</span>
-            {bajo.length > 0 && <span className={styles.detail}>{bajo.slice(0, 3).map((i) => i.nombre).join(', ')}</span>}
+          <div className={styles.body}>
+            <span className={styles.head}>
+              <strong className={styles.value}>{bajo.length}</strong>
+              <span className={styles.label}>{plural(bajo.length, 'ítem bajo stock', 'ítems bajo stock')}</span>
+            </span>
+            <span className={styles.detail}>{bajo.slice(0, 3).map((i) => i.nombre).join(', ')}{bajo.length > 3 ? ` y ${bajo.length - 3} más` : ''}</span>
           </div>
         </Link>
       )}
       {!alertas.error && reservas.length > 0 && (
         <Link href="/atrevida-gestion/inventario" className={`${styles.card} ${styles.warn}`}>
           <span className={styles.icon}><AlertTriangle size={18} strokeWidth={1.8} /></span>
-          <div>
-            <strong className={styles.value}>{reservas.length}</strong>
-            <span className={styles.label}>reservas próximas sin insumos suficientes</span>
+          <div className={styles.body}>
+            <span className={styles.head}>
+              <strong className={styles.value}>{reservas.length}</strong>
+              <span className={styles.label}>{plural(reservas.length, 'reserva próxima', 'reservas próximas')}</span>
+            </span>
+            <span className={styles.detail}>sin insumos suficientes</span>
           </div>
         </Link>
       )}
       {!gastos.error && proximos.length > 0 && (
         <Link href="/atrevida-gestion/finanzas" className={styles.card}>
           <span className={styles.icon}><CalendarClock size={18} strokeWidth={1.8} /></span>
-          <div>
-            <strong className={styles.value}>{proximos.length}</strong>
-            <span className={styles.label}>gastos fijos por vencer</span>
-            <span className={styles.detail}>
-              {proximos.slice(0, 2).map((g) => `${g.nombre} · ${formatMoney(g.monto, moneda)} · ${formatDateISO(g.fecha_cobro)}`).join(' | ')}
+          <div className={styles.body}>
+            <span className={styles.head}>
+              <strong className={styles.value}>{proximos.length}</strong>
+              <span className={styles.label}>{plural(proximos.length, 'próximo gasto fijo', 'próximos gastos fijos')}</span>
             </span>
+            {proximos.slice(0, 2).map((g) => (
+              <span key={g.gasto_fijo_id} className={styles.detail}>
+                {g.nombre} · {formatMoney(g.monto, moneda)} · vence {formatDateISO(g.fecha_cobro)}
+              </span>
+            ))}
+            {proximos.length > 2 && <span className={styles.detail}>y {proximos.length - 2} más</span>}
           </div>
         </Link>
       )}

@@ -49,22 +49,36 @@
   outline-offset: 2px;
 }
 
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
 .value {
   font-variant-numeric: tabular-nums;
-  margin-right: 0.4rem;
   font-size: 1.5rem;
   line-height: 1;
 }
 
 .label {
-  font-size: 0.82rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  color: var(--admin-text-muted);
+  color: var(--admin-foreground);
 }
 
 .detail {
   display: block;
-  margin-top: 0.3rem;
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   color: var(--admin-text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
