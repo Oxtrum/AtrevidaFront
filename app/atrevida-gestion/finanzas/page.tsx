@@ -21,8 +21,9 @@ import {
 } from '@/components/AdminConfig';
 import type { BadgeTone, Column, TabItem } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
+import { AnularEgresoFijoDialog } from '@/components/AdminFinanzas/AnularEgresoFijoDialog';
+import { EstadoMovimientoBadge } from '@/components/AdminFinanzas/EstadoMovimientoBadge';
 import { MovimientoFormModal } from '@/components/AdminFinanzas/MovimientoFormModal';
-import { PagarEgresosFijosModal } from '@/components/AdminFinanzas/PagarEgresosFijosModal';
 import { toast } from '@/components/Shared/Toast';
 import {
   cambiarEstadoMovimientoFinanciero,
@@ -37,6 +38,7 @@ import { useLocales } from '@/lib/hooks/useLocales';
 import { formatDateISO, formatMoney, monthRange, todayISO } from '@/lib/utils/format';
 import type {
   CategoriaFinanciera,
+  EstadoMovimiento,
   FlujoLocal,
   FlujoMovimiento,
   FlujoOrigen,
@@ -66,7 +68,6 @@ const ORIGEN_TONE: Record<FlujoOrigen, BadgeTone> = {
   GASTO_FIJO: 'info',
   GASTO_VARIABLE: 'neutral',
 };
-const ESTADO_TONE: Record<string, BadgeTone> = { PAGADO: 'success', PENDIENTE: 'warning', ANULADO: 'danger' };
 const EMPTY: FlujoMovimiento[] = [];
 const EMPTY_LOCALES: FlujoLocal[] = [];
 const EMPTY_MOVS: MovimientoFinanciero[] = [];
@@ -107,7 +108,7 @@ export default function FinanzasPage() {
   const { data: cats } = useAsyncData(getCategoriasFinancieras, 'cats-fin');
   const categorias = cats ?? EMPTY_CATS;
 
-  const { data: pendientesData, reload: recargarPendientes } = useAsyncData(() => getGastosFijosPendientes(true), 'gf-pendientes');
+  const { data: pendientesData, reload: recargarPendientes } = useAsyncData(() => getGastosFijosPendientes(), 'gf-pendientes');
   const pendientes = pendientesData ?? [];
   // Los adelantados (aún no vencen) se pueden pagar desde el modal pero no cuentan como "por pagar".
   const vencidosSinRegistrar = pendientes.filter((p) => !p.adelantado);
@@ -124,7 +125,8 @@ export default function FinanzasPage() {
   const [formNat, setFormNat] = useState<NaturalezaFinanciera>('EGRESO');
   const [editing, setEditing] = useState<MovimientoFinanciero | null>(null);
   const [anulando, setAnulando] = useState<MovimientoFinanciero | null>(null);
-  const [pagandoFijos, setPagandoFijos] = useState(false);
+  // Los egresos nacidos de un gasto fijo se anulan con otro diálogo (deshacer, saltar mes o dejar de pagarlo).
+  const [anulandoFijo, setAnulandoFijo] = useState<MovimientoFinanciero | null>(null);
 
   const recargarTodo = async () => {
     await Promise.all([reload(), recargarMovs(), recargarPendientes(), recargarFijos()]);
@@ -189,7 +191,7 @@ export default function FinanzasPage() {
       key: 'estado',
       label: 'Estado',
       searchable: false,
-      render: (v, r) => <StatusBadge tone={ESTADO_TONE[v as string] ?? 'neutral'}>{r.naturaleza === 'INGRESO' && v === 'PAGADO' ? 'COBRADO' : String(v)}</StatusBadge>,
+      render: (v, r) => <EstadoMovimientoBadge estado={v as EstadoMovimiento} fecha={r.fecha} naturaleza={r.naturaleza} />,
     },
     {
       key: 'saldo',
@@ -212,7 +214,7 @@ export default function FinanzasPage() {
               ...(mov.estado === 'PENDIENTE' ? [{ label: mov.naturaleza === 'EGRESO' ? 'Marcar pagado' : 'Marcar cobrado', icon: <CheckCircle2 size={12} strokeWidth={2} />, onClick: () => marcarPagado(mov) }] : []),
               // El egreso de una planilla se corrige o anula desde Recursos Humanos.
               ...(mov.planilla_id ? [] : [{ label: mov.clase === 'FIJO' ? 'Editar monto de este mes' : 'Editar', icon: <Pencil size={12} strokeWidth={2} />, onClick: () => openForm(mov.naturaleza, mov) }]),
-              ...(mov.compra_id || mov.planilla_id ? [] : [{ label: 'Anular', icon: <Ban size={12} strokeWidth={2} />, onClick: () => setAnulando(mov), variant: 'danger' as const }]),
+              ...(mov.compra_id || mov.planilla_id ? [] : [{ label: 'Anular', icon: <Ban size={12} strokeWidth={2} />, onClick: () => (mov.gasto_fijo_id ? setAnulandoFijo(mov) : setAnulando(mov)), variant: 'danger' as const }]),
             ]}
           />
         );
@@ -241,11 +243,11 @@ export default function FinanzasPage() {
           <>
             <AdminButton
               variant="secondary"
-              onClick={() => setPagandoFijos(true)}
+              href="/atrevida-gestion/configuracion/gastos-fijos"
               icon={<Banknote size={16} strokeWidth={2} />}
-              title="Paga los egresos fijos (alquiler, sueldos, servicios…) que ya vencieron"
+              title="Ver los gastos fijos, pagar los atrasados o adelantar pagos"
             >
-              {totalFijosPorPagar > 0 ? `Pagar egreso fijo (${totalFijosPorPagar})` : 'Pagar egreso fijo'}
+              {totalFijosPorPagar > 0 ? `Gastos fijos (${totalFijosPorPagar} por pagar)` : 'Gastos fijos'}
             </AdminButton>
             <AdminButton variant="secondary" onClick={() => openForm('INGRESO', null)} icon={<TrendingUp size={16} strokeWidth={2} />}>
               Otro ingreso
@@ -334,14 +336,11 @@ export default function FinanzasPage() {
 
       <MovimientoFormModal isOpen={formOpen} naturaleza={formNat} movimiento={editing} categorias={categorias} onClose={() => setFormOpen(false)} onSaved={() => { void recargarTodo(); }} />
 
-      <PagarEgresosFijosModal
-        key={pagandoFijos ? 'abierto' : 'cerrado'}
-        isOpen={pagandoFijos}
-        onClose={() => setPagandoFijos(false)}
-        registrados={fijosPorPagar}
-        sinRegistrar={pendientes}
-        moneda={moneda}
-        onPaid={() => { void recargarTodo(); }}
+      <AnularEgresoFijoDialog
+        isOpen={anulandoFijo !== null}
+        movimiento={anulandoFijo}
+        onClose={() => setAnulandoFijo(null)}
+        onDone={() => { void recargarTodo(); }}
       />
 
       <ReasonDialog

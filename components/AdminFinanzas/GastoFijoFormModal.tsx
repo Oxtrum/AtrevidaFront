@@ -8,12 +8,14 @@ import { guardarGastoFijo } from '@/lib/api/finanzas';
 import { todayISO } from '@/lib/utils/format';
 import { METODOS_PAGO } from '@/types/inventario';
 import type { MetodoPago } from '@/types/inventario';
-import { categoriaSirvePara, type CategoriaFinanciera, type GastoFijo } from '@/types/finanzas';
+import { categoriaSirvePara, FRECUENCIAS, type CategoriaFinanciera, type FrecuenciaGasto, type GastoFijo } from '@/types/finanzas';
 
 interface GastoFijoFormModalProps {
   isOpen: boolean;
   /** null = crear. */
   gasto: GastoFijo | null;
+  /** Retomar un gasto desactivado: arranca activo, desde hoy y sin fecha de fin. */
+  reactivar?: boolean;
   categorias: CategoriaFinanciera[];
   onClose: () => void;
   onSaved: () => void;
@@ -23,7 +25,7 @@ interface FormState {
   nombre: string;
   categoria_id: string;
   monto: string;
-  dia_cobro: string;
+  frecuencia: FrecuenciaGasto;
   local_id: string;
   metodo_pago: MetodoPago | '';
   proveedor: string;
@@ -34,12 +36,26 @@ interface FormState {
 }
 
 const EMPTY: FormState = {
-  nombre: '', categoria_id: '', monto: '', dia_cobro: '1', local_id: '', metodo_pago: '',
+  nombre: '', categoria_id: '', monto: '', frecuencia: 'MENSUAL', local_id: '', metodo_pago: '',
   proveedor: '', fecha_inicio: '', fecha_fin: '', notas: '', activo: true,
 };
 
+/** Primer pago al retomar un gasto: el próximo día de pago que tenía (hoy si cuenta por días), no el día de hoy. */
+function fechaDeRetomo(gasto: GastoFijo): string {
+  const hoy = todayISO();
+  if (FRECUENCIAS.find((f) => f.value === gasto.frecuencia)?.porDias) return hoy;
+  const [y, m] = hoy.split('-').map(Number);
+  const en = (anio: number, mes: number) => {
+    const ultimo = new Date(anio, mes, 0).getDate();
+    const d = new Date(anio, mes - 1, Math.min(gasto.dia_cobro, ultimo));
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+  const esteMes = en(y, m);
+  return esteMes >= hoy ? esteMes : en(m === 12 ? y + 1 : y, m === 12 ? 1 : m + 1);
+}
+
 /** Plantilla de gasto recurrente (RN-30). Editarla afecta solo periodos futuros (RN-34). */
-export function GastoFijoFormModal({ isOpen, gasto, categorias, onClose, onSaved }: GastoFijoFormModalProps) {
+export function GastoFijoFormModal({ isOpen, gasto, reactivar = false, categorias, onClose, onSaved }: GastoFijoFormModalProps) {
   const [form, setForm] = useState<FormState>(EMPTY);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState | 'submit', string>>>({});
   const [saving, setSaving] = useState(false);
@@ -52,19 +68,22 @@ export function GastoFijoFormModal({ isOpen, gasto, categorias, onClose, onSaved
             nombre: gasto.nombre,
             categoria_id: String(gasto.categoria_id),
             monto: String(gasto.monto),
-            dia_cobro: String(gasto.dia_cobro),
+            frecuencia: gasto.frecuencia ?? 'MENSUAL',
             local_id: gasto.local_id ? String(gasto.local_id) : '',
             metodo_pago: gasto.metodo_pago ?? '',
             proveedor: gasto.proveedor ?? '',
             fecha_inicio: gasto.fecha_inicio,
             fecha_fin: gasto.fecha_fin ?? '',
             notas: gasto.notas ?? '',
-            activo: gasto.activo,
+            activo: reactivar ? true : gasto.activo,
+            ...(reactivar ? { fecha_inicio: fechaDeRetomo(gasto), fecha_fin: '' } : {}),
           }
-        : { ...EMPTY, fecha_inicio: todayISO().slice(0, 8) + '01' },
+        : { ...EMPTY, fecha_inicio: todayISO() },
     );
     setErrors({});
-  }, [isOpen, gasto]);
+  }, [isOpen, gasto, reactivar]);
+
+  const porDias = FRECUENCIAS.find((f) => f.value === form.frecuencia)?.porDias;
 
   const patch = (p: Partial<FormState>) => {
     setForm((f) => ({ ...f, ...p }));
@@ -74,11 +93,9 @@ export function GastoFijoFormModal({ isOpen, gasto, categorias, onClose, onSaved
   const handleSubmit = async () => {
     const e: typeof errors = {};
     const monto = Number(form.monto.replace(',', '.'));
-    const dia = Number(form.dia_cobro);
     if (!form.nombre.trim()) e.nombre = 'El nombre es obligatorio';
     if (!form.categoria_id) e.categoria_id = 'Selecciona una categoría';
     if (!(monto > 0)) e.monto = 'El monto debe ser mayor a 0';
-    if (!Number.isInteger(dia) || dia < 1 || dia > 31) e.dia_cobro = 'Día entre 1 y 31';
     if (!form.fecha_inicio) e.fecha_inicio = 'La fecha de inicio es obligatoria';
     if (form.fecha_fin && form.fecha_fin < form.fecha_inicio) e.fecha_fin = 'No puede ser anterior al inicio';
     setErrors(e);
@@ -91,7 +108,9 @@ export function GastoFijoFormModal({ isOpen, gasto, categorias, onClose, onSaved
           nombre: form.nombre.trim(),
           categoria_id: Number(form.categoria_id),
           monto,
-          dia_cobro: dia,
+          frecuencia: form.frecuencia,
+          // El día sale de la fecha del primer pago; un gasto existente conserva el suyo si esa fecha no cambia.
+          dia_cobro: gasto && form.fecha_inicio === gasto.fecha_inicio ? gasto.dia_cobro : Number(form.fecha_inicio.slice(8, 10)) || 1,
           local_id: form.local_id ? Number(form.local_id) : null,
           metodo_pago: form.metodo_pago || null,
           proveedor: form.proveedor.trim() || null,
@@ -114,7 +133,12 @@ export function GastoFijoFormModal({ isOpen, gasto, categorias, onClose, onSaved
 
   return (
     <FormModal isOpen={isOpen} onClose={onClose} title={gasto ? 'Editar gasto fijo' : 'Nuevo gasto fijo'} onSubmit={handleSubmit} loading={saving} submitLabel={gasto ? 'Guardar' : 'Crear'} size="lg">
-      {gasto && (
+      {gasto && reactivar && (
+        <div style={{ marginBottom: '1rem' }}>
+          <AlertBanner tone="info" title="Retomar gasto fijo">Vuelve a generarse desde el primer pago indicado, que propone su próximo día de pago. Los meses que estuvo desactivado no se cobran ni quedan atrasados. Revisa el monto por si cambió.</AlertBanner>
+        </div>
+      )}
+      {gasto && !reactivar && (
         <div style={{ marginBottom: '1rem' }}>
           <AlertBanner tone="info">Los cambios solo afectan los meses que aún no se han generado. Los egresos ya generados no se modifican.</AlertBanner>
         </div>
@@ -139,13 +163,19 @@ export function GastoFijoFormModal({ isOpen, gasto, categorias, onClose, onSaved
         <FormField label="Monto mensual" htmlFor="gf-monto" required error={errors.monto}>
           <input id="gf-monto" type="text" inputMode="decimal" value={form.monto} onChange={(e) => patch({ monto: e.target.value })} placeholder="0.00" />
         </FormField>
-        <FormField label="Día de cobro" htmlFor="gf-dia" required error={errors.dia_cobro} hint="Si el mes no tiene ese día (ej. 31 en febrero) se usa el último día.">
-          <input id="gf-dia" type="number" min={1} max={31} value={form.dia_cobro} onChange={(e) => patch({ dia_cobro: e.target.value })} />
+        <FormField label="Se cobra" labelId="gf-frec-lbl" required hint="Cada cuánto hay que pagarlo. Los cobros se van generando solos.">
+          <CustomSelect
+            value={form.frecuencia}
+            onChange={(v) => patch({ frecuencia: v as FrecuenciaGasto })}
+            options={FRECUENCIAS.map((f) => ({ value: f.value, label: f.label }))}
+            searchable={false}
+            ariaLabelledBy="gf-frec-lbl"
+          />
         </FormField>
-        <FormField label="Vigente desde" htmlFor="gf-ini" required error={errors.fecha_inicio}>
+        <FormField label="Primer pago" htmlFor="gf-ini" required error={errors.fecha_inicio} hint={porDias ? `Luego se cobra cada ${porDias === 1 ? 'día' : `${porDias} días`}.` : 'Los siguientes caen el mismo día de cada periodo; si el mes no tiene ese día, el último.'}>
           <input id="gf-ini" type="date" value={form.fecha_inicio} onChange={(e) => patch({ fecha_inicio: e.target.value })} />
         </FormField>
-        <FormField label="Vigente hasta" htmlFor="gf-fin" error={errors.fecha_fin} hint="Opcional. Para dar de baja sin perder el historial.">
+        <FormField label="Vigente hasta" htmlFor="gf-fin" error={errors.fecha_fin} hint="Opcional. Para un contrato de 3 meses, pon aquí su último día: no se generan más cobros.">
           <input id="gf-fin" type="date" value={form.fecha_fin} min={form.fecha_inicio || undefined} onChange={(e) => patch({ fecha_fin: e.target.value })} />
         </FormField>
         <FormField label="Método de pago" labelId="gf-met-lbl">
@@ -167,8 +197,8 @@ export function GastoFijoFormModal({ isOpen, gasto, categorias, onClose, onSaved
         </FormField>
         {gasto && (
           <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}>
-            <input type="checkbox" checked={form.activo} onChange={(e) => patch({ activo: e.target.checked })} style={{ accentColor: 'var(--admin-accent-primary)' }} />
-            Activo (se genera cada mes)
+            <input type="checkbox" checked={form.activo} onChange={(e) => patch(e.target.checked && !gasto.activo ? { activo: true, fecha_inicio: fechaDeRetomo(gasto), fecha_fin: '' } : { activo: e.target.checked })} style={{ accentColor: 'var(--admin-accent-primary)' }} />
+            Activo (se genera cada mes){!gasto.activo && form.activo ? ' — retoma desde el primer pago indicado' : ''}
           </label>
         )}
       </FormGrid>

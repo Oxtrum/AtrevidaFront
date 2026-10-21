@@ -1,16 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { CalendarClock, Pencil, Plus, Power } from 'lucide-react';
+import { Banknote, CalendarClock, Pencil, Plus, Power, RotateCcw } from 'lucide-react';
 import { AdminButton, AdminPageShell, ConfirmDialog, DataTable, PageHeader, RowActionsMenu, StatusBadge } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import { GastoFijoFormModal } from '@/components/AdminFinanzas/GastoFijoFormModal';
+import { PagarGastoFijoModal } from '@/components/AdminFinanzas/PagarGastoFijoModal';
 import { toast } from '@/components/Shared/Toast';
 import { desactivarGastoFijo, getCategoriasFinancieras, getGastosFijos } from '@/lib/api/finanzas';
 import { useAsyncData } from '@/lib/hooks/useAsyncData';
 import { useConfiguracion } from '@/lib/hooks/useConfiguracion';
 import { formatDateISO, formatMoney } from '@/lib/utils/format';
-import type { CategoriaFinanciera, GastoFijo } from '@/types/finanzas';
+import { frecuenciaLabel, type CategoriaFinanciera, type GastoFijo } from '@/types/finanzas';
 
 type Row = GastoFijo & Record<string, unknown>;
 const EMPTY: GastoFijo[] = [];
@@ -22,11 +23,14 @@ export default function GastosFijosPage() {
   const { data: cats } = useAsyncData(getCategoriasFinancieras, 'cats-fin');
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<GastoFijo | null>(null);
+  const [reactivar, setReactivar] = useState(false);
+  const [toPay, setToPay] = useState<GastoFijo | null>(null);
   const [toDeactivate, setToDeactivate] = useState<GastoFijo | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const openForm = (g: GastoFijo | null) => {
+  const openForm = (g: GastoFijo | null, retomar = false) => {
     setEditing(g);
+    setReactivar(retomar);
     setFormOpen(true);
   };
 
@@ -50,8 +54,26 @@ export default function GastosFijosPage() {
     { key: 'categoria_nombre', label: 'Categoría' },
     { key: 'local_nombre', label: 'Local', render: (v) => (v as string) || 'General' },
     { key: 'monto', label: 'Monto', searchable: false, render: (v) => <strong>{formatMoney(v as number, moneda)}</strong> },
-    { key: 'dia_cobro', label: 'Día de cobro', searchable: false, render: (v) => `Día ${v}` },
-    { key: 'proximo_cobro', label: 'Próximo cobro', searchable: false, render: (v) => formatDateISO(v as string | null) },
+    {
+      key: 'frecuencia',
+      label: 'Frecuencia',
+      searchable: false,
+      render: (v) => (
+        <span>{frecuenciaLabel(v as GastoFijo['frecuencia'])}</span>
+      ),
+    },
+    { key: 'pagado_hasta', label: 'Pagado hasta', searchable: false, render: (v) => ((v as string | null) ? formatDateISO(v as string) : <span style={{ opacity: 0.6 }}>Sin pagos</span>) },
+    {
+      key: 'proximo_cobro',
+      label: 'Siguiente cobro',
+      searchable: false,
+      render: (v, r) => (
+        <span>
+          {v ? formatDateISO(v as string) : <span style={{ opacity: 0.6 }}>—</span>}
+          {r.atrasados > 0 && <span style={{ display: 'block' }}><StatusBadge tone="danger">{r.atrasados} atrasado{r.atrasados === 1 ? '' : 's'}</StatusBadge></span>}
+        </span>
+      ),
+    },
     { key: 'fecha_fin', label: 'Vigencia', searchable: false, render: (_v, r) => `${formatDateISO(r.fecha_inicio)} → ${r.fecha_fin ? formatDateISO(r.fecha_fin) : 'sin fin'}` },
     { key: 'activo', label: 'Estado', searchable: false, render: (v) => <StatusBadge tone={v ? 'success' : 'neutral'}>{v ? 'Activo' : 'Inactivo'}</StatusBadge> },
     {
@@ -62,6 +84,8 @@ export default function GastosFijosPage() {
         <RowActionsMenu
           actions={[
             { label: 'Editar', icon: <Pencil size={12} strokeWidth={2} />, onClick: () => openForm(row) },
+            ...(row.activo ? [{ label: 'Pagar o adelantar', icon: <Banknote size={12} strokeWidth={2} />, onClick: () => setToPay(row) }] : []),
+            ...(row.activo ? [] : [{ label: 'Reactivar', icon: <RotateCcw size={12} strokeWidth={2} />, onClick: () => openForm(row, true) }]),
             ...(row.activo ? [{ label: 'Desactivar', icon: <Power size={12} strokeWidth={2} />, onClick: () => setToDeactivate(row), variant: 'danger' as const }] : []),
           ]}
         />
@@ -95,7 +119,8 @@ export default function GastosFijosPage() {
         searchPlaceholder="Buscar gasto o categoría…"
         emptyMessage="Aún no configuraste gastos fijos"
       />
-      <GastoFijoFormModal isOpen={formOpen} gasto={editing} categorias={cats ?? EMPTY_CATS} onClose={() => setFormOpen(false)} onSaved={reload} />
+      <GastoFijoFormModal isOpen={formOpen} gasto={editing} reactivar={reactivar} categorias={cats ?? EMPTY_CATS} onClose={() => setFormOpen(false)} onSaved={reload} />
+      <PagarGastoFijoModal isOpen={toPay !== null} gasto={toPay} moneda={moneda} onClose={() => setToPay(null)} onPaid={reload} />
       <ConfirmDialog
         isOpen={toDeactivate !== null}
         danger

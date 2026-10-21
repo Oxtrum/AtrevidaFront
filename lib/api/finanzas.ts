@@ -86,19 +86,23 @@ export async function getGastosFijosProximos(): Promise<GastoFijoProximo[]> {
 }
 
 /**
- * Vista previa (sin crear nada) de lo que `generarGastosFijos` registraría ahora.
- * Con `adelantar` suma el siguiente cobro aún no vencido de cada gasto fijo (`adelantado: true`).
+ * Vista previa (sin crear nada) de los pagos vencidos sin egreso. Con `adelantar` = N suma los próximos N pagos
+ * futuros de cada gasto y con `hasta` todos los que caen hasta esa fecha (`adelantado: true`).
+ * `gasto_fijo_id` limita el resultado a un solo gasto.
  */
-export async function getGastosFijosPendientes(adelantar = false): Promise<GastoFijoPendiente[]> {
+export async function getGastosFijosPendientes(
+  opts: { adelantar?: number; hasta?: string; gasto_fijo_id?: number } = {},
+): Promise<GastoFijoPendiente[]> {
   const res = await apiClient.get<ApiResponse<{ pendientes: GastoFijoPendiente[] }>>(
-    `/bd/finanzas/gastos-fijos/pendientes${adelantar ? '?adelantar=true' : ''}`,
+    '/bd/finanzas/gastos-fijos/pendientes',
+    { params: { ...opts } },
   );
   return res.data?.pendientes ?? [];
 }
 
-/** Dispara la generación idempotente (RN-32). Botón manual; el job diario la llama aparte. */
-export async function generarGastosFijos(adelantar = false): Promise<void> {
-  await apiClient.post(`/bd/finanzas/gastos-fijos/generar${adelantar ? '?adelantar=true' : ''}`, {});
+/** Crea (si no existe) y paga en un paso los cobros indicados, vencidos o por adelantado. No duplica. */
+export async function pagarGastosFijos(cobros: { gasto_fijo_id: number; fecha_cobro: string }[]): Promise<void> {
+  await apiClient.post('/bd/finanzas/gastos-fijos/pagar', { cobros });
 }
 
 /** Libro unificado de ventas, compras, gastos y otros ingresos, con saldo acumulado. */

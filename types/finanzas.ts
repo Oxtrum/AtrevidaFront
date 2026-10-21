@@ -81,10 +81,44 @@ export interface GastoFijo {
   fecha_fin?: string | null;
   activo: boolean;
   notas?: string | null;
+  frecuencia: FrecuenciaGasto;
+  /** Fecha de cobro del último egreso pagado (puede ser futura si se pagó por adelantado). */
+  pagado_hasta?: string | null;
+  /** Siguiente cobro aún sin pagar a partir de hoy (o de lo ya pagado por adelantado). */
   proximo_cobro?: string | null;
+  /** Egresos pendientes cuya fecha ya pasó. */
+  atrasados: number;
 }
 
-export type GastoFijoInput = Omit<GastoFijo, 'id' | 'categoria_nombre' | 'local_nombre' | 'proximo_cobro'>;
+export type GastoFijoInput = Omit<
+  GastoFijo,
+  'id' | 'categoria_nombre' | 'local_nombre' | 'proximo_cobro' | 'pagado_hasta' | 'atrasados'
+>;
+
+export type FrecuenciaGasto =
+  | 'DIARIA'
+  | 'SEMANAL'
+  | 'QUINCENAL'
+  | 'MENSUAL'
+  | 'BIMESTRAL'
+  | 'TRIMESTRAL'
+  | 'SEMESTRAL'
+  | 'ANUAL';
+
+/** `porDias`: cuenta desde la fecha de inicio cada N días y no usa "día de cobro". */
+export const FRECUENCIAS: { value: FrecuenciaGasto; label: string; porDias?: number }[] = [
+  { value: 'DIARIA', label: 'Diaria', porDias: 1 },
+  { value: 'SEMANAL', label: 'Semanal', porDias: 7 },
+  { value: 'QUINCENAL', label: 'Quincenal', porDias: 14 },
+  { value: 'MENSUAL', label: 'Mensual' },
+  { value: 'BIMESTRAL', label: 'Bimestral (cada 2 meses)' },
+  { value: 'TRIMESTRAL', label: 'Trimestral (cada 3 meses)' },
+  { value: 'SEMESTRAL', label: 'Semestral (cada 6 meses)' },
+  { value: 'ANUAL', label: 'Anual' },
+];
+
+export const frecuenciaLabel = (f: FrecuenciaGasto) =>
+  (FRECUENCIAS.find((x) => x.value === f)?.label ?? f).replace(/ \(.*\)$/, '');
 
 export interface GastoFijoProximo {
   gasto_fijo_id: number;
@@ -100,7 +134,7 @@ export interface GastoFijoPendiente {
   gasto_fijo_id: number;
   nombre: string;
   categoria: string;
-  /** YYYY-MM */
+  /** YYYY-MM-DD: clave del periodo (primer día del mes, o la fecha si la frecuencia es por días). */
   periodo: string;
   fecha_cobro: string;
   monto: number;
