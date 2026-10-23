@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { AlertTriangle, CalendarPlus, UserPlus } from 'lucide-react';
 import { CustomSelect } from '../Custom/CustomSelectAdmin';
 import { TimeSlotPicker } from './TimeSlotPicker';
+import { horarioHabilitado } from '@/lib/utils/diaSeleccion';
 import { DaySelector } from './DaySelector';
 import { WeekStepper } from './WeekStepper';
 import PlanSelector from './PlanSelector';
@@ -249,6 +250,10 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
             {!sucursal ? (
               <div className={styles.pickerPlaceholder}>
                 Selecciona una sucursal para ver la disponibilidad
+              </div>
+            ) : !horarioHabilitado(dia, sucursal) ? (
+              <div className={styles.pickerPlaceholder}>
+                Elige primero el día de la semana para ver los horarios
               </div>
             ) : (
               <TimeSlotPicker

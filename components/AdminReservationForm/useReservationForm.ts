@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   DiaSemana, SUCURSALES,
@@ -11,6 +11,7 @@ import { useCrearReserva } from '@/lib/hooks/useCrearReserva';
 import { useReservas } from '@/lib/hooks/useReservas';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { getServiciosDB } from '@/lib/api/servicios';
+import { fechaDelDia } from '@/lib/utils/diaSeleccion';
 import { formatCostoServicio } from '@/lib/utils/serviceCost';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import { toast } from '../Shared/Toast';
@@ -80,7 +81,7 @@ export function useReservationForm(
   const [sucursal, setSucursal] = useState(initialData?.local || '');
   const effectiveSucursal = scopedLocalName || (adminLocalScope.ready ? sucursal : '');
   const [semanaIndex, setSemanaIndex] = useState(initialData?.semana ? parseInt(initialData.semana, 10) : 0);
-  const [dia, setDia] = useState<DiaSemana>(initialData?.dia || 'LUNES');
+  const [dia, setDia] = useState<DiaSemana | null>(initialData?.dia ?? null);
   const [horaDesde, setHoraDesde] = useState(normalizarHora(initialData?.hora_desde || ''));
   const [horaHasta, setHoraHasta] = useState(normalizarHora(initialData?.hora_hasta || ''));
   // Ciclo de 2 clicks en la rejilla: click de inicio (fija desde + duración
@@ -120,7 +121,7 @@ export function useReservationForm(
     if (duracionMin <= 0) return '';
 
     const duracionSlots = Math.ceil(duracionMin / SLOT_MIN);
-    const fechaDia = fechasSemana?.get(dia)?.fecha ?? new Date();
+    const fechaDia = fechaDelDia(fechasSemana, dia) ?? new Date();
     return calcularHoraFin(desde, duracionSlots, effectiveSucursal, fechaDia);
   };
   // ── Locales dinámicos ─────────────────────────
@@ -165,21 +166,7 @@ export function useReservationForm(
     return svc?.tipoEspacio || 'M';
   }, [servicio, serviciosAPI]);
 
-  // Auto-select first non-past day on mount (default 'LUNES' may be in the past mid-week)
-  // Si el día vino de una fecha elegida en el calendario, se respeta (no se pisa).
-  const respetarDiaRef = useRef(false);
-  useEffect(() => {
-    if (respetarDiaRef.current) {
-      respetarDiaRef.current = false;
-      return;
-    }
-    if (!initialData?.dia && fechasSemana) {
-      for (const [d, info] of fechasSemana) {
-        if (!info.esPasado) { setDia(d); break; }
-      }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fechasSemana]);
+  // El día no se autoselecciona: el staff debe elegirlo (si no, casi todo caía en lunes).
 
   // ── Fetch reservas cuando cambian sucursal o semana ─────────
   useEffect(() => {
@@ -213,7 +200,7 @@ export function useReservationForm(
     }
 
     // 2. Aplicar reglas de atención por sucursal
-    const fechaDia = fechasSemana?.get(dia)?.fecha ?? null;
+    const fechaDia = fechaDelDia(fechasSemana, dia) ?? null;
     if (fechaDia) {
       for (const hora of HORAS) {
         if (isSlotOutsideBusinessHours(effectiveSucursal, fechaDia, hora)) {
@@ -290,7 +277,7 @@ export function useReservationForm(
   }, [dia, effectiveSucursal, fechasSemana, reservasData, tipo, locales]);
 
   useEffect(() => {
-    const fechaDia = fechasSemana?.get(dia)?.fecha ?? null;
+    const fechaDia = fechaDelDia(fechasSemana, dia) ?? null;
     if (!horaDesde || !fechaDia) return;
 
     const selectedStatus = hoursAvailability.get(horaDesde);
@@ -393,10 +380,8 @@ export function useReservationForm(
   const handleSemanaChange = (value: string) => {
     const idx = Number(value);
     setSemanaIndex(idx);
-    const nuevasFechas = getFechasDeSemana(semanasDisponibles[idx].fechaInicio);
-    for (const [d, info] of nuevasFechas) {
-      if (!info.esPasado) { setDia(d); break; }
-    }
+    // Otra semana: el día anterior ya no vale, se debe elegir de nuevo.
+    setDia(null);
     setHoraDesde('');
     setHoraHasta('');
     setEsperandoAjuste(false);
@@ -404,7 +389,7 @@ export function useReservationForm(
   };
 
   /** Fecha ISO (YYYY-MM-DD) del día seleccionado en la semana visible. */
-  const fechaSeleccionadaISO = fechasSemana?.get(dia)?.fecha.toLocaleDateString('en-CA') ?? '';
+  const fechaSeleccionadaISO = fechaDelDia(fechasSemana, dia)?.toLocaleDateString('en-CA') ?? '';
 
   /** Rango de fechas alcanzables con el selector de semanas. */
   const rangoFechas = useMemo(() => {
@@ -430,8 +415,6 @@ export function useReservationForm(
     });
     if (idx < 0) return;
     const dias: DiaSemana[] = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
-    // Cambiar de semana dispara el efecto de autoselección: que no pise este día.
-    respetarDiaRef.current = idx !== semanaIndex;
     setSemanaIndex(idx);
     setDia(dias[dow - 1]);
     setHoraDesde('');
@@ -448,7 +431,7 @@ export function useReservationForm(
       // la horaHasta del servicio anterior: se cae a 1 hora, igual que
       // `handleSlotSelect`.
       const hasta = calcularHoraHasta(horaDesde, value);
-      const fechaDia = fechasSemana?.get(dia)?.fecha ?? new Date();
+      const fechaDia = fechaDelDia(fechasSemana, dia) ?? new Date();
       setHoraHasta(hasta || calcularHoraFin(horaDesde, SLOTS_POR_HORA, effectiveSucursal, fechaDia));
       // Ya hay un rango completo (inicio + duración del nuevo servicio): el
       // próximo click en la rejilla es de ajuste, no de inicio.
@@ -470,7 +453,7 @@ export function useReservationForm(
    * en vez de avisar un error (ver `slotRange.ts`).
    */
   const handleSlotSelect = (hora: string) => {
-    const fechaDia = fechasSemana?.get(dia)?.fecha ?? new Date();
+    const fechaDia = fechaDelDia(fechasSemana, dia) ?? new Date();
     const esSlotLibre = (h: string) => {
       const estado = hoursAvailability.get(h) ?? 'free';
       return estado === 'free' || (!agendarDirecto && estado === 'occupied');
@@ -494,7 +477,7 @@ export function useReservationForm(
   const validate = (): boolean => {
     const e = validateReservationForm(
       effectiveSucursal,
-      fechasSemana?.get(dia)?.fecha.toISOString().split('T')[0] || '',
+      fechaDelDia(fechasSemana, dia)?.toISOString().split('T')[0] || '',
       cliente,
       numeroTelefono,
       servicio,
@@ -522,7 +505,7 @@ export function useReservationForm(
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const fechaDia = fechasSemana?.get(dia)?.fecha;
+    const fechaDia = fechaDelDia(fechasSemana, dia);
     const fechaISO = fechaDia ? fechaDia.toISOString().split('T')[0] : '';
     if (!fechaISO) {
       // Los errores van también al toast: el aviso del tope del formulario
@@ -621,7 +604,7 @@ export function useReservationForm(
 
   /** El staff aceptó el rango tal como lo dejó: recién ahí se escribe. */
   const confirmarDuracion = () => {
-    const fechaISO = fechasSemana?.get(dia)?.fecha?.toISOString().split('T')[0] ?? '';
+    const fechaISO = fechaDelDia(fechasSemana, dia)?.toISOString().split('T')[0] ?? '';
     if (!fechaISO) {
       setConfirmandoDuracion(false);
       toast.error('No se pudo determinar la fecha. Elige de nuevo el día.');

@@ -12,7 +12,7 @@ interface DayInfo {
 
 interface DaySelectorProps {
   dias: DayInfo[];
-  diaActivo: DiaSemana;
+  diaActivo: DiaSemana | null;
   onChange: (dia: DiaSemana) => void;
 }
 
