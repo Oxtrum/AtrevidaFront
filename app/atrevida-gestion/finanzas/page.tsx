@@ -278,9 +278,9 @@ function MovimientosPanel() {
           <StatCard label="Egresos pagados" value={money(totales?.egresos ?? 0)} sublabel="Gastos fijos, variables y compras" loading={loading} accentColor="#ec008c" />
           <StatCard label="Balance" value={money(totales?.balance ?? 0)} sublabel={nombreLocal ?? 'Todas las sucursales'} loading={loading} accentColor="#14aeef" />
           <StatCard
-            label="Pendientes"
-            value={`${money(totales?.por_cobrar ?? 0)} / ${money(totales?.por_pagar ?? 0)}`}
-            sublabel="Por cobrar / por pagar · no entran al balance"
+            label="Por pagar"
+            value={money(totales?.por_pagar ?? 0)}
+            sublabel={`Por cobrar ${money(totales?.por_cobrar ?? 0)} · no entran al balance`}
             loading={loading}
             accentColor="#f59e0b"
           />
