@@ -17,6 +17,7 @@ export const CONFIG_DEFAULTS: ConfiguracionSistema = {
   'rrhh.aporte_laboral_pct': 12.71,
   'rrhh.aporte_patronal_pct': 16.71,
   'rrhh.dias_mes_faltas': 30,
+  'publico.mostrar_paquetes': true,
 };
 
 // Caché a nivel de módulo: moneda y política se leen en muchas pantallas.

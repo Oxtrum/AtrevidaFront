@@ -13,3 +13,13 @@ export async function actualizarConfiguracion(
   const res = await apiClient.patch<ApiResponse<{ configuracion: ConfiguracionSistema }>>('/bd/configuracion', patch);
   return res.data.configuracion;
 }
+
+export interface ConfiguracionPublica {
+  mostrar_paquetes: boolean;
+}
+
+/** GET /bd/configuracion/publica — lo que la página principal necesita; no requiere sesión. */
+export async function getConfiguracionPublica(): Promise<ConfiguracionPublica> {
+  const res = await apiClient.get<ApiResponse<ConfiguracionPublica>>('/bd/configuracion/publica', { auth: 'none' });
+  return res.data;
+}

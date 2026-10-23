@@ -260,4 +260,5 @@ export interface ConfiguracionSistema {
   'rrhh.aporte_laboral_pct': number;
   'rrhh.aporte_patronal_pct': number;
   'rrhh.dias_mes_faltas': number;
+  'publico.mostrar_paquetes': boolean;
 }

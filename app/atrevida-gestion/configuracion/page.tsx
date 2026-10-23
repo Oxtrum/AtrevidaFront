@@ -10,6 +10,7 @@ import {
   Eye,
   EyeOff,
   KeyRound,
+  LayoutTemplate,
   LockKeyhole,
   Package2,
   Scissors,
@@ -117,6 +118,15 @@ const OPTIONS = [
     href: '/atrevida-gestion/configuracion/categorias-inventario',
     color: '#06B6D4',
     colorRgb: '6, 182, 212',
+    adminSysOnly: true,
+  },
+  {
+    title: 'Página principal',
+    description: 'Mostrar u ocultar paquetes en la web pública',
+    icon: <LayoutTemplate size={24} strokeWidth={1.5} />,
+    href: '/atrevida-gestion/configuracion/pagina-principal',
+    color: '#EC008C',
+    colorRgb: '236, 0, 140',
     adminSysOnly: true,
   },
   {

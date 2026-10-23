@@ -9,6 +9,7 @@ import section from '@/components/Servicios/Servicios.module.css';
 import styles from './Paquetes.module.css';
 import { buildBusinessWhatsappUrl } from '@/lib/utils/whatsapp';
 import { PAGE_LIMIT, type PaginationMetadata } from '@/lib/api/pagination';
+import { useSeccionPaquetes } from '@/lib/hooks/useSeccionPaquetes';
 
 const INSTAGRAM = 'https://instagram.com/atrevida.fit';
 
@@ -82,6 +83,7 @@ function serviciosUnicos(base: PaqueteDetalle['servicios_base']): string[] {
 }
 
 export default function Paquetes() {
+  const seccionVisible = useSeccionPaquetes();
   const [paquetes, setPaquetes] = useState<PaqueteDetalle[]>([]);
   const [loading, setLoading] = useState(true);
 	const [loadingMore, setLoadingMore] = useState(false);
@@ -97,7 +99,7 @@ export default function Paquetes() {
   useEffect(() => {
     let active = true;
     const controller = new AbortController();
-    getPaquetesDB({ limit: PAGE_LIMIT }, controller.signal)
+    getPaquetesDB({ limit: PAGE_LIMIT, publico: true }, controller.signal)
       .then((res) => {
 		if (active) {
 			setPaquetes(res.data?.paquetes ?? []);
@@ -125,7 +127,7 @@ export default function Paquetes() {
 		setLoadingMore(true);
 		setLoadMoreError(null);
 		try {
-			const res = await getPaquetesDB({ limit: PAGE_LIMIT, cursor: pagination.next_cursor }, controller.signal);
+			const res = await getPaquetesDB({ limit: PAGE_LIMIT, cursor: pagination.next_cursor, publico: true }, controller.signal);
 			if (loadMoreControllerRef.current !== controller) return;
 			setPaquetes((current) => {
 				const seen = new Set(current.map((item) => item.paquete.id));
@@ -191,6 +193,9 @@ export default function Paquetes() {
 
     return () => ctx.revert();
   }, [loading, paquetes]);
+
+  // Oculta desde Configuración → Página principal; el catálogo sigue en administración.
+  if (seccionVisible === false) return null;
 
   return (
     <section ref={sectionRef} className={styles.paquetes} id="paquetes">

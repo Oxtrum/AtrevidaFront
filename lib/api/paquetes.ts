@@ -40,6 +40,8 @@ export interface PaqueteDetalle {
     categoria?: string;
     moneda: string;
     activo: boolean;
+    /** Si se muestra en la página principal; ausente en backends anteriores (cuenta como visible). */
+    visible_publico?: boolean;
   };
   servicios_base: PaqueteServicioBase[];
   locales: PaqueteLocal[];
@@ -74,6 +76,8 @@ export interface GetPaquetesParams extends PaginationParams {
   categoria?: string;
   nombre?: string;
   activo?: boolean;
+  /** `true`: solo los paquetes visibles en la página principal. */
+  publico?: boolean;
 }
 
 /** GET /bd/paquetes — lista paquetes filtrados. */
@@ -90,6 +94,7 @@ export async function getPaquetesDB(
         categoria: params.categoria,
         nombre: params.nombre,
         activo: params.activo?.toString(),
+        publico: params.publico?.toString(),
 		limit: params.limit,
 		cursor: params.cursor,
 		include_total: params.include_total,
@@ -119,4 +124,9 @@ export async function actualizarPaquete(
 /** DELETE /bd/paquetes/{id} — borrado lógico (activo=false). */
 export async function eliminarPaquete(id: number): Promise<ApiResponse<unknown>> {
   return apiClient.delete<ApiResponse<unknown>>(`/bd/paquetes/${id}`);
+}
+
+/** PATCH /bd/paquetes/{id}/visibilidad — muestra u oculta el paquete en la página principal sin darlo de baja. */
+export async function cambiarVisibilidadPaquete(id: number, visible: boolean): Promise<ApiResponse<unknown>> {
+  return apiClient.patch<ApiResponse<unknown>>(`/bd/paquetes/${id}/visibilidad`, { visible_publico: visible });
 }
