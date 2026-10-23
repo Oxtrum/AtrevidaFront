@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { ChoiceChips, FormField, FormModal, FormSubmitError } from '@/components/AdminConfig';
+import { FormField, FormModal, FormSubmitError } from '@/components/AdminConfig';
 import { toast } from '@/components/Shared/Toast';
 import {
   cambiarEstadoMovimientoFinanciero,
@@ -9,7 +9,7 @@ import {
   getMovimientosFinancieros,
   pagarGastosFijos,
 } from '@/lib/api/finanzas';
-import { formatDateISO, formatMoney, todayISO } from '@/lib/utils/format';
+import { formatDateISO, formatMoney } from '@/lib/utils/format';
 import { frecuenciaLabel, type GastoFijo } from '@/types/finanzas';
 import { EstadoMovimientoBadge } from './EstadoMovimientoBadge';
 import styles from './PagarGastoFijoModal.module.css';
@@ -31,61 +31,56 @@ interface Pago {
   movimientoId?: number;
 }
 
-type ModoAdelanto = 'cantidad' | 'fecha';
-
-const MODOS_ADELANTO: { value: ModoAdelanto; label: string }[] = [
-  { value: 'cantidad', label: 'Por cantidad' },
-  { value: 'fecha', label: 'Hasta una fecha' },
-];
-
-/** Fecha local YYYY-MM-DD desplazada `dias` días. */
-function sumarDias(iso: string, dias: number): string {
-  const [y, m, d] = iso.split('-').map(Number);
-  const f = new Date(y, m - 1, d + dias);
-  return `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, '0')}-${String(f.getDate()).padStart(2, '0')}`;
-}
-
 const plural = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`;
 const aEntero = (texto: string) => Math.max(0, parseInt(texto, 10) || 0);
 
 /**
- * Paga los pagos atrasados de UN gasto fijo y/o adelanta los siguientes. Los pagos atrasados se pagan primero
- * (los más antiguos) y solo con todos al día se habilita adelantar. Muestra qué se va a pagar y el total.
+ * Paga UN gasto fijo con un solo número: los primeros pagos cubren lo atrasado (los más antiguos) y lo que sobre se
+ * adelanta a continuación del último pago cubierto. Por defecto propone pagar todo lo pendiente.
  */
 export function PagarGastoFijoModal({ isOpen, gasto, moneda, onClose, onPaid }: PagarGastoFijoModalProps) {
-  const hoy = todayISO();
   const [vencidos, setVencidos] = useState<Pago[]>([]);
   const [futuros, setFuturos] = useState<Pago[]>([]);
+  // Cuántos pagos más se pueden adelantar dentro de la vigencia; null = sin tope (gasto sin fecha de fin).
+  const [maxAdelanto, setMaxAdelanto] = useState<number | null>(null);
+  // Fecha del último cobro que el gasto llega a generar (por su fecha de fin); null = sin fin.
+  const [ultimoPago, setUltimoPago] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
-  // Texto para poder borrar y reescribir. Pendientes: null = todos.
-  const [cantidadVencidos, setCantidadVencidos] = useState<string | null>(null);
-  const [modoAdelanto, setModoAdelanto] = useState<ModoAdelanto>('cantidad');
-  const [cantidadAdelanto, setCantidadAdelanto] = useState('0');
-  const [hasta, setHasta] = useState('');
+  // Texto para poder borrar y reescribir. null = tantos como pendientes.
+  const [cantidad, setCantidad] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen || !gasto) return;
     let activo = true;
     setLoading(true);
     setError('');
-    setCantidadVencidos(null);
-    setModoAdelanto('cantidad');
-    setCantidadAdelanto('0');
-    setHasta(sumarDias(hoy, 30));
+    setCantidad(null);
     setFuturos([]);
+    setMaxAdelanto(null);
+    setUltimoPago(null);
     Promise.all([
       getGastosFijosPendientes({ gasto_fijo_id: gasto.id }),
       getMovimientosFinancieros({ clase: 'FIJO', estado: 'PENDIENTE' }),
+      gasto.fecha_fin ? getGastosFijosPendientes({ hasta: gasto.fecha_fin, gasto_fijo_id: gasto.id }) : Promise.resolve(null),
     ])
-      .then(([sinCrear, registrados]) => {
+      .then(([sinCrear, registrados, adelantables]) => {
         if (!activo) return;
         const porCrear: Pago[] = sinCrear.map((p) => ({ key: `gf-${p.fecha_cobro}`, fecha: p.fecha_cobro, monto: p.monto, adelantado: false }));
         const yaRegistrados: Pago[] = registrados
           .filter((m) => m.gasto_fijo_id === gasto.id)
           .map((m) => ({ key: `mov-${m.id}`, fecha: m.fecha, monto: m.monto, adelantado: false, movimientoId: m.id }));
-        setVencidos([...yaRegistrados, ...porCrear].sort((a, b) => a.fecha.localeCompare(b.fecha)));
+        const atrasados = [...yaRegistrados, ...porCrear].sort((a, b) => a.fecha.localeCompare(b.fecha));
+        setVencidos(atrasados);
+        // Un pendiente que aún no vence también puede venir como "adelantable": ya cuenta como pendiente, no se repite.
+        const fechasPendientes = new Set(atrasados.map((p) => p.fecha.slice(0, 10)));
+        const futurosVigentes = adelantables ? adelantables.filter((p) => p.adelantado && !fechasPendientes.has(p.fecha_cobro.slice(0, 10))) : null;
+        setMaxAdelanto(futurosVigentes ? futurosVigentes.length : null);
+        if (futurosVigentes) {
+          const fechas = [...futurosVigentes.map((p) => p.fecha_cobro.slice(0, 10)), ...(gasto.pagado_hasta ? [gasto.pagado_hasta.slice(0, 10)] : [])].sort();
+          setUltimoPago(fechas[fechas.length - 1] ?? null);
+        }
       })
       .catch((err) => {
         if (activo) setError(err instanceof Error ? err.message : 'No se pudieron cargar los pagos');
@@ -96,31 +91,34 @@ export function PagarGastoFijoModal({ isOpen, gasto, moneda, onClose, onPaid }: 
     return () => {
       activo = false;
     };
-  }, [isOpen, gasto, hoy]);
+  }, [isOpen, gasto]);
 
-  const nVencidos = cantidadVencidos === null ? vencidos.length : Math.min(vencidos.length, aEntero(cantidadVencidos));
+  const maxTotal = maxAdelanto === null ? null : vencidos.length + maxAdelanto;
+  const pedido = cantidad === null ? vencidos.length : aEntero(cantidad);
+  const nTotal = maxTotal === null ? pedido : Math.min(maxTotal, pedido);
+  // Los primeros cubren lo atrasado; el resto se adelanta.
+  const nVencidos = Math.min(vencidos.length, nTotal);
+  const nAdelanto = nTotal - nVencidos;
   const vencidosElegidos = useMemo(() => vencidos.slice(0, nVencidos), [vencidos, nVencidos]);
-  // Adelantar solo con todo lo atrasado al día: sin pendientes, o pagándolos todos ahora.
-  const puedeAdelantar = nVencidos === vencidos.length;
-  const nAdelanto = aEntero(cantidadAdelanto);
-  const pideFuturos = puedeAdelantar && (modoAdelanto === 'cantidad' ? nAdelanto > 0 : !!hasta);
+  const pideFuturos = nAdelanto > 0;
 
-  // Los pagos futuros se piden al servidor según lo elegido (cuántos o hasta qué fecha), sin tope artificial.
+  // Los pagos a adelantar se piden al servidor: los siguientes al último cubierto, sin tope artificial.
   useEffect(() => {
     if (!isOpen || !gasto || !pideFuturos) {
       setFuturos([]);
       return;
     }
     let activo = true;
-    const opts = modoAdelanto === 'fecha' ? { hasta, gasto_fijo_id: gasto.id } : { adelantar: nAdelanto, gasto_fijo_id: gasto.id };
-    getGastosFijosPendientes(opts)
+    const fechasPendientes = new Set(vencidos.map((p) => p.fecha.slice(0, 10)));
+    getGastosFijosPendientes({ adelantar: nAdelanto, gasto_fijo_id: gasto.id })
       .then((lista) => {
         if (!activo) return;
         setFuturos(
           lista
-            .filter((p) => p.adelantado)
+            .filter((p) => p.adelantado && !fechasPendientes.has(p.fecha_cobro.slice(0, 10)))
             .map((p) => ({ key: `gf-${p.fecha_cobro}`, fecha: p.fecha_cobro, monto: p.monto, adelantado: true }))
-            .sort((a, b) => a.fecha.localeCompare(b.fecha)),
+            .sort((a, b) => a.fecha.localeCompare(b.fecha))
+            .slice(0, nAdelanto),
         );
       })
       .catch((err) => {
@@ -129,13 +127,19 @@ export function PagarGastoFijoModal({ isOpen, gasto, moneda, onClose, onPaid }: 
     return () => {
       activo = false;
     };
-  }, [isOpen, gasto, pideFuturos, modoAdelanto, nAdelanto, hasta]);
+  }, [isOpen, gasto, pideFuturos, nAdelanto, vencidos]);
 
   const adelantados = useMemo(() => (pideFuturos ? futuros : []), [pideFuturos, futuros]);
   const seleccion = useMemo(() => [...vencidosElegidos, ...adelantados], [vencidosElegidos, adelantados]);
   const total = seleccion.reduce((acc, p) => acc + p.monto, 0);
-  const faltanFuturos = pideFuturos && modoAdelanto === 'cantidad' && futuros.length < nAdelanto;
-  const sinFuturosHasta = pideFuturos && modoAdelanto === 'fecha' && futuros.length === 0;
+
+  const tope = maxTotal === null ? '' : ` Máximo ${maxTotal}${ultimoPago ? `: el último pago es el ${formatDateISO(ultimoPago)}` : ''}.`;
+  const hint =
+    maxTotal === 0
+      ? 'Este gasto ya está cubierto hasta el final de su vigencia: no queda nada por pagar.'
+      : vencidos.length > 0
+        ? `${plural(vencidos.length, 'pendiente', 'pendientes')}: se pagan primero. Si pones más, el resto se adelanta.${tope}`
+        : `Está al día: cada pago que pongas es un adelanto${gasto?.proximo_cobro ? `, desde el ${formatDateISO(gasto.proximo_cobro)}` : ''}.${tope}`;
 
   const handlePagar = async () => {
     if (!gasto || seleccion.length === 0) return;
@@ -183,6 +187,9 @@ export function PagarGastoFijoModal({ isOpen, gasto, moneda, onClose, onPaid }: 
           <dl className={styles.facts}>
             <div className={styles.fact}><dt>Pagado hasta</dt><dd>{gasto.pagado_hasta ? formatDateISO(gasto.pagado_hasta) : 'Sin pagos'}</dd></div>
             <div className={styles.fact}><dt>Siguiente pago</dt><dd>{gasto.proximo_cobro ? formatDateISO(gasto.proximo_cobro) : '—'}</dd></div>
+            <div className={styles.fact} title={gasto.fecha_fin ? `El gasto termina el ${formatDateISO(gasto.fecha_fin)}: no genera más cobros` : 'El gasto no tiene fecha de fin'}>
+              <dt>Último pago</dt><dd>{gasto.fecha_fin ? (ultimoPago ? formatDateISO(ultimoPago) : '—') : 'Sin fin'}</dd>
+            </div>
           </dl>
         </div>
 
@@ -191,69 +198,19 @@ export function PagarGastoFijoModal({ isOpen, gasto, moneda, onClose, onPaid }: 
         {!loading && (
           <>
             <div className={styles.controls}>
-            <div className={styles.section}>
-              <div className={styles.sectionHead}>
-                <h4 className={styles.sectionTitle}>Pagos pendientes</h4>
-              </div>
-              <div>
-                <FormField
-                  label={vencidos.length === 0 ? 'Cuántos pagos pendientes pagar' : `Cuántos pagos pendientes pagar (de ${vencidos.length})`}
-                  htmlFor="pgf-cantidad"
-                  hint={vencidos.length === 0 ? 'No hay pagos pendientes: este gasto está al día.' : 'Se pagan primero los más antiguos.'}
-                >
-                  <input
-                    id="pgf-cantidad"
-                    type="number"
-                    inputMode="numeric"
-                    min={0}
-                    max={vencidos.length}
-                    disabled={vencidos.length === 0}
-                    value={vencidos.length === 0 ? '0' : (cantidadVencidos ?? String(vencidos.length))}
-                    onChange={(e) => setCantidadVencidos(e.target.value)}
-                    onBlur={() => setCantidadVencidos(String(nVencidos))}
-                  />
-                </FormField>
-              </div>
-            </div>
-
-            <div className={styles.section}>
-              <div className={styles.sectionHead}>
-                <h4 className={styles.sectionTitle}>Adelantar pagos</h4>
-                <ChoiceChips variant="toggle" options={MODOS_ADELANTO} value={modoAdelanto} onChange={setModoAdelanto} ariaLabel="Cómo elegir los pagos a adelantar" />
-              </div>
-              <div>
-                {modoAdelanto === 'cantidad' ? (
-                  <FormField
-                    label="Cuántos pagos adelantar"
-                    htmlFor="pgf-adelanto"
-                    hint={puedeAdelantar ? undefined : `Para adelantar, primero paga todos los pagos pendientes (escribe ${vencidos.length} arriba).`}
-                  >
-                    <input
-                      id="pgf-adelanto"
-                      type="number"
-                      inputMode="numeric"
-                      min={0}
-                      disabled={!puedeAdelantar}
-                      value={cantidadAdelanto}
-                      onChange={(e) => setCantidadAdelanto(e.target.value)}
-                      onBlur={() => setCantidadAdelanto(String(nAdelanto))}
-                    />
-                  </FormField>
-                ) : (
-                  <FormField
-                    label="Adelantar hasta el"
-                    htmlFor="pgf-hasta"
-                    hint={puedeAdelantar ? 'Incluye los pagos con fecha hasta ese día.' : `Para adelantar, primero paga todos los pagos pendientes (escribe ${vencidos.length} arriba).`}
-                  >
-                    <input id="pgf-hasta" type="date" disabled={!puedeAdelantar} value={hasta} min={sumarDias(hoy, 1)} onChange={(e) => setHasta(e.target.value)} />
-                  </FormField>
-                )}
-              </div>
-              {faltanFuturos && (
-                <p className={styles.hint}>Este gasto solo tiene {plural(futuros.length, 'pago futuro', 'pagos futuros')} dentro de su vigencia.</p>
-              )}
-              {sinFuturosHasta && <p className={styles.hint}>No hay pagos hasta esa fecha dentro de la vigencia del gasto.</p>}
-            </div>
+              <FormField label="Cuántos pagos pagar" htmlFor="pgf-cantidad" hint={hint}>
+                <input
+                  id="pgf-cantidad"
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  max={maxTotal ?? undefined}
+                  disabled={maxTotal === 0}
+                  value={maxTotal === 0 ? '0' : (cantidad ?? String(vencidos.length))}
+                  onChange={(e) => setCantidad(e.target.value)}
+                  onBlur={() => setCantidad(String(nTotal))}
+                />
+              </FormField>
             </div>
 
             <div className={styles.section}>

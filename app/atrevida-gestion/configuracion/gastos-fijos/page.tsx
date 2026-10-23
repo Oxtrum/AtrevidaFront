@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import { Banknote, CalendarClock, Pencil, Plus, Power, RotateCcw } from 'lucide-react';
-import { AdminButton, AdminPageShell, ConfirmDialog, DataTable, PageHeader, RowActionsMenu, StatusBadge } from '@/components/AdminConfig';
+import { AdminButton, AdminPageShell, ConfirmDialog, DataTable, PageHeader, RowActionsMenu } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import { GastoFijoFormModal } from '@/components/AdminFinanzas/GastoFijoFormModal';
+import { EstadoPagoChip, PagadoHastaCell, ProximoCobroCell } from '@/components/AdminFinanzas/PagadoHastaCell';
 import { PagarGastoFijoModal } from '@/components/AdminFinanzas/PagarGastoFijoModal';
 import { toast } from '@/components/Shared/Toast';
 import { desactivarGastoFijo, getCategoriasFinancieras, getGastosFijos } from '@/lib/api/finanzas';
@@ -62,20 +63,10 @@ export default function GastosFijosPage() {
         <span>{frecuenciaLabel(v as GastoFijo['frecuencia'])}</span>
       ),
     },
-    { key: 'pagado_hasta', label: 'Pagado hasta', searchable: false, render: (v) => ((v as string | null) ? formatDateISO(v as string) : <span style={{ opacity: 0.6 }}>Sin pagos</span>) },
-    {
-      key: 'proximo_cobro',
-      label: 'Siguiente cobro',
-      searchable: false,
-      render: (v, r) => (
-        <span>
-          {v ? formatDateISO(v as string) : <span style={{ opacity: 0.6 }}>—</span>}
-          {r.atrasados > 0 && <span style={{ display: 'block' }}><StatusBadge tone="danger">{r.atrasados} atrasado{r.atrasados === 1 ? '' : 's'}</StatusBadge></span>}
-        </span>
-      ),
-    },
+    { key: 'pagado_hasta', label: 'Pagado hasta', searchable: false, render: (_v, r) => <PagadoHastaCell gasto={r} /> },
+    { key: 'proximo_cobro', label: 'Siguiente cobro', searchable: false, render: (_v, r) => <ProximoCobroCell gasto={r} /> },
     { key: 'fecha_fin', label: 'Vigencia', searchable: false, render: (_v, r) => `${formatDateISO(r.fecha_inicio)} → ${r.fecha_fin ? formatDateISO(r.fecha_fin) : 'sin fin'}` },
-    { key: 'activo', label: 'Estado', searchable: false, render: (v) => <StatusBadge tone={v ? 'success' : 'neutral'}>{v ? 'Activo' : 'Inactivo'}</StatusBadge> },
+    { key: 'activo', label: 'Estado', searchable: false, render: (_v, r) => <EstadoPagoChip gasto={r} /> },
     {
       key: 'acciones',
       label: '',

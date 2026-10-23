@@ -1,0 +1,16 @@
+.date {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.neutro { font-weight: 500; }
+.atrasado { color: #ff7b93; }
+.adelantado { color: #38bdf8; }
+.al-dia { color: #34d399; }
+.sin-pagos,
+.inactivo { color: var(--admin-text-dim); font-weight: 500; }
+
+:global([data-admin-theme='light']) .atrasado { color: #b91c1c; }
+:global([data-admin-theme='light']) .adelantado { color: #0369a1; }
+:global([data-admin-theme='light']) .al-dia { color: #047857; }
