@@ -172,10 +172,6 @@
   transform: translateY(-1px);
 }
 
-.dayChip:hover:not(:disabled):not(.dayChipActive) .dayChipDate {
-  color: var(--admin-accent-primary);
-}
-
 .dayChipActive {
   background: var(--admin-grad-primary) !important;
   border-color: var(--admin-accent-primary) !important;
