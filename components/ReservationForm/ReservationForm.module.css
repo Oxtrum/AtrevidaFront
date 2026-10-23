@@ -1295,8 +1295,8 @@
 }
 
 .dayChip:hover:not(:disabled) {
-  border-color: rgba(236, 0, 140, 0.55);
-  background: rgba(236, 0, 140, 0.08);
+  border-color: rgba(236, 0, 140, 0.70);
+  background: rgba(236, 0, 140, 0.16);
   color: #F5F5F5;
   transform: translateY(-2px);
 }

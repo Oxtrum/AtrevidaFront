@@ -167,8 +167,13 @@
 }
 
 .dayChip:hover:not(:disabled) {
-  background: var(--admin-surface-3);
-  border-color: var(--admin-border);
+  background: rgba(236, 0, 140, 0.12);
+  border-color: rgba(236, 0, 140, 0.55);
+  transform: translateY(-1px);
+}
+
+.dayChip:hover:not(:disabled):not(.dayChipActive) .dayChipDate {
+  color: var(--admin-accent-primary);
 }
 
 .dayChipActive {

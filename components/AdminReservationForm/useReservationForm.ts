@@ -11,6 +11,8 @@ import { useCrearReserva } from '@/lib/hooks/useCrearReserva';
 import { useReservas } from '@/lib/hooks/useReservas';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { getServiciosDB } from '@/lib/api/servicios';
+import { useMontado } from '@/lib/hooks/useMontado';
+import { filtrarErroresResueltos } from '@/lib/utils/erroresResueltos';
 import { errorDiaSemana, fechaDelDia } from '@/lib/utils/diaSeleccion';
 import { formatCostoServicio } from '@/lib/utils/serviceCost';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
@@ -151,7 +153,10 @@ export function useReservationForm(
   }, [scopedLocalName]);
 
   // ── Semanas ────────────────────────────────────
-  const semanasDisponibles = useMemo(() => generarSemanas(), []);
+  // Depende de la fecha de hoy: hasta montar en el cliente no se calcula, para
+  // que el HTML del servidor coincida con la primera hidratación.
+  const montado = useMontado();
+  const semanasDisponibles = useMemo(() => (montado ? generarSemanas() : []), [montado]);
   const semanaActual = semanasDisponibles[semanaIndex] || semanasDisponibles[0];
   const fechasSemana = useMemo(
     () => {
@@ -644,6 +649,11 @@ export function useReservationForm(
   /** Cerrar sin reservar: el formulario queda intacto para corregir el horario. */
   const cancelarConfirmacionDuracion = () => setConfirmandoDuracion(false);
 
+  const erroresVisibles = filtrarErroresResueltos(errors, {
+    sucursal: effectiveSucursal, dia, servicio, cliente,
+    numeroTelefono, telefonoE164, horaDesde, horaHasta,
+  });
+
   return {
     // State
     sucursal: effectiveSucursal, setSucursal: setScopedSucursal,
@@ -657,7 +667,9 @@ export function useReservationForm(
     planId, setPlanId,
     agendarDirecto, setAgendarDirecto,
     servicio,
-    error, errors,
+    error,
+    // Los avisos rojos caen solos al completar el campo.
+    errors: erroresVisibles,
     slotWarning,
     esperandoAjuste,
     confirmandoDuracion,
