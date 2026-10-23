@@ -3,7 +3,7 @@
 import { useRef, useEffect, useState, useMemo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import gsap from 'gsap';
-import { CalendarRange } from 'lucide-react';
+import { Banknote, CalendarRange, Pencil, Trash2 } from 'lucide-react';
 import { DiaSemana, EstadoReserva, ReservaBD, ReservaDetalle, generarSemanas, getFechasDeSemana } from '@/types/reserva';
 import { SLOTS_POR_HORA, calcularHoraFin } from '@/lib/constants/reservationForm';
 import { CalendarAdmin } from '@/components/Calendar';
@@ -11,16 +11,38 @@ import { useLocales } from '@/lib/hooks/useLocales';
 import { useReservasFiltradas } from '@/lib/hooks/useReservasFiltradas';
 import type { ReservaTipoBackend } from '@/lib/api/reservas';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
-import { PageHeader, AdminPanel, ConfirmDialog, CursorPagination } from '@/components/AdminConfig';
+import { DataTable, Column, RowActionsMenu, PageHeader, AdminPanel, ConfirmDialog, CursorPagination } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { Input } from '@/components/Shared';
 import Header from '@/components/AdminHeader/Header';
 import { eliminarReservaDB } from '@/lib/api/reservas';
 import { toast } from '@/components/Shared/Toast';
-import { ReservaDetailModal, ReservasLista, ReservasToolbar } from '@/components/AdminReservas';
+import { ReservaDetailModal, ReservasToolbar } from '@/components/AdminReservas';
+import { POR_COBRAR_HINT, RESERVA_ESTADO_HINT, ReservaEstadoPill, ReservaNote, ReservaStockHint } from '@/components/AdminReservas';
+import type { ReservaEstadoPillTone } from '@/components/AdminReservas/ReservaEstadoPill';
 import styles from './page.module.css';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
 import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
+
+interface ReservaRow extends Record<string, unknown> {
+  id: number;
+  local: string;
+  tipo: string;
+  fecha: string;
+  hora_desde: string;
+  hora_hasta: string;
+  cliente: string;
+  numero_telefono?: string;
+  servicio: string;
+  servicio_solicitado?: string | null;
+  servicio_confirmado?: string | null;
+  precio?: number;
+  notas?: string;
+  estado?: EstadoReserva;
+  /** Faltaba stock de insumos al agendar (trastienda). */
+  alerta_inventario?: boolean;
+  estado_cobro?: 'COBRADA' | 'CUBIERTA_PAQUETE' | 'POR_COBRAR';
+}
 
 const DEFAULT_LOCAL = 'SAN MARTIN';
 const LOCAL_SCOPE_PENDING = '__LOCAL_SCOPE_PENDING__';
@@ -268,6 +290,107 @@ export default function AdminReservasPage() {
     { value: 'COMPLETADO', label: 'Completado' },
   ];
 
+  const ESTADO_TONE: Record<string, ReservaEstadoPillTone> = {
+    AGENDADO: 'info',
+    COMPLETADO: 'success',
+    RECHAZADO: 'danger',
+    PENDIENTE: 'pendiente',
+  };
+
+  const TIPO_COLORS: Record<string, { bg: string; color: string }> = {
+    mesa: { bg: 'rgba(236,0,140,0.12)', color: '#EC008C' },
+    bicicleta: { bg: 'rgba(146,39,143,0.12)', color: '#92278F' },
+  };
+
+  const columns: Column<ReservaRow>[] = [
+    {
+      key: 'fecha',
+      label: 'Fecha',
+      render: (_v, row) => <span style={{ fontVariantNumeric: 'tabular-nums' }}>{row.fecha as string}</span>,
+    },
+    {
+      key: 'hora_desde',
+      label: 'Hora',
+      searchable: false,
+      render: (_v, row) => (
+        <span style={{ fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+          {row.hora_desde as string} – {row.hora_hasta as string}
+        </span>
+      ),
+    },
+    {
+      key: 'cliente',
+      label: 'Cliente',
+      render: (_v, row) => <span>{(row.cliente as string) || '—'}</span>,
+    },
+    {
+      key: 'tipo',
+      label: 'Tipo',
+      render: (_v, row) => {
+        const t = ((row.tipo as string) || '').toLowerCase();
+        const key = t === 'm' ? 'mesa' : t === 'b' ? 'bicicleta' : t;
+        const c = TIPO_COLORS[key] ?? { bg: 'rgba(255,255,255,0.08)', color: 'inherit' };
+        const label = key === 'mesa' ? 'Mesa' : key === 'bicicleta' ? 'Bicicleta' : key || '—';
+        return (
+          <span style={{ background: c.bg, color: c.color, borderRadius: 6, padding: '2px 8px', fontSize: '0.73rem', fontWeight: 600, whiteSpace: 'nowrap' }}>
+            {label}
+          </span>
+        );
+      },
+    },
+    {
+      key: 'servicio',
+      label: 'Servicio',
+      render: (_v, row) => (
+        <span style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
+          {(row.servicio_confirmado as string) || (row.servicio as string) || (row.servicio_solicitado as string) || 'Por definir'}
+        </span>
+      ),
+    },
+    {
+      key: 'estado',
+      label: 'Estado',
+      searchable: false,
+      render: (_v, row) => {
+        const e = (row.estado as string) || 'PENDIENTE';
+        return (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+            <ReservaEstadoPill tone={ESTADO_TONE[e] ?? 'neutral'} hint={RESERVA_ESTADO_HINT[e]}>{e}</ReservaEstadoPill>
+            {row.alerta_inventario === true && e !== 'COMPLETADO' && <ReservaStockHint />}
+            {e === 'COMPLETADO' && row.estado_cobro === 'POR_COBRAR' && <ReservaNote warn hint={POR_COBRAR_HINT}>Por cobrar</ReservaNote>}
+          </span>
+        );
+      },
+    },
+    {
+      key: 'local',
+      label: 'Local',
+      render: (_v, row) => (
+        <span style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 6, padding: '2px 8px', fontSize: '0.73rem', whiteSpace: 'nowrap' }}>
+          {row.local as string}
+        </span>
+      ),
+    },
+    {
+      key: 'acciones',
+      label: '',
+      searchable: false,
+      render: (_v, row) => (
+        <div onClick={e => e.stopPropagation()}>
+          <RowActionsMenu actions={[
+            ...(row.estado === 'COMPLETADO' && row.estado_cobro === 'POR_COBRAR'
+              ? [{ label: 'Cobrar', icon: <Banknote size={12} strokeWidth={2} />, onClick: () => router.push(`/atrevida-gestion/caja?reserva=${row.id}`) }]
+              : []),
+            ...(row.estado !== 'COMPLETADO'
+              ? [{ label: 'Editar', icon: <Pencil size={12} strokeWidth={2} />, onClick: () => router.push(`/atrevida-gestion/reservas/editar/${row.id}`) }]
+              : []),
+            { label: 'Eliminar', icon: <Trash2 size={12} strokeWidth={2} />, onClick: () => requestDeleteReserva(row as unknown as ReservaBD), variant: 'danger', disabled: deletingId === (row.id as number) },
+          ]} />
+        </div>
+      ),
+    },
+  ];
+
   const handleTipoFiltroChange = (value: string) => {
     setFiltroTipo(value === 'mesa' || value === 'bicicleta' ? value : '');
   };
@@ -369,14 +492,15 @@ export default function AdminReservasPage() {
 
           {vistaActiva === 'lista' && (
             <AdminPanel>
-              <ReservasLista
-                reservas={reservas as unknown as ReservaBD[]}
+              <DataTable<ReservaRow>
+                columns={columns}
+                data={reservas as unknown as ReservaRow[]}
                 loading={loading}
                 error={error}
-                deletingId={deletingId}
-                onSelect={setSelectedReserva}
-                onEdit={(r) => router.push(`/atrevida-gestion/reservas/editar/${r.id}`)}
-                onDelete={requestDeleteReserva}
+                getRowKey={(r) => r.id as number}
+                hideSearch
+                emptyMessage="No se encontraron reservas"
+                onRowClick={(row) => setSelectedReserva(row as unknown as ReservaBD)}
               />
 			  <CursorPagination page={pagination.page} totalPages={pagination.totalPages} hasNext={pagination.hasNext} loading={loading} onPrevious={pagination.previous} onNext={pagination.next} />
             </AdminPanel>
