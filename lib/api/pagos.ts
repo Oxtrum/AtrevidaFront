@@ -161,3 +161,42 @@ export async function getPagosResumenDB(
     },
   });
 }
+
+/** Un servicio vendido dentro de un pago, con el descuento del pago repartido en proporcion a su subtotal. */
+export interface VentaDetalleLinea {
+  codigo_pago: string;
+  /** Fecha y hora del pago (ISO). */
+  fecha: string;
+  local: string;
+  cliente_nombre: string;
+  cliente_nit: string;
+  cajero: string;
+  tipo_pago: string;
+  servicio: string;
+  cantidad: number;
+  precio_unitario: number;
+  subtotal: number;
+  descuento_prorrateado: number;
+  /** Total final del pago completo: se repite en cada linea del mismo pago. */
+  total_pago: number;
+}
+
+export interface VentasDetalleResponse {
+  filtros: { fecha_desde: string; fecha_hasta: string; local: string };
+  /** true si el periodo tiene mas lineas que el limite del servidor. */
+  truncado: boolean;
+  lineas: VentaDetalleLinea[];
+}
+
+/** Cada servicio vendido del periodo (pagos PAGADOS). Solo admin_sys. Base del Excel del libro financiero. */
+export async function getVentasDetalleDB(params: PagosResumenParams): Promise<VentasDetalleResponse> {
+  const scopedParams = withNombreLocalScope(params);
+  const res = await apiClient.get<ApiResponse<VentasDetalleResponse>>('/bd/pagos/ventas-detalle', {
+    params: {
+      fecha_desde: scopedParams.fecha_desde,
+      fecha_hasta: scopedParams.fecha_hasta,
+      local: scopedParams.local,
+    },
+  });
+  return res.data;
+}

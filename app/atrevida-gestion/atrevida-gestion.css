@@ -558,3 +558,20 @@
     padding: var(--admin-spacing-sm) var(--admin-spacing-md);
   }
 }
+
+/* Colores de graficos: ingresos azul y egresos magenta en toda la app. Validados (CVD y contraste) por tema. */
+[data-admin="true"] {
+  --admin-chart-ingreso: #0e9bd6;
+  --admin-chart-egreso: #ec008c;
+  --admin-chart-neutral: rgba(250, 250, 250, 0.34);
+  --admin-chart-grid: rgba(255, 255, 255, 0.08);
+  --admin-chart-surface: #14141c;
+}
+
+[data-admin="true"][data-admin-theme="light"] {
+  --admin-chart-ingreso: #0a7fb0;
+  --admin-chart-egreso: #c4007a;
+  --admin-chart-neutral: rgba(20, 16, 28, 0.32);
+  --admin-chart-grid: rgba(20, 16, 28, 0.09);
+  --admin-chart-surface: #ffffff;
+}

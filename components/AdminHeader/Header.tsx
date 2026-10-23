@@ -7,7 +7,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import gsap from 'gsap';
 import {
   Banknote,
-  BarChart2,
   Boxes,
   CalendarDays,
   Clock3,
@@ -66,13 +65,6 @@ const NAV_LINKS = [
     href: '/atrevida-gestion/pagos',
     icon: CreditCard,
     adminOnly: true,
-  },
-  {
-    label: 'Reportes',
-    detail: 'Resumen por periodo',
-    href: '/atrevida-gestion/reportes',
-    icon: BarChart2,
-    financialOnly: true,
   },
   {
     label: 'Inventario',

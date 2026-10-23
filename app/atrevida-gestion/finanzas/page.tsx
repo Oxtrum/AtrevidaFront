@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { ArrowLeftRight, Ban, Banknote, CheckCircle2, Pencil, Plus, TrendingUp } from 'lucide-react';
+import { Suspense, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { ArrowLeftRight, Ban, Banknote, CheckCircle2, Download, Pencil, Plus, RefreshCw, TrendingUp } from 'lucide-react';
 import {
   AdminButton,
   AdminPageShell,
@@ -24,14 +25,17 @@ import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { AnularEgresoFijoDialog } from '@/components/AdminFinanzas/AnularEgresoFijoDialog';
 import { EstadoMovimientoBadge } from '@/components/AdminFinanzas/EstadoMovimientoBadge';
 import { MovimientoFormModal } from '@/components/AdminFinanzas/MovimientoFormModal';
+import { ReporteFinancieroPanel } from '@/components/AdminFinanzas/ReporteFinancieroPanel';
+import { ReporteVentasPanel } from '@/components/AdminFinanzas/ReporteVentasPanel';
 import { toast } from '@/components/Shared/Toast';
 import {
   cambiarEstadoMovimientoFinanciero,
   getCategoriasFinancieras,
   getFlujoFinanciero,
-  getGastosFijosPendientes,
+  getGastosFijos,
   getMovimientosFinancieros,
 } from '@/lib/api/finanzas';
+import { descargarLibroFinanciero } from '@/lib/export/libroFinanciero';
 import { useAsyncData } from '@/lib/hooks/useAsyncData';
 import { useConfiguracion } from '@/lib/hooks/useConfiguracion';
 import { useLocales } from '@/lib/hooks/useLocales';
@@ -73,7 +77,8 @@ const EMPTY_LOCALES: FlujoLocal[] = [];
 const EMPTY_MOVS: MovimientoFinanciero[] = [];
 const EMPTY_CATS: CategoriaFinanciera[] = [];
 
-export default function FinanzasPage() {
+/** Libro de movimientos del mes: ingresos y egresos con saldo, y el registro manual de egresos e ingresos. */
+function MovimientosPanel() {
   const { moneda } = useConfiguracion();
   const { locales } = useLocales();
   const [month, setMonth] = useState(todayISO().slice(0, 7));
@@ -108,18 +113,9 @@ export default function FinanzasPage() {
   const { data: cats } = useAsyncData(getCategoriasFinancieras, 'cats-fin');
   const categorias = cats ?? EMPTY_CATS;
 
-  const { data: pendientesData, reload: recargarPendientes } = useAsyncData(() => getGastosFijosPendientes(), 'gf-pendientes');
-  const pendientes = pendientesData ?? [];
-  // Los adelantados (aún no vencen) se pueden pagar desde el modal pero no cuentan como "por pagar".
-  const vencidosSinRegistrar = pendientes.filter((p) => !p.adelantado);
-
-  // Egresos fijos ya registrados que siguen sin pagar (de cualquier mes).
-  const { data: fijosData, reload: recargarFijos } = useAsyncData(
-    () => getMovimientosFinancieros({ clase: 'FIJO', estado: 'PENDIENTE' }),
-    'fijos-por-pagar',
-  );
-  const fijosPorPagar = fijosData ?? EMPTY_MOVS;
-  const totalFijosPorPagar = fijosPorPagar.length + vencidosSinRegistrar.length;
+  // Misma fuente y mismo criterio que la lista de gastos fijos: solo los activos, con su contador de atrasados.
+  const { data: gastosFijosData, reload: recargarFijos } = useAsyncData(getGastosFijos, 'gf-atrasados');
+  const totalFijosAtrasados = (gastosFijosData ?? []).reduce((suma, g) => suma + (g.activo ? g.atrasados : 0), 0);
 
   const [formOpen, setFormOpen] = useState(false);
   const [formNat, setFormNat] = useState<NaturalezaFinanciera>('EGRESO');
@@ -129,7 +125,7 @@ export default function FinanzasPage() {
   const [anulandoFijo, setAnulandoFijo] = useState<MovimientoFinanciero | null>(null);
 
   const recargarTodo = async () => {
-    await Promise.all([reload(), recargarMovs(), recargarPendientes(), recargarFijos()]);
+    await Promise.all([reload(), recargarMovs(), recargarFijos()]);
   };
 
   const openForm = (nat: NaturalezaFinanciera, mov: MovimientoFinanciero | null) => {
@@ -214,7 +210,10 @@ export default function FinanzasPage() {
               ...(mov.estado === 'PENDIENTE' ? [{ label: mov.naturaleza === 'EGRESO' ? 'Marcar pagado' : 'Marcar cobrado', icon: <CheckCircle2 size={12} strokeWidth={2} />, onClick: () => marcarPagado(mov) }] : []),
               // El egreso de una planilla se corrige o anula desde Recursos Humanos.
               ...(mov.planilla_id ? [] : [{ label: mov.clase === 'FIJO' ? 'Editar monto de este mes' : 'Editar', icon: <Pencil size={12} strokeWidth={2} />, onClick: () => openForm(mov.naturaleza, mov) }]),
-              ...(mov.compra_id || mov.planilla_id ? [] : [{ label: 'Anular', icon: <Ban size={12} strokeWidth={2} />, onClick: () => (mov.gasto_fijo_id ? setAnulandoFijo(mov) : setAnulando(mov)), variant: 'danger' as const }]),
+              // Un egreso fijo pendiente no se anula: se deja de pagar desactivando el gasto en Gastos Fijos. Solo se deshace un pago.
+              ...(mov.compra_id || mov.planilla_id || (mov.gasto_fijo_id && mov.estado !== 'PAGADO')
+                ? []
+                : [{ label: mov.gasto_fijo_id ? 'Deshacer pago' : 'Anular', icon: <Ban size={12} strokeWidth={2} />, onClick: () => (mov.gasto_fijo_id ? setAnulandoFijo(mov) : setAnulando(mov)), variant: 'danger' as const }]),
             ]}
           />
         );
@@ -231,35 +230,49 @@ export default function FinanzasPage() {
 
   const nombreLocal = locales.find((l) => String(l.id) === localId)?.nombre;
 
-  return (
-    <AdminPageShell roles={ROLES}>
-      <PageHeader
-        kicker="Trastienda"
-        kickerIcon={<ArrowLeftRight size={14} strokeWidth={2} />}
-        title="Finanzas"
-        accentWord="Finanzas"
-        subtitle="Todo el dinero del negocio en un solo lugar: ventas, compras, gastos y otros ingresos, con saldo por movimiento. Registra egresos e ingresos desde aquí."
-        actions={
-          <>
-            <AdminButton
-              variant="secondary"
-              href="/atrevida-gestion/configuracion/gastos-fijos"
-              icon={<Banknote size={16} strokeWidth={2} />}
-              title="Ver los gastos fijos, pagar los atrasados o adelantar pagos"
-            >
-              {totalFijosPorPagar > 0 ? `Gastos fijos (${totalFijosPorPagar} por pagar)` : 'Gastos fijos'}
-            </AdminButton>
-            <AdminButton variant="secondary" onClick={() => openForm('INGRESO', null)} icon={<TrendingUp size={16} strokeWidth={2} />}>
-              Otro ingreso
-            </AdminButton>
-            <AdminButton onClick={() => openForm('EGRESO', null)} icon={<Plus size={18} strokeWidth={2} />}>
-              Registrar egreso
-            </AdminButton>
-          </>
-        }
-      />
+  const [exporting, setExporting] = useState(false);
+  // El Excel cubre el mes y la sucursal elegidos con todo el detalle (ventas por servicio, movimientos, sueldos), no solo la tabla visible.
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const { truncado } = await descargarLibroFinanciero({ month, localId: localId ? Number(localId) : null, localNombre: nombreLocal ?? '', moneda });
+      toast.success(truncado ? 'Excel generado, pero el mes tiene más movimientos que el límite: filtra por sucursal' : 'Excel generado');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'No se pudo generar el Excel');
+    } finally {
+      setExporting(false);
+    }
+  };
 
+  return (
+    <>
       <div className={styles.stack}>
+        <div className={styles.toolbar}>
+          <AdminButton
+            variant="secondary"
+            href="/atrevida-gestion/configuracion/gastos-fijos"
+            icon={<Banknote size={16} strokeWidth={2} />}
+            title="Ver los gastos fijos, pagar los atrasados o adelantar pagos"
+          >
+            {totalFijosAtrasados > 0 ? `Gastos fijos (${totalFijosAtrasados} atrasado${totalFijosAtrasados === 1 ? '' : 's'})` : 'Gastos fijos'}
+          </AdminButton>
+          <AdminButton
+            variant="secondary"
+            onClick={handleExport}
+            disabled={exporting}
+            icon={exporting ? <RefreshCw size={16} strokeWidth={2} /> : <Download size={16} strokeWidth={2} />}
+            title="Descarga el mes y la sucursal elegidos: resumen, ventas por servicio, movimientos y sueldos"
+          >
+            {exporting ? 'Generando…' : 'Descargar Excel'}
+          </AdminButton>
+          <AdminButton variant="secondary" onClick={() => openForm('INGRESO', null)} icon={<TrendingUp size={16} strokeWidth={2} />}>
+            Otro ingreso
+          </AdminButton>
+          <AdminButton onClick={() => openForm('EGRESO', null)} icon={<Plus size={18} strokeWidth={2} />}>
+            Registrar egreso
+          </AdminButton>
+        </div>
+
         <StatGrid>
           <StatCard label="Ingresos cobrados" value={money(totales?.ingresos ?? 0)} sublabel="Ventas y otros ingresos" loading={loading} accentColor="#22c55e" />
           <StatCard label="Egresos pagados" value={money(totales?.egresos ?? 0)} sublabel="Gastos fijos, variables y compras" loading={loading} accentColor="#ec008c" />
@@ -355,6 +368,50 @@ export default function FinanzasPage() {
         }}
         onClose={() => setAnulando(null)}
       />
+    </>
+  );
+}
+
+type FinanzasTab = 'movimientos' | 'resumen' | 'ventas';
+
+const FINANZAS_TABS: TabItem<FinanzasTab>[] = [
+  { key: 'movimientos', label: 'Movimientos' },
+  { key: 'resumen', label: 'Resumen ingresos vs egresos' },
+  { key: 'ventas', label: 'Ventas' },
+];
+
+const esTab = (v: string | null): v is FinanzasTab => v === 'movimientos' || v === 'resumen' || v === 'ventas';
+
+function FinanzasContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const param = searchParams.get('tab');
+  const tab: FinanzasTab = esTab(param) ? param : 'movimientos';
+
+  // La pestaña vive en la URL: el enlace viejo de Reportes y los marcadores siguen funcionando.
+  const cambiarTab = (next: FinanzasTab) => router.replace(`/atrevida-gestion/finanzas?tab=${next}`, { scroll: false });
+
+  return (
+    <AdminPageShell roles={ROLES}>
+      <PageHeader
+        kicker="Trastienda"
+        kickerIcon={<ArrowLeftRight size={14} strokeWidth={2} />}
+        title="Finanzas"
+        accentWord="Finanzas"
+        subtitle="Todo el dinero del negocio: movimientos con saldo, resumen de ingresos contra egresos y ventas por local, tipo de pago y servicio. El Excel del mes sale de Movimientos."
+      />
+      <Tabs tabs={FINANZAS_TABS} active={tab} onChange={cambiarTab} ariaLabel="Secciones de Finanzas" />
+      {tab === 'movimientos' && <MovimientosPanel />}
+      {tab === 'resumen' && <ReporteFinancieroPanel />}
+      {tab === 'ventas' && <ReporteVentasPanel />}
     </AdminPageShell>
+  );
+}
+
+export default function FinanzasPage() {
+  return (
+    <Suspense fallback={null}>
+      <FinanzasContent />
+    </Suspense>
   );
 }

@@ -22,28 +22,6 @@
   gap: 1rem;
 }
 
-.chartCard {
-  padding: 1.1rem 1.25rem;
-  border: 1px solid var(--admin-border-subtle);
-  border-radius: var(--admin-radius-lg);
-  background: var(--admin-surface-1);
-  min-width: 0;
-}
-
-.chartBox {
-  height: 280px;
-  margin-top: 0.75rem;
-}
-
-.empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: var(--admin-text-dim);
-  font-size: 0.85rem;
-}
-
 .negative {
   color: var(--admin-accent-danger);
 }
@@ -54,33 +32,8 @@
   color: var(--admin-text-dim);
 }
 
-.spin {
-  animation: spin 0.9s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 @media (max-width: 900px) {
   .charts {
     grid-template-columns: 1fr;
   }
-}
-
-.chartCard :global(.recharts-default-tooltip) {
-  background: var(--admin-surface-solid-2) !important;
-  border: 1px solid var(--admin-border) !important;
-  border-radius: var(--admin-radius-md);
-}
-
-.chartCard :global(.recharts-tooltip-label),
-.chartCard :global(.recharts-tooltip-item) {
-  color: var(--admin-foreground) !important;
-}
-
-.chartCard :global(.recharts-legend-item-text) {
-  color: var(--admin-text-muted) !important;
 }
