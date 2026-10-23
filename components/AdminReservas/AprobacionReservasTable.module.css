@@ -1,0 +1,49 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.primary {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--admin-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+.secondary {
+  font-size: 0.76rem;
+  color: var(--admin-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.id {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--admin-text-dim);
+}
+
+.note {
+  max-width: 22rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.74rem;
+  font-style: italic;
+  color: var(--admin-text-dim);
+}
+
+.estado {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.6rem;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}

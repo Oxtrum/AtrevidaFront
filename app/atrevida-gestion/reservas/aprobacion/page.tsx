@@ -11,7 +11,6 @@ import {
   Check,
   CheckCircle2,
   Clock,
-  History,
   Pencil,
   RefreshCw,
   Search,
@@ -22,17 +21,16 @@ import {
 } from 'lucide-react';
 
 import Header from '@/components/AdminHeader/Header';
-import { ReservaContacto, ReservaMetaItem, ReservaRow, ReservaStatusLine, formatDiaCorto, formatDuracion, getReservaTone } from '@/components/AdminReservas';
+import { AprobacionReservasTable } from '@/components/AdminReservas';
 import { WhatsappIcon } from '@/components/icons/WhatsappIcon';
 import { toast } from '@/components/Shared/Toast';
-import { AdminButton, AdminPanel, ConfirmDialog, CursorPagination, FormField, FormGrid, FormModal, FormSubmitError, PageHeader, RowActionsMenu, StatusBadge, Tabs } from '@/components/AdminConfig';
+import { AdminButton, AdminPanel, ConfirmDialog, CursorPagination, FormField, FormGrid, FormModal, FormSubmitError, PageHeader, ReasonDialog, RowActionsMenu, StatusBadge, Tabs } from '@/components/AdminConfig';
 import { CATEGORIAS_ORDEN } from '@/components/AdminReservationForm/constants';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { actualizarEstadoReservaDB, actualizarReservaDB, actualizarReservaNotificadoDB, eliminarReservaDB, getReservasDB } from '@/lib/api/reservas';
 import { getLocalesDB, getServiciosDB, type LocalRow, type ServicioRow } from '@/lib/api/servicios';
 import { formatCostoServicio } from '@/lib/utils/serviceCost';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
-import { formatDateTime } from '@/lib/utils/formatDateTime';
 import { buildClientWhatsappUrl } from '@/lib/utils/whatsapp';
 import { phoneValueFrom } from '@/lib/utils/phone';
 import { PhoneInput } from '@/components/PhoneInput';
@@ -187,7 +185,6 @@ const getCurrentTimeHHMM = () => {
   return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 };
 
-const COBRO_LABEL = { COBRADA: 'Cobrada', POR_COBRAR: 'Por cobrar', CUBIERTA_PAQUETE: 'Cubierta por paquete' } as const;
 
 /** Datos de la reserva que se confirman en los diálogos de completar y eliminar. */
 function ReservaResumen({ reserva, servicios }: { reserva: ReservaBD; servicios: { visible: string[]; remaining: number } }) {
@@ -230,8 +227,7 @@ export default function AdminReservasAprobacionPage() {
   const [conteosEstado, setConteosEstado] = useState<Partial<Record<'PENDIENTE' | 'AGENDADO' | 'RECHAZADO' | 'POR_COBRAR', number>>>({});
   const [cobroSugerido, setCobroSugerido] = useState<ReservaBD | null>(null);
   const [actionId, setActionId] = useState<number | null>(null);
-  const [rejectingId, setRejectingId] = useState<number | null>(null);
-  const [rejectCauses, setRejectCauses] = useState<Record<number, string>>({});
+  const [rejectTarget, setRejectTarget] = useState<ReservaBD | null>(null);
   const [approvalReserva, setApprovalReserva] = useState<ReservaBD | null>(null);
   const [approvalDraft, setApprovalDraft] = useState<ApprovalDraft | null>(null);
   const [approvalError, setApprovalError] = useState<string | null>(null);
@@ -596,41 +592,18 @@ export default function AdminReservasAprobacionPage() {
     }
   };
 
-  const updateReservaEstado = async (reserva: ReservaBD, estado: EstadoGestion) => {
-    const causa = rejectCauses[reserva.id]?.trim() ?? '';
-
-    if (estado === 'RECHAZADO' && !causa) {
-      setRejectingId(reserva.id);
-      toast.error('Agrega una causa para rechazar la reserva.');
-      return;
-    }
-
-    if (estado === 'AGENDADO') {
-      openApprovalModal(reserva);
-      return;
-    }
-
+  /** Rechaza con la causa pedida en el diálogo; si falla, el error vuelve al diálogo para que no se cierre. */
+  const rejectReserva = async (reserva: ReservaBD, causa: string) => {
     setActionId(reserva.id);
 
     try {
-      await actualizarEstadoReservaDB({
-        id: reserva.id,
-        estado,
-        causa: estado === 'RECHAZADO' ? causa : '',
-      });
+      await actualizarEstadoReservaDB({ id: reserva.id, estado: 'RECHAZADO', causa });
 
       setReservas((current) =>
-        current.map((item) => item.id === reserva.id ? {
-          ...item,
-          estado,
-        } : item),
+        current.map((item) => item.id === reserva.id ? { ...item, estado: 'RECHAZADO' } : item),
       );
-      setRejectingId(null);
-      setRejectCauses((current) => ({ ...current, [reserva.id]: '' }));
       toast.success('Reserva rechazada correctamente.');
       pagination.resetAfterMutation();
-    } catch (updateError) {
-      toast.error(updateError instanceof Error ? updateError.message : 'No se pudo actualizar el estado.');
     } finally {
       setActionId(null);
     }
@@ -807,6 +780,79 @@ export default function AdminReservasAprobacionPage() {
     };
   }, [approvalReserva, closeApprovalModal]);
 
+  const renderReservaActions = (reserva: ReservaBD) => {
+    const estado = normalizeEstado(reserva.estado);
+    const isCompleted = estado === 'COMPLETADO';
+    const porCobrar = isCompleted && reserva.estado_cobro === 'POR_COBRAR';
+    const confirmationSent = Boolean(reserva.notificado);
+    const whatsappHref = getWhatsappHref(reserva.numero_telefono, reserva.telefono_e164);
+    const confirmationWhatsappHref = getConfirmationWhatsappHref(reserva);
+    const canMarkCompleted = estado === 'AGENDADO' && confirmationSent;
+    const busy = actionId === reserva.id;
+
+    return (
+      <>
+        {estado === 'PENDIENTE' && (
+          <AdminButton size="xs" icon={<Check size={13} strokeWidth={2} />} onClick={() => openApprovalModal(reserva)} disabled={busy}>
+            Aprobar
+          </AdminButton>
+        )}
+        {estado === 'AGENDADO' && (
+          <AdminButton
+            size="xs"
+            variant={confirmationSent ? 'secondary' : 'primary'}
+            icon={<WhatsappIcon size={13} />}
+            href={confirmationWhatsappHref ?? undefined}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => { void markConfirmationSent(reserva.id); }}
+            disabled={!confirmationWhatsappHref}
+          >
+            {!confirmationWhatsappHref ? 'Sin teléfono' : confirmationSent ? 'Reenviar' : 'Confirmar'}
+          </AdminButton>
+        )}
+        <RowActionsMenu
+          ariaLabel={`Acciones de reserva ${reserva.id}`}
+          disabled={busy}
+          actions={[
+            ...(porCobrar ? [{
+              label: 'Cobrar',
+              icon: <Banknote size={14} strokeWidth={1.8} />,
+              onClick: () => router.push(`/atrevida-gestion/caja?reserva=${reserva.id}`),
+            }] : []),
+            ...(estado === 'PENDIENTE' && whatsappHref ? [{
+              label: 'Contactar por WhatsApp',
+              icon: <WhatsappIcon size={14} />,
+              onClick: () => { window.open(whatsappHref, '_blank', 'noopener,noreferrer'); },
+            }] : []),
+            ...(canMarkCompleted ? [{
+              label: 'Marcar como completada',
+              icon: <CheckCircle2 size={14} strokeWidth={1.8} />,
+              onClick: () => openCompletionModal(reserva),
+            }] : []),
+            ...(!isCompleted ? [{
+              label: 'Editar o reprogramar',
+              icon: <Pencil size={14} strokeWidth={1.8} />,
+              onClick: () => router.push(`/atrevida-gestion/reservas/editar/${reserva.id}`),
+            }] : []),
+            ...(estado === 'PENDIENTE' ? [{
+              label: 'Rechazar',
+              icon: <XCircle size={14} strokeWidth={1.8} />,
+              variant: 'danger' as const,
+              onClick: () => setRejectTarget(reserva),
+            }] : []),
+            {
+              label: 'Eliminar reserva',
+              icon: <Trash2 size={14} strokeWidth={1.8} />,
+              variant: 'danger' as const,
+              onClick: () => openDeleteModal(reserva),
+            },
+          ]}
+        />
+      </>
+    );
+  };
+
   return (
     <div ref={pageRef} className={styles.pageContainer}>
       <Header />
@@ -945,158 +991,12 @@ export default function AdminReservasAprobacionPage() {
               )}
 
               {!initialLoading && renderedReservas.length > 0 && (
-                <div ref={cardsGridRef} className={styles.pendingGrid}>
-                  {renderedReservas.map((reserva) => {
-                  const estadoNormalizado = normalizeEstado(reserva.estado);
-                  const whatsappHref = getWhatsappHref(reserva.numero_telefono, reserva.telefono_e164);
-                  const confirmationWhatsappHref = getConfirmationWhatsappHref(reserva);
-                  const confirmationSent = Boolean(reserva.notificado);
-                  const isCompleted = reserva.estado === 'COMPLETADO';
-                  const porCobrar = isCompleted && reserva.estado_cobro === 'POR_COBRAR';
-                  const canMarkCompleted = estadoNormalizado === 'AGENDADO' && !isCompleted && confirmationSent;
-                  const cardActionMenu = (
-                    <RowActionsMenu
-                      ariaLabel={`Acciones de reserva ${reserva.id}`}
-                      disabled={actionId === reserva.id}
-                      actions={[
-                        ...(canMarkCompleted ? [{
-                          label: 'Marcar como completada',
-                          icon: <CheckCircle2 size={14} strokeWidth={1.8} />,
-                          onClick: () => openCompletionModal(reserva),
-                        }] : []),
-                        ...(!isCompleted ? [{
-                          label: 'Editar o reprogramar',
-                          icon: <Pencil size={14} strokeWidth={1.8} />,
-                          onClick: () => router.push(`/atrevida-gestion/reservas/editar/${reserva.id}`),
-                        }] : []),
-                        {
-                          label: 'Eliminar reserva',
-                          icon: <Trash2 size={14} strokeWidth={1.8} />,
-                          variant: 'danger' as const,
-                          onClick: () => openDeleteModal(reserva),
-                        },
-                      ]}
-                    />
-                  );
-
-                  return (
-                  <ReservaRow
-                    key={reserva.id}
-                    className="approval-card"
-                    tone={getReservaTone(isCompleted ? 'COMPLETADO' : estadoNormalizado)}
-                    highlight={porCobrar}
-                    day={formatDiaCorto(reserva.fecha)}
-                    time={reserva.hora_desde}
-                    timeSub={formatDuracion(reserva.hora_desde, reserva.hora_hasta) || reserva.hora_hasta}
-                    title={reserva.cliente || 'Cliente sin nombre'}
-                    id={reserva.id}
-                    service={reserva.servicio || 'Servicio por definir'}
-                    details={
-                      <>
-                        {(reserva.servicio_solicitado || reserva.servicio_confirmado) &&
-                          (reserva.servicio_solicitado ?? '').trim().toLowerCase() !== (reserva.servicio_confirmado ?? '').trim().toLowerCase() && (
-                          <p className={styles.serviceTrace}>
-                            {reserva.servicio_solicitado && <span>Solicitado: <strong>{reserva.servicio_solicitado}</strong></span>}
-                            {reserva.servicio_confirmado && <span>Confirmado: <strong>{reserva.servicio_confirmado}</strong></span>}
-                          </p>
-                        )}
-                        {reserva.notas && <p className={styles.pendingNotes}>{reserva.notas}</p>}
-                      </>
-                    }
-                    meta={
-                      <>
-                        <ReservaContacto local={reserva.local} telefono={reserva.numero_telefono} />
-                        {reserva.creado_en && (
-                          <ReservaMetaItem icon={History} muted>Solicitada {formatDateTime(reserva.creado_en)}</ReservaMetaItem>
-                        )}
-                      </>
-                    }
-                    status={
-                      <ReservaStatusLine
-                        estado={isCompleted ? 'COMPLETADO' : estadoNormalizado}
-                        stock={Boolean(reserva.alerta_inventario) && !isCompleted}
-                        notes={[
-                          ...(isCompleted && reserva.estado_cobro
-                            ? [{ text: COBRO_LABEL[reserva.estado_cobro], warn: reserva.estado_cobro === 'POR_COBRAR' }]
-                            : []),
-                          ...(estadoNormalizado === 'AGENDADO' && !isCompleted
-                            ? [{ text: confirmationSent ? 'Confirmación enviada' : 'Sin confirmar', warn: !confirmationSent }]
-                            : []),
-                        ]}
-                      />
-                    }
-                    actions={
-                      <>
-                        {estadoNormalizado === 'PENDIENTE' && (
-                          <>
-                            <AdminButton
-                              size="sm"
-                              icon={<Check size={14} strokeWidth={2} />}
-                              onClick={() => updateReservaEstado(reserva, 'AGENDADO')}
-                              disabled={actionId === reserva.id}
-                            >
-                              Aprobar
-                            </AdminButton>
-                            <AdminButton
-                              size="sm"
-                              variant="secondary"
-                              icon={<WhatsappIcon size={14} />}
-                              href={whatsappHref ?? undefined}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              disabled={!whatsappHref}
-                            >
-                              Contactar
-                            </AdminButton>
-                            <AdminButton
-                              size="sm"
-                              variant="danger"
-                              icon={<XCircle size={14} strokeWidth={2} />}
-                              onClick={() => rejectingId === reserva.id ? updateReservaEstado(reserva, 'RECHAZADO') : setRejectingId(reserva.id)}
-                              disabled={actionId === reserva.id}
-                            >
-                              {rejectingId === reserva.id ? 'Confirmar' : 'Rechazar'}
-                            </AdminButton>
-                          </>
-                        )}
-                        {estadoNormalizado === 'AGENDADO' && !isCompleted && (
-                          <AdminButton
-                            size="sm"
-                            variant={confirmationSent ? 'secondary' : 'primary'}
-                            icon={<WhatsappIcon size={14} />}
-                            href={confirmationWhatsappHref ?? undefined}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={() => { void markConfirmationSent(reserva.id); }}
-                            disabled={!confirmationWhatsappHref}
-                          >
-                            {!confirmationWhatsappHref ? 'Sin teléfono' : confirmationSent ? 'Reenviar' : 'Confirmar'}
-                          </AdminButton>
-                        )}
-                        {porCobrar && (
-                          <AdminButton size="sm" icon={<Banknote size={14} strokeWidth={2} />} href={`/atrevida-gestion/caja?reserva=${reserva.id}`}>
-                            Cobrar
-                          </AdminButton>
-                        )}
-                        {cardActionMenu}
-                      </>
-                    }
-                    footer={estadoNormalizado === 'PENDIENTE' && rejectingId === reserva.id ? (
-                      <label className={styles.rejectField}>
-                        Causa del rechazo
-                        <textarea
-                          value={rejectCauses[reserva.id] ?? ''}
-                          onChange={(event) => setRejectCauses((current) => ({
-                            ...current,
-                            [reserva.id]: event.target.value,
-                          }))}
-                          placeholder="Ej: horario no disponible, datos incompletos..."
-                        />
-                      </label>
-                    ) : undefined}
+                <div ref={cardsGridRef}>
+                  <AprobacionReservasTable
+                    reservas={renderedReservas}
+                    showLocal={effectiveLocalFiltro === ALL_LOCALS_FILTER}
+                    renderActions={renderReservaActions}
                   />
-                  );
-                  })}
                 </div>
               )}
 			  {!initialLoading && !error && (
@@ -1107,6 +1007,15 @@ export default function AdminReservasAprobacionPage() {
 
         </div>
       </main>
+
+      <ReasonDialog
+        isOpen={rejectTarget !== null}
+        title="Rechazar reserva"
+        message={`La causa queda registrada en la reserva de ${rejectTarget?.cliente || `#${rejectTarget?.id}`}.`}
+        confirmLabel="Rechazar"
+        onConfirm={(causa) => (rejectTarget ? rejectReserva(rejectTarget, causa) : Promise.resolve())}
+        onClose={() => setRejectTarget(null)}
+      />
 
       {approvalReserva && approvalDraft && (
         <FormModal

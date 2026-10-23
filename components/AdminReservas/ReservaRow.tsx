@@ -1,4 +1,5 @@
 import { AlertTriangle, MapPin, Phone, type LucideIcon } from 'lucide-react';
+import { Tooltip } from '@/components/AdminConfig';
 import styles from './ReservaRow.module.css';
 
 /**
@@ -133,11 +134,11 @@ export function ReservaMetaItem({ icon: Icon, children, muted }: { icon: LucideI
   );
 }
 
-/** Local + teléfono, el meta estándar de una reserva. */
-export function ReservaContacto({ local, telefono }: { local?: string; telefono?: string }) {
+/** Local + teléfono, el meta estándar de una reserva. `showLocal` false cuando la lista ya está filtrada por local. */
+export function ReservaContacto({ local, telefono, showLocal = true }: { local?: string; telefono?: string; showLocal?: boolean }) {
   return (
     <>
-      {local && <ReservaMetaItem icon={MapPin}>{local}</ReservaMetaItem>}
+      {showLocal && local && <ReservaMetaItem icon={MapPin}>{local}</ReservaMetaItem>}
       {telefono && <ReservaMetaItem icon={Phone}>{telefono}</ReservaMetaItem>}
     </>
   );
@@ -148,27 +149,41 @@ interface StatusNote {
   warn?: boolean;
 }
 
-/** Línea de estado discreta: ● Estado · notas · ⚠ Stock. */
-export function ReservaStatusLine({ estado, notes = [], stock }: { estado: string; notes?: StatusNote[]; stock?: boolean }) {
+/** Aviso corto en texto, sin píldora: "Sin confirmar", "Por cobrar". `warn` lo pinta ámbar. */
+export function ReservaNote({ warn, hint, children }: { warn?: boolean; hint?: string; children: React.ReactNode }) {
+  const note = <span className={`${styles.note} ${warn ? styles.noteWarn : ''}`}>{children}</span>;
+  return hint ? <Tooltip content={hint}>{note}</Tooltip> : note;
+}
+
+export const POR_COBRAR_HINT = 'El servicio ya se realizó pero aún no se registró el cobro. Usa «Cobrar» en el menú de acciones de la fila.';
+
+/** Línea de estado discreta: ● Estado · notas · ⚠ Stock. `showEstado` false cuando la pestaña ya dice el estado. */
+export function ReservaStatusLine({ estado, notes = [], stock, showEstado = true }: { estado: string; notes?: StatusNote[]; stock?: boolean; showEstado?: boolean }) {
   return (
     <div className={styles.statusLine}>
-      <span className={styles.state}>
-        <i className={styles.dot} />
-        {RESERVA_ESTADO_LABEL[estado] ?? estado}
-      </span>
+      {showEstado && (
+        <span className={styles.state}>
+          <i className={styles.dot} />
+          {RESERVA_ESTADO_LABEL[estado] ?? estado}
+        </span>
+      )}
       {notes.map((n) => (
-        <span key={n.text} className={`${styles.note} ${n.warn ? styles.noteWarn : ''}`}>{n.text}</span>
+        <ReservaNote key={n.text} warn={n.warn}>{n.text}</ReservaNote>
       ))}
       {stock && <ReservaStockHint />}
     </div>
   );
 }
 
+export const STOCK_HINT = 'No hay stock suficiente de los insumos que consume este servicio. Revisa el inventario antes de la cita.';
+
 export function ReservaStockHint() {
   return (
-    <span className={styles.stock} title="Stock insuficiente para los insumos de este servicio">
-      <AlertTriangle size={13} strokeWidth={2} />
-      Stock
-    </span>
+    <Tooltip title="Falta stock" content={STOCK_HINT}>
+      <span className={styles.stock}>
+        <AlertTriangle size={13} strokeWidth={2} />
+        Stock
+      </span>
+    </Tooltip>
   );
 }

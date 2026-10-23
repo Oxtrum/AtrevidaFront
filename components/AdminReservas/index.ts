@@ -6,6 +6,8 @@ export {
   ReservaMetaItem,
   ReservaContacto,
   ReservaStatusLine,
+  ReservaNote,
+  POR_COBRAR_HINT,
   ReservaStockHint,
   RESERVA_ESTADO_LABEL,
   getReservaTone,
@@ -13,3 +15,6 @@ export {
   formatDiaCorto,
   formatFalta,
 } from './ReservaRow';
+
+export { AprobacionReservasTable } from './AprobacionReservasTable';
+export { ReservaEstadoPill, RESERVA_ESTADO_HINT } from './ReservaEstadoPill';
