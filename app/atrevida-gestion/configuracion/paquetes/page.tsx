@@ -2,13 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Filter, Layers, MapPin, Package2, Plus, Pencil, Trash2 } from 'lucide-react';
+import { Eye, EyeOff, Filter, Layers, MapPin, Package2, Plus, Pencil, Trash2 } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
-import { PageHeader, FormModal, RowActionsMenu, CursorPagination } from '@/components/AdminConfig';
+import { PageHeader, FormModal, RowActionsMenu, CursorPagination, Tooltip } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
 import { getLocalesDB } from '@/lib/api/servicios';
-import { getPaquetesDB, eliminarPaquete, type PaqueteDetalle } from '@/lib/api/paquetes';
+import { getPaquetesDB, eliminarPaquete, cambiarVisibilidadPaquete, type PaqueteDetalle } from '@/lib/api/paquetes';
+import { textosVisibilidadPaquete } from '@/lib/utils/visibilidadPublica';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import PaqueteFormModal, { type EditablePaquete } from './PaqueteFormModal';
 import styles from './page.module.css';
@@ -161,8 +162,31 @@ export default function PaquetesPage() {
     });
   };
 
+  const handleToggleVisibilidad = (p: PaqueteDetalle) => {
+    const mostrar = p.paquete.visible_publico === false;
+    setConfirmState({
+      message: mostrar
+        ? `¿Mostrar "${p.paquete.nombre}" en la página principal?`
+        : `¿Ocultar "${p.paquete.nombre}" de la página principal? Seguirá activo en administración, reservas y caja.`,
+      onConfirm: async () => {
+        try {
+          await cambiarVisibilidadPaquete(p.paquete.id, mostrar);
+          toast.success(mostrar ? 'Paquete visible en la página principal' : 'Paquete oculto de la página principal');
+          pagination.resetAfterMutation();
+        } catch {
+          toast.error('No se pudo cambiar la visibilidad del paquete.');
+        }
+      },
+    });
+  };
+
   const cardActions = (p: PaqueteDetalle) => [
     { label: 'Editar', icon: <Pencil size={12} strokeWidth={2} />, onClick: () => openEditar(p) },
+    {
+      label: textosVisibilidadPaquete(p.paquete.visible_publico).accion,
+      icon: p.paquete.visible_publico === false ? <Eye size={12} strokeWidth={2} /> : <EyeOff size={12} strokeWidth={2} />,
+      onClick: () => handleToggleVisibilidad(p),
+    },
     { label: 'Eliminar', icon: <Trash2 size={12} strokeWidth={2} />, onClick: () => handleDelete(p), variant: 'danger' as const },
   ];
 
@@ -296,6 +320,25 @@ export default function PaquetesPage() {
                               {localesText}
                             </span>
                           )}
+                          {(() => {
+                            const visible = p.paquete.visible_publico !== false;
+                            const textos = textosVisibilidadPaquete(p.paquete.visible_publico);
+                            return (
+                              <div className={styles.visRow} onClick={(e) => e.stopPropagation()}>
+                                <Tooltip title={textos.chip} content={textos.ayuda}>
+                                  <button
+                                    type="button"
+                                    className={visible ? styles.visChipOn : styles.visChipOff}
+                                    onClick={() => handleToggleVisibilidad(p)}
+                                    aria-label={textos.accion}
+                                  >
+                                    {visible ? <Eye size={12} strokeWidth={2.2} /> : <EyeOff size={12} strokeWidth={2.2} />}
+                                    {textos.chip}
+                                  </button>
+                                </Tooltip>
+                              </div>
+                            );
+                          })()}
                         </div>
                       </article>
                     );

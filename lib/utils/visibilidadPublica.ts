@@ -1,5 +1,3 @@
-import type { PaqueteDetalle } from '@/lib/api/paquetes';
-
 /**
  * La sección de paquetes de la página principal se muestra por defecto: solo
  * se oculta si el backend responde `mostrar_paquetes: false`. Si la consulta
@@ -9,8 +7,18 @@ export function mostrarSeccionPaquetes(config: { mostrar_paquetes?: boolean } | 
   return config?.mostrar_paquetes !== false;
 }
 
-/** Cuántos paquetes se ven en la página principal y cuántos están ocultos. */
-export function resumenVisibilidad(paquetes: Pick<PaqueteDetalle, 'paquete'>[]): { visibles: number; ocultos: number } {
-  const ocultos = paquetes.filter((p) => p.paquete.visible_publico === false).length;
-  return { visibles: paquetes.length - ocultos, ocultos };
+/** Textos del chip, de la acción del menú y del tooltip de visibilidad de un paquete. */
+export function textosVisibilidadPaquete(visiblePublico: boolean | undefined): { chip: string; accion: string; ayuda: string } {
+  if (visiblePublico === false) {
+    return {
+      chip: 'Oculto al público',
+      accion: 'Mostrar en la página principal',
+      ayuda: 'El paquete no aparece en la página principal. Sigue activo en administración, reservas y caja. Clic para mostrarlo.',
+    };
+  }
+  return {
+    chip: 'En página principal',
+    accion: 'Ocultar de la página principal',
+    ayuda: 'El paquete se ve en la página principal. Si lo ocultas sigue disponible en administración, reservas y caja. Clic para ocultarlo.',
+  };
 }
