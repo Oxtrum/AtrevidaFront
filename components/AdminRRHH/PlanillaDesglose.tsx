@@ -13,7 +13,12 @@ export function PlanillaDesglose({ planilla: p, moneda }: PlanillaDesgloseProps)
   return (
     <dl className={styles.list}>
       <div className={styles.row}><dt>Sueldo base</dt><dd>{money(p.sueldo_base)}</dd></div>
-      {p.bonos > 0 && <div className={styles.row}><dt>Bonos</dt><dd className={styles.plus}>+ {money(p.bonos)}</dd></div>}
+      {p.bonos_detalle.map((b) => (
+        <div key={b.id} className={styles.row}>
+          <dt>Bono · {b.tipo_nombre}{b.nota ? <span className={styles.nota}> ({b.nota})</span> : null}</dt>
+          <dd className={styles.plus}>+ {money(b.monto)}</dd>
+        </div>
+      ))}
       {p.descuento_faltas > 0 && (
         <div className={styles.row}><dt>Faltas ({p.dias_falta} {p.dias_falta === 1 ? 'día' : 'días'})</dt><dd className={styles.minus}>− {money(p.descuento_faltas)}</dd></div>
       )}

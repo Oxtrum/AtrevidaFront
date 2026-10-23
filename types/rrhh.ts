@@ -2,7 +2,7 @@
 import type { MetodoPago } from './inventario';
 
 export type EstadoPlanilla = 'PENDIENTE' | 'PAGADO' | 'ANULADO';
-export type TipoPlanilla = 'SUELDO' | 'AGUINALDO';
+export type TipoPlanilla = 'SUELDO';
 
 export interface Empleado {
   id: number;
@@ -62,6 +62,34 @@ export interface AdelantoInput {
   motivo: string | null;
 }
 
+export interface TipoBono {
+  id: number;
+  nombre: string;
+  descripcion?: string | null;
+  activo: boolean;
+}
+
+export interface TipoBonoInput {
+  nombre: string;
+  descripcion: string | null;
+  activo?: boolean;
+}
+
+/** Una línea de bono de la planilla: de qué tipo es, cuánto y por qué. */
+export interface PlanillaBono {
+  id: number;
+  tipo_bono_id: number;
+  tipo_nombre: string;
+  monto: number;
+  nota?: string | null;
+}
+
+export interface BonoInput {
+  tipo_bono_id: number;
+  monto: number;
+  nota: string | null;
+}
+
 export interface Planilla {
   id: number;
   empleado_id: number;
@@ -74,7 +102,9 @@ export interface Planilla {
   periodo: string;
   fecha_pago: string;
   sueldo_base: number;
+  /** Suma de las líneas de bonos_detalle. */
   bonos: number;
+  bonos_detalle: PlanillaBono[];
   dias_falta: number;
   descuento_faltas: number;
   total_ganado: number;
@@ -111,7 +141,8 @@ export interface PlanillasResponse {
 }
 
 export interface PlanillaEdicion {
-  bonos?: number;
+  /** Reemplaza todas las líneas de bono. */
+  bonos_detalle?: BonoInput[];
   dias_falta?: number;
   otros_descuentos?: number;
   notas?: string | null;

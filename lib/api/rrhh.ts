@@ -9,6 +9,8 @@ import type {
   Planilla,
   PlanillaEdicion,
   PlanillasResponse,
+  TipoBono,
+  TipoBonoInput,
 } from '@/types/rrhh';
 import type { MetodoPago } from '@/types/inventario';
 
@@ -47,6 +49,23 @@ export async function anularAdelanto(id: number): Promise<void> {
   await apiClient.delete(`/bd/rrhh/adelantos/${id}`);
 }
 
+// ── Tipos de bono ──
+
+export async function getTiposBono(): Promise<TipoBono[]> {
+  const res = await apiClient.get<ApiResponse<{ tipos: TipoBono[] }>>('/bd/rrhh/tipos-bono');
+  return res.data?.tipos ?? [];
+}
+
+export async function guardarTipoBono(data: TipoBonoInput, id?: number): Promise<void> {
+  if (id) await apiClient.patch(`/bd/rrhh/tipos-bono/${id}`, data);
+  else await apiClient.post('/bd/rrhh/tipos-bono', data);
+}
+
+/** Un tipo no se borra (las planillas ya cargadas lo usan): se desactiva y deja de ofrecerse. */
+export async function cambiarEstadoTipoBono(id: number, activo: boolean): Promise<void> {
+  await apiClient.patch(`/bd/rrhh/tipos-bono/${id}`, { activo });
+}
+
 // ── Planillas ──
 
 /** El backend genera antes las planillas vencidas (catch-up), así la lista siempre está al día. */
@@ -71,9 +90,4 @@ export async function pagarPlanilla(id: number, metodo_pago?: MetodoPago | null)
 
 export async function anularPlanilla(id: number, motivo: string): Promise<void> {
   await apiClient.patch(`/bd/rrhh/planillas/${id}/anular`, { motivo });
-}
-
-export async function generarAguinaldos(anio: number): Promise<number> {
-  const res = await apiClient.post<ApiResponse<{ generados: number }>>('/bd/rrhh/aguinaldos/generar', { anio });
-  return res.data?.generados ?? 0;
 }

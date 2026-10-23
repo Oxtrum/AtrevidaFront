@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Ban, CheckCircle2, Gift, Pencil, Plus } from 'lucide-react';
+import { Ban, CheckCircle2, Pencil, Plus } from 'lucide-react';
 import {
   AdminButton,
   AlertBanner,
@@ -19,7 +19,7 @@ import {
 } from '@/components/AdminConfig';
 import type { BadgeTone, Column, TabItem } from '@/components/AdminConfig';
 import { toast } from '@/components/Shared/Toast';
-import { anularPlanilla, generarAguinaldos, getPlanillas, pagarPlanilla } from '@/lib/api/rrhh';
+import { anularPlanilla, getPlanillas, pagarPlanilla } from '@/lib/api/rrhh';
 import { useAsyncData } from '@/lib/hooks/useAsyncData';
 import { useConfiguracion } from '@/lib/hooks/useConfiguracion';
 import { formatDateISO, formatMoney } from '@/lib/utils/format';
@@ -74,9 +74,7 @@ export function PlanillasPanel({ month, onMonthChange, empleados, onChanged }: P
   const [paying, setPaying] = useState<Planilla | null>(null);
   const [annulling, setAnnulling] = useState<Planilla | null>(null);
   const [generarOpen, setGenerarOpen] = useState(false);
-  const [aguinaldoOpen, setAguinaldoOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const anioAguinaldo = Number(month.slice(0, 4));
 
   const refresh = async () => {
     await reload();
@@ -98,20 +96,6 @@ export function PlanillasPanel({ month, onMonthChange, empleados, onChanged }: P
     }
   };
 
-  const handleAguinaldo = async () => {
-    setBusy(true);
-    try {
-      const n = await generarAguinaldos(anioAguinaldo);
-      toast.success(n > 0 ? `${n} aguinaldo(s) generado(s)` : 'Los aguinaldos ya estaban generados');
-      setAguinaldoOpen(false);
-      await refresh();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'No se pudieron generar los aguinaldos');
-    } finally {
-      setBusy(false);
-    }
-  };
-
   const columns: Column<Row>[] = [
     {
       key: 'empleado_nombre',
@@ -120,7 +104,7 @@ export function PlanillasPanel({ month, onMonthChange, empleados, onChanged }: P
         <span>
           <strong>{v as string}</strong>
           <span className={styles.sub}>
-            {[r.tipo === 'AGUINALDO' ? 'Aguinaldo' : null, r.cargo, r.local_nombre].filter(Boolean).join(' · ') || 'Sueldo'}
+            {[r.cargo, r.local_nombre].filter(Boolean).join(' · ') || 'Sueldo'}
           </span>
         </span>
       ),
@@ -191,9 +175,6 @@ export function PlanillasPanel({ month, onMonthChange, empleados, onChanged }: P
         </FilterBar.Item>
         <FilterBar.Action>
           <div className={styles.actions}>
-            <AdminButton variant="secondary" onClick={() => setAguinaldoOpen(true)} icon={<Gift size={16} strokeWidth={2} />}>
-              Aguinaldos {anioAguinaldo}
-            </AdminButton>
             <AdminButton onClick={() => setGenerarOpen(true)} icon={<Plus size={18} strokeWidth={2} />}>
               Generar planilla
             </AdminButton>
@@ -254,15 +235,6 @@ export function PlanillasPanel({ month, onMonthChange, empleados, onChanged }: P
           await refresh();
         }}
         onClose={() => setAnnulling(null)}
-      />
-      <ConfirmDialog
-        isOpen={aguinaldoOpen}
-        title={`Generar aguinaldos ${anioAguinaldo}`}
-        message="Crea el aguinaldo (un sueldo base proporcional a los días trabajados, sin aportes, a pagar hasta el 20 de diciembre) de los empleados con al menos 90 días en el año. Si ya existe, no lo duplica."
-        confirmLabel="Generar aguinaldos"
-        loading={busy}
-        onConfirm={handleAguinaldo}
-        onClose={() => setAguinaldoOpen(false)}
       />
     </div>
   );
