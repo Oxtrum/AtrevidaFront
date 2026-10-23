@@ -11,7 +11,7 @@ import { useCrearReserva } from '@/lib/hooks/useCrearReserva';
 import { useReservas } from '@/lib/hooks/useReservas';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { getServiciosDB } from '@/lib/api/servicios';
-import { fechaDelDia } from '@/lib/utils/diaSeleccion';
+import { errorDiaSemana, fechaDelDia } from '@/lib/utils/diaSeleccion';
 import { formatCostoServicio } from '@/lib/utils/serviceCost';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import { toast } from '../Shared/Toast';
@@ -377,6 +377,19 @@ export function useReservationForm(
   })();
 
   // ── Handlers ───────────────────────────────────────────
+  /** Elegido el día, el aviso de "falta el día" (y el del tope) ya no aplica. */
+  const limpiarErroresDia = () => {
+    setErrors(prev => {
+      if (!prev.fecha && !prev.horaDesde && !prev.horaHasta) return prev;
+      const resto = { ...prev };
+      delete resto.fecha;
+      delete resto.horaDesde;
+      delete resto.horaHasta;
+      return resto;
+    });
+    setError(null);
+  };
+
   const handleSemanaChange = (value: string) => {
     const idx = Number(value);
     setSemanaIndex(idx);
@@ -417,6 +430,7 @@ export function useReservationForm(
     const dias: DiaSemana[] = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
     setSemanaIndex(idx);
     setDia(dias[dow - 1]);
+    limpiarErroresDia();
     setHoraDesde('');
     setHoraHasta('');
     setEsperandoAjuste(false);
@@ -442,6 +456,7 @@ export function useReservationForm(
 
   const handleDiaChange = (value: DiaSemana) => {
     setDia(value);
+    limpiarErroresDia();
     setSlotWarning(null);
   };
 
@@ -486,6 +501,13 @@ export function useReservationForm(
       undefined,
       true, // admin can book any time slot
     );
+    // Sin día no hay horario que elegir: el error útil es el del día.
+    const errorDia = errorDiaSemana(dia);
+    if (errorDia) {
+      e.fecha = errorDia;
+      delete e.horaDesde;
+      delete e.horaHasta;
+    }
     // No validar aquí si está ocupado - dejar que el backend lo valide
     // para permitir cambios de último minuto si hay slots disponibles
     if (horaDesde && hoursAvailability.get(horaDesde) === 'past') {
@@ -505,17 +527,15 @@ export function useReservationForm(
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!validate()) {
+      toast.error('Faltan datos o hay campos con error. Revisa los marcados en rojo.');
+      return;
+    }
+
     const fechaDia = fechaDelDia(fechasSemana, dia);
     const fechaISO = fechaDia ? fechaDia.toISOString().split('T')[0] : '';
     if (!fechaISO) {
-      // Los errores van también al toast: el aviso del tope del formulario
-      // queda fuera de pantalla cuando el staff está abajo completando datos.
-      setError('Error: No se pudo determinar la fecha.');
       toast.error('No se pudo determinar la fecha. Elige de nuevo el día.');
-      return;
-    }
-    if (!validate()) {
-      toast.error('Faltan datos o hay campos con error. Revisa los marcados en rojo.');
       return;
     }
 

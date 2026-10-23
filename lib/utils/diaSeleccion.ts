@@ -13,3 +13,8 @@ export function fechaDelDia(
 export function horarioHabilitado(dia: DiaSemana | null, sucursal: string): boolean {
   return Boolean(dia) && Boolean(sucursal);
 }
+
+/** Mensaje de validación cuando falta elegir el día de la semana. */
+export function errorDiaSemana(dia: DiaSemana | null): string | null {
+  return dia ? null : 'Elige el día de la semana';
+}
