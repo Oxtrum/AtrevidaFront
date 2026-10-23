@@ -6,7 +6,19 @@
   border-radius: var(--admin-radius-md);
 }
 
-.sm:disabled {
+/* Los estilos globales `[data-admin] .admin-button*` pesan más que una sola clase de módulo: se iguala el peso. */
+:global([data-admin="true"]) .xs:global(.admin-button) {
+  min-height: 28px;
+  padding: 0.2rem 0.65rem;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  border-radius: var(--admin-radius-sm);
+  /* Sin el resplandor del primario: en una fila de lista pesa más que el contenido. */
+  box-shadow: none;
+}
+
+.sm:disabled,
+.xs:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }

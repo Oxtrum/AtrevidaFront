@@ -9,8 +9,8 @@ interface AdminButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonEle
    * formulario de reserva).
    */
   variant?: 'primary' | 'secondary' | 'danger' | 'inline';
-  /** sm = pequeño, para acciones dentro de formularios y cabeceras de sección. */
-  size?: 'md' | 'sm';
+  /** sm = pequeño, para acciones dentro de formularios y cabeceras de sección; xs = compacto, para acciones de fila. */
+  size?: 'md' | 'sm' | 'xs';
   icon?: React.ReactNode;
   /** Ocupa todo el ancho del contenedor (columnas de acciones en tarjetas). */
   fullWidth?: boolean;
@@ -46,6 +46,7 @@ export function AdminButton({
       `admin-button-${variant === 'danger' ? 'secondary' : variant}`,
       variant === 'danger' ? styles.danger : '',
       size === 'sm' ? styles.sm : '',
+      size === 'xs' ? styles.xs : '',
       fullWidth ? styles.fullWidth : '',
     ].filter(Boolean).join(' ');
 
