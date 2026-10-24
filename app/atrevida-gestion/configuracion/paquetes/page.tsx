@@ -4,12 +4,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Filter, Layers, MapPin, Package2, Plus, Pencil, Trash2 } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
-import { PageHeader, FormModal, RowActionsMenu, CursorPagination, Tooltip } from '@/components/AdminConfig';
+import { PageHeader, FormModal, RowActionsMenu, CursorPagination, Tooltip, ChoiceChips } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
 import { getLocalesDB } from '@/lib/api/servicios';
 import { getPaquetesDB, eliminarPaquete, cambiarVisibilidadPaquete, type PaqueteDetalle } from '@/lib/api/paquetes';
 import { textosVisibilidadPaquete } from '@/lib/utils/visibilidadPublica';
+import { useConfiguracion } from '@/lib/hooks/useConfiguracion';
+import { getStoredAdminRole } from '@/lib/auth/adminSession';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import PaqueteFormModal, { type EditablePaquete } from './PaqueteFormModal';
 import styles from './page.module.css';
@@ -73,6 +75,27 @@ export default function PaquetesPage() {
   const [editingPaquete, setEditingPaquete] = useState<EditablePaquete | null>(null);
 
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
+
+  // Interruptor de la sección completa en la página principal (parámetro del sistema).
+  const { config, update: updateConfig } = useConfiguracion();
+  const seccionVisible = config['publico.mostrar_paquetes'];
+  const [guardandoSeccion, setGuardandoSeccion] = useState(false);
+  const [esAdminSys, setEsAdminSys] = useState(false);
+  useEffect(() => {
+    setEsAdminSys(getStoredAdminRole() === 'admin_sys');
+  }, []);
+
+  const cambiarSeccion = async (estado: 'visible' | 'oculto') => {
+    setGuardandoSeccion(true);
+    try {
+      await updateConfig({ 'publico.mostrar_paquetes': estado === 'visible' });
+      toast.success(estado === 'visible' ? 'La sección de paquetes vuelve a verse en la página principal' : 'Sección de paquetes oculta en la página principal');
+    } catch {
+      toast.error('No se pudo cambiar la visibilidad de la sección.');
+    } finally {
+      setGuardandoSeccion(false);
+    }
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => setFiltroNombreDebounced(filtroNombre), 350);
@@ -212,6 +235,33 @@ export default function PaquetesPage() {
           />
 
           <div ref={contentRef} className={styles.contentStack}>
+            <div className={styles.sectionToggleCard}>
+              <div className={styles.sectionToggleText}>
+                <span className={styles.sectionToggleTitle}>Sección de paquetes en la página principal</span>
+                <span className={styles.sectionToggleDesc}>
+                  {seccionVisible
+                    ? 'El público ve la sección (solo los paquetes marcados como visibles).'
+                    : 'Oculta: el público no ve ningún paquete ni el enlace del menú.'}
+                </span>
+              </div>
+              <Tooltip
+                title={seccionVisible ? 'Sección visible' : 'Sección oculta'}
+                content={esAdminSys
+                  ? 'Oculta o muestra la sección completa de paquetes y su enlace del menú en la web. Los paquetes siguen activos en administración, reservas y caja.'
+                  : 'Solo el administrador del sistema puede cambiar esto.'}
+              >
+                <fieldset className={styles.sectionToggleControl} disabled={!esAdminSys || guardandoSeccion}>
+                  <ChoiceChips
+                    variant="toggle"
+                    ariaLabel="Mostrar la sección de paquetes en la página principal"
+                    options={[{ value: 'visible', label: 'Visible' }, { value: 'oculto', label: 'Oculto' }]}
+                    value={seccionVisible ? 'visible' : 'oculto'}
+                    onChange={cambiarSeccion}
+                  />
+                </fieldset>
+              </Tooltip>
+            </div>
+
             <div className={styles.filterCard}>
               <div className={styles.filterCardInner}>
                 <div className={styles.filterSectionLabel}>
