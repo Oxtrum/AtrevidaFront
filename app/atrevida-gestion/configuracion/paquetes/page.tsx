@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Filter, Layers, MapPin, Package2, Plus, Pencil, Trash2 } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
-import { PageHeader, FormModal, RowActionsMenu, CursorPagination, Tooltip, ChoiceChips } from '@/components/AdminConfig';
+import { PageHeader, FormModal, RowActionsMenu, CursorPagination, Tooltip, VisibilityToggle, AlertBanner } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
 import { getLocalesDB } from '@/lib/api/servicios';
@@ -227,40 +227,30 @@ export default function PaquetesPage() {
             subtitle="Crea y edita paquetes, y gestiona sus tiers de sesiones"
             backHref="/atrevida-gestion/configuracion"
             actions={
-              <button type="button" className={styles.btnPrimary} onClick={openCrear}>
-                <Plus size={14} strokeWidth={2.2} />
-                Nuevo paquete
-              </button>
+              <>
+                <VisibilityToggle
+                  label="Sección en la web"
+                  visible={seccionVisible}
+                  onChange={(visible) => cambiarSeccion(visible ? 'visible' : 'oculto')}
+                  helpVisible="El público ve la sección de paquetes y su enlace del menú (solo los paquetes marcados como visibles). Si la ocultas, los paquetes siguen activos en administración, reservas y caja."
+                  helpHidden="La sección de paquetes y su enlace del menú no aparecen en la web. Los paquetes siguen activos en administración, reservas y caja. Actívala para mostrarla de nuevo."
+                  disabled={!esAdminSys || guardandoSeccion}
+                  disabledReason={esAdminSys ? undefined : 'Solo el administrador del sistema puede mostrar u ocultar la sección.'}
+                />
+                <button type="button" className={styles.btnPrimary} onClick={openCrear}>
+                  <Plus size={14} strokeWidth={2.2} />
+                  Nuevo paquete
+                </button>
+              </>
             }
           />
 
           <div ref={contentRef} className={styles.contentStack}>
-            <div className={styles.sectionToggleCard}>
-              <div className={styles.sectionToggleText}>
-                <span className={styles.sectionToggleTitle}>Sección de paquetes en la página principal</span>
-                <span className={styles.sectionToggleDesc}>
-                  {seccionVisible
-                    ? 'El público ve la sección (solo los paquetes marcados como visibles).'
-                    : 'Oculta: el público no ve ningún paquete ni el enlace del menú.'}
-                </span>
-              </div>
-              <Tooltip
-                title={seccionVisible ? 'Sección visible' : 'Sección oculta'}
-                content={esAdminSys
-                  ? 'Oculta o muestra la sección completa de paquetes y su enlace del menú en la web. Los paquetes siguen activos en administración, reservas y caja.'
-                  : 'Solo el administrador del sistema puede cambiar esto.'}
-              >
-                <fieldset className={styles.sectionToggleControl} disabled={!esAdminSys || guardandoSeccion}>
-                  <ChoiceChips
-                    variant="toggle"
-                    ariaLabel="Mostrar la sección de paquetes en la página principal"
-                    options={[{ value: 'visible', label: 'Visible' }, { value: 'oculto', label: 'Oculto' }]}
-                    value={seccionVisible ? 'visible' : 'oculto'}
-                    onChange={cambiarSeccion}
-                  />
-                </fieldset>
-              </Tooltip>
-            </div>
+            {!seccionVisible && (
+              <AlertBanner tone="warning">
+                La sección de paquetes está oculta en la web: el público no ve ninguno, aunque esté marcado como visible.
+              </AlertBanner>
+            )}
 
             <div className={styles.filterCard}>
               <div className={styles.filterCardInner}>
