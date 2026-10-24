@@ -232,8 +232,8 @@ export default function PaquetesPage() {
                   label="Sección en la web"
                   visible={seccionVisible}
                   onChange={(visible) => cambiarSeccion(visible ? 'visible' : 'oculto')}
-                  helpVisible="El público ve la sección de paquetes y su enlace del menú (solo los paquetes marcados como visibles). Si la ocultas, los paquetes siguen activos en administración, reservas y caja."
-                  helpHidden="La sección de paquetes y su enlace del menú no aparecen en la web. Los paquetes siguen activos en administración, reservas y caja. Actívala para mostrarla de nuevo."
+                  helpVisible="La página web pública muestra la sección de paquetes y la opción «Paquetes» de su menú de navegación; solo se listan los paquetes marcados como visibles. Si la oculta, los paquetes siguen activos en administración, reservas y caja."
+                  helpHidden="La página web pública no muestra la sección de paquetes ni la opción «Paquetes» de su menú de navegación. Los paquetes siguen activos en administración, reservas y caja. Actívela para volver a mostrarla."
                   disabled={!esAdminSys || guardandoSeccion}
                   disabledReason={esAdminSys ? undefined : 'Solo el administrador del sistema puede mostrar u ocultar la sección.'}
                 />
