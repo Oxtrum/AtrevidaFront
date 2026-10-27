@@ -50,6 +50,42 @@ export async function desactivarInventarioItem(id: number): Promise<void> {
   await apiClient.delete(`/bd/inventario/items/${id}`);
 }
 
+// ── Imagen del ítem ──
+// Flujo de 3 pasos: URL firmada → PUT directo al storage (S3) → confirmar la clave en el backend.
+
+interface InventarioImagenUpload {
+  upload_url: string;
+  imagen_key: string;
+  /** Headers firmados en la URL: el PUT debe enviarlos exactamente. */
+  headers?: Record<string, string>;
+}
+
+/** Sube una imagen ya convertida a WebP y devuelve su URL pública. */
+export async function subirImagenInventario(id: number, imagen: Blob): Promise<string> {
+  const firma = await apiClient.post<ApiResponse<InventarioImagenUpload>>(`/bd/inventario/items/${id}/imagen/upload-url`, undefined);
+  const { upload_url, imagen_key, headers } = firma.data;
+
+  // PUT al storage: la URL es absoluta y firmada, no pasa por apiClient (no lleva el token del admin).
+  let res: Response;
+  try {
+    res = await fetch(upload_url, {
+      method: 'PUT',
+      headers: headers ?? { 'Content-Type': imagen.type },
+      body: imagen,
+    });
+  } catch {
+    throw new Error('No se pudo contactar el almacenamiento de imágenes. Revisa tu conexión o el CORS del bucket');
+  }
+  if (!res.ok) throw new Error(`El almacenamiento rechazó la imagen (HTTP ${res.status})`);
+
+  const confirmado = await apiClient.put<ApiResponse<{ imagen_url: string }>>(`/bd/inventario/items/${id}/imagen`, { imagen_key });
+  return confirmado.data.imagen_url;
+}
+
+export async function eliminarImagenInventario(id: number): Promise<void> {
+  await apiClient.delete(`/bd/inventario/items/${id}/imagen`);
+}
+
 // ── Categorías ──
 
 export async function getCategoriasInventario(): Promise<CategoriaInventario[]> {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { PackageMinus, Pencil, Plus, Power, SlidersHorizontal } from 'lucide-react';
+import { Package, PackageMinus, Pencil, Plus, Power, SlidersHorizontal } from 'lucide-react';
 import {
   AdminButton,
   ConfirmDialog,
@@ -99,6 +99,14 @@ export function ItemsTab({ canManage, canAdjust, moneda, initialQ = '', initialL
       label: 'Ítem',
       render: (_v, row) => (
         <span className={styles.itemCell}>
+          {row.imagen_url ? (
+            // eslint-disable-next-line @next/next/no-img-element -- URL de S3/CloudFront; el dominio aún no es fijo
+            <img src={row.imagen_url} alt="" className={styles.thumb} loading="lazy" decoding="async" />
+          ) : (
+            <span className={`${styles.thumb} ${styles.thumbEmpty}`} aria-hidden="true">
+              <Package size={18} strokeWidth={1.5} />
+            </span>
+          )}
           <span>
             <span className={styles.itemName}>{row.nombre}</span>
             <span className={styles.itemCode}>{row.codigo}</span>
@@ -207,6 +215,7 @@ export function ItemsTab({ canManage, canAdjust, moneda, initialQ = '', initialL
         isOpen={formOpen}
         item={formItem}
         categorias={categorias ?? []}
+        moneda={moneda}
         onClose={() => setFormOpen(false)}
         onSaved={reload}
       />

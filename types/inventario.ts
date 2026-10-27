@@ -71,6 +71,8 @@ export interface InventarioItem {
   stock_actual: number;
   bajo_stock: boolean;
   activo: boolean;
+  /** URL pública de la imagen (webp); ausente si el ítem no tiene imagen. */
+  imagen_url?: string | null;
   /** Solo en el detalle. */
   stock_por_local?: StockLocal[];
   /** Solo en alertas: el stock se evalúa por local. */
