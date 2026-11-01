@@ -1,14 +1,17 @@
 import { apiClient } from './client';
 import type { PaginationMetadata, PaginationParams } from './pagination';
 import type { ApiResponse } from '@/types/reserva';
-import type { EstadoCargo, EtiquetaSaldo, TipoCargo } from '@/lib/utils/cuenta';
+import type { EstadoCargo, TipoCargo } from '@/lib/utils/cuenta';
 import type { TipoPago } from '@/lib/utils/tipoPago';
 
-/** Saldo de un cliente: positivo = a favor, negativo = deuda. `absoluto` va sin signo para mostrarlo junto a la etiqueta. */
+/**
+ * Posicion de un cliente en dos numeros que no se mezclan: lo que tiene disponible (dinero recargado y no usado)
+ * y lo que le falta pagar. La deuda es por pagar menos disponible y nunca es negativa.
+ */
 export interface SaldoCuenta {
-  monto: number;
-  absoluto: number;
-  etiqueta: EtiquetaSaldo;
+  disponible: number;
+  por_pagar: number;
+  deuda: number;
 }
 
 export interface CargoCliente {
@@ -37,7 +40,9 @@ export interface AbonoCliente {
   tipo_pago: string;
   fecha_hecho: string;
   registrado_en: string;
+  /** Cuanto de este abono ya cubrio de cargos. */
   aplicado: number;
+  /** Lo que queda sin usar de este abono. */
   sin_aplicar: number;
 }
 
@@ -46,8 +51,6 @@ export interface CuentaCliente {
   saldo: SaldoCuenta;
   total_cargos: number;
   total_abonos: number;
-  /** Lo que los abonos no aplicaron todavia (saldo a favor sugerible al cobrar). */
-  sin_aplicar: number;
   cargos: CargoCliente[];
   abonos: AbonoCliente[];
 }
@@ -76,7 +79,7 @@ export interface CrearAbonoData {
   tipo_pago: TipoPago;
   /** YYYY-MM-DD; sin ella es ahora. No puede ser futura. */
   fecha_hecho?: string;
-  /** Lo que no se aplica queda como saldo a favor. */
+  /** Que cargos cubre este abono. Lo que no cubre queda como saldo disponible. */
   aplicaciones: Reparto[];
 }
 

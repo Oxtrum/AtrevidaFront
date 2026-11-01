@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Eye, Wallet } from 'lucide-react';
 import { AdminPageShell, CursorPagination, DataTable, FilterBar, PageHeader, RowActionsMenu } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
-import { CuentaClienteModal, SaldoCliente } from '@/components/AdminClientes';
+import { CuentaClienteModal, DeudaCliente } from '@/components/AdminClientes';
 import { getDeudores } from '@/lib/api/cuenta';
 import type { DeudorCliente } from '@/lib/api/cuenta';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
@@ -87,7 +87,7 @@ export default function CuentasPorCobrarPage() {
       label: 'Deuda',
       searchable: false,
       firstSort: 'desc',
-      render: (_v, row) => <SaldoCliente saldo={{ monto: -row.deuda, absoluto: row.deuda, etiqueta: 'DEUDA' }} />,
+      render: (_v, row) => <DeudaCliente monto={row.deuda} />,
     },
     {
       key: 'acciones',

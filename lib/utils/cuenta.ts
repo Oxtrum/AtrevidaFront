@@ -1,11 +1,8 @@
 import type { BadgeTone } from '@/components/AdminConfig/StatusBadge';
 
-export type EtiquetaSaldo = 'A_FAVOR' | 'DEUDA' | 'AL_DIA';
 export type EstadoCargo = 'PENDIENTE' | 'PARCIAL' | 'PAGADO';
 export type TipoCargo = 'PAQUETE' | 'SERVICIO' | 'INSUMO' | 'OTRO';
 
-const TEXTO_SALDO: Record<EtiquetaSaldo, string> = { A_FAVOR: 'A favor', DEUDA: 'Deuda', AL_DIA: 'Al día' };
-const TONO_SALDO: Record<EtiquetaSaldo, BadgeTone> = { A_FAVOR: 'success', DEUDA: 'danger', AL_DIA: 'neutral' };
 const TEXTO_ESTADO: Record<EstadoCargo, string> = { PENDIENTE: 'Pendiente', PARCIAL: 'Parcial', PAGADO: 'Pagado' };
 const TONO_ESTADO: Record<EstadoCargo, BadgeTone> = { PENDIENTE: 'danger', PARCIAL: 'warning', PAGADO: 'success' };
 
@@ -17,8 +14,14 @@ export const TIPOS_CARGO: { value: TipoCargo; label: string }[] = [
   { value: 'OTRO', label: 'Otro' },
 ];
 
-export const etiquetaSaldoTexto = (e: EtiquetaSaldo): string => TEXTO_SALDO[e];
-export const tonoSaldo = (e: EtiquetaSaldo): BadgeTone => TONO_SALDO[e];
+// Textos del saldo. Se dice saldo disponible, nunca saldo a favor, y no existe la etiqueta Al día.
+export const ETIQUETA_DISPONIBLE = 'Saldo disponible';
+export const ETIQUETA_POR_PAGAR = 'Por pagar';
+export const ETIQUETA_DEUDA = 'Deuda';
+
+export const tonoDisponible = (disponible: number): BadgeTone => (disponible > 0 ? 'success' : 'neutral');
+/** Por pagar es alerta solo si el saldo disponible no alcanza a cubrirlo (hay deuda real). */
+export const tonoPorPagar = (porPagar: number, deuda: number): BadgeTone => (deuda > 0 ? 'danger' : porPagar > 0 ? 'warning' : 'neutral');
 export const estadoCargoTexto = (e: EstadoCargo): string => TEXTO_ESTADO[e];
 export const tonoEstadoCargo = (e: EstadoCargo): BadgeTone => TONO_ESTADO[e];
 export const tipoCargoTexto = (t: TipoCargo): string => TIPOS_CARGO.find((x) => x.value === t)?.label ?? t;

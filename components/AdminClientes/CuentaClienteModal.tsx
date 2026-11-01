@@ -114,10 +114,10 @@ export function CuentaClienteModal({ isOpen, cliente, onClose, onChanged }: Cuen
     { key: 'fecha_hecho', label: 'Fecha', searchable: false, firstSort: 'desc', render: (_v, row) => <span className={styles.num}>{formatFecha(row.fecha_hecho)}</span> },
     { key: 'tipo_pago', label: 'Método', searchable: false, render: (_v, row) => String(row.tipo_pago).toUpperCase() },
     { key: 'monto', label: 'Monto', searchable: false, render: (_v, row) => <span className={styles.num}>{formatMoney(row.monto)}</span> },
-    { key: 'aplicado', label: 'Aplicado', searchable: false, render: (_v, row) => <span className={styles.num}>{formatMoney(row.aplicado)}</span> },
+    { key: 'aplicado', label: 'Cubrió', searchable: false, render: (_v, row) => <span className={styles.num}>{formatMoney(row.aplicado)}</span> },
     {
       key: 'sin_aplicar',
-      label: 'Sin aplicar',
+      label: 'Sin usar',
       searchable: false,
       render: (_v, row) => <span className={`${styles.num} ${row.sin_aplicar > 0 ? styles.sinAplicar : ''}`}>{formatMoney(row.sin_aplicar)}</span>,
     },
@@ -137,7 +137,6 @@ export function CuentaClienteModal({ isOpen, cliente, onClose, onChanged }: Cuen
             <SaldoCliente saldo={cuenta.saldo} size="lg" />
             <p className={styles.totales}>
               Cargado {formatMoney(cuenta.total_cargos)} · Abonado {formatMoney(cuenta.total_abonos)}
-              {cuenta.sin_aplicar > 0 && ` · Sin aplicar ${formatMoney(cuenta.sin_aplicar)}`}
             </p>
           </div>
         )}
@@ -185,7 +184,7 @@ export function CuentaClienteModal({ isOpen, cliente, onClose, onChanged }: Cuen
       <ReasonDialog
         isOpen={aAnular !== null}
         title="Anular cargo"
-        message={aAnular && <>Se anulará <strong>{aAnular.concepto}</strong> ({formatMoney(aAnular.monto)}). Lo que ya se le aplicó vuelve a ser saldo a favor del cliente.</>}
+        message={aAnular && <>Se anulará <strong>{aAnular.concepto}</strong> ({formatMoney(aAnular.monto)}). Lo que ya se le cobró vuelve al saldo disponible del cliente.</>}
         confirmLabel="Anular cargo"
         onConfirm={async (motivo) => {
           if (!aAnular) return;
