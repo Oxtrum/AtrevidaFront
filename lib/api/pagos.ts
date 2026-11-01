@@ -2,6 +2,7 @@ import { apiClient } from './client';
 import { withLocalIdScope, withNombreLocalScope } from './localScope';
 import type { ApiResponse } from '@/types/reserva';
 import type { PaginationMetadata, PaginationParams } from './pagination';
+import type { TipoPago } from '@/lib/utils/tipoPago';
 
 export interface DetalleServicio {
   servicio_id: number | null;
@@ -19,7 +20,7 @@ export interface CrearPagoData {
   cliente_nombre: string;
   descuento: number;
   estado: string;
-  tipo_pago: 'qr' | 'efectivo';
+  tipo_pago: TipoPago;
   activo: boolean;
   /** Reserva que se cobra con este pago (opcional; una reserva admite un solo cobro). */
   reserva_id?: number | null;

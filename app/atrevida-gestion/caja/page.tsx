@@ -8,8 +8,10 @@ import {
   Building2,
   CheckCircle2,
   CreditCard,
+  Landmark,
   Minus,
   Plus,
+  QrCode,
   ReceiptText,
   Search,
   Trash2,
@@ -40,6 +42,14 @@ import { PAGE_LIMIT } from '@/lib/api/pagination';
 import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
 import { useServerSort } from '@/lib/hooks/useServerSort';
 import type { SortState } from '@/lib/utils/sortRows';
+import { TIPOS_PAGO, etiquetaTipoPago, type TipoPago } from '@/lib/utils/tipoPago';
+
+const ICONO_TIPO_PAGO = {
+  efectivo: WalletCards,
+  tarjeta: CreditCard,
+  qr: QrCode,
+  transferencia: Landmark,
+} satisfies Record<TipoPago, typeof WalletCards>;
 
 interface LocalOption {
   id: number;
@@ -203,7 +213,7 @@ export default function CajaPage() {
   const [loadingClientes, setLoadingClientes] = useState(false);
   const [clienteDropdownOpen, setClienteDropdownOpen] = useState(false);
   const [descuento, setDescuento] = useState(0);
-  const [tipoPago, setTipoPago] = useState<'qr' | 'efectivo'>('qr');
+  const [tipoPago, setTipoPago] = useState<TipoPago>('qr');
   const [detalle, setDetalle] = useState<DetallePagoDraft[]>([]);
   const [customServicio, setCustomServicio] = useState('');
   const [customPrecio, setCustomPrecio] = useState('');
@@ -1291,22 +1301,21 @@ export default function CajaPage() {
                     )}
 
                     <div className={styles.paymentToggle} role="group" aria-label="Tipo de pago">
-                      <button
-                        type="button"
-                        className={tipoPago === 'qr' ? styles.paymentActive : ''}
-                        onClick={() => setTipoPago('qr')}
-                      >
-                        <CreditCard size={16} strokeWidth={1.8} />
-                        QR
-                      </button>
-                      <button
-                        type="button"
-                        className={tipoPago === 'efectivo' ? styles.paymentActive : ''}
-                        onClick={() => setTipoPago('efectivo')}
-                      >
-                        <WalletCards size={16} strokeWidth={1.8} />
-                        Efectivo
-                      </button>
+                      {TIPOS_PAGO.map((tipo) => {
+                        const Icono = ICONO_TIPO_PAGO[tipo];
+                        return (
+                          <button
+                            key={tipo}
+                            type="button"
+                            className={tipoPago === tipo ? styles.paymentActive : ''}
+                            aria-pressed={tipoPago === tipo}
+                            onClick={() => setTipoPago(tipo)}
+                          >
+                            <Icono size={16} strokeWidth={1.8} />
+                            {etiquetaTipoPago(tipo)}
+                          </button>
+                        );
+                      })}
                     </div>
 
                     <div className={styles.ticketColumns}>

@@ -2,6 +2,7 @@ import { apiClient } from './client';
 import type { PaginationMetadata, PaginationParams } from './pagination';
 import type { ApiResponse } from '@/types/reserva';
 import type { EstadoCargo, EtiquetaSaldo, TipoCargo } from '@/lib/utils/cuenta';
+import type { TipoPago } from '@/lib/utils/tipoPago';
 
 /** Saldo de un cliente: positivo = a favor, negativo = deuda. `absoluto` va sin signo para mostrarlo junto a la etiqueta. */
 export interface SaldoCuenta {
@@ -72,7 +73,7 @@ export interface CrearAbonoData {
   local_id: number;
   local_nombre: string;
   monto: number;
-  tipo_pago: 'qr' | 'efectivo';
+  tipo_pago: TipoPago;
   /** YYYY-MM-DD; sin ella es ahora. No puede ser futura. */
   fecha_hecho?: string;
   /** Lo que no se aplica queda como saldo a favor. */

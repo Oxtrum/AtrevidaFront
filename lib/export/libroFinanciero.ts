@@ -5,6 +5,7 @@ import { getVentasDetalleDB } from '@/lib/api/pagos';
 import type { VentaDetalleLinea } from '@/lib/api/pagos';
 import { getPlanillas } from '@/lib/api/rrhh';
 import { monthRange } from '@/lib/utils/format';
+import { etiquetaTipoPago } from '@/lib/utils/tipoPago';
 import type { FlujoOrigen } from '@/types/finanzas';
 
 const ORIGEN_LABEL: Record<FlujoOrigen, string> = {
@@ -118,7 +119,7 @@ function diaLocal(iso: string): string {
 }
 
 const neto = (l: VentaDetalleLinea) => redondear(l.subtotal - l.descuento_prorrateado);
-const tipoPagoLabel = (t: string) => (t === 'qr' ? 'QR' : t === 'efectivo' ? 'Efectivo' : t === 'sin_tipo' ? 'Sin tipo' : t);
+const tipoPagoLabel = etiquetaTipoPago;
 
 interface PagoUnico {
   fecha: string;
