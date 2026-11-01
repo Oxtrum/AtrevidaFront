@@ -28,3 +28,4 @@ export { MonthPicker, formatMes } from './MonthPicker';
 export { ChoiceChips } from './ChoiceChips';
 export type { ChoiceOption } from './ChoiceChips';
 export { VisibilityToggle } from './VisibilityToggle';
+export { FechaHechoField } from './FechaHechoField';

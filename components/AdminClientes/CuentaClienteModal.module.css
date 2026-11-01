@@ -1,0 +1,78 @@
+.resumen {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding-bottom: 1rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--admin-border-subtle);
+}
+
+.totales {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--admin-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.seccion + .seccion {
+  margin-top: 1.75rem;
+}
+
+.seccionCabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.seccionTitulo {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--admin-foreground);
+}
+
+.acciones {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.mostrarAnulados {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--admin-text-muted);
+  cursor: pointer;
+}
+
+.concepto {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 12rem;
+}
+
+.conceptoTipo {
+  font-size: 0.7rem;
+  color: var(--admin-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.anulado {
+  text-decoration: line-through;
+  color: var(--admin-text-dim);
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.sinAplicar {
+  color: #34d399;
+  font-weight: 600;
+}
