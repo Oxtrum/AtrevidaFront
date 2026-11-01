@@ -67,20 +67,31 @@ export interface CrearCargoData {
   plan_id?: number;
 }
 
-export interface Reparto {
-  cargo_id: number;
-  monto: number;
-}
-
-export interface CrearAbonoData {
+/** Cobro de caja: los cargos marcados se pagan completos. */
+export interface CobrarData {
   local_id: number;
   local_nombre: string;
-  monto: number;
-  tipo_pago: TipoPago;
+  /** Cargos que se pagan completos; puede ir vacio si solo se recarga saldo. */
+  cargo_ids: number[];
+  /** true descuenta primero el saldo disponible; false si el cliente prefiere guardarlo. */
+  usar_saldo: boolean;
+  /** Dinero extra que queda como saldo disponible. */
+  recarga?: number;
+  /** Metodo del dinero nuevo; solo se exige si entra dinero nuevo. */
+  tipo_pago?: TipoPago;
   /** YYYY-MM-DD; sin ella es ahora. No puede ser futura. */
   fecha_hecho?: string;
-  /** Que cargos cubre este abono. Lo que no cubre queda como saldo disponible. */
-  aplicaciones: Reparto[];
+}
+
+export interface CobroResultado {
+  /** Codigo del dinero nuevo que entro; vacio si el saldo cubrio todo. */
+  codigo_pago?: string;
+  plan: {
+    total: number;
+    usa_saldo: number;
+    falta: number;
+    nuevo_pago: number;
+  };
 }
 
 export async function getCuentaCliente(clienteId: number, incluirAnulados = false, signal?: AbortSignal): Promise<CuentaCliente> {
@@ -100,13 +111,9 @@ export async function anularCargo(cargoId: number, motivo: string): Promise<void
   await apiClient.post(`/bd/cargos/${cargoId}/anular`, { motivo });
 }
 
-export async function crearAbono(clienteId: number, data: CrearAbonoData): Promise<string> {
-  const res = await apiClient.post<ApiResponse<{ codigo_pago: string }>>(`/bd/clientes/${clienteId}/abonos`, data);
-  return res.data.codigo_pago;
-}
-
-export async function aplicarAbono(clienteId: number, codigoPago: string, aplicaciones: Reparto[]): Promise<void> {
-  await apiClient.post(`/bd/clientes/${clienteId}/abonos/${codigoPago}/aplicaciones`, { aplicaciones });
+export async function cobrarCliente(clienteId: number, data: CobrarData): Promise<CobroResultado> {
+  const res = await apiClient.post<ApiResponse<CobroResultado>>(`/bd/clientes/${clienteId}/cobros`, data);
+  return res.data;
 }
 
 export interface DeudorCliente {
