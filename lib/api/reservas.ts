@@ -213,6 +213,8 @@ export async function getReservasDB(params: GetReservasDBParams, signal?: AbortS
 	  limit: scopedParams.limit,
 	  cursor: scopedParams.cursor,
 	  include_total: scopedParams.include_total,
+      ordenar_por: scopedParams.ordenar_por,
+      sentido: scopedParams.sentido,
     },
 	signal,
   });

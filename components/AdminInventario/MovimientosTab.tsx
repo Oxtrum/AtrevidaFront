@@ -8,12 +8,17 @@ import { getMovimientosInventario } from '@/lib/api/inventario';
 import { getAdminLocalScope } from '@/lib/api/localScope';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
 import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
+import { useServerSort } from '@/lib/hooks/useServerSort';
 import { formatDateTimeISO, formatQty } from '@/lib/utils/format';
+import type { SortState } from '@/lib/utils/sortRows';
 import { TIPOS_MOVIMIENTO_ENTRADA, TIPOS_MOVIMIENTO_LABEL } from '@/types/inventario';
 import type { MovimientoInventario, TipoMovimientoInventario } from '@/types/inventario';
 import styles from './AdminInventario.module.css';
 
 type Row = MovimientoInventario & Record<string, unknown>;
+
+/** Orden que el servidor aplica sin ordenar_por; solo se usa para marcar el header de fecha. */
+const ORDEN_POR_DEFECTO: SortState = { key: 'creado_en', dir: 'desc' };
 
 /** Kardex: historial de entradas, salidas y ajustes con el stock resultante (RN-02/03). */
 export function MovimientosTab() {
@@ -29,6 +34,9 @@ export function MovimientosTab() {
     return () => window.clearTimeout(t);
   }, [q]);
 
+  const serverSort = useServerSort(ORDEN_POR_DEFECTO);
+  const { params: sortParams } = serverSort;
+  // El orden va en los filtros: cambiarlo cambia la clave del paginador y vuelve a la primera pagina.
   const filters = useMemo(
     () => ({
       local_id: localId ? Number(localId) : undefined,
@@ -36,8 +44,9 @@ export function MovimientosTab() {
       fecha_desde: desde || undefined,
       fecha_hasta: hasta || undefined,
       q: debouncedQ || undefined,
+      ...sortParams,
     }),
-    [localId, tipo, desde, hasta, debouncedQ],
+    [localId, tipo, desde, hasta, debouncedQ, sortParams],
   );
   const pagination = useCursorPagination(JSON.stringify(filters));
   const { cursor, requestRevision, shouldIncludeTotal, setMetadata } = pagination;
@@ -81,7 +90,7 @@ export function MovimientosTab() {
   }, []);
 
   const columns: Column<Row>[] = [
-    { key: 'creado_en', label: 'Fecha', searchable: false, render: (v) => formatDateTimeISO(v as string) },
+    { key: 'creado_en', label: 'Fecha', searchable: false, firstSort: 'desc', render: (v) => formatDateTimeISO(v as string) },
     { key: 'item_nombre', label: 'Ítem' },
     { key: 'local_nombre', label: 'Local' },
     {
@@ -142,7 +151,7 @@ export function MovimientosTab() {
       </FilterBar>
       </div>
 
-      <DataTable<Row>
+      <DataTable<Row> sort={serverSort.sort} onSortChange={serverSort.onSortChange}
         columns={columns}
         data={rows as Row[]}
         loading={loading}

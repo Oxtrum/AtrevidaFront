@@ -4,6 +4,9 @@ export interface PaginationParams {
   limit?: number;
   cursor?: string;
   include_total?: boolean;
+  /** Campo por el que ordena el servidor; sin el, aplica su orden por defecto. */
+  ordenar_por?: string;
+  sentido?: 'asc' | 'desc';
 }
 
 export interface PaginationMetadata {

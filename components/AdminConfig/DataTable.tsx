@@ -1,7 +1,9 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Pencil, Search, RefreshCw, X, Inbox } from 'lucide-react';
+import { ArrowDown, ArrowUp, ChevronsUpDown, Pencil, Search, RefreshCw, X, Inbox } from 'lucide-react';
+import { nextSort, sortRows } from '@/lib/utils/sortRows';
+import type { SortDirection, SortState } from '@/lib/utils/sortRows';
 import styles from './DataTable.module.css';
 
 export interface Column<T> {
@@ -9,6 +11,8 @@ export interface Column<T> {
   label: string;
   render?: (value: unknown, row: T) => React.ReactNode;
   searchable?: boolean; // false → excluye del filtro local
+  sortable?: boolean; // false → el header no ordena
+  firstSort?: SortDirection; // sentido del primer click (por defecto 'asc')
 }
 
 interface DataTableProps<T> {
@@ -23,9 +27,26 @@ interface DataTableProps<T> {
   searchPlaceholder?: string;
   emptyMessage?: string;
   hideSearch?: boolean;
+  /** false → ninguna columna ordena. Las tablas paginadas lo apagan hasta ordenar en el servidor. */
+  sortable?: boolean;
+  /** Orden inicial cuando la tabla ordena sola en el navegador. */
+  defaultSort?: SortState | null;
+  /**
+   * Modo controlado, para tablas que ordena el servidor: con `onSortChange` la tabla no reordena las filas,
+   * solo muestra `sort` y avisa del click. Sin `onSortChange` ordena en el navegador.
+   */
+  sort?: SortState | null;
+  onSortChange?: (sort: SortState) => void;
 }
 
 const SKELETON_ROWS = 5;
+
+function SortIcon({ dir }: { dir: SortDirection | null }) {
+  const props = { size: 12, strokeWidth: 2, className: styles.sortIcon, 'aria-hidden': true } as const;
+  if (dir === 'asc') return <ArrowUp {...props} />;
+  if (dir === 'desc') return <ArrowDown {...props} />;
+  return <ChevronsUpDown {...props} />;
+}
 
 export function DataTable<T extends Record<string, unknown>>({
   columns,
@@ -39,8 +60,15 @@ export function DataTable<T extends Record<string, unknown>>({
   searchPlaceholder = 'Buscar...',
   emptyMessage = 'No hay datos disponibles',
   hideSearch = false,
+  sortable: tableSortable = true,
+  defaultSort = null,
+  sort,
+  onSortChange,
 }: DataTableProps<T>) {
   const [query, setQuery] = useState('');
+  const [localSort, setLocalSort] = useState<SortState | null>(defaultSort);
+  const controlled = onSortChange !== undefined;
+  const activeSort = controlled ? (sort ?? null) : localSort;
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -54,6 +82,28 @@ export function DataTable<T extends Record<string, unknown>>({
         })
     );
   }, [data, query, columns]);
+
+  // Una columna ordena solo si algun registro trae su campo; evita botones muertos en columnas de acciones.
+  const sortableKeys = useMemo(() => {
+    const keys = new Set<string>();
+    if (!tableSortable) return keys;
+    for (const col of columns) {
+      if (col.sortable === false) continue;
+      if (controlled || data.some((row) => row[col.key] !== undefined)) keys.add(col.key);
+    }
+    return keys;
+  }, [tableSortable, columns, data, controlled]);
+
+  const visible = useMemo(
+    () => (controlled || !tableSortable ? filtered : sortRows(filtered, activeSort)),
+    [controlled, tableSortable, filtered, activeSort],
+  );
+
+  const handleSort = (col: Column<T>) => {
+    const next = nextSort(activeSort, col.key, col.firstSort);
+    if (controlled) onSortChange(next);
+    else setLocalSort(next);
+  };
 
   const isFiltering = query.trim().length > 0;
   const hasData = !loading && !error;
@@ -122,9 +172,31 @@ export function DataTable<T extends Record<string, unknown>>({
         <table className={styles.table}>
           <thead>
             <tr>
-              {columns.map((col) => (
-                <th key={col.key}>{col.label}</th>
-              ))}
+              {columns.map((col) => {
+                const sortable = sortableKeys.has(col.key);
+                const dir = activeSort?.key === col.key ? activeSort.dir : null;
+                return (
+                  <th
+                    key={col.key}
+                    aria-sort={sortable ? (dir === 'asc' ? 'ascending' : dir === 'desc' ? 'descending' : 'none') : undefined}
+                  >
+                    {sortable ? (
+                      <button
+                        type="button"
+                        className={`${styles.sortButton} ${dir ? styles.sortActive : ''}`}
+                        onClick={() => handleSort(col)}
+                        disabled={Boolean(loading)}
+                        title={`Ordenar por ${col.label}`}
+                      >
+                        <span>{col.label}</span>
+                        <SortIcon dir={dir} />
+                      </button>
+                    ) : (
+                      col.label
+                    )}
+                  </th>
+                );
+              })}
               {onEdit && <th style={{ width: 96 }} />}
             </tr>
           </thead>
@@ -194,7 +266,7 @@ export function DataTable<T extends Record<string, unknown>>({
 
             {/* Data rows */}
             {hasData &&
-              filtered.map((row, index) => (
+              visible.map((row, index) => (
                 <tr
                   key={`${getRowKey(row)}-${index}`}
                   onClick={() => onRowClick?.(row)}

@@ -38,6 +38,8 @@ import { formatDateTime } from '@/lib/utils/formatDateTime';
 import styles from './page.module.css';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
 import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
+import { useServerSort } from '@/lib/hooks/useServerSort';
+import type { SortState } from '@/lib/utils/sortRows';
 
 interface LocalOption {
   id: number;
@@ -57,6 +59,9 @@ interface ServicioOption {
 interface ClienteOption extends ClientePG, Record<string, unknown> {}
 
 interface PagoRow extends Pago, Record<string, unknown> {}
+
+/** Orden que el servidor aplica sin ordenar_por; solo se usa para marcar el header de fecha. */
+const ORDEN_PAGOS_POR_DEFECTO: SortState = { key: 'fecha_creacion', dir: 'desc' };
 
 interface FormErrors {
   local?: string;
@@ -181,8 +186,10 @@ export default function CajaPage() {
   const pagosClienteActivo = filtroTextoActivo(pagosClienteDebounced);
   const pagosNitActivo = filtroTextoActivo(pagosNitDebounced);
   const pagosProductoActivo = filtroTextoActivo(pagosProductoDebounced);
+	const pagosSort = useServerSort(ORDEN_PAGOS_POR_DEFECTO);
+	const { params: pagosSortParams } = pagosSort;
 	const pagosPagination = useCursorPagination(
-    `${selectedLocal?.id ?? ''}|${pagosClienteActivo}|${pagosNitActivo}|${pagosProductoActivo}|${pagosEstado}`,
+    `${selectedLocal?.id ?? ''}|${pagosClienteActivo}|${pagosNitActivo}|${pagosProductoActivo}|${pagosEstado}|${pagosSort.key}`,
   );
 	const { cursor: pagosCursor, requestRevision: pagosRequestRevision, shouldIncludeTotal: shouldIncludePagosTotal, setMetadata: setPagosMetadata } = pagosPagination;
 	const pagosRequestRef = useRef(0);
@@ -299,6 +306,7 @@ export default function CajaPage() {
 		limit: PAGE_LIMIT,
 		cursor: pagosCursor,
 		include_total: shouldIncludePagosTotal(),
+        ...pagosSortParams,
       }, controller.signal);
 	  if (requestId !== pagosRequestRef.current) return;
       setPagos((res.data?.pagos ?? []) as PagoRow[]);
@@ -310,7 +318,7 @@ export default function CajaPage() {
     } finally {
 	  if (requestId === pagosRequestRef.current) setLoadingPagos(false);
     }
-  }, [selectedLocal, pagosClienteActivo, pagosNitActivo, pagosProductoActivo, pagosEstado, pagosCursor, pagosRequestRevision, shouldIncludePagosTotal, setPagosMetadata]);
+  }, [selectedLocal, pagosClienteActivo, pagosNitActivo, pagosProductoActivo, pagosEstado, pagosSortParams, pagosCursor, pagosRequestRevision, shouldIncludePagosTotal, setPagosMetadata]);
 
 	useEffect(() => () => {
 		pagosRequestRef.current += 1;
@@ -877,6 +885,7 @@ export default function CajaPage() {
           codigoPago={row.codigo_pago}
           primerProducto={String(value ?? '')}
           cantidadProductos={Number(row.cantidad_productos ?? 0)}
+          esAbono={row.es_abono === true}
           onOpen={setDetallePagoCodigo}
         />
       ),
@@ -897,6 +906,7 @@ export default function CajaPage() {
       key: 'fecha_creacion',
       label: 'Fecha y hora',
       searchable: false,
+      firstSort: 'desc',
       render: (value) => formatDateTime(value as string),
     },
     {
@@ -1449,7 +1459,7 @@ export default function CajaPage() {
                     </div>
                   </div>
 
-                  <DataTable<PagoRow>
+                  <DataTable<PagoRow> sort={pagosSort.sort} onSortChange={pagosSort.onSortChange}
                     columns={columns}
                     data={pagos}
                     loading={loadingPagos}

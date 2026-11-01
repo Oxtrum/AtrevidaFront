@@ -23,6 +23,7 @@ import type { ReservaEstadoPillTone } from '@/components/AdminReservas/ReservaEs
 import styles from './page.module.css';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
 import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
+import { useServerSort } from '@/lib/hooks/useServerSort';
 
 interface ReservaRow extends Record<string, unknown> {
   id: number;
@@ -91,7 +92,10 @@ export default function AdminReservasPage() {
 
   const [filtroFechaDesde, setFiltroFechaDesde] = useState(getInitialFechaDesde);
   const [filtroFechaHasta, setFiltroFechaHasta] = useState(getInitialFechaHasta);
-	const pagination = useCursorPagination(`${effectiveFiltroLocal}|${filtroFechaDesde}|${filtroFechaHasta}|${filtroTipo}|${filtroEstado}|${busquedaDebounced}`);
+	// Sin orden pedido el servidor ordena por local, fecha y hora (no es una sola columna), asi que ningun header queda marcado.
+	const serverSort = useServerSort();
+	const { params: sortParams } = serverSort;
+	const pagination = useCursorPagination(`${effectiveFiltroLocal}|${filtroFechaDesde}|${filtroFechaHasta}|${filtroTipo}|${filtroEstado}|${busquedaDebounced}|${serverSort.key}`);
 	const { cursor: paginationCursor, requestRevision, shouldIncludeTotal, setMetadata: setPaginationMetadata } = pagination;
 
 	useEffect(() => setPaginationMetadata(serverPagination), [setPaginationMetadata, serverPagination]);
@@ -125,9 +129,10 @@ export default function AdminReservasPage() {
 		limit: PAGE_LIMIT,
 		cursor: paginationCursor,
 		include_total: shouldIncludeTotal(),
+		...sortParams,
       });
     }
-  }, [effectiveFiltroLocal, filtroFechaDesde, filtroFechaHasta, filtroTipo, filtroEstado, busquedaDebounced, fetchReservas, paginationCursor, requestRevision, shouldIncludeTotal]);
+  }, [effectiveFiltroLocal, filtroFechaDesde, filtroFechaHasta, filtroTipo, filtroEstado, busquedaDebounced, sortParams, fetchReservas, paginationCursor, requestRevision, shouldIncludeTotal]);
 
   // Verificar autenticación admin
   useEffect(() => {
@@ -375,6 +380,7 @@ export default function AdminReservasPage() {
       key: 'acciones',
       label: '',
       searchable: false,
+      sortable: false,
       render: (_v, row) => (
         <div onClick={e => e.stopPropagation()}>
           <RowActionsMenu actions={[
@@ -492,7 +498,7 @@ export default function AdminReservasPage() {
 
           {vistaActiva === 'lista' && (
             <AdminPanel>
-              <DataTable<ReservaRow>
+              <DataTable<ReservaRow> sort={serverSort.sort} onSortChange={serverSort.onSortChange}
                 columns={columns}
                 data={reservas as unknown as ReservaRow[]}
                 loading={loading}
