@@ -8,14 +8,10 @@ import Header from '@/components/AdminHeader/Header';
 import { PageHeader, DataTable, FormModal } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import { toast } from '@/components/Shared/Toast';
-import { getLocalesDB, crearLocalDB } from '@/lib/api/servicios';
+import { getLocalesDB, crearLocalDB, actualizarLocal, actualizarEspaciosLocal } from '@/lib/api/servicios';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
+import { LocalFormFields, type Espacio } from '@/components/AdminLocales';
 import styles from './page.module.css';
-
-interface Espacio {
-  tipo_espacio: string;
-  cantidad_espacios: number;
-}
 
 interface LocalRow {
   [key: string]: unknown;
@@ -29,6 +25,16 @@ interface FormErrors {
   nombre?: string;
   espacios?: string;
   submit?: string;
+}
+
+const ESPACIOS_VACIOS: Espacio[] = [
+  { tipo_espacio: 'M', cantidad_espacios: 0 },
+  { tipo_espacio: 'B', cantidad_espacios: 0 },
+];
+
+/** Siempre Mesas y Bicicletas, en ese orden; el tipo que el local no tiene queda en 0. */
+function normalizeEspacios(items: Espacio[] | null): Espacio[] {
+  return ESPACIOS_VACIOS.map((vacio) => items?.find((e) => e.tipo_espacio === vacio.tipo_espacio) ?? vacio);
 }
 
 function getScopedLocales(
@@ -56,11 +62,10 @@ export default function LocalesPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [modalOpen, setModalOpen] = useState(false);
+  // null = modal en modo "Nuevo Local"; con id = modo "Editar Local" sobre esa fila.
+  const [editando, setEditando] = useState<LocalRow | null>(null);
   const [nombre, setNombre] = useState('');
-  const [espacios, setEspacios] = useState<Espacio[]>([
-    { tipo_espacio: 'M', cantidad_espacios: 0 },
-    { tipo_espacio: 'B', cantidad_espacios: 0 },
-  ]);
+  const [espacios, setEspacios] = useState<Espacio[]>(ESPACIOS_VACIOS);
   const [saving, setSaving] = useState(false);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const adminLocalScope = useAdminLocalScopeState();
@@ -100,19 +105,36 @@ export default function LocalesPage() {
   }, []);
 
   const resetModal = () => {
+    setEditando(null);
     setNombre('');
-    setEspacios([
-      { tipo_espacio: 'M', cantidad_espacios: 0 },
-      { tipo_espacio: 'B', cantidad_espacios: 0 },
-    ]);
+    setEspacios(ESPACIOS_VACIOS);
     setFormErrors({});
+  };
+
+  const openCreate = () => {
+    resetModal();
+    setModalOpen(true);
+  };
+
+  const openEdit = (local: LocalRow) => {
+    setEditando(local);
+    setNombre(local.nombre);
+    setEspacios(normalizeEspacios(local.espacios));
+    setFormErrors({});
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+    resetModal();
   };
 
   const validate = (): boolean => {
     const errors: FormErrors = {};
     if (!nombre.trim()) errors.nombre = 'El nombre es obligatorio';
+    // Un local nuevo necesita algún espacio; al editar, 0 en todo es válido (mantenimiento).
     const todasCero = espacios.every((e) => e.cantidad_espacios === 0);
-    if (todasCero) errors.espacios = 'Debe haber al menos un espacio con cantidad > 0';
+    if (!editando && todasCero) errors.espacios = 'Debe haber al menos un espacio con cantidad > 0';
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -126,16 +148,37 @@ export default function LocalesPage() {
     setFormErrors({});
     try {
       await crearLocalDB({ nombre: nombre.trim(), espacios: espaciosValidos });
-      setModalOpen(false);
-      setNombre('');
-      setEspacios([
-        { tipo_espacio: 'M', cantidad_espacios: 0 },
-        { tipo_espacio: 'B', cantidad_espacios: 0 },
-      ]);
+      closeModal();
       await fetchData();
       toast.success('Local creado correctamente');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Error al crear local');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleUpdate = async () => {
+    if (!editando || !validate()) return;
+
+    const originales = normalizeEspacios(editando.espacios);
+    const nombreCambio = nombre.trim() !== editando.nombre;
+    const espaciosCambiaron = espacios.some((e, i) => e.cantidad_espacios !== originales[i].cantidad_espacios);
+    if (!nombreCambio && !espaciosCambiaron) {
+      closeModal();
+      return;
+    }
+
+    setSaving(true);
+    try {
+      // El nombre va por PATCH /bd/locales/{id}; mesas y bicicletas tienen su propio endpoint.
+      if (nombreCambio) await actualizarLocal(editando.id, { nombre: nombre.trim() });
+      if (espaciosCambiaron) await actualizarEspaciosLocal(editando.id, espacios);
+      closeModal();
+      await fetchData();
+      toast.success('Local actualizado correctamente');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Error al actualizar local');
     } finally {
       setSaving(false);
     }
@@ -188,7 +231,7 @@ export default function LocalesPage() {
           actions={!hasScopedLocal ? (
             <button
               className="admin-button admin-button-primary"
-              onClick={() => { resetModal(); setModalOpen(true); }}
+              onClick={openCreate}
             >
               <Plus size={18} strokeWidth={2} />
               Nuevo Local
@@ -204,7 +247,7 @@ export default function LocalesPage() {
             loading={loading}
             error={error}
             onRefresh={fetchData}
-            onEdit={(item) => router.push(`/atrevida-gestion/configuracion/locales/${item.id}`)}
+            onEdit={openEdit}
             getRowKey={(l) => l.id}
             searchPlaceholder="Buscar por nombre..."
             emptyMessage="No hay locales registrados"
@@ -215,58 +258,27 @@ export default function LocalesPage() {
 
       <FormModal
         isOpen={modalOpen}
-        onClose={() => { setModalOpen(false); resetModal(); }}
-        title="Nuevo Local"
-        onSubmit={handleCreate}
+        onClose={closeModal}
+        title={editando ? 'Editar Local' : 'Nuevo Local'}
+        onSubmit={editando ? handleUpdate : handleCreate}
         loading={saving}
-        submitLabel="Crear"
+        submitLabel={editando ? 'Guardar' : 'Crear'}
       >
-        {/* Nombre */}
-        <div className={styles.field}>
-          <label htmlFor="loc-nombre">Nombre del local</label>
-          <input
-            id="loc-nombre"
-            type="text"
-            value={nombre}
-            onChange={(e) => {
-              setNombre(e.target.value);
-              if (formErrors.nombre) setFormErrors((p) => ({ ...p, nombre: undefined }));
-            }}
-            placeholder="Ej: SAN MARTIN"
-            autoFocus
-            aria-invalid={!!formErrors.nombre}
-            className={formErrors.nombre ? styles.inputError : ''}
-          />
-          {formErrors.nombre && (
-            <span className={styles.fieldError}>{formErrors.nombre}</span>
-          )}
-        </div>
-
-        {/* Espacios */}
-        <div className={styles.espaciosSection}>
-          <label className={styles.sectionLabel}>Espacios</label>
-
-          {espacios.map((esp, i) => (
-            <div key={esp.tipo_espacio} className={styles.espacioRow}>
-              <div className={styles.tipoLabel}>
-                {esp.tipo_espacio === 'M' ? 'Mesas' : 'Bicicletas'}
-              </div>
-              <div className={styles.field}>
-                <label>Cantidad</label>
-                <input
-                  type="number"
-                  min={0}
-                  value={esp.cantidad_espacios}
-                  onChange={(e) => updateCantidad(i, Number(e.target.value))}
-                />
-              </div>
-            </div>
-          ))}
-
-          {formErrors.espacios && (
-            <span className={styles.fieldError}>{formErrors.espacios}</span>
-          )}
-        </div>
+        <LocalFormFields
+          nombre={nombre}
+          onNombreChange={(value) => {
+            setNombre(value);
+            if (formErrors.nombre) setFormErrors((p) => ({ ...p, nombre: undefined }));
+          }}
+          nombreError={formErrors.nombre}
+          autoFocusNombre
+          espacios={espacios}
+          onCantidadChange={updateCantidad}
+          espaciosError={formErrors.espacios}
+          espaciosHint={editando
+            ? 'Pon 0 para dejar un tipo sin espacios (por ejemplo, por mantenimiento). Las reservas ya hechas no se cancelan: solo se limitan las nuevas.'
+            : undefined}
+        />
 
         {/* Error general de submit */}
         {formErrors.submit && (

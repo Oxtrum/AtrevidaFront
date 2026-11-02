@@ -259,6 +259,17 @@ export async function actualizarLocal(id: number | string, data: ActualizarLocal
   return apiClient.patch(`/bd/locales/${id}`, data);
 }
 
+/**
+ * Fija la cantidad de mesas (M) y bicicletas (B) de un local (PUT /bd/locales/{id}/espacios).
+ * La cantidad mínima es 0 (mantenimiento); las reservas existentes no se cancelan.
+ */
+export async function actualizarEspaciosLocal(
+  id: number | string,
+  espacios: Array<{ tipo_espacio: string; cantidad_espacios: number }>,
+) {
+  return apiClient.put(`/bd/locales/${id}/espacios`, { espacios });
+}
+
 /** Borrado lógico de un local (DELETE /bd/locales/{id} → activo=false). */
 export async function eliminarLocalDB(id: number | string) {
   return apiClient.delete(`/bd/locales/${id}`);
