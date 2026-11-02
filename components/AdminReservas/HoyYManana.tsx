@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { MessageCircle } from 'lucide-react';
-import { AdminButton, AdminPanel } from '@/components/AdminConfig';
+import { AdminButton, AlertBanner, SectionLabel } from '@/components/AdminConfig';
 import { toast } from '@/components/Shared/Toast';
 import { actualizarReservaNotificadoDB, getReservasDB } from '@/lib/api/reservas';
 import { buildConfirmacionWhatsappHref, buildReminderWhatsappHref } from '@/lib/utils/whatsapp';
@@ -92,14 +92,16 @@ export function HoyYManana({ local }: HoyYMananaProps) {
     );
   };
 
+  // Sin tarjeta propia: la tabla ya trae la suya y dos tarjetas anidadas se ven como una caja dentro de otra.
   return (
-    <AdminPanel card title="Hoy y mañana" description={loading ? undefined : `${reservas.length} ${reservas.length === 1 ? 'cita' : 'citas'}`}>
+    <section className="admin-stack">
+      <SectionLabel>Hoy y mañana{loading || error ? '' : ` · ${reservas.length} ${reservas.length === 1 ? 'cita' : 'citas'}`}</SectionLabel>
       {error ? (
-        <p role="alert">{error}</p>
+        <AlertBanner tone="danger">{error}</AlertBanner>
       ) : loading ? (
-        <p>Cargando…</p>
+        <AlertBanner tone="info">Cargando citas…</AlertBanner>
       ) : reservas.length === 0 ? (
-        <p>No hay citas agendadas para hoy ni mañana.</p>
+        <AlertBanner tone="info">No hay citas agendadas para hoy ni mañana.</AlertBanner>
       ) : (
         <AprobacionReservasTable
           reservas={reservas}
@@ -108,6 +110,6 @@ export function HoyYManana({ local }: HoyYMananaProps) {
           onVinculado={() => void cargar()}
         />
       )}
-    </AdminPanel>
+    </section>
   );
 }

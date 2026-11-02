@@ -19,15 +19,21 @@
 }
 
 /* Fecha y hora de la cita: lo primero que se busca en la lista, asi que van grandes y con el color del texto. */
+.nowrap {
+  white-space: nowrap;
+}
+
 .dia {
   font-size: 0.95rem;
   font-weight: 700;
   color: var(--admin-foreground);
   font-variant-numeric: tabular-nums;
   text-transform: capitalize;
+  white-space: nowrap;
 }
 
 .hora {
+  white-space: nowrap;
   font-size: 0.86rem;
   font-weight: 500;
   color: var(--admin-foreground);
@@ -47,7 +53,8 @@
 .estado {
   display: inline-flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  white-space: nowrap;
   gap: 0.2rem 0.6rem;
 }
 

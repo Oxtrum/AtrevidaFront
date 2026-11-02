@@ -56,14 +56,16 @@ export function AprobacionReservasTable({ reservas, showLocal, renderActions, on
       key: 'cliente',
       label: 'Cliente',
       render: (_v, r) => (
-        <ClientePopover
-          nombre={r.cliente || 'Cliente sin nombre'}
-          telefono={r.numero_telefono}
-          telefonoE164={r.telefono_e164}
-          clienteId={r.cliente_id}
-          reservaId={r.id}
-          onVinculado={onVinculado}
-        />
+        <span className={styles.nowrap}>
+          <ClientePopover
+            nombre={r.cliente || 'Cliente sin nombre'}
+            telefono={r.numero_telefono}
+            telefonoE164={r.telefono_e164}
+            clienteId={r.cliente_id}
+            reservaId={r.id}
+            onVinculado={onVinculado}
+          />
+        </span>
       ),
     },
     {
@@ -83,7 +85,7 @@ export function AprobacionReservasTable({ reservas, showLocal, renderActions, on
       },
     },
     ...(showLocal
-      ? [{ key: 'local', label: 'Local', render: (_v: unknown, r: Row) => <span className={styles.secondary}>{r.local}</span> }]
+      ? [{ key: 'local', label: 'Local', render: (_v: unknown, r: Row) => <span className={`${styles.secondary} ${styles.nowrap}`}>{r.local}</span> }]
       : []),
     {
       key: 'estado',
