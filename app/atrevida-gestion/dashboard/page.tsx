@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { BarChart2, Calendar } from 'lucide-react';
 import { AdminPageShell, AdminPanel, AlertBanner, PageHeader, StatCard, StatGrid } from '@/components/AdminConfig';
 import { DashboardTrastienda } from '@/components/AdminInventario/DashboardTrastienda';
-import { HoyYManana } from '@/components/AdminReservas';
+import { SiguientesReservas } from '@/components/AdminReservas';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { getReservasResumenDB, type ReservasResumenData } from '@/lib/api/reservas';
 import { getClientesDB } from '@/lib/api/clientes';
@@ -127,7 +127,6 @@ export default function AdminDashboardPage() {
 
       {error && <AlertBanner tone="danger">{error}</AlertBanner>}
 
-      <HoyYManana local={effectiveLocal} />
 
       <DashboardTrastienda />
 
@@ -157,6 +156,7 @@ export default function AdminDashboardPage() {
           ))}
         </div>
       </AdminPanel>
+      <SiguientesReservas local={effectiveLocal} />
     </AdminPageShell>
   );
 }

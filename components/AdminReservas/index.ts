@@ -21,4 +21,5 @@ export {
 export { AprobacionReservasTable } from './AprobacionReservasTable';
 export { ReservaEstadoPill, RESERVA_ESTADO_HINT } from './ReservaEstadoPill';
 export { ReservaEstadoCelda } from './ReservaEstadoCelda';
-export { HoyYManana } from './HoyYManana';
+export { SiguientesReservas } from './SiguientesReservas';
+export { ReservaAcciones } from './ReservaAcciones';

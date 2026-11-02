@@ -15,7 +15,7 @@ import {
   CuentaClientePanel,
   SaldoCliente,
 } from '@/components/AdminClientes';
-import { ReservaEstadoCelda } from '@/components/AdminReservas';
+import { ReservaAcciones, ReservaEstadoCelda } from '@/components/AdminReservas';
 import { toast } from '@/components/Shared/Toast';
 import { getClienteByID, type ClientePG } from '@/lib/api/clientes';
 import { anularCargo, getCuentaCliente, type CargoCliente, type CuentaCliente } from '@/lib/api/cuenta';
@@ -186,6 +186,18 @@ export default function ClienteFichaPage() {
       searchable: false,
       render: (_v, row) => (row.precio != null ? <span className={styles.numero}>{formatMoney(row.precio)}</span> : '—'),
     },
+    {
+      key: 'acciones',
+      label: '',
+      searchable: false,
+      sortable: false,
+      render: (_v, row) => (
+        <div onClick={(e) => e.stopPropagation()}>
+          <ReservaAcciones reserva={row} onCambio={recargarTodo} conCobrar />
+        </div>
+      ),
+    },
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   ], []);
 
   const columnasPaquetes: Column<PaqueteFila>[] = useMemo(() => [

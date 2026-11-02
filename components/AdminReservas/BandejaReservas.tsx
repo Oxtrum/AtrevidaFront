@@ -8,22 +8,19 @@ import {
   Banknote,
   CalendarCheck,
   Check,
-  CheckCircle2,
-  Pencil,
   RefreshCw,
-  Trash2,
-  XCircle,
 } from 'lucide-react';
 
 import { AprobacionReservasTable } from '@/components/AdminReservas';
+import { ReservaAcciones } from './ReservaAcciones';
 import { WhatsappIcon } from '@/components/icons/WhatsappIcon';
 import { toast } from '@/components/Shared/Toast';
-import { AdminButton, AdminPanel, ConfirmDialog, CursorPagination, FilterBar, FormField, FormModal, RangoFechasFiltro, ReasonDialog, RowActionsMenu } from '@/components/AdminConfig';
+import { AdminButton, AdminPanel, CursorPagination, FilterBar, RangoFechasFiltro } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
-import { actualizarEstadoReservaDB, actualizarReservaNotificadoDB, eliminarReservaDB, getReservasDB } from '@/lib/api/reservas';
+import { actualizarReservaNotificadoDB, getReservasDB } from '@/lib/api/reservas';
 import { getLocalesDB, type LocalRow } from '@/lib/api/servicios';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
-import { buildClientWhatsappUrl, buildConfirmacionWhatsappHref } from '@/lib/utils/whatsapp';
+import { buildConfirmacionWhatsappHref } from '@/lib/utils/whatsapp';
 import {
   type EstadoReserva,
   type ReservaBD,
@@ -37,13 +34,6 @@ type EstadoNormalizado = EstadoGestion | 'COMPLETADO';
 type Cuando = 'PROXIMAS' | 'PASADAS' | 'TODAS' | 'RANGO';
 type Atajo = Exclude<Cuando, 'RANGO'>;
 type EstadoFiltro = EstadoGestion | 'TODOS' | 'COMPLETADO' | 'POR_COBRAR';
-type CompletionReasonMode = 'DONE' | 'OTHER';
-type CompletionDraft = {
-  reserva: ReservaBD;
-  reasonMode: CompletionReasonMode;
-  otherReason: string;
-};
-
 const ESTADO_OPTIONS: Array<{ value: EstadoFiltro; label: string }> = [
   { value: 'TODOS', label: 'Todas' },
   { value: 'PENDIENTE', label: 'Pendientes' },
@@ -57,7 +47,6 @@ const CUANDO_ATAJOS: Array<{ value: Atajo; label: string }> = [
   { value: 'PASADAS', label: 'Pasadas' },
   { value: 'TODAS', label: 'Todas' },
 ];
-const COMPLETION_REASON_DONE = 'Ya se brindo el servicio';
 const ALL_LOCALS_FILTER = 'TODOS';
 const LOCAL_SCOPE_PENDING = '__LOCAL_SCOPE_PENDING__';
 
@@ -73,50 +62,6 @@ const normalizeEstado = (estado?: EstadoReserva | string): EstadoNormalizado => 
   return 'PENDIENTE';
 };
 
-const formatDate = (fecha: string) => {
-  const [year, month, day] = fecha.split('-').map(Number);
-  if (!year || !month || !day) return fecha;
-
-  return new Date(year, month - 1, day).toLocaleDateString('es-BO', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-  });
-};
-
-const getWhatsappHref = (telefono?: string, telefonoE164?: string) => {
-  const message = 'Hola 🌸 Recibimos tu reserva. ¿Qué tratamiento deseas realizar?';
-  return buildClientWhatsappUrl(telefonoE164, telefono, message);
-};
-
-const getReservaServiceSummary = (reserva: ReservaBD) => {
-  const seen = new Set<string>();
-  const services = [
-    reserva.servicio_confirmado,
-    reserva.servicio_solicitado,
-    reserva.servicio,
-  ]
-    .flatMap((value) => (value ?? '').split(/\s*(?:\n|,|;|\s\+\s)\s*/))
-    .map((value) => value.trim())
-    .filter((value) => {
-      if (!value) return false;
-      const key = normalizeSearchText(value);
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
-
-  const normalizedServices = services.length > 0 ? services : ['Servicio por definir'];
-
-  return {
-    visible: normalizedServices.slice(0, 3),
-    remaining: Math.max(normalizedServices.length - 3, 0),
-  };
-};
-
-const normalizeSearchText = (value?: string | number | null) =>
-  String(value ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-
 const getDateISOWithOffset = (daysOffset: number) => {
   const date = new Date();
   date.setDate(date.getDate() + daysOffset);
@@ -128,27 +73,6 @@ const getCurrentTimeHHMM = () => {
   return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 };
 
-
-/** Datos de la reserva que se confirman en los diálogos de completar y eliminar. */
-function ReservaResumen({ reserva, servicios }: { reserva: ReservaBD; servicios: { visible: string[]; remaining: number } }) {
-  return (
-    <div className={styles.resumen}>
-      <dl className={styles.resumenGrid}>
-        <div><dt>Cliente</dt><dd>{reserva.cliente || 'Cliente sin nombre'}</dd></div>
-        <div><dt>Fecha</dt><dd>{formatDate(reserva.fecha)}</dd></div>
-        <div><dt>Horario</dt><dd>{reserva.hora_desde} - {reserva.hora_hasta}</dd></div>
-        <div><dt>Local</dt><dd>{reserva.local}</dd></div>
-      </dl>
-      <div className={styles.resumenServicios}>
-        <span>Servicios</span>
-        <ul>
-          {servicios.visible.map((service) => <li key={service}>{service}</li>)}
-          {servicios.remaining > 0 && <li>+{servicios.remaining}</li>}
-        </ul>
-      </div>
-    </div>
-  );
-}
 
 /**
  * Lista de reservas con las acciones del dia a dia: aprobar, rechazar, confirmar por WhatsApp, completar y cobrar.
@@ -168,12 +92,6 @@ export function BandejaReservas() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [isFetching, setIsFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [cobroSugerido, setCobroSugerido] = useState<ReservaBD | null>(null);
-  const [actionId, setActionId] = useState<number | null>(null);
-  const [rejectTarget, setRejectTarget] = useState<ReservaBD | null>(null);
-  const [completionDraft, setCompletionDraft] = useState<CompletionDraft | null>(null);
-  const [completionError, setCompletionError] = useState<string | null>(null);
-  const [deleteReserva, setDeleteReserva] = useState<ReservaBD | null>(null);
   const [estadoFiltro, setEstadoFiltro] = useState<EstadoFiltro>('TODOS');
   const [searchQuery, setSearchQuery] = useState('');
 	const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
@@ -326,118 +244,8 @@ export function BandejaReservas() {
     return () => window.removeEventListener('focus', alVolver);
   }, [fetchReservas]);
 
-  const completionServiceSummary = useMemo(
-    () => completionDraft ? getReservaServiceSummary(completionDraft.reserva) : { visible: [], remaining: 0 },
-    [completionDraft],
-  );
-  const deleteServiceSummary = useMemo(
-    () => deleteReserva ? getReservaServiceSummary(deleteReserva) : { visible: [], remaining: 0 },
-    [deleteReserva],
-  );
-
   // Aprobar es editar con el mismo formulario de Nueva reserva: se corrigen los datos y se agenda.
   const openApprovalModal = (reserva: ReservaBD) => router.push(`/atrevida-gestion/reservas/editar/${reserva.id}?aprobar=1`);
-
-  const openCompletionModal = (reserva: ReservaBD) => {
-    setCompletionDraft({
-      reserva,
-      reasonMode: 'DONE',
-      otherReason: '',
-    });
-    setCompletionError(null);
-  };
-
-  const closeCompletionModal = useCallback(() => {
-    if (actionId) return;
-    setCompletionDraft(null);
-    setCompletionError(null);
-  }, [actionId]);
-
-  const openDeleteModal = (reserva: ReservaBD) => {
-    setDeleteReserva(reserva);
-  };
-
-  const closeDeleteModal = useCallback(() => {
-    if (actionId) return;
-    setDeleteReserva(null);
-  }, [actionId]);
-
-  const deleteReservaFromModal = async () => {
-    if (!deleteReserva) return;
-
-    const reservaId = deleteReserva.id;
-    setActionId(reservaId);
-
-    try {
-      await eliminarReservaDB(reservaId);
-      setReservas((current) => current.filter((item) => item.id !== reservaId));
-      setDeleteReserva(null);
-      toast.success(`Reserva #${reservaId} eliminada.`);
-      pagination.resetAfterMutation();
-    } catch (deleteError) {
-      toast.error(deleteError instanceof Error ? deleteError.message : 'No se pudo eliminar la reserva.');
-    } finally {
-      setActionId(null);
-    }
-  };
-
-  const markReservaCompleted = async () => {
-    if (!completionDraft) return;
-
-    const causa = completionDraft.reasonMode === 'OTHER'
-      ? completionDraft.otherReason.trim()
-      : COMPLETION_REASON_DONE;
-
-    if (!causa) {
-      setCompletionError('Ingresa el motivo para completar la reserva.');
-      return;
-    }
-
-    const reservaId = completionDraft.reserva.id;
-    setActionId(reservaId);
-    setCompletionError(null);
-
-    try {
-      await actualizarEstadoReservaDB({
-        id: reservaId,
-        estado: 'COMPLETADO',
-        causa,
-      });
-
-      setReservas((current) =>
-        current.map((item) => item.id === reservaId ? {
-          ...item,
-          estado: 'COMPLETADO',
-        } : item),
-      );
-      setCompletionDraft(null);
-      toast.success(`Reserva #${reservaId} marcada como completada.`);
-      // Si la paga un paquete no hay nada que cobrar; si no, se sugiere cobrarla (sin obligar).
-      if (!completionDraft.reserva.plan_id) setCobroSugerido({ ...completionDraft.reserva, estado: 'COMPLETADO', estado_cobro: 'POR_COBRAR' });
-      pagination.resetAfterMutation();
-    } catch (updateError) {
-      toast.error(updateError instanceof Error ? updateError.message : 'No se pudo completar la reserva.');
-    } finally {
-      setActionId(null);
-    }
-  };
-
-  /** Rechaza con la causa pedida en el diálogo; si falla, el error vuelve al diálogo para que no se cierre. */
-  const rejectReserva = async (reserva: ReservaBD, causa: string) => {
-    setActionId(reserva.id);
-
-    try {
-      await actualizarEstadoReservaDB({ id: reserva.id, estado: 'RECHAZADO', causa });
-
-      setReservas((current) =>
-        current.map((item) => item.id === reserva.id ? { ...item, estado: 'RECHAZADO' } : item),
-      );
-      toast.success('Reserva rechazada correctamente.');
-      pagination.resetAfterMutation();
-    } finally {
-      setActionId(null);
-    }
-  };
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -504,16 +312,19 @@ export function BandejaReservas() {
     const isCompleted = estado === 'COMPLETADO';
     const porCobrar = isCompleted && reserva.estado_cobro === 'POR_COBRAR';
     const confirmationSent = Boolean(reserva.notificado);
-    const whatsappHref = getWhatsappHref(reserva.numero_telefono, reserva.telefono_e164);
     const confirmationWhatsappHref = buildConfirmacionWhatsappHref(reserva);
-    const canMarkCompleted = estado === 'AGENDADO' && confirmationSent;
-    const busy = actionId === reserva.id;
+    const busy = false;
 
     return (
       <>
         {estado === 'PENDIENTE' && (
           <AdminButton size="xs" icon={<Check size={13} strokeWidth={2} />} onClick={() => openApprovalModal(reserva)} disabled={busy}>
             Aprobar
+          </AdminButton>
+        )}
+        {porCobrar && (
+          <AdminButton size="xs" icon={<Banknote size={13} strokeWidth={2} />} href={`/atrevida-gestion/caja?reserva=${reserva.id}`} disabled={busy}>
+            Cobrar
           </AdminButton>
         )}
         {estado === 'AGENDADO' && (
@@ -530,44 +341,7 @@ export function BandejaReservas() {
             {!confirmationWhatsappHref ? 'Sin teléfono' : confirmationSent ? 'Reenviar' : 'Confirmar'}
           </AdminButton>
         )}
-        <RowActionsMenu
-          ariaLabel={`Acciones de reserva ${reserva.id}`}
-          disabled={busy}
-          actions={[
-            ...(porCobrar ? [{
-              label: 'Cobrar',
-              icon: <Banknote size={14} strokeWidth={1.8} />,
-              onClick: () => router.push(`/atrevida-gestion/caja?reserva=${reserva.id}`),
-            }] : []),
-            ...(whatsappHref ? [{
-              label: 'Contactar por WhatsApp',
-              icon: <WhatsappIcon size={14} />,
-              onClick: () => { window.open(whatsappHref, '_blank', 'noopener,noreferrer'); },
-            }] : []),
-            ...(canMarkCompleted ? [{
-              label: 'Marcar como completada',
-              icon: <CheckCircle2 size={14} strokeWidth={1.8} />,
-              onClick: () => openCompletionModal(reserva),
-            }] : []),
-            ...(!isCompleted ? [{
-              label: 'Editar o reprogramar',
-              icon: <Pencil size={14} strokeWidth={1.8} />,
-              onClick: () => router.push(`/atrevida-gestion/reservas/editar/${reserva.id}`),
-            }] : []),
-            ...(estado === 'PENDIENTE' ? [{
-              label: 'Rechazar',
-              icon: <XCircle size={14} strokeWidth={1.8} />,
-              variant: 'danger' as const,
-              onClick: () => setRejectTarget(reserva),
-            }] : []),
-            {
-              label: 'Eliminar reserva',
-              icon: <Trash2 size={14} strokeWidth={1.8} />,
-              variant: 'danger' as const,
-              onClick: () => openDeleteModal(reserva),
-            },
-          ]}
-        />
+        <ReservaAcciones reserva={reserva} onCambio={pagination.resetAfterMutation} />
       </>
     );
   };
@@ -677,99 +451,6 @@ export function BandejaReservas() {
 			  )}
             </div>
           </AdminPanel>
-
-
-      <ReasonDialog
-        isOpen={rejectTarget !== null}
-        title="Rechazar reserva"
-        message={`La causa queda registrada en la reserva de ${rejectTarget?.cliente || `#${rejectTarget?.id}`}.`}
-        confirmLabel="Rechazar"
-        onConfirm={(causa) => (rejectTarget ? rejectReserva(rejectTarget, causa) : Promise.resolve())}
-        onClose={() => setRejectTarget(null)}
-      />
-
-      {completionDraft && (
-        <FormModal
-          isOpen
-          title="¿Esta reserva ya cumplió su propósito?"
-          onClose={closeCompletionModal}
-          onSubmit={markReservaCompleted}
-          loading={actionId === completionDraft.reserva.id}
-          submitLabel="Marcar como completada"
-        >
-          <ReservaResumen reserva={completionDraft.reserva} servicios={completionServiceSummary} />
-
-          <fieldset className={styles.reasonGroup}>
-            <legend>Causa del cierre</legend>
-            {([['DONE', COMPLETION_REASON_DONE], ['OTHER', 'Otro']] as const).map(([mode, label]) => (
-              <label
-                key={mode}
-                className={`${styles.reasonOption} ${completionDraft.reasonMode === mode ? styles.reasonOptionActive : ''}`}
-              >
-                <input
-                  type="radio"
-                  name="completion-reason"
-                  checked={completionDraft.reasonMode === mode}
-                  onChange={() => {
-                    setCompletionDraft((current) => current ? { ...current, reasonMode: mode } : current);
-                    setCompletionError(null);
-                  }}
-                />
-                <span>{label}</span>
-              </label>
-            ))}
-          </fieldset>
-
-          {completionDraft.reasonMode === 'OTHER' && (
-            <FormField label="Detalle" htmlFor="completion-detalle" required error={completionError ?? undefined}>
-              <textarea
-                id="completion-detalle"
-                value={completionDraft.otherReason}
-                onChange={(event) => {
-                  setCompletionDraft((current) => current ? { ...current, otherReason: event.target.value } : current);
-                  if (completionError) setCompletionError(null);
-                }}
-                placeholder="Describe el motivo de cierre..."
-                autoFocus
-              />
-            </FormField>
-          )}
-        </FormModal>
-      )}
-
-      <ConfirmDialog
-        isOpen={cobroSugerido !== null}
-        title="Reserva completada: ¿cobrarla ahora?"
-        message={cobroSugerido && (
-          <>
-            <p style={{ margin: '0 0 0.6rem' }}>
-              La reserva #{cobroSugerido.id} de <strong>{cobroSugerido.cliente || 'cliente sin nombre'}</strong> ya se brindó pero todavía no tiene cobro registrado.
-            </p>
-            <p style={{ margin: 0 }}>
-              Si lo dejas para después, aparecerá en la pestaña <strong>Por cobrar</strong> para que no se olvide.
-            </p>
-          </>
-        )}
-        confirmLabel="Cobrar ahora"
-        cancelLabel="Después"
-        onConfirm={() => {
-          const id = cobroSugerido?.id;
-          setCobroSugerido(null);
-          if (id) router.push(`/atrevida-gestion/caja?reserva=${id}`);
-        }}
-        onClose={() => setCobroSugerido(null)}
-      />
-
-      <ConfirmDialog
-        isOpen={!!deleteReserva}
-        title="¿Seguro que quieres eliminar la reserva?"
-        message={deleteReserva && <ReservaResumen reserva={deleteReserva} servicios={deleteServiceSummary} />}
-        confirmLabel="Eliminar reserva"
-        danger
-        loading={actionId === deleteReserva?.id}
-        onConfirm={deleteReservaFromModal}
-        onClose={closeDeleteModal}
-      />
     </div>
   );
 }
