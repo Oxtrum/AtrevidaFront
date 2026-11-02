@@ -116,6 +116,9 @@ export function DataTable<T extends Record<string, unknown>>({
         {!hideSearch && (
           <div className={styles.searchBox}>
             <Search size={13} strokeWidth={2} className={styles.searchIcon} />
+            {/* `disabled` sale correcto del servidor (loading arranca en true); algo del navegador
+                (extensiones, restauración de formularios) puede quitarlo antes de hidratar y React lo
+                reportaba como error. suppressHydrationWarning aplica solo a este atributo. */}
             <input
               type="text"
               value={query}
@@ -123,6 +126,7 @@ export function DataTable<T extends Record<string, unknown>>({
               placeholder={searchPlaceholder}
               className={styles.searchInput}
               disabled={Boolean(loading) || Boolean(error)}
+              suppressHydrationWarning
               aria-label="Filtrar resultados"
             />
             {isFiltering && (
@@ -155,6 +159,7 @@ export function DataTable<T extends Record<string, unknown>>({
               onClick={onRefresh}
               aria-label="Actualizar tabla"
               disabled={Boolean(loading)}
+              suppressHydrationWarning
               title="Actualizar"
             >
               <RefreshCw

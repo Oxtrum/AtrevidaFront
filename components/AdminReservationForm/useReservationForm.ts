@@ -19,6 +19,7 @@ import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import { toast } from '../Shared/Toast';
 import { describirAdvertencias } from '@/lib/utils/format';
 import { getPlanByID } from '@/lib/api/planes';
+import { reservasDuplicadasDeError, type ReservaDuplicada } from '@/lib/api/reservas';
 import { validateReservationForm, } from '@/lib/utils/reservationValidation';
 import { type SlotStatus, capacidadDeLocal, estadoOcupaCapacidad, normalizarHoraSlot } from '@/lib/utils/hoursAvailability';
 import { HORAS, DIAS_SEMANA, SLOT_MIN, SLOTS_POR_HORA, calcularHoraFin, tiempoAMinutos, isSlotOutsideBusinessHours } from '@/lib/constants/reservationForm';
@@ -92,6 +93,8 @@ export function useReservationForm(
   const [esperandoAjuste, setEsperandoAjuste] = useState(!!(initialData?.hora_desde && initialData?.hora_hasta));
   // Confirmación previa cuando el rango elegido no dura lo que el servicio.
   const [confirmandoDuracion, setConfirmandoDuracion] = useState(false);
+  // Reservas que el cliente ya tiene ese día: el backend avisa y espera confirmación.
+  const [reservasDuplicadas, setReservasDuplicadas] = useState<ReservaDuplicada[] | null>(null);
   const [cliente, setCliente] = useState('');
   const [numeroTelefono, setNumeroTelefono] = useState('');
   const [telefonoE164, setTelefonoE164] = useState<string | undefined>();
@@ -579,7 +582,7 @@ export function useReservationForm(
     await enviarReserva(fechaISO);
   };
 
-  const enviarReserva = async (fechaISO: string) => {
+  const enviarReserva = async (fechaISO: string, confirmarDuplicado = false) => {
     setError(null);
     const horaDesdeNorm = normalizarHora(horaDesde);
     const horaHastaNorm = normalizarHora(horaHasta);
@@ -604,9 +607,11 @@ export function useReservationForm(
           notas: notas || undefined,
           plan_id: planId ?? undefined,
           estado: agendarDirecto ? 'AGENDADO' as const : 'PENDIENTE' as const,
+          ...(confirmarDuplicado && { confirmar_duplicado: true }),
         };
 
         const creada = await crearReserva(payload);
+        setReservasDuplicadas(null);
         toast.success(
           agendarDirecto
             ? '¡Reserva agendada con éxito!'
@@ -627,6 +632,11 @@ export function useReservationForm(
         }
         router.refresh();
       } catch (err: unknown) {
+        const duplicadas = reservasDuplicadasDeError(err);
+        if (duplicadas) {
+          setReservasDuplicadas(duplicadas);
+          return;
+        }
         const mensaje = err instanceof Error ? err.message : hookError || 'Error al crear la reserva';
         setError(mensaje);
         toast.error(mensaje);
@@ -634,6 +644,21 @@ export function useReservationForm(
         setConfirmandoDuracion(false);
       }
   };
+
+  /** El staff vio que el cliente ya tiene reserva ese día y quiere crear otra igual. */
+  const confirmarDuplicada = () => {
+    const fechaISO = fechaDelDia(fechasSemana, dia)?.toISOString().split('T')[0] ?? '';
+    if (!fechaISO) {
+      setReservasDuplicadas(null);
+      toast.error('No se pudo determinar la fecha. Elige de nuevo el día.');
+      return;
+    }
+    setReservasDuplicadas(null);
+    void enviarReserva(fechaISO, true);
+  };
+
+  /** Cerrar sin reservar: el formulario queda intacto para cambiar de cliente u horario. */
+  const cancelarDuplicada = () => setReservasDuplicadas(null);
 
   /** El staff aceptó el rango tal como lo dejó: recién ahí se escribe. */
   const confirmarDuracion = () => {
@@ -674,6 +699,7 @@ export function useReservationForm(
     esperandoAjuste,
     confirmandoDuracion,
     desajusteDuracion,
+    reservasDuplicadas,
     loading: loading || loadingLocales,
     // Derived
     hoursAvailability,
@@ -692,5 +718,7 @@ export function useReservationForm(
     handleSubmit,
     confirmarDuracion,
     cancelarConfirmacionDuracion,
+    confirmarDuplicada,
+    cancelarDuplicada,
   };
 }
