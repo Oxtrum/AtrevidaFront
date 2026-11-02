@@ -115,3 +115,35 @@ export const buildDuplicadaWhatsappHref = (
 
   return buildClientWhatsappUrl(params.telefonoE164, params.numeroTelefono, message);
 };
+
+const comidaPrevia = (horaDesde: string) => {
+  const hora = Number((horaDesde.split(':')[0] ?? '0'));
+  return Number.isFinite(hora) && hora < 12 ? 'desayuno' : 'almuerzo';
+};
+
+const diaCorto = (fecha: string) => {
+  const [anio, mes, dia] = fecha.split('-').map(Number);
+  if (!anio || !mes || !dia) return fecha;
+  return new Date(anio, mes - 1, dia).toLocaleDateString('es-BO', { weekday: 'short', day: 'numeric', month: 'short' });
+};
+
+/**
+ * Mensaje con el que se le confirma una cita agendada al cliente. Devuelve null si no hay telefono utilizable.
+ */
+export const buildConfirmacionWhatsappHref = (reserva: ReservaBD): string | null => {
+  const tratamiento = reserva.servicio_confirmado || reserva.servicio_solicitado || reserva.servicio || 'Tratamiento confirmado';
+  const message = [
+    '*Tu cita ha sido confirmada en Atrevida Fit* 🌸',
+    '',
+    `*Fecha:* ${diaCorto(reserva.fecha)} (${reserva.fecha})`,
+    `*Horario:* ${reserva.hora_desde} - ${reserva.hora_hasta}`,
+    `*Tratamiento:* ${tratamiento}`,
+    `*Sucursal:* ${reserva.local}`,
+    '',
+    `Ven con el estómago lleno (${comidaPrevia(reserva.hora_desde)}) y 1 litro de agua.`,
+    '',
+    'Te esperamos.',
+  ].join('\n');
+
+  return buildClientWhatsappUrl(reserva.telefono_e164, reserva.numero_telefono, message);
+};

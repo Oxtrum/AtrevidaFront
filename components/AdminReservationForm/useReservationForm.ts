@@ -22,10 +22,11 @@ import { getPlanByID } from '@/lib/api/planes';
 import { actualizarReservaDB, reservasDuplicadasDeError, type ReservaDuplicada } from '@/lib/api/reservas';
 import { vincularReservaCliente } from '@/lib/api/vinculo';
 import { phoneValueFrom } from '@/lib/utils/phone';
+import { avisarReservaAgendada } from '@/lib/utils/avisoAgendada';
 import { validateReservationForm, } from '@/lib/utils/reservationValidation';
 import { type SlotStatus, capacidadDeLocal, estadoOcupaCapacidad, normalizarHoraSlot } from '@/lib/utils/hoursAvailability';
 import { HORAS, DIAS_SEMANA, SLOT_MIN, SLOTS_POR_HORA, calcularHoraFin, tiempoAMinutos, isSlotOutsideBusinessHours } from '@/lib/constants/reservationForm';
-import { iniciarSeleccion, modificarFin, puedeAjustarFin, slotsEnRango, formatearDuracion } from '@/lib/utils/slotRange';
+import { desajusteDuracion as calcularDesajusteDuracion, iniciarSeleccion, modificarFin, puedeAjustarFin } from '@/lib/utils/slotRange';
 
 export interface ReservationFormInitialData {
   local?: string;
@@ -37,6 +38,8 @@ export interface ReservationFormInitialData {
   isAdmin?: boolean;
   /** Modo edicion: la reserva que se modifica. Mismo formulario que Nueva reserva, sin precio ni estado. */
   reserva?: ReservaBD;
+  /** Con `reserva`: aprobar una solicitud pendiente. Pide cliente, confirma el servicio y la agenda. */
+  aprobar?: boolean;
 }
 
 
@@ -46,6 +49,7 @@ export function useReservationForm(
 ) {
   const router = useRouter();
   const original = initialData?.reserva ?? null;
+  const aprobando = original !== null && initialData?.aprobar === true;
   const { loading, error: hookError, crearReserva } = useCrearReserva();
   const { data: reservasData, fetch: fetchReservas } = useReservas();
   const { locales, loading: loadingLocales } = useLocales();
@@ -58,6 +62,8 @@ export function useReservationForm(
   const [guardandoEdicion, setGuardandoEdicion] = useState(false);
   // Si el cliente ya se enlazo y el guardado se detuvo (reserva repetida), al confirmar no se vuelve a enlazar.
   const enlazadaRef = useRef(false);
+  // Al cambiar el cliente de una reserva: reemplazar tambien el telefono del cliente por el de la reserva.
+  const [actualizarTelefonoCliente, setActualizarTelefonoCliente] = useState(false);
 
   // Inicializar sucursal con el primer valor disponible
   // Normalizar horas que vienen del URL
@@ -114,7 +120,7 @@ export function useReservationForm(
   // Por defecto el staff agenda directamente (AGENDADO): en la mayoría de casos
   // la reserva creada desde el panel ya está confirmada. Desactivar el toggle la
   // envía a aprobación (PENDIENTE).
-  const [agendarDirecto, setAgendarDirecto] = useState(original ? original.estado === 'AGENDADO' : true);
+  const [agendarDirecto, setAgendarDirecto] = useState(original ? aprobando || original.estado === 'AGENDADO' : true);
   const [serviciosAPI, setServiciosAPI] = useState<Array<{ id: number; nombre: string; categoria: string; tipoEspacio: string; costo: string; costo_variable?: boolean; tiempo: string; requiere_evaluacion: boolean }>>([]);
 
   /** Slots que ocupa el servicio elegido. 1 hora si no se conoce su duración. */
@@ -395,26 +401,8 @@ export function useReservationForm(
     return Array.from(byCategory.entries()).map(([label, options]) => ({ label, options }));
   }, [serviciosAPI]);
 
-  /**
-   * Datos del diálogo de confirmación. Es `null` mientras el rango elegido
-   * dura exactamente lo que el servicio — el caso normal, que no interrumpe.
-   * Se compara en bloques de 30 min porque la rejilla no permite otra cosa
-   * (un servicio de 50 min ocupa 2 bloques y no cuenta como desajuste).
-   */
-  const desajusteDuracion = (() => {
-    if (!servicio || !horaDesde || !horaHasta) return null;
-    const slotsServicio = slotsDeServicio(servicio);
-    const slotsElegidos = slotsEnRango(horaDesde, horaHasta);
-    if (slotsElegidos <= 0 || slotsElegidos === slotsServicio) return null;
-    return {
-      horaDesde,
-      horaHasta,
-      duracionServicio: formatearDuracion(slotsServicio * SLOT_MIN),
-      duracionElegida: formatearDuracion(slotsElegidos * SLOT_MIN),
-      esMasLargo: slotsElegidos > slotsServicio,
-      bloquesDiferencia: Math.abs(slotsElegidos - slotsServicio),
-    };
-  })();
+  /** Datos del diálogo de confirmación; `null` mientras el rango dura lo que el servicio. */
+  const desajusteDuracion = servicio ? calcularDesajusteDuracion(slotsDeServicio(servicio), horaDesde, horaHasta) : null;
 
   // ── Handlers ───────────────────────────────────────────
   /** Elegido el día, el aviso de "falta el día" (y el del tope) ya no aplica. */
@@ -559,8 +547,9 @@ export function useReservationForm(
     } else if (horaDesde && hoursAvailability.get(horaDesde) === 'closed') {
       e.horaDesde = 'Ese horario está fuera de atención';
     }
-    // Al editar una reserva vieja sin cliente no se obliga a vincularlo.
-    if (!original && initialData?.isAdmin && clienteId == null) {
+    // Al editar una reserva vieja sin cliente no se obliga a vincularlo; al aprobarla si.
+    // Si escribio sobre el cliente ya enlazado, debe volver a elegir uno de la lista.
+    if ((!original || aprobando || original.cliente_id != null) && initialData?.isAdmin && clienteId == null) {
       e.cliente = 'Elige un cliente de la lista o crea uno nuevo';
     }
     // El fallback boliviano sólo existe para clientes API anteriores. Desde la
@@ -704,7 +693,9 @@ export function useReservationForm(
     const digitos = numeroTelefono.replace(/\D/g, '');
     const telOriginal = phoneValueFrom(original.telefono_e164 || original.numero_telefono);
     const telefonoCambio = digitos !== telOriginal.nationalNumber.replace(/\D/g, '') || telefonoE164 !== telOriginal.e164;
-    const enlazar = original.cliente_id == null && clienteId != null && !enlazadaRef.current;
+    // Cliente nuevo o corregido: se enlaza. El servidor lo rechaza si la reserva ya tiene cargos o paquete.
+    const cambiaCliente = clienteId != null && clienteId !== original.cliente_id;
+    const enlazar = cambiaCliente && !enlazadaRef.current;
     const reprograma = fechaISO !== original.fecha || desde !== original.hora_desde || hasta !== original.hora_hasta || effectiveSucursal !== original.local;
 
     const cambios = {
@@ -714,15 +705,18 @@ export function useReservationForm(
       ...(hasta !== original.hora_hasta && { nueva_hora_hasta: hasta }),
       ...(notas !== (original.notas ?? '') && { nuevas_notas: notas }),
       ...(telefonoCambio && digitos && { nuevo_numero_telefono: digitos, nuevo_telefono_e164: telefonoE164 }),
-      ...(servicio !== servicioOriginal && servicio && {
-        nuevo_servicio: servicio,
+      ...((servicio !== servicioOriginal || aprobando) && servicio && {
         nuevo_servicio_confirmado: servicio,
+        ...(servicio !== servicioOriginal && { nuevo_servicio: servicio }),
         ...(servicioInfo && {
           nuevo_tipo: (servicioInfo.tipoEspacio === 'B' ? 'B' : 'M') as 'M' | 'B',
-          ...(servicioInfo.costo_variable === true ? { limpiar_precio: true } : { nuevo_precio: Number(servicioInfo.costo) || 0 }),
+          // El precio sigue al servicio: solo cambia si cambia el servicio, o si al aprobar aun no tenia.
+          ...((servicio !== servicioOriginal || original.precio == null)
+            && (servicioInfo.costo_variable === true ? { limpiar_precio: true } : { nuevo_precio: Number(servicioInfo.costo) || 0 })),
         }),
       }),
-      ...(original.cliente_id == null && clienteId != null && cliente.trim() !== (original.cliente ?? '') && { nuevo_cliente: cliente.trim() }),
+      ...(cambiaCliente && cliente.trim() !== (original.cliente ?? '') && { nuevo_cliente: cliente.trim() }),
+      ...(aprobando && { nuevo_estado: 'AGENDADO' as const }),
       ...(planId !== (original.plan_id ?? null) && (planId == null ? { limpiar_plan_id: true } : { nuevo_plan_id: planId })),
     };
 
@@ -735,14 +729,29 @@ export function useReservationForm(
     setGuardandoEdicion(true);
     try {
       if (enlazar && clienteId != null) {
-        await vincularReservaCliente(original.id, { cliente_id: clienteId });
+        await vincularReservaCliente(original.id, { cliente_id: clienteId, actualizar_telefono: actualizarTelefonoCliente });
         enlazadaRef.current = true;
       }
       if (Object.keys(cambios).length > 0) {
         await actualizarReservaDB({ id: original.id, local: original.local, ...(confirmarDuplicado && { confirmar_duplicado: true }), ...cambios });
       }
       setReservasDuplicadas(null);
-      toast.success('Cambios guardados.');
+      if (aprobando) {
+        avisarReservaAgendada({
+          ...original,
+          estado: 'AGENDADO',
+          local: effectiveSucursal,
+          cliente,
+          fecha: fechaISO,
+          hora_desde: desde,
+          hora_hasta: hasta,
+          numero_telefono: digitos,
+          telefono_e164: telefonoE164,
+          servicio_confirmado: servicio,
+        });
+      } else {
+        toast.success('Cambios guardados.');
+      }
       // Una reserva ya confirmada que cambia de horario o sucursal vuelve a las notificaciones: hay que reavisar.
       if (original.notificado && original.estado === 'AGENDADO' && reprograma) {
         toast.warning('Avísale al cliente del cambio por WhatsApp desde la lista.', { title: 'Reserva reprogramada' });
@@ -823,6 +832,8 @@ export function useReservationForm(
     reservasDuplicadas,
     loading: loading || loadingLocales || guardandoEdicion,
     editando: original !== null,
+    aprobando,
+    actualizarTelefonoCliente, setActualizarTelefonoCliente,
     // Derived
     hoursAvailability,
     diasDisponibles,

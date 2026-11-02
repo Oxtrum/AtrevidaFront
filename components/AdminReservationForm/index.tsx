@@ -1,7 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { AlertTriangle, CalendarPlus, Save } from 'lucide-react';
+import { AlertTriangle, CalendarCheck, CalendarPlus, Save } from 'lucide-react';
+import { useState } from 'react';
 import { CustomSelect } from '../Custom/CustomSelectAdmin';
 import { TimeSlotPicker } from './TimeSlotPicker';
 import { horarioHabilitado } from '@/lib/utils/diaSeleccion';
@@ -14,9 +15,10 @@ import type { ClientePG } from '@/lib/api/clientes';
 import { ClienteSelect } from '@/components/AdminClientes';
 import { ConfirmDialog } from '@/components/AdminConfig/ConfirmDialog';
 import { ReservaDuplicadaDialog } from '@/components/AdminReservas/ReservaDuplicadaDialog';
-import modalStyles from '@/components/AdminConfig/FormModal.module.css';
+import { AvisoDuracion } from './AvisoDuracion';
 import { PhoneInput } from '@/components/PhoneInput';
-import { phoneValueFrom, type PhoneValue } from '@/lib/utils/phone';
+import { formatPhoneForDisplay, phoneValueFrom, type PhoneValue } from '@/lib/utils/phone';
+import { telefonosDistintos } from '@/lib/utils/telefonoCliente';
 import styles from './ReservationForm.module.css';
 
 interface ReservationFormProps {
@@ -26,6 +28,8 @@ interface ReservationFormProps {
 
 export default function AdminReservationForm({ initialData, onSuccess }: ReservationFormProps) {
   const router = useRouter();
+  // Cliente elegido en el buscador (no el que ya traia la reserva): de el sale la opcion de reemplazar su telefono.
+  const [clienteElegido, setClienteElegido] = useState<ClientePG | null>(null);
   const {
     sucursal, setSucursal,
     semanaIndex,
@@ -64,6 +68,8 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
     confirmarDuplicada,
     cancelarDuplicada,
     editando,
+    aprobando,
+    actualizarTelefonoCliente, setActualizarTelefonoCliente,
   } = useReservationForm(initialData, onSuccess);
 
   // El cliente se elige en el buscador. El teléfono ya no lo adivina: no es confiable.
@@ -76,6 +82,10 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
   const handleClienteElegido = (clienteItem: ClientePG) => {
     setCliente(`${clienteItem.nombre} ${clienteItem.apellido}`.trim());
     setClienteId(clienteItem.id);
+    setClienteElegido(clienteItem);
+    setActualizarTelefonoCliente(false);
+    // Al editar, el telefono de la reserva se respeta: si difiere del del cliente se ofrece reemplazar el del cliente.
+    if (editando) return;
     const phone = phoneValueFrom(clienteItem.telefono_e164 || clienteItem.numero_telefono);
     setNumeroTelefono(phone.nationalNumber);
     setTelefonoE164(phone.e164);
@@ -91,11 +101,13 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
             <span className={styles.eyebrowDot} />
             AtrevidaFit
           </div>
-          <h2 className={styles.formTitle}>{editando ? `Editar Reserva #${initialData?.reserva?.id}` : 'Nueva Reserva'}</h2>
+          <h2 className={styles.formTitle}>{aprobando ? `Aprobar Reserva #${initialData?.reserva?.id}` : editando ? `Editar Reserva #${initialData?.reserva?.id}` : 'Nueva Reserva'}</h2>
           <p className={styles.formSubtitle}>
-            {editando
-              ? 'Cambia lo que haga falta. Aprobar, rechazar y completar se hacen desde la lista.'
-              : 'Selecciona el horario disponible y completa los datos del cliente'}
+            {aprobando
+              ? `Solicitó: ${initialData?.reserva?.servicio_solicitado || initialData?.reserva?.servicio || 'por definir'}. Confirma o corrige los datos y agéndala.`
+              : editando
+                ? 'Cambia lo que haga falta. Aprobar, rechazar y completar se hacen desde la lista.'
+                : 'Selecciona el horario disponible y completa los datos del cliente'}
           </p>
         </div>
 
@@ -190,12 +202,7 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
 
           {/* Cliente */}
           <div className={`${styles.formGroup} ${styles.fullWidth}`}>
-            {editando && initialData?.reserva?.cliente_id != null ? (
-              <>
-                <label htmlFor="reserva-cliente">Cliente</label>
-                <input id="reserva-cliente" type="text" value={cliente} disabled />
-              </>
-            ) : initialData?.isAdmin ? (
+            {initialData?.isAdmin ? (
               <ClienteSelect
                 id="reserva-cliente"
                 value={cliente}
@@ -205,6 +212,7 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
                   setClienteId(null);
                 }}
                 onSelect={handleClienteElegido}
+                initialNombre={initialData?.reserva?.cliente}
                 initialTelefono={numeroTelefono}
                 error={errors.cliente}
               />
@@ -236,6 +244,27 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
             />
             {errors.numeroTelefono && <span className={styles.errorText}>{errors.numeroTelefono}</span>}
           </div>
+
+          {editando && clienteElegido && telefonosDistintos(clienteElegido, { telefono_e164: telefonoE164, numero_telefono: numeroTelefono }) && (
+            <label className={styles.directToggle}>
+              <input
+                type="checkbox"
+                className={styles.directToggleInput}
+                checked={actualizarTelefonoCliente}
+                onChange={(e) => setActualizarTelefonoCliente(e.target.checked)}
+              />
+              <span className={styles.directToggleSwitch} aria-hidden="true">
+                <span className={styles.directToggleThumb} />
+              </span>
+              <span className={styles.directToggleText}>
+                <span className={styles.directToggleTitle}>Actualizar el teléfono del cliente</span>
+                <span className={styles.directToggleHint}>
+                  La reserva tiene {formatPhoneForDisplay(telefonoE164, numeroTelefono)} y {`${clienteElegido.nombre} ${clienteElegido.apellido}`.trim()} tiene{' '}
+                  {formatPhoneForDisplay(clienteElegido.telefono_e164, clienteElegido.numero_telefono) || 'ninguno'}. Si lo activas, se reemplaza el del cliente.
+                </span>
+              </span>
+            </label>
+          )}
 
           {initialData?.isAdmin && (
             <PlanSelector
@@ -295,7 +324,12 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
           </button>
           <button type="submit" className={styles.submitButton} disabled={loading}>
             <span className={styles.submitButtonText}>
-              {loading ? (editando ? 'Guardando...' : 'Creando...') : editando ? (
+              {loading ? (aprobando ? 'Agendando...' : editando ? 'Guardando...' : 'Creando...') : aprobando ? (
+                <>
+                  <CalendarCheck size={17} strokeWidth={1.8} />
+                  Aprobar y agendar
+                </>
+              ) : editando ? (
                 <>
                   <Save size={17} strokeWidth={1.8} />
                   Guardar cambios
@@ -323,21 +357,11 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
         onConfirm={confirmarDuracion}
         onClose={cancelarConfirmacionDuracion}
         message={desajusteDuracion && (
-          <>
-            <p style={{ margin: 0 }}>
-              <strong>{servicio}</strong> dura <strong>{desajusteDuracion.duracionServicio}</strong>,
-              pero reservaste de <strong>{desajusteDuracion.horaDesde}</strong> a{' '}
-              <strong>{desajusteDuracion.horaHasta}</strong> ({desajusteDuracion.duracionElegida}).
-            </p>
-            <p className={modalStyles.notice}>
-              {desajusteDuracion.esMasLargo
-                ? `El ambiente queda ocupado toda esa franja: ${desajusteDuracion.bloquesDiferencia} bloque(s) de 30 min extra no podrán usarse para otras reservas ese día.`
-                : `El servicio podría no alcanzar a completarse: faltan ${desajusteDuracion.bloquesDiferencia} bloque(s) de 30 min respecto de su duración habitual.`}
-            </p>
-            <p className={modalStyles.noticeHint}>
-              Si fue un error, elige <strong>Ajustar horario</strong> y vuelve a marcar el rango en la rejilla.
-            </p>
-          </>
+          <AvisoDuracion
+            servicio={servicio}
+            desajuste={desajusteDuracion}
+            ayuda="Si fue un error, elige Ajustar horario y vuelve a marcar el rango en la rejilla."
+          />
         )}
       />
 

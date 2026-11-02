@@ -16,7 +16,6 @@ import {
 } from 'lucide-react';
 
 import { AprobacionReservasTable } from '@/components/AdminReservas';
-import { AprobarReservaModal } from './AprobarReservaModal';
 import { WhatsappIcon } from '@/components/icons/WhatsappIcon';
 import { toast } from '@/components/Shared/Toast';
 import { AdminButton, AdminPanel, ConfirmDialog, CursorPagination, FilterBar, FormField, FormModal, RangoFechasFiltro, ReasonDialog, RowActionsMenu } from '@/components/AdminConfig';
@@ -24,7 +23,7 @@ import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { actualizarEstadoReservaDB, actualizarReservaNotificadoDB, eliminarReservaDB, getReservasDB } from '@/lib/api/reservas';
 import { getLocalesDB, type LocalRow } from '@/lib/api/servicios';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
-import { buildClientWhatsappUrl } from '@/lib/utils/whatsapp';
+import { buildClientWhatsappUrl, buildConfirmacionWhatsappHref } from '@/lib/utils/whatsapp';
 import {
   type EstadoReserva,
   type ReservaBD,
@@ -88,31 +87,6 @@ const formatDate = (fecha: string) => {
 const getWhatsappHref = (telefono?: string, telefonoE164?: string) => {
   const message = 'Hola 🌸 Recibimos tu reserva. ¿Qué tratamiento deseas realizar?';
   return buildClientWhatsappUrl(telefonoE164, telefono, message);
-};
-
-const getMealLabelByTime = (horaDesde: string) => {
-  const [hourRaw = '0'] = horaDesde.split(':');
-  const hour = Number(hourRaw);
-  return Number.isFinite(hour) && hour < 12 ? 'desayuno' : 'almuerzo';
-};
-
-const getConfirmationWhatsappHref = (reserva: ReservaBD) => {
-  const tratamiento = reserva.servicio_confirmado || reserva.servicio_solicitado || reserva.servicio || 'Tratamiento confirmado';
-  const comidaPrevia = getMealLabelByTime(reserva.hora_desde);
-  const message = [
-    '*Tu cita ha sido confirmada en Atrevida Fit* 🌸',
-    '',
-    `*Fecha:* ${formatDate(reserva.fecha)} (${reserva.fecha})`,
-    `*Horario:* ${reserva.hora_desde} - ${reserva.hora_hasta}`,
-    `*Tratamiento:* ${tratamiento}`,
-    `*Sucursal:* ${reserva.local}`,
-    '',
-    `Ven con el estómago lleno (${comidaPrevia}) y 1 litro de agua.`,
-    '',
-    'Te esperamos.',
-  ].join('\n');
-
-  return buildClientWhatsappUrl(reserva.telefono_e164, reserva.numero_telefono, message);
 };
 
 const getReservaServiceSummary = (reserva: ReservaBD) => {
@@ -197,7 +171,6 @@ export function BandejaReservas() {
   const [cobroSugerido, setCobroSugerido] = useState<ReservaBD | null>(null);
   const [actionId, setActionId] = useState<number | null>(null);
   const [rejectTarget, setRejectTarget] = useState<ReservaBD | null>(null);
-  const [approvalReserva, setApprovalReserva] = useState<ReservaBD | null>(null);
   const [completionDraft, setCompletionDraft] = useState<CompletionDraft | null>(null);
   const [completionError, setCompletionError] = useState<string | null>(null);
   const [deleteReserva, setDeleteReserva] = useState<ReservaBD | null>(null);
@@ -362,23 +335,8 @@ export function BandejaReservas() {
     [deleteReserva],
   );
 
-  const openApprovalModal = (reserva: ReservaBD) => setApprovalReserva(reserva);
-
-  // La reserva ya quedo agendada: se actualiza la fila y se ofrece avisar al cliente por WhatsApp.
-  const handleAprobada = (updatedReserva: ReservaBD) => {
-    setReservas((current) => current.map((item) => item.id === updatedReserva.id ? updatedReserva : item));
-    setApprovalReserva(null);
-    const whatsappHref = getConfirmationWhatsappHref(updatedReserva);
-    if (whatsappHref) {
-      toast.successWithAction('Envía la confirmación por WhatsApp al cliente.', {
-        title: `Reserva #${updatedReserva.id} agendada`,
-        action: { label: 'Enviar WhatsApp', href: whatsappHref, onClick: () => { void markConfirmationSent(updatedReserva.id); } },
-      });
-    } else {
-      toast.success(`Reserva #${updatedReserva.id} agendada. No tiene teléfono para avisarle.`);
-    }
-    pagination.resetAfterMutation();
-  };
+  // Aprobar es editar con el mismo formulario de Nueva reserva: se corrigen los datos y se agenda.
+  const openApprovalModal = (reserva: ReservaBD) => router.push(`/atrevida-gestion/reservas/editar/${reserva.id}?aprobar=1`);
 
   const openCompletionModal = (reserva: ReservaBD) => {
     setCompletionDraft({
@@ -547,7 +505,7 @@ export function BandejaReservas() {
     const porCobrar = isCompleted && reserva.estado_cobro === 'POR_COBRAR';
     const confirmationSent = Boolean(reserva.notificado);
     const whatsappHref = getWhatsappHref(reserva.numero_telefono, reserva.telefono_e164);
-    const confirmationWhatsappHref = getConfirmationWhatsappHref(reserva);
+    const confirmationWhatsappHref = buildConfirmacionWhatsappHref(reserva);
     const canMarkCompleted = estado === 'AGENDADO' && confirmationSent;
     const busy = actionId === reserva.id;
 
@@ -728,14 +686,6 @@ export function BandejaReservas() {
         confirmLabel="Rechazar"
         onConfirm={(causa) => (rejectTarget ? rejectReserva(rejectTarget, causa) : Promise.resolve())}
         onClose={() => setRejectTarget(null)}
-      />
-
-      <AprobarReservaModal
-        reserva={approvalReserva}
-        locales={localesDisponibles}
-        localBloqueado={scopedLocalName || undefined}
-        onClose={() => setApprovalReserva(null)}
-        onAprobada={handleAprobada}
       />
 
       {completionDraft && (

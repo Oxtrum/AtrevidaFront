@@ -1,7 +1,7 @@
 'use client';
 
-import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
 import ReservationForm from '@/components/AdminReservationForm';
 import { AdminButton } from '@/components/AdminConfig';
@@ -13,8 +13,9 @@ import styles from './page.module.css';
  * Editar una reserva: el mismo formulario de Nueva reserva, con los datos de la reserva cargados. El precio sigue
  * al servicio y el estado se maneja desde la lista (aprobar, rechazar, completar), por eso no se editan aquí.
  */
-export default function EditarReservaPage() {
+function EditarReservaContent() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const contentRef = useRef<HTMLDivElement>(null);
   const reservaId = params.id as string;
@@ -76,7 +77,22 @@ export default function EditarReservaPage() {
 
   return (
     <div ref={contentRef} className={styles.content}>
-      <ReservationForm initialData={{ isAdmin: true, reserva }} />
+      <ReservationForm initialData={{ isAdmin: true, reserva, aprobar: searchParams.get('aprobar') === '1' && reserva.estado === 'PENDIENTE' }} />
     </div>
+  );
+}
+
+export default function EditarReservaPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className={styles.loading}>
+          <div className={styles.loadingSpinner} />
+          <p>Cargando...</p>
+        </div>
+      }
+    >
+      <EditarReservaContent />
+    </Suspense>
   );
 }
