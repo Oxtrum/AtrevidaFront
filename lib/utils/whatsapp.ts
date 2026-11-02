@@ -1,4 +1,5 @@
 import type { ReservaBD } from '@/types/reserva';
+import type { ReservaDuplicada } from '@/lib/api/reservas';
 import { resolvePhoneE164 } from './phone';
 
 /** Número comercial en E.164: no se le antepone ningún prefijo. */
@@ -86,4 +87,31 @@ export const buildReminderWhatsappHref = (reserva: ReservaBD): string | null => 
   ].join('\n');
 
   return buildClientWhatsappUrl(reserva.telefono_e164, reserva.numero_telefono, message);
+};
+
+/**
+ * Mensaje al cliente cuando el panel detecta que tiene más de una reserva el mismo día
+ * (puede ser una confusión al registrar). `fecha` es YYYY-MM-DD y es opcional.
+ * Devuelve null si no hay teléfono utilizable.
+ */
+export const buildDuplicadaWhatsappHref = (
+  params: {
+    telefonoE164?: string | null;
+    numeroTelefono?: string | null;
+    fecha?: string;
+    reservas: ReservaDuplicada[];
+  },
+): string | null => {
+  const dia = params.fecha ? getDayLabel(params.fecha).toLowerCase() : 'ese día';
+  const lista = params.reservas.map(
+    r => `• ${formatHora12(r.hora_desde)} · Sucursal ${formatLocal(r.local)}`,
+  );
+  const message = [
+    getSaludo(),
+    `Revisando la agenda vemos que ${dia} tienes más de una cita:`,
+    ...lista,
+    '¿Nos confirmas si todas están bien?',
+  ].join('\n');
+
+  return buildClientWhatsappUrl(params.telefonoE164, params.numeroTelefono, message);
 };

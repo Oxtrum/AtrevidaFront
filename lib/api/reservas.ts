@@ -109,6 +109,28 @@ export interface CrearReservaDBData {
   precio?: number;
   estado: EstadoReserva;
   turnstileToken?: string;
+  /** Solo panel interno: crear igual aunque el cliente ya tenga otra reserva ese día. */
+  confirmar_duplicado?: boolean;
+}
+
+/** Reserva que el cliente ya tiene en el día (data del 409 RESERVA_DUPLICADA). */
+export interface ReservaDuplicada {
+  id: number;
+  local: string;
+  hora_desde: string;
+  hora_hasta: string;
+  servicio: string;
+  estado: string;
+}
+
+/**
+ * Si el error es el aviso de reserva repetida del backend (409 RESERVA_DUPLICADA),
+ * devuelve las reservas que el cliente ya tiene ese día; si no, null.
+ */
+export function reservasDuplicadasDeError(err: unknown): ReservaDuplicada[] | null {
+  if (!(err instanceof ApiError) || err.status !== 409) return null;
+  const data = (err.data as { data?: { codigo?: string; reservas?: ReservaDuplicada[] } } | undefined)?.data;
+  return data?.codigo === 'RESERVA_DUPLICADA' ? data.reservas ?? [] : null;
 }
 
 /**
@@ -121,6 +143,8 @@ export interface CrearReservaDBData {
 export interface ActualizarReservaDBData {
   id: number;
   local: string;
+  /** Crear el cambio igual aunque el cliente ya tenga otra reserva en la nueva fecha. */
+  confirmar_duplicado?: boolean;
   nueva_fecha?: string;
   nueva_hora_desde?: string;
   nueva_hora_hasta?: string;

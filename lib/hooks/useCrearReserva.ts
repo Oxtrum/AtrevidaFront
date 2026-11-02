@@ -36,6 +36,7 @@ interface CrearReservaData {
     plan_id?: number;
     estado?: EstadoReserva;
     turnstileToken?: string;
+    confirmar_duplicado?: boolean;
 }
 
 /**
@@ -70,6 +71,7 @@ export function useCrearReserva(): UseCrearReservaReturn {
                     plan_id: data.plan_id,
                     estado: data.estado ?? 'PENDIENTE',
                     turnstileToken: data.turnstileToken,
+                    confirmar_duplicado: data.confirmar_duplicado,
                 });
                 return result;
             }
