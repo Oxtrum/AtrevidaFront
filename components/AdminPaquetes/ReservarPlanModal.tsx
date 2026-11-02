@@ -9,7 +9,7 @@ import { toast } from '@/components/Shared/Toast';
 import { crearPlan } from '@/lib/api/planes';
 import { getCombosDB } from '@/lib/api/servicios';
 import { getClientesDB, type ClientePG } from '@/lib/api/clientes';
-import styles from './page.module.css';
+import styles from './PaquetesActivos.module.css';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
 
 interface LocalOpt { id: number; nombre: string; }

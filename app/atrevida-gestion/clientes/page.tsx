@@ -10,6 +10,7 @@ import { toast } from '@/components/Shared/Toast';
 import { getClientesDB, eliminarClienteDB } from '@/lib/api/clientes';
 import type { ClientePG } from '@/lib/api/clientes';
 import { ClienteFormModal, DeudoresTable } from '@/components/AdminClientes';
+import { PaquetesActivosTable } from '@/components/AdminPaquetes/PaquetesActivosTable';
 import styles from './page.module.css';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
 import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
@@ -19,11 +20,12 @@ import type { SortState } from '@/lib/utils/sortRows';
 /** Orden que el servidor aplica sin ordenar_por; solo se usa para marcar el header de apellidos. */
 const ORDEN_POR_DEFECTO: SortState = { key: 'apellido', dir: 'asc' };
 
-type Vista = 'todos' | 'deuda';
+type Vista = 'todos' | 'deuda' | 'paquetes';
 
 const VISTAS: { key: Vista; label: string }[] = [
   { key: 'todos', label: 'Todos' },
   { key: 'deuda', label: 'Con deuda' },
+  { key: 'paquetes', label: 'Paquetes' },
 ];
 
 interface ClienteRow extends Record<string, unknown> {
@@ -115,12 +117,13 @@ export default function ClientesPage() {
 
   // Cuentas por cobrar redirige aqui con ?vista=deuda.
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get('vista') === 'deuda') setVista('deuda');
+    const param = new URLSearchParams(window.location.search).get('vista');
+    if (param === 'deuda' || param === 'paquetes') setVista(param);
   }, []);
 
   const cambiarVista = (siguiente: Vista) => {
     setVista(siguiente);
-    window.history.replaceState(null, '', siguiente === 'deuda' ? '?vista=deuda' : window.location.pathname);
+    window.history.replaceState(null, '', siguiente === 'todos' ? window.location.pathname : `?vista=${siguiente}`);
   };
 
   const verCliente = (row: ClienteRow) => router.push(`/atrevida-gestion/clientes/${row.id}`);
@@ -193,12 +196,17 @@ export default function ClientesPage() {
         <Tabs tabs={VISTAS} active={vista} onChange={cambiarVista} ariaLabel="Vistas de clientes" />
 
         <div ref={contentRef} className={styles.contentStack}>
-          <FilterBar>
-            <FilterBar.Item label="Buscar" grow>
-              <input type="text" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Nombre, apellido o teléfono…" aria-label="Buscar clientes" />
-            </FilterBar.Item>
-          </FilterBar>
-          {vista === 'deuda' ? (
+          {/* Paquetes trae su propia barra de filtros: aqui solo Todos y Con deuda comparten el buscador. */}
+          {vista !== 'paquetes' && (
+            <FilterBar>
+              <FilterBar.Item label="Buscar" grow>
+                <input type="text" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Nombre, apellido o teléfono…" aria-label="Buscar clientes" />
+              </FilterBar.Item>
+            </FilterBar>
+          )}
+          {vista === 'paquetes' ? (
+            <PaquetesActivosTable />
+          ) : vista === 'deuda' ? (
             <DeudoresTable busqueda={debouncedSearch} />
           ) : (
           <>

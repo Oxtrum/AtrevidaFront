@@ -7,7 +7,7 @@ import { toast } from '@/components/Shared/Toast';
 import { crearPagoDB } from '@/lib/api/pagos';
 import { cobrarPlan, type PlanItem } from '@/lib/api/planes';
 import { esTipoPago, opcionesTipoPago, type TipoPago } from '@/lib/utils/tipoPago';
-import styles from './page.module.css';
+import styles from './PaquetesActivos.module.css';
 
 interface LocalOpt { id: number; nombre: string; }
 
