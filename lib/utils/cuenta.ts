@@ -20,8 +20,8 @@ export const ETIQUETA_POR_PAGAR = 'Por pagar';
 export const ETIQUETA_DEUDA = 'Deuda';
 
 export const tonoDisponible = (disponible: number): BadgeTone => (disponible > 0 ? 'success' : 'neutral');
-/** Por pagar es alerta solo si el saldo disponible no alcanza a cubrirlo (hay deuda real). */
-export const tonoPorPagar = (porPagar: number, deuda: number): BadgeTone => (deuda > 0 ? 'danger' : porPagar > 0 ? 'warning' : 'neutral');
+/** Por pagar es ambar si hay algo pendiente. El rojo es solo de la deuda, que se muestra aparte. */
+export const tonoPorPagar = (porPagar: number): BadgeTone => (porPagar > 0 ? 'warning' : 'neutral');
 export const estadoCargoTexto = (e: EstadoCargo): string => TEXTO_ESTADO[e];
 export const tonoEstadoCargo = (e: EstadoCargo): BadgeTone => TONO_ESTADO[e];
 export const tipoCargoTexto = (t: TipoCargo): string => TIPOS_CARGO.find((x) => x.value === t)?.label ?? t;

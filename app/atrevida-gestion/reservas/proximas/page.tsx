@@ -14,6 +14,7 @@ import {
 
 import Header from '@/components/AdminHeader/Header';
 import { AdminButton, AdminPanel, CursorPagination, PageHeader, StatCard, StatGrid, StatusBadge } from '@/components/AdminConfig';
+import { ClientePopover } from '@/components/AdminClientes';
 import { ReservaContacto, ReservaRow, ReservaStockHint, formatDuracion, formatFalta } from '@/components/AdminReservas';
 import { getReservasDB } from '@/lib/api/reservas';
 import { buildReminderWhatsappHref } from '@/lib/utils/whatsapp';
@@ -208,7 +209,16 @@ export default function AdminReservasProximasPage() {
                 tone="agendado"
                 time={reserva.hora_desde}
                 timeSub={formatDuracion(reserva.hora_desde, reserva.hora_hasta) || reserva.hora_hasta}
-                title={reserva.cliente || 'Cliente sin nombre'}
+                title={
+                  <ClientePopover
+                    nombre={reserva.cliente || 'Cliente sin nombre'}
+                    telefono={reserva.numero_telefono}
+                    telefonoE164={reserva.telefono_e164}
+                    clienteId={reserva.cliente_id}
+                    reservaId={reserva.id}
+                    onVinculado={() => void fetchReservas(true)}
+                  />
+                }
                 service={finalService}
                 titleHint={
                   <>

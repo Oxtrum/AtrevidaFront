@@ -3,6 +3,7 @@
 import { DataTable } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import type { ReservaBD } from '@/types/reserva';
+import { ClientePopover } from '@/components/AdminClientes/ClientePopover';
 import { RESERVA_ESTADO_HINT, ReservaEstadoPill } from './ReservaEstadoPill';
 import type { ReservaEstadoPillTone } from './ReservaEstadoPill';
 import { POR_COBRAR_HINT, ReservaStockHint, formatDiaCorto } from './ReservaRow';
@@ -16,6 +17,8 @@ interface AprobacionReservasTableProps {
   showLocal: boolean;
   /** Acción principal + menú de la fila; la página conoce los handlers. */
   renderActions: (reserva: ReservaBD) => React.ReactNode;
+  /** Se llama tras vincular una reserva a un cliente, para recargar la lista. */
+  onVinculado?: () => void;
 }
 
 /** Lo que el equipo necesita saber de la reserva ahora mismo, en una sola etiqueta. */
@@ -37,7 +40,7 @@ export function estadoDeAprobacion(r: ReservaBD): { label: string; tone: Reserva
 }
 
 /** Tabla de la bandeja de aprobación: una fila por reserva, estado único y acciones al final. */
-export function AprobacionReservasTable({ reservas, showLocal, renderActions }: AprobacionReservasTableProps) {
+export function AprobacionReservasTable({ reservas, showLocal, renderActions, onVinculado }: AprobacionReservasTableProps) {
   const columns: Column<Row>[] = [
     {
       key: 'fecha',
@@ -55,7 +58,15 @@ export function AprobacionReservasTable({ reservas, showLocal, renderActions }: 
       render: (_v, r) => (
         <div className={styles.stack}>
           <span className={styles.primary}>
-            {r.cliente || 'Cliente sin nombre'} <span className={styles.id}>#{r.id}</span>
+            <ClientePopover
+              nombre={r.cliente || 'Cliente sin nombre'}
+              telefono={r.numero_telefono}
+              telefonoE164={r.telefono_e164}
+              clienteId={r.cliente_id}
+              reservaId={r.id}
+              onVinculado={onVinculado}
+            />{' '}
+            <span className={styles.id}>#{r.id}</span>
           </span>
           <span className={styles.secondary}>{r.numero_telefono || 'Sin teléfono'}</span>
         </div>

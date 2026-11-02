@@ -17,7 +17,7 @@ export function SaldoCliente({ saldo, size = 'md' }: SaldoClienteProps) {
         <span className={styles.etiqueta}>{ETIQUETA_DISPONIBLE}</span>
         <span className={styles.monto}>{formatMoney(saldo.disponible)}</span>
       </span>
-      <span className={`${styles.grupo} ${styles[tonoPorPagar(saldo.por_pagar, saldo.deuda)]}`}>
+      <span className={`${styles.grupo} ${styles[tonoPorPagar(saldo.por_pagar)]}`}>
         <span className={styles.etiqueta}>{ETIQUETA_POR_PAGAR}</span>
         <span className={styles.monto}>{formatMoney(saldo.por_pagar)}</span>
       </span>

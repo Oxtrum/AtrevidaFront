@@ -996,6 +996,7 @@ export default function AdminReservasAprobacionPage() {
                     reservas={renderedReservas}
                     showLocal={effectiveLocalFiltro === ALL_LOCALS_FILTER}
                     renderActions={renderReservaActions}
+                    onVinculado={() => void fetchReservas()}
                   />
                 </div>
               )}

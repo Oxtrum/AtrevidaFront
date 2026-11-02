@@ -18,6 +18,7 @@ import Header from '@/components/AdminHeader/Header';
 import { eliminarReservaDB } from '@/lib/api/reservas';
 import { toast } from '@/components/Shared/Toast';
 import { ReservaDetailModal, ReservasToolbar } from '@/components/AdminReservas';
+import { ClientePopover } from '@/components/AdminClientes';
 import { POR_COBRAR_HINT, RESERVA_ESTADO_HINT, ReservaEstadoPill, ReservaNote, ReservaStockHint } from '@/components/AdminReservas';
 import type { ReservaEstadoPillTone } from '@/components/AdminReservas/ReservaEstadoPill';
 import styles from './page.module.css';
@@ -33,7 +34,9 @@ interface ReservaRow extends Record<string, unknown> {
   hora_desde: string;
   hora_hasta: string;
   cliente: string;
+  cliente_id?: number | null;
   numero_telefono?: string;
+  telefono_e164?: string;
   servicio: string;
   servicio_solicitado?: string | null;
   servicio_confirmado?: string | null;
@@ -326,7 +329,16 @@ export default function AdminReservasPage() {
     {
       key: 'cliente',
       label: 'Cliente',
-      render: (_v, row) => <span>{(row.cliente as string) || '—'}</span>,
+      render: (_v, row) => row.cliente ? (
+        <ClientePopover
+          nombre={row.cliente}
+          telefono={row.numero_telefono}
+          telefonoE164={row.telefono_e164}
+          clienteId={row.cliente_id}
+          reservaId={row.id}
+          onVinculado={pagination.resetAfterMutation}
+        />
+      ) : <span>—</span>,
     },
     {
       key: 'tipo',

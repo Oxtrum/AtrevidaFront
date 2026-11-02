@@ -65,7 +65,7 @@ interface ReservaRowProps {
   time: string;
   /** Texto bajo la hora (duración). */
   timeSub?: string;
-  title: string;
+  title: React.ReactNode;
   id?: number;
   service: string;
   /** Detalle bajo el servicio (solicitado/confirmado, notas). */
