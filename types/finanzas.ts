@@ -261,4 +261,6 @@ export interface ConfiguracionSistema {
   'rrhh.aporte_patronal_pct': number;
   'rrhh.dias_mes_faltas': number;
   'publico.mostrar_paquetes': boolean;
+  'paquetes.sesion_en_estado': 'COMPLETADO' | 'AGENDADO';
+  'cobros.dias_maximo_fecha_pasada': number;
 }

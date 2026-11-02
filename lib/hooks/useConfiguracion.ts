@@ -18,6 +18,8 @@ export const CONFIG_DEFAULTS: ConfiguracionSistema = {
   'rrhh.aporte_patronal_pct': 16.71,
   'rrhh.dias_mes_faltas': 30,
   'publico.mostrar_paquetes': true,
+  'paquetes.sesion_en_estado': 'COMPLETADO',
+  'cobros.dias_maximo_fecha_pasada': 0,
 };
 
 // Caché a nivel de módulo: moneda y política se leen en muchas pantallas.

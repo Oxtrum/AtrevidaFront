@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Boxes, Landmark, SlidersHorizontal, UsersRound } from 'lucide-react';
+import { Banknote, Boxes, Landmark, SlidersHorizontal, UsersRound } from 'lucide-react';
 import { AdminButton, AdminPageShell, AdminPanel, AlertBanner, FormField, FormSubmitError, PageHeader } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
@@ -41,6 +41,11 @@ export default function ParametrosPage() {
     }
     if (!form['finanzas.moneda'].trim()) {
       setError('La moneda es obligatoria');
+      return;
+    }
+    const diasPasados = Number(form['cobros.dias_maximo_fecha_pasada']);
+    if (!Number.isInteger(diasPasados) || diasPasados < 0 || diasPasados > 365) {
+      setError('Los días hacia atrás para la fecha de un cobro deben estar entre 0 y 365');
       return;
     }
     const diaPago = Number(form['rrhh.dia_pago_defecto']);
@@ -118,6 +123,26 @@ export default function ParametrosPage() {
             </FormField>
             <FormField label="Considerar reservas agendadas futuras" labelId="p-comp-lbl" hint="Al calcular si alcanza el stock, también cuenta lo que necesitan las reservas agendadas de los próximos días en este local. Así no se promete un insumo que ya está reservado para otra clienta.">
               <div id="p-comp-lbl">{bool('inventario.considerar_comprometido')}</div>
+            </FormField>
+          </div>
+        </AdminPanel>
+
+        <AdminPanel card title="Paquetes y cobros" description="Cuándo avanza la sesión de un paquete y hasta qué fecha atrás se registra un cobro." icon={<Banknote size={18} strokeWidth={1.75} />}>
+          <div className={styles.grid}>
+            <FormField label="Descontar la sesión del paquete cuando la reserva pasa a" labelId="p-ses-lbl" hint="Completado = cuando el servicio se realizó. Agendado = al confirmar la cita; si luego se rechaza, la sesión se devuelve.">
+              <CustomSelect
+                value={form['paquetes.sesion_en_estado']}
+                onChange={(v) => set('paquetes.sesion_en_estado', v as ConfiguracionSistema['paquetes.sesion_en_estado'])}
+                options={[{ value: 'COMPLETADO', label: 'Completado' }, { value: 'AGENDADO', label: 'Agendado' }]}
+                searchable={false}
+                ariaLabelledBy="p-ses-lbl"
+              />
+            </FormField>
+            <FormField label="Fecha de un cobro: días hacia atrás permitidos" htmlFor="p-cobro-dias" hint="Para registrar de noche lo anotado en papel. 0 = sin límite.">
+              <div className={styles.suffixWrap}>
+                <input id="p-cobro-dias" type="number" min={0} max={365} value={form['cobros.dias_maximo_fecha_pasada']} onChange={(e) => set('cobros.dias_maximo_fecha_pasada', Number(e.target.value))} />
+                <span className={styles.suffix} aria-hidden>días</span>
+              </div>
             </FormField>
           </div>
         </AdminPanel>
