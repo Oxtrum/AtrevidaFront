@@ -5,6 +5,8 @@ import styles from './ChoiceChips.module.css';
 export interface ChoiceOption<V extends string = string> {
   value: V;
   label: string;
+  /** Icono a la izquierda del texto. */
+  icon?: React.ReactNode;
 }
 
 interface ChoiceChipsProps<V extends string> {
@@ -13,8 +15,8 @@ interface ChoiceChipsProps<V extends string> {
   onChange: (value: V) => void;
   /** Nombre accesible del grupo (qué se está eligiendo). */
   ariaLabel: string;
-  /** chips = botones sueltos (varias opciones); toggle = control compacto de 2 o 3 opciones en una sola pieza. */
-  variant?: 'chips' | 'toggle';
+  /** chips = botones sueltos (varias opciones); toggle = control compacto de 2 o 3 opciones en una sola pieza; grid = opciones grandes en dos columnas que ocupan todo el ancho. */
+  variant?: 'chips' | 'toggle' | 'grid';
 }
 
 /**
@@ -23,7 +25,7 @@ interface ChoiceChipsProps<V extends string> {
  */
 export function ChoiceChips<V extends string>({ options, value, onChange, ariaLabel, variant = 'chips' }: ChoiceChipsProps<V>) {
   return (
-    <div className={`${styles.group} ${variant === 'toggle' ? styles.toggle : ''}`} role="radiogroup" aria-label={ariaLabel}>
+    <div className={`${styles.group} ${variant === 'toggle' ? styles.toggle : ''} ${variant === 'grid' ? styles.grid : ''}`} role="radiogroup" aria-label={ariaLabel}>
       {options.map((o) => (
         <button
           key={o.value}
@@ -33,6 +35,7 @@ export function ChoiceChips<V extends string>({ options, value, onChange, ariaLa
           className={`${styles.chip} ${o.value === value ? styles.selected : ''}`}
           onClick={() => onChange(o.value)}
         >
+          {o.icon}
           {o.label}
         </button>
       ))}

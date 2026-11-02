@@ -61,3 +61,14 @@
   border-color: var(--admin-accent-primary);
   background: rgba(236, 0, 140, 0.14);
 }
+
+/* Opciones grandes que ocupan todo el ancho, de dos en dos (metodo de pago). */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.grid .chip {
+  min-height: 2.4rem;
+  font-weight: 700;
+}

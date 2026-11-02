@@ -3,27 +3,24 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Banknote, CalendarDays, Copy, Pencil, Plus, Wallet } from 'lucide-react';
-import Header from '@/components/AdminHeader/Header';
-import { AdminButton, AlertBanner, DataTable, ReasonDialog, Tabs } from '@/components/AdminConfig';
+import { ArrowLeft, Banknote, CalendarDays, Pencil, Plus, Wallet } from 'lucide-react';
+import { AdminButton, AdminPageShell, AlertBanner, DataTable, ReasonDialog, Tabs } from '@/components/AdminConfig';
 import type { Column, TabItem } from '@/components/AdminConfig';
 import {
   CargoFormModal,
   ClienteFormModal,
   CobroModal,
+  ContactoCliente,
   CuentaClientePanel,
   SaldoCliente,
 } from '@/components/AdminClientes';
 import { ReservaEstadoCelda } from '@/components/AdminReservas';
-import { WhatsappIcon } from '@/components/icons/WhatsappIcon';
 import { toast } from '@/components/Shared/Toast';
 import { getClienteByID, type ClientePG } from '@/lib/api/clientes';
 import { anularCargo, getCuentaCliente, type CargoCliente, type CuentaCliente } from '@/lib/api/cuenta';
 import { getReservasDB } from '@/lib/api/reservas';
 import type { ReservaBD } from '@/types/reserva';
 import { formatMoney } from '@/lib/utils/format';
-import { formatPhoneForDisplay, resolvePhoneE164 } from '@/lib/utils/phone';
-import { buildWhatsappUrl } from '@/lib/utils/whatsapp';
 import styles from './page.module.css';
 
 type Pestana = 'reservas' | 'cuenta';
@@ -38,6 +35,7 @@ export default function ClienteFichaPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const clienteId = Number(params.id);
+  const idValido = Number.isInteger(clienteId) && clienteId > 0;
 
   const [cliente, setCliente] = useState<ClientePG | null>(null);
   const [cuenta, setCuenta] = useState<CuentaCliente | null>(null);
@@ -55,8 +53,6 @@ export default function ClienteFichaPage() {
   const [cobrando, setCobrando] = useState(false);
   const [nuevoCargo, setNuevoCargo] = useState(false);
   const [aAnular, setAAnular] = useState<CargoCliente | null>(null);
-
-  const idValido = Number.isInteger(clienteId) && clienteId > 0;
 
   const cargarCliente = useCallback(async () => {
     if (!idValido) return;
@@ -104,13 +100,9 @@ export default function ClienteFichaPage() {
   }, [clienteId, idValido]);
 
   useEffect(() => {
-    if (!localStorage.getItem('adminToken')) {
-      router.push('/atrevida-gestion/login');
-      return;
-    }
     void cargarCliente();
     void cargarReservas();
-  }, [router, cargarCliente, cargarReservas]);
+  }, [cargarCliente, cargarReservas]);
 
   useEffect(() => {
     void cargarCuenta();
@@ -126,18 +118,6 @@ export default function ClienteFichaPage() {
       router.replace(`/atrevida-gestion/clientes/${clienteId}`);
     }
   }, [cargandoCuenta, cuenta, clienteId, router]);
-
-  const telefonoMostrado = cliente ? formatPhoneForDisplay(cliente.telefono_e164, cliente.numero_telefono) : '';
-  const whatsappHref = cliente ? buildWhatsappUrl(resolvePhoneE164(cliente.telefono_e164, cliente.numero_telefono)) : null;
-
-  const copiarTelefono = async () => {
-    try {
-      await navigator.clipboard.writeText(telefonoMostrado);
-      toast.success('Teléfono copiado');
-    } catch {
-      toast.error('No se pudo copiar el teléfono');
-    }
-  };
 
   const columnasReservas: Column<ReservaFila>[] = useMemo(() => [
     {
@@ -185,118 +165,87 @@ export default function ClienteFichaPage() {
 
   if (!idValido) {
     return (
-      <div className={styles.pageContainer}>
-        <div className="admin-mesh" />
-        <Header />
-        <main className={styles.main}>
-          <div className={styles.container}>
-            <AlertBanner tone="danger">El cliente que buscas no existe.</AlertBanner>
-          </div>
-        </main>
-      </div>
+      <AdminPageShell>
+        <AlertBanner tone="danger">El cliente que buscas no existe.</AlertBanner>
+      </AdminPageShell>
     );
   }
 
   return (
-    <div className={styles.pageContainer}>
-      <div className="admin-mesh" />
-      <Header />
-      <main className={styles.main}>
-        <div className={styles.container}>
-          <Link href="/atrevida-gestion/clientes" className={styles.volver}>
-            <ArrowLeft size={15} strokeWidth={2} />
-            Clientes
-          </Link>
+    <AdminPageShell>
+      <div className={styles.pagina}>
+        <Link href="/atrevida-gestion/clientes" className={styles.volver}>
+          <ArrowLeft size={14} strokeWidth={2} />
+          Clientes
+        </Link>
 
-          {error && <AlertBanner tone="danger">{error}</AlertBanner>}
+        {error && <AlertBanner tone="danger">{error}</AlertBanner>}
 
-          <section className={styles.hero} aria-busy={cargandoCliente}>
-            <div className={styles.identidad}>
-              <h1 className={styles.nombre}>{cliente ? nombreCompleto(cliente) : cargandoCliente ? 'Cargando…' : 'Cliente no encontrado'}</h1>
-              {cliente && (
-                <ul className={styles.datos}>
-                  <li className={styles.dato}>
-                    <span className={styles.etiqueta}>Teléfono</span>
-                    <span className={styles.valor}>{telefonoMostrado || '—'}</span>
-                    {telefonoMostrado && (
-                      <span className={styles.minis}>
-                        {whatsappHref && (
-                          <a className={`${styles.mini} ${styles.miniWhatsapp}`} href={whatsappHref} target="_blank" rel="noopener noreferrer" aria-label="Escribir por WhatsApp" title="WhatsApp">
-                            <WhatsappIcon size={16} />
-                          </a>
-                        )}
-                        <button type="button" className={styles.mini} onClick={copiarTelefono} aria-label="Copiar teléfono" title="Copiar teléfono">
-                          <Copy size={14} strokeWidth={1.8} />
-                        </button>
-                      </span>
-                    )}
-                  </li>
-                  <li className={styles.dato}>
-                    <span className={styles.etiqueta}>CI</span>
-                    <span className={styles.valor}>{cliente.ci || '—'}</span>
-                  </li>
-                  <li className={styles.dato}>
-                    <span className={styles.etiqueta}>NIT</span>
-                    <span className={styles.valor}>{cliente.nit || '—'}</span>
-                  </li>
-                </ul>
-              )}
-            </div>
-
-            <div className={styles.cuentaResumen}>
-              {cuenta ? <SaldoCliente saldo={cuenta.saldo} size="lg" /> : <span className={styles.cargando}>Calculando saldo…</span>}
-            </div>
-
-            <div className={styles.acciones}>
-              <AdminButton variant="primary" icon={<Banknote size={16} strokeWidth={2} />} onClick={() => setCobrando(true)} disabled={!cuenta}>
-                Cobrar
-              </AdminButton>
-              <AdminButton variant="secondary" icon={<Plus size={16} strokeWidth={2} />} onClick={() => setNuevoCargo(true)}>
-                Nuevo cargo
-              </AdminButton>
-              {cliente && (
-                <AdminButton variant="secondary" icon={<Pencil size={16} strokeWidth={2} />} onClick={() => setEditando(true)}>
-                  Editar datos
-                </AdminButton>
-              )}
-            </div>
-          </section>
-
-          <Tabs tabs={pestanas} active={pestana} onChange={setPestana} ariaLabel="Secciones del cliente" />
-
-          <div className={styles.contenido}>
-            {pestana === 'reservas' && (
-              <>
-                <DataTable<ReservaFila>
-                  columns={columnasReservas}
-                  data={reservas as ReservaFila[]}
-                  loading={cargandoReservas}
-                  error={errorReservas}
-                  onRefresh={cargarReservas}
-                  getRowKey={(r) => r.id}
-                  defaultSort={{ key: 'fecha', dir: 'desc' }}
-                  searchPlaceholder="Buscar en sus reservas…"
-                  emptyMessage="Este cliente todavía no tiene reservas"
-                />
-                {totalReservas > reservas.length && (
-                  <p className={styles.nota}>Se muestran sus {reservas.length} reservas más recientes de {totalReservas}.</p>
-                )}
-              </>
-            )}
-
-            {pestana === 'cuenta' && (
-              <CuentaClientePanel
-                cuenta={cuenta}
-                loading={cargandoCuenta}
-                verAnulados={verAnulados}
-                onVerAnulados={setVerAnulados}
-                onNuevoCargo={() => setNuevoCargo(true)}
-                onAnular={setAAnular}
-              />
+        <header className={styles.ficha} aria-busy={cargandoCliente}>
+          <div className={styles.quien}>
+            <h1 className={styles.nombre}>{cliente ? nombreCompleto(cliente) : cargandoCliente ? 'Cargando…' : 'Cliente no encontrado'}</h1>
+            {cliente && (
+              <p className={styles.datos}>
+                <ContactoCliente telefono={cliente.numero_telefono} telefonoE164={cliente.telefono_e164} />
+                <span>CI {cliente.ci || '—'}</span>
+                <span>NIT {cliente.nit || '—'}</span>
+              </p>
             )}
           </div>
+
+          <div className={styles.saldo}>
+            {cuenta ? <SaldoCliente saldo={cuenta.saldo} /> : <span className={styles.cargando}>Calculando saldo…</span>}
+          </div>
+
+          <div className={styles.acciones}>
+            <AdminButton size="sm" icon={<Banknote size={15} strokeWidth={2} />} onClick={() => setCobrando(true)} disabled={!cuenta}>
+              Cobrar
+            </AdminButton>
+            <AdminButton size="sm" variant="secondary" icon={<Plus size={15} strokeWidth={2} />} onClick={() => setNuevoCargo(true)}>
+              Nuevo cargo
+            </AdminButton>
+            {cliente && (
+              <AdminButton size="sm" variant="secondary" icon={<Pencil size={15} strokeWidth={2} />} onClick={() => setEditando(true)}>
+                Editar
+              </AdminButton>
+            )}
+          </div>
+        </header>
+
+        <div className={styles.pestanas}>
+          <Tabs tabs={pestanas} active={pestana} onChange={setPestana} ariaLabel="Secciones del cliente" />
         </div>
-      </main>
+
+        {pestana === 'reservas' && (
+          <>
+            <DataTable<ReservaFila>
+              columns={columnasReservas}
+              data={reservas as ReservaFila[]}
+              loading={cargandoReservas}
+              error={errorReservas}
+              onRefresh={cargarReservas}
+              getRowKey={(r) => r.id}
+              defaultSort={{ key: 'fecha', dir: 'desc' }}
+              searchPlaceholder="Buscar en sus reservas…"
+              emptyMessage="Este cliente todavía no tiene reservas"
+            />
+            {totalReservas > reservas.length && (
+              <p className={styles.nota}>Se muestran sus {reservas.length} reservas más recientes de {totalReservas}.</p>
+            )}
+          </>
+        )}
+
+        {pestana === 'cuenta' && (
+          <CuentaClientePanel
+            cuenta={cuenta}
+            loading={cargandoCuenta}
+            verAnulados={verAnulados}
+            onVerAnulados={setVerAnulados}
+            onNuevoCargo={() => setNuevoCargo(true)}
+            onAnular={setAAnular}
+          />
+        )}
+      </div>
 
       {cliente && (
         <ClienteFormModal
@@ -331,6 +280,6 @@ export default function ClienteFichaPage() {
         }}
         onClose={() => setAAnular(null)}
       />
-    </div>
+    </AdminPageShell>
   );
 }

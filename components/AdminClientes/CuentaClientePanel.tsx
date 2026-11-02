@@ -1,7 +1,8 @@
 'use client';
 
-import { Ban, Plus } from 'lucide-react';
-import { AdminButton, DataTable, RowActionsMenu, StatusBadge } from '@/components/AdminConfig';
+import Link from 'next/link';
+import { Ban, Info, Plus } from 'lucide-react';
+import { AdminButton, DataTable, RowActionsMenu, StatusBadge, Tooltip } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import type { AbonoCliente, CargoCliente, CuentaCliente } from '@/lib/api/cuenta';
 import { estadoCargoTexto, tipoCargoTexto, tonoEstadoCargo } from '@/lib/utils/cuenta';
@@ -10,6 +11,36 @@ import { formatMoney } from '@/lib/utils/format';
 import styles from './CuentaClientePanel.module.css';
 
 type CargoRow = CargoCliente & Record<string, unknown>;
+
+const AYUDA_CARGOS = 'Lo que el cliente debe: servicios, paquetes e insumos. Cada cargo queda ligado a su origen (la reserva o el paquete de donde nace) para saber cuándo y por qué se cobró. Se pagan completos y, si hay un error, se anulan con motivo; nunca se editan.';
+const AYUDA_ABONOS = 'Dinero que el cliente entregó. Lo que todavía no cubrió ningún cargo queda como saldo disponible y se usa en el próximo cobro.';
+
+/** De donde nace un cargo: su reserva (con fecha y servicio), su paquete o, si no tiene, un cargo manual. */
+function OrigenCargo({ cargo }: { cargo: CargoCliente }) {
+  if (cargo.reserva_id) {
+    const detalle = [cargo.reserva_fecha ? formatFecha(cargo.reserva_fecha) : null, cargo.reserva_servicio].filter(Boolean).join(' · ');
+    return (
+      <Link className={styles.origen} href={`/atrevida-gestion/reservas/editar/${cargo.reserva_id}`} title="Abrir la reserva">
+        Reserva #{cargo.reserva_id}{detalle && <span className={styles.origenDetalle}>{detalle}</span>}
+      </Link>
+    );
+  }
+  if (cargo.plan_id) {
+    return <span className={styles.origen}>Paquete{cargo.plan_nombre && <span className={styles.origenDetalle}>{cargo.plan_nombre}</span>}</span>;
+  }
+  return <span className={styles.origenManual}>Manual</span>;
+}
+
+function TituloConAyuda({ id, texto, ayuda }: { id: string; texto: string; ayuda: string }) {
+  return (
+    <h3 id={id} className={styles.seccionTitulo}>
+      {texto}
+      <Tooltip title={texto} content={ayuda}>
+        <Info size={14} strokeWidth={1.8} aria-label={`Qué son los ${texto.toLowerCase()}`} />
+      </Tooltip>
+    </h3>
+  );
+}
 type AbonoRow = AbonoCliente & Record<string, unknown>;
 
 interface CuentaClientePanelProps {
@@ -34,6 +65,7 @@ export function CuentaClientePanel({ cuenta, loading, verAnulados, onVerAnulados
         </span>
       ),
     },
+    { key: 'reserva_id', label: 'Origen', searchable: false, render: (_v, row) => <OrigenCargo cargo={row} /> },
     {
       key: 'fecha_hecho',
       label: 'Fecha',
@@ -90,7 +122,7 @@ export function CuentaClientePanel({ cuenta, loading, verAnulados, onVerAnulados
 
       <section className={styles.seccion} aria-labelledby="cuenta-cargos">
         <div className={styles.seccionCabecera}>
-          <h3 id="cuenta-cargos" className={styles.seccionTitulo}>Cargos</h3>
+          <TituloConAyuda id="cuenta-cargos" texto="Cargos" ayuda={AYUDA_CARGOS} />
           <div className={styles.acciones}>
             <label className={styles.mostrarAnulados}>
               <input type="checkbox" checked={verAnulados} onChange={(e) => onVerAnulados(e.target.checked)} />
@@ -112,7 +144,7 @@ export function CuentaClientePanel({ cuenta, loading, verAnulados, onVerAnulados
 
       <section className={styles.seccion} aria-labelledby="cuenta-abonos">
         <div className={styles.seccionCabecera}>
-          <h3 id="cuenta-abonos" className={styles.seccionTitulo}>Abonos</h3>
+          <TituloConAyuda id="cuenta-abonos" texto="Abonos" ayuda={AYUDA_ABONOS} />
         </div>
         <DataTable<AbonoRow>
           columns={abonosColumns}

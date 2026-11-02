@@ -14,7 +14,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
-import { AdminButton, AlertBanner, PageHeader, DataTable, FormModal, CursorPagination, TipoPagoSelector } from '@/components/AdminConfig';
+import { AdminButton, AlertBanner, PageHeader, DataTable, FormModal, CursorPagination, Tabs, TipoPagoSelector } from '@/components/AdminConfig';
 import { CobroReservaLoader } from './CobroReservaLoader';
 import type { ReservaBD } from '@/types/reserva';
 import type { Column } from '@/components/AdminConfig';
@@ -1005,24 +1005,15 @@ export default function CajaPage() {
                   </div>
                 </section>
 
-                <div className={styles.paymentToggle} role="group" aria-label="Modo de cobro">
-                  <button
-                    type="button"
-                    className={modo === 'venta' ? styles.paymentActive : ''}
-                    onClick={() => handleModoChange('venta')}
-                  >
-                    <ReceiptText size={16} strokeWidth={1.8} />
-                    Venta nueva
-                  </button>
-                  <button
-                    type="button"
-                    className={modo === 'cobrarReserva' ? styles.paymentActive : ''}
-                    onClick={() => handleModoChange('cobrarReserva')}
-                  >
-                    <CheckCircle2 size={16} strokeWidth={1.8} />
-                    Cobrar paquete reservado
-                  </button>
-                </div>
+                <Tabs
+                  tabs={[
+                    { key: 'venta', label: 'Venta nueva', icon: <ReceiptText size={16} strokeWidth={1.8} /> },
+                    { key: 'cobrarReserva', label: 'Cobrar paquete reservado', icon: <CheckCircle2 size={16} strokeWidth={1.8} /> },
+                  ]}
+                  active={modo}
+                  onChange={handleModoChange}
+                  ariaLabel="Modo de cobro"
+                />
 
                 <section className={styles.saleShell}>
                   <div className={styles.catalogPanel}>

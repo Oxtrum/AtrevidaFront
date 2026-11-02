@@ -29,7 +29,11 @@ export interface CargoCliente {
   /** Momento real del registro (lo pone el servidor). */
   registrado_en: string;
   reserva_id?: number;
+  /** Fecha y servicio de la reserva de la que nace el cargo: para saber cuando se uso. */
+  reserva_fecha?: string;
+  reserva_servicio?: string;
   plan_id?: number;
+  plan_nombre?: string;
   anulado: boolean;
   motivo_anulacion?: string;
 }

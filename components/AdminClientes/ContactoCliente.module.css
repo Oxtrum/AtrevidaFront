@@ -1,0 +1,64 @@
+.contacto {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  white-space: nowrap;
+}
+
+.telefono {
+  margin-right: 0.25rem;
+  border-radius: var(--admin-radius-sm);
+  color: inherit;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-decoration: none;
+}
+
+.telefono:hover {
+  color: var(--admin-foreground);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.boton {
+  display: grid;
+  width: 1.65rem;
+  height: 1.65rem;
+  place-items: center;
+  border: 0;
+  border-radius: var(--admin-radius-md);
+  background: transparent;
+  color: var(--admin-text-muted);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.boton:hover {
+  background: var(--admin-pill-bg);
+  color: var(--admin-foreground);
+}
+
+.whatsapp,
+.whatsapp:hover {
+  color: #34d399;
+}
+
+.whatsapp:hover {
+  background: rgba(52, 211, 153, 0.12);
+}
+
+:global([data-admin-theme='light']) .whatsapp,
+:global([data-admin-theme='light']) .whatsapp:hover {
+  color: #047857;
+}
+
+.telefono:focus-visible,
+.boton:focus-visible {
+  outline: 2px solid var(--admin-accent-primary);
+  outline-offset: 2px;
+}
+
+.vacio {
+  color: var(--admin-text-dim);
+}

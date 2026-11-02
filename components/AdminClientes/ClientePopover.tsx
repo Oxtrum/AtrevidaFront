@@ -2,15 +2,12 @@
 
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Banknote, Copy, ExternalLink, Link2, TriangleAlert, UserRound } from 'lucide-react';
+import { Banknote, ExternalLink, Link2, TriangleAlert, UserRound } from 'lucide-react';
 import { AdminButton } from '@/components/AdminConfig/AdminButton';
 import { ModalPortal } from '@/components/AdminConfig/ModalPortal';
-import { WhatsappIcon } from '@/components/icons/WhatsappIcon';
-import { toast } from '@/components/Shared/Toast';
 import { getClienteByID } from '@/lib/api/clientes';
-import { formatPhoneForDisplay, resolvePhoneE164 } from '@/lib/utils/phone';
 import { posicionPopover, type PosicionPopover } from '@/lib/utils/posicionPopover';
-import { buildWhatsappUrl } from '@/lib/utils/whatsapp';
+import { ContactoCliente } from './ContactoCliente';
 import { VincularReservaModal } from './VincularReservaModal';
 import styles from './ClientePopover.module.css';
 
@@ -51,8 +48,6 @@ export function ClientePopover({ nombre, telefono, telefonoE164, clienteId, rese
 
   const sinVincular = !clienteId;
   const puedeVincular = sinVincular && reservaId != null;
-  const telefonoMostrado = formatPhoneForDisplay(telefonoE164, telefono);
-  const whatsappHref = buildWhatsappUrl(resolvePhoneE164(telefonoE164, telefono));
 
   const limpiarTimer = () => {
     if (timerRef.current !== null) {
@@ -130,15 +125,6 @@ export function ClientePopover({ nombre, telefono, telefonoE164, clienteId, rese
     };
   }, [abierto, clienteId]);
 
-  const copiarTelefono = async () => {
-    try {
-      await navigator.clipboard.writeText(telefonoMostrado);
-      toast.success('Teléfono copiado');
-    } catch {
-      toast.error('No se pudo copiar el teléfono');
-    }
-  };
-
   const irA = (ruta: string) => {
     cerrar();
     router.push(ruta);
@@ -206,43 +192,16 @@ export function ClientePopover({ nombre, telefono, telefonoE164, clienteId, rese
             onBlur={alSalirDelFoco}
           >
             <header className={styles.cabecera}>
-              <div className={styles.identidad}>
-                <strong className={styles.titulo}>{nombre}</strong>
-                <p className={styles.contacto}>
-                  {telefonoMostrado ? (
-                    <a className={styles.telefono} href={`tel:${telefonoE164 ?? telefono ?? ''}`} title="Llamar">
-                      {telefonoMostrado}
-                    </a>
-                  ) : (
-                    <span>Sin teléfono</span>
-                  )}
-                  {cedula && (
-                    <>
-                      <span className={styles.separador} aria-hidden="true">·</span>
-                      <span>CI {cedula}</span>
-                    </>
-                  )}
-                </p>
-              </div>
-              {telefonoMostrado && (
-                <div className={styles.contactos}>
-                  {whatsappHref && (
-                    <a
-                      className={`${styles.mini} ${styles.miniWhatsapp}`}
-                      href={whatsappHref}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label="Escribir por WhatsApp"
-                      title="WhatsApp"
-                    >
-                      <WhatsappIcon size={17} />
-                    </a>
-                  )}
-                  <button type="button" className={styles.mini} onClick={copiarTelefono} aria-label="Copiar teléfono" title="Copiar teléfono">
-                    <Copy size={15} strokeWidth={1.8} />
-                  </button>
-                </div>
-              )}
+              <strong className={styles.titulo}>{nombre}</strong>
+              <p className={styles.contacto}>
+                <ContactoCliente telefono={telefono} telefonoE164={telefonoE164} />
+                {cedula && (
+                  <>
+                    <span className={styles.separador} aria-hidden="true">·</span>
+                    <span>CI {cedula}</span>
+                  </>
+                )}
+              </p>
             </header>
 
             {sinVincular && (

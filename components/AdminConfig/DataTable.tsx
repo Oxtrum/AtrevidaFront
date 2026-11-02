@@ -191,6 +191,7 @@ export function DataTable<T extends Record<string, unknown>>({
                         className={`${styles.sortButton} ${dir ? styles.sortActive : ''}`}
                         onClick={() => handleSort(col)}
                         disabled={Boolean(loading)}
+                        suppressHydrationWarning
                         title={`Ordenar por ${col.label}`}
                       >
                         <span>{col.label}</span>
