@@ -4,12 +4,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
 import { Pencil, Plus, Search, Trash2, Users, Wallet } from 'lucide-react';
-import { PageHeader, DataTable, FormModal, RowActionsMenu, CursorPagination } from '@/components/AdminConfig';
+import { PageHeader, DataTable, FormModal, RowActionsMenu, CursorPagination, Tabs } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import { toast } from '@/components/Shared/Toast';
 import { getClientesDB, eliminarClienteDB } from '@/lib/api/clientes';
 import type { ClientePG } from '@/lib/api/clientes';
-import { ClienteFormModal } from '@/components/AdminClientes';
+import { ClienteFormModal, DeudoresTable } from '@/components/AdminClientes';
 import styles from './page.module.css';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
 import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
@@ -18,6 +18,13 @@ import type { SortState } from '@/lib/utils/sortRows';
 
 /** Orden que el servidor aplica sin ordenar_por; solo se usa para marcar el header de apellidos. */
 const ORDEN_POR_DEFECTO: SortState = { key: 'apellido', dir: 'asc' };
+
+type Vista = 'todos' | 'deuda';
+
+const VISTAS: { key: Vista; label: string }[] = [
+  { key: 'todos', label: 'Todos' },
+  { key: 'deuda', label: 'Con deuda' },
+];
 
 interface ClienteRow extends Record<string, unknown> {
   id: number;
@@ -38,6 +45,7 @@ export default function ClientesPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
+  const [vista, setVista] = useState<Vista>('todos');
   const [clientes, setClientes] = useState<ClienteRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -104,6 +112,16 @@ export default function ClientesPage() {
     }, containerRef);
     return () => ctx.revert();
   }, []);
+
+  // Cuentas por cobrar redirige aqui con ?vista=deuda.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('vista') === 'deuda') setVista('deuda');
+  }, []);
+
+  const cambiarVista = (siguiente: Vista) => {
+    setVista(siguiente);
+    window.history.replaceState(null, '', siguiente === 'deuda' ? '?vista=deuda' : window.location.pathname);
+  };
 
   const verCliente = (row: ClienteRow) => router.push(`/atrevida-gestion/clientes/${row.id}`);
 
@@ -172,6 +190,13 @@ export default function ClientesPage() {
           }
         />
 
+        <Tabs tabs={VISTAS} active={vista} onChange={cambiarVista} ariaLabel="Vistas de clientes" />
+
+        {vista === 'deuda' ? (
+          <div className={styles.contentStack}>
+            <DeudoresTable />
+          </div>
+        ) : (
         <div ref={contentRef} className={styles.contentStack}>
          
 		  <div className={styles.searchBar}>
@@ -192,6 +217,7 @@ export default function ClientesPage() {
           />
           <CursorPagination page={pagination.page} totalPages={pagination.totalPages} hasNext={pagination.hasNext} loading={loading} onPrevious={pagination.previous} onNext={pagination.next} />
         </div>
+        )}
 
       {/* Modal crear / editar */}
       <ClienteFormModal

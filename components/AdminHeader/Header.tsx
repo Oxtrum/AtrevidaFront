@@ -21,7 +21,6 @@ import {
   Users,
   ArrowLeftRight,
   UsersRound,
-  Wallet,
   X,
 } from 'lucide-react';
 import styles from './Header.module.css';
@@ -93,12 +92,6 @@ const NAV_LINKS = [
     detail: 'Directorio de clientes',
     href: '/atrevida-gestion/clientes',
     icon: Users,
-  },
-  {
-    label: 'Cuentas por cobrar',
-    detail: 'Clientes con deuda',
-    href: '/atrevida-gestion/cuentas',
-    icon: Wallet,
   },
   {
     label: 'Paquetes Activos',

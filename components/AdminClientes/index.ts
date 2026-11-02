@@ -1,6 +1,7 @@
 export { ClienteFormModal, splitNombreCompleto } from './ClienteFormModal';
 export { CuentaClientePanel } from './CuentaClientePanel';
 export { CobroModal } from './CobroModal';
+export { DeudoresTable } from './DeudoresTable';
 export { CargoFormModal } from './CargoFormModal';
 export { SaldoCliente, DeudaCliente } from './SaldoCliente';
 export { ClientePopover } from './ClientePopover';
