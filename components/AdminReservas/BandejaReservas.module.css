@@ -294,55 +294,6 @@
   position: relative;
   z-index: 1;
 }
-.confirmationPrompt {
-  position: fixed;
-  right: max(1rem, env(safe-area-inset-right));
-  bottom: max(1rem, env(safe-area-inset-bottom));
-  z-index: 125;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  align-items: center;
-  gap: 0.8rem;
-  width: min(620px, calc(100vw - var(--admin-sidebar-width) - 2rem));
-  padding: 0.88rem;
-  border: 1px solid rgba(20, 174, 239, 0.24);
-  border-radius: var(--admin-radius-lg);
-  background:
-    linear-gradient(135deg, rgba(20, 174, 239, 0.12), rgba(236, 0, 140, 0.08)),
-    var(--admin-panel-elevated);
-  box-shadow: var(--admin-shadow-lg);
-  backdrop-filter: blur(18px);
-  animation: promptIn 0.28s var(--admin-ease);
-}
-.promptText {
-  display: grid;
-  gap: 0.18rem;
-  min-width: 0;
-}
-.promptText span {
-  color: var(--admin-accent-success);
-  font-size: 0.72rem;
-  font-weight: 950;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-}
-.promptText strong {
-  color: var(--admin-foreground);
-  font-size: 0.88rem;
-  line-height: 1.35;
-}
-
-@keyframes promptIn {
-  from {
-    opacity: 0;
-    transform: translateY(14px) scale(0.985);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
 .reasonOption {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
@@ -432,11 +383,6 @@
     justify-content: flex-start;
     flex-wrap: wrap;
   }
-.confirmationPrompt {
-    right: 1rem;
-    left: 1rem;
-    width: auto;
-  }
 .pendingCard {
     grid-template-columns: 1fr;
   }
@@ -459,9 +405,6 @@
   }
 .pendingGrid {
     grid-template-columns: 1fr;
-  }
-.confirmationPrompt {
-    grid-template-columns: 1fr auto;
   }
 }
 

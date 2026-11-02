@@ -109,6 +109,24 @@
   font-weight: 400;
 }
 
+.action {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 0.7rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #EC008C, #14AEEF);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.action:hover {
+  filter: brightness(1.1);
+}
+
 .closeBtn {
   background: transparent;
   border: none;

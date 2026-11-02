@@ -32,7 +32,7 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
     dia,
     horaDesde, horaHasta,
     cliente, setCliente,
-    clienteId, setClienteId,
+    setClienteId,
     numeroTelefono, setNumeroTelefono,
     telefonoE164, setTelefonoE164,
     notas, setNotas,
@@ -196,7 +196,6 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
                   // Escribir de nuevo suelta al cliente elegido: hay que volver a elegir uno de la lista.
                   setClienteId(null);
                 }}
-                selectedId={clienteId}
                 onSelect={handleClienteElegido}
                 initialTelefono={numeroTelefono}
                 error={errors.cliente}

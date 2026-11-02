@@ -305,7 +305,6 @@ export function AprobarReservaModal({ reserva, locales, localBloqueado, onClose,
             id="aprobar-cliente"
             value={borrador.clienteTexto}
             onValueChange={(texto) => cambiar({ clienteTexto: texto, clienteElegido: null, actualizarTelefono: false })}
-            selectedId={borrador.clienteElegido?.id ?? null}
             onSelect={(cliente) => cambiar({ clienteElegido: cliente, clienteTexto: nombreCompleto(cliente), actualizarTelefono: false })}
             initialNombre={reserva.cliente}
             initialTelefono={borrador.telefono}

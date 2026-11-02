@@ -201,7 +201,6 @@ export function BandejaReservas() {
   const [completionDraft, setCompletionDraft] = useState<CompletionDraft | null>(null);
   const [completionError, setCompletionError] = useState<string | null>(null);
   const [deleteReserva, setDeleteReserva] = useState<ReservaBD | null>(null);
-  const [notificationReserva, setNotificationReserva] = useState<ReservaBD | null>(null);
   const [estadoFiltro, setEstadoFiltro] = useState<EstadoFiltro>('TODOS');
   const [searchQuery, setSearchQuery] = useState('');
 	const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
@@ -305,7 +304,6 @@ export function BandejaReservas() {
     setReservas((current) =>
       current.map((item) => item.id === reservaId ? { ...item, notificado: true } : item),
     );
-    setNotificationReserva((current) => current?.id === reservaId ? { ...current, notificado: true } : current);
 
     try {
       await actualizarReservaNotificadoDB({ id: reservaId, notificado: true });
@@ -313,7 +311,6 @@ export function BandejaReservas() {
       setReservas((current) =>
         current.map((item) => item.id === reservaId ? { ...item, notificado: false } : item),
       );
-      setNotificationReserva((current) => current?.id === reservaId ? { ...current, notificado: false } : current);
       toast.error(updateError instanceof Error ? updateError.message : 'No se pudo marcar la reserva como notificada.');
     }
   }, []);
@@ -371,8 +368,15 @@ export function BandejaReservas() {
   const handleAprobada = (updatedReserva: ReservaBD) => {
     setReservas((current) => current.map((item) => item.id === updatedReserva.id ? updatedReserva : item));
     setApprovalReserva(null);
-    setNotificationReserva(updatedReserva);
-    toast.success(`Reserva #${updatedReserva.id} agendada correctamente.`);
+    const whatsappHref = getConfirmationWhatsappHref(updatedReserva);
+    if (whatsappHref) {
+      toast.successWithAction('Envía la confirmación por WhatsApp al cliente.', {
+        title: `Reserva #${updatedReserva.id} agendada`,
+        action: { label: 'Enviar WhatsApp', href: whatsappHref, onClick: () => { void markConfirmationSent(updatedReserva.id); } },
+      });
+    } else {
+      toast.success(`Reserva #${updatedReserva.id} agendada. No tiene teléfono para avisarle.`);
+    }
     pagination.resetAfterMutation();
   };
 
@@ -409,7 +413,6 @@ export function BandejaReservas() {
     try {
       await eliminarReservaDB(reservaId);
       setReservas((current) => current.filter((item) => item.id !== reservaId));
-      setNotificationReserva((current) => current?.id === reservaId ? null : current);
       setDeleteReserva(null);
       toast.success(`Reserva #${reservaId} eliminada.`);
       pagination.resetAfterMutation();
@@ -449,7 +452,6 @@ export function BandejaReservas() {
           estado: 'COMPLETADO',
         } : item),
       );
-      setNotificationReserva((current) => current?.id === reservaId ? null : current);
       setCompletionDraft(null);
       toast.success(`Reserva #${reservaId} marcada como completada.`);
       // Si la paga un paquete no hay nada que cobrar; si no, se sugiere cobrarla (sin obligar).
@@ -818,31 +820,6 @@ export function BandejaReservas() {
         onConfirm={deleteReservaFromModal}
         onClose={closeDeleteModal}
       />
-
-      {notificationReserva && (
-        <div className={styles.confirmationPrompt} role="status" aria-live="polite">
-          <div className={styles.promptText}>
-            <span>Reserva agendada</span>
-            <strong>Envía la confirmación por WhatsApp al cliente.</strong>
-          </div>
-          <AdminButton
-            icon={<WhatsappIcon size={16} />}
-            href={getConfirmationWhatsappHref(notificationReserva) ?? undefined}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => { void markConfirmationSent(notificationReserva.id); }}
-            disabled={!getConfirmationWhatsappHref(notificationReserva)}
-          >
-            {getConfirmationWhatsappHref(notificationReserva) ? 'Enviar WhatsApp' : 'Sin teléfono'}
-          </AdminButton>
-          <AdminButton
-            variant="secondary"
-            icon={<XCircle size={18} strokeWidth={1.8} />}
-            onClick={() => setNotificationReserva(null)}
-            aria-label="Ocultar aviso de confirmación"
-          />
-        </div>
-      )}
     </div>
   );
 }

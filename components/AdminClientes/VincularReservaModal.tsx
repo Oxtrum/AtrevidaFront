@@ -101,7 +101,6 @@ export function VincularReservaModal({
             setElegido(null);
             setActualizarTelefono(false);
           }}
-          selectedId={elegido?.id ?? null}
           onSelect={(cliente) => {
             setElegido(cliente);
             setTexto(nombreCompleto(cliente));

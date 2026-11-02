@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Check, UserPlus } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 import { getClientesDB, type ClientePG } from '@/lib/api/clientes';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
 import { ClienteFormModal } from './ClienteFormModal';
@@ -26,8 +26,6 @@ interface ClienteSelectProps {
   value: string;
   /** Se escribió en el campo: quien lo usa suelta al cliente elegido, hay que volver a elegir uno de la lista. */
   onValueChange: (texto: string) => void;
-  /** Cliente elegido; con uno elegido se muestra "Cliente registrado". */
-  selectedId: number | null;
   /** Se eligió un cliente de la lista o se creó uno nuevo. */
   onSelect: (cliente: ClientePG) => void;
   /** Para precargar el alta de un cliente nuevo; el nombre solo se usa si el campo esta vacio. */
@@ -49,7 +47,6 @@ export function ClienteSelect({
   label = 'Cliente',
   value,
   onValueChange,
-  selectedId,
   onSelect,
   initialNombre,
   initialTelefono,
@@ -201,12 +198,6 @@ export function ClienteSelect({
         </div>
       )}
 
-      {selectedId != null && (
-        <span className={styles.vinculado}>
-          <Check size={13} strokeWidth={2.4} />
-          Cliente registrado
-        </span>
-      )}
       {error && <span className={styles.error}>{error}</span>}
 
       <ClienteFormModal
