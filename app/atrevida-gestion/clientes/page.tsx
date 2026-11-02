@@ -99,8 +99,8 @@ export default function ClientesPage() {
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
     if (!token) { router.push('/atrevida-gestion/login'); return; }
-    fetchData();
-  }, [router, fetchData]);
+    if (vista === 'todos') fetchData();
+  }, [router, fetchData, vista]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -192,17 +192,15 @@ export default function ClientesPage() {
 
         <Tabs tabs={VISTAS} active={vista} onChange={cambiarVista} ariaLabel="Vistas de clientes" />
 
-        {vista === 'deuda' ? (
-          <div className={styles.contentStack}>
-            <DeudoresTable />
-          </div>
-        ) : (
         <div ref={contentRef} className={styles.contentStack}>
-         
 		  <div className={styles.searchBar}>
 			<Search size={16} className={styles.searchIcon} />
 			<input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar por nombre, apellido o telefono..." aria-label="Buscar clientes" />
 		  </div>
+          {vista === 'deuda' ? (
+            <DeudoresTable busqueda={debouncedSearch} />
+          ) : (
+          <>
           <DataTable<ClienteRow> sort={serverSort.sort} onSortChange={serverSort.onSortChange}
             columns={columns}
             data={clientes}
@@ -216,8 +214,9 @@ export default function ClientesPage() {
             emptyMessage="No se encontraron clientes"
           />
           <CursorPagination page={pagination.page} totalPages={pagination.totalPages} hasNext={pagination.hasNext} loading={loading} onPrevious={pagination.previous} onNext={pagination.next} />
+          </>
+          )}
         </div>
-        )}
 
       {/* Modal crear / editar */}
       <ClienteFormModal

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Banknote } from 'lucide-react';
-import { AdminButton, CursorPagination, DataTable, FilterBar } from '@/components/AdminConfig';
+import { AdminButton, CursorPagination, DataTable } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import { toast } from '@/components/Shared/Toast';
 import { getCuentaCliente, getDeudores } from '@/lib/api/cuenta';
@@ -27,14 +27,17 @@ interface CobroAbierto {
   cuenta: CuentaCliente;
 }
 
+interface DeudoresTableProps {
+  /** Texto de busqueda ya con debounce; lo pone la pagina para compartir un solo buscador con la otra vista. */
+  busqueda: string;
+}
+
 /** Clientes con deuda, de mayor a menor. Cobrar abre el cobro en la misma fila; la fila abre la ficha. */
-export function DeudoresTable() {
+export function DeudoresTable({ busqueda }: DeudoresTableProps) {
   const router = useRouter();
-  const [busqueda, setBusqueda] = useState('');
-  const [busquedaDebounced, setBusquedaDebounced] = useState('');
   const serverSort = useServerSort(ORDEN_POR_DEFECTO);
   const { params: sortParams } = serverSort;
-  const pagination = useCursorPagination(`${busquedaDebounced}|${serverSort.key}`);
+  const pagination = useCursorPagination(`${busqueda}|${serverSort.key}`);
   const { cursor, requestRevision, shouldIncludeTotal, setMetadata } = pagination;
 
   const [deudores, setDeudores] = useState<DeudorCliente[]>([]);
@@ -44,11 +47,6 @@ export function DeudoresTable() {
   const [abriendoId, setAbriendoId] = useState<number | null>(null);
   const requestRef = useRef(0);
   const controllerRef = useRef<AbortController | null>(null);
-
-  useEffect(() => {
-    const t = window.setTimeout(() => setBusquedaDebounced(busqueda.trim()), 350);
-    return () => window.clearTimeout(t);
-  }, [busqueda]);
 
   const cargar = useCallback(async () => {
     void requestRevision;
@@ -60,7 +58,7 @@ export function DeudoresTable() {
     setError(null);
     try {
       const res = await getDeudores(
-        { busqueda: busquedaDebounced || undefined, limit: PAGE_LIMIT, cursor, include_total: shouldIncludeTotal(), ...sortParams },
+        { busqueda: busqueda || undefined, limit: PAGE_LIMIT, cursor, include_total: shouldIncludeTotal(), ...sortParams },
         controller.signal,
       );
       if (id !== requestRef.current) return;
@@ -72,7 +70,7 @@ export function DeudoresTable() {
     } finally {
       if (id === requestRef.current) setLoading(false);
     }
-  }, [busquedaDebounced, sortParams, cursor, requestRevision, shouldIncludeTotal, setMetadata]);
+  }, [busqueda, sortParams, cursor, requestRevision, shouldIncludeTotal, setMetadata]);
 
   useEffect(() => {
     void cargar();
@@ -132,12 +130,6 @@ export function DeudoresTable() {
 
   return (
     <>
-      <FilterBar>
-        <FilterBar.Item label="Buscar" grow>
-          <input type="text" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Nombre, apellido o teléfono…" />
-        </FilterBar.Item>
-      </FilterBar>
-
       <DataTable<Row>
         columns={columns}
         data={deudores as Row[]}
