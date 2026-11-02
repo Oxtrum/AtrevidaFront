@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
-import { Pencil, Plus, Search, Trash2, Users, Wallet } from 'lucide-react';
-import { PageHeader, DataTable, FormModal, RowActionsMenu, CursorPagination, Tabs } from '@/components/AdminConfig';
+import { Pencil, Plus, Trash2, Users, Wallet } from 'lucide-react';
+import { PageHeader, DataTable, FormModal, RowActionsMenu, CursorPagination, FilterBar, Tabs } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import { toast } from '@/components/Shared/Toast';
 import { getClientesDB, eliminarClienteDB } from '@/lib/api/clientes';
@@ -193,10 +193,11 @@ export default function ClientesPage() {
         <Tabs tabs={VISTAS} active={vista} onChange={cambiarVista} ariaLabel="Vistas de clientes" />
 
         <div ref={contentRef} className={styles.contentStack}>
-		  <div className={styles.searchBar}>
-			<Search size={16} className={styles.searchIcon} />
-			<input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar por nombre, apellido o telefono..." aria-label="Buscar clientes" />
-		  </div>
+          <FilterBar>
+            <FilterBar.Item label="Buscar" grow>
+              <input type="text" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Nombre, apellido o teléfono…" aria-label="Buscar clientes" />
+            </FilterBar.Item>
+          </FilterBar>
           {vista === 'deuda' ? (
             <DeudoresTable busqueda={debouncedSearch} />
           ) : (
