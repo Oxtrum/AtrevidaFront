@@ -277,10 +277,6 @@ export default function PaquetesActivosPage() {
           <div ref={contentRef} className={styles.contentStack}>
             <div className={styles.filterCard}>
               <div className={styles.filterCardInner}>
-                <div className={styles.filterSectionLabel}>
-                  <Filter size={12} />
-                  Filtros
-                </div>
                 <div className={styles.filterBar}>
                   <div className={styles.filterGroup}>
                     <label htmlFor="buscar-plan" className={styles.filterLabel}>Buscar</label>

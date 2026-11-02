@@ -249,10 +249,7 @@ export default function PaquetesPage() {
 
             <div className={styles.filterCard}>
               <div className={styles.filterCardInner}>
-                <div className={styles.filterSectionLabel}>
-                  <Filter size={12} />
-                  Filtros de búsqueda
-                </div>
+               
                 <div className={styles.filterBar}>
                   <div className={styles.filterGroup}>
                     <label id="lbl-filtro-local" htmlFor="filtro-local" className={styles.filterLabel}>Local</label>

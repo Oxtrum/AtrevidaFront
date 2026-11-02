@@ -123,7 +123,7 @@ export function CatalogManager({ noun, rows, loading, error, onReload, onSave, w
 
   return (
     <>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end'}}>
         <AdminButton variant="primary" onClick={() => openForm(null)}>
           <Plus size={18} strokeWidth={2} />
           Nueva {noun}

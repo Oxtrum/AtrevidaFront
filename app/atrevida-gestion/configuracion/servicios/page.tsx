@@ -637,27 +637,7 @@ export default function ServiciosPage() {
           {/* ── Filter card ── */}
           <div className={styles.filterCard}>
             <div className={styles.filterCardInner}>
-              <div className={styles.filterSectionLabel}>
-                <Filter size={12} />
-                Filtros de búsqueda
-                {activeSecondaryFilters > 0 && (
-                  <span className={styles.filterActiveChip}>
-                    {activeSecondaryFilters} activo{activeSecondaryFilters !== 1 ? 's' : ''}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFiltroNombre('');
-                        setFiltroSesiones('');
-                        setFiltroEvaluacion('all');
-                        setFiltroEstado('activos');
-                      }}
-                      aria-label="Limpiar filtros secundarios"
-                    >
-                      <X size={9} strokeWidth={2.5} />
-                    </button>
-                  </span>
-                )}
-              </div>
+        
 
               <div className={styles.filterBar}>
                 {/* Local — por defecto, todos */}
