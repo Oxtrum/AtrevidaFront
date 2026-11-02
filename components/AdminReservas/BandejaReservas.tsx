@@ -17,7 +17,7 @@ import {
 import { AprobacionReservasTable } from '@/components/AdminReservas';
 import { WhatsappIcon } from '@/components/icons/WhatsappIcon';
 import { toast } from '@/components/Shared/Toast';
-import { AdminButton, AdminPanel, ConfirmDialog, CursorPagination, FechaFiltro, FilterBar, FormField, FormGrid, FormModal, FormSubmitError, ReasonDialog, RowActionsMenu } from '@/components/AdminConfig';
+import { AdminButton, AdminPanel, ConfirmDialog, CursorPagination, FilterBar, FormField, FormGrid, FormModal, FormSubmitError, RangoFechasFiltro, ReasonDialog, RowActionsMenu } from '@/components/AdminConfig';
 import { CATEGORIAS_ORDEN } from '@/components/AdminReservationForm/constants';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { actualizarEstadoReservaDB, actualizarReservaDB, actualizarReservaNotificadoDB, eliminarReservaDB, getReservasDB } from '@/lib/api/reservas';
@@ -37,7 +37,8 @@ import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
 
 type EstadoGestion = Extract<EstadoReserva, 'PENDIENTE' | 'AGENDADO' | 'RECHAZADO'>;
 type EstadoNormalizado = EstadoGestion | 'COMPLETADO';
-type Cuando = 'PROXIMAS' | 'PASADAS' | 'TODAS';
+type Cuando = 'PROXIMAS' | 'PASADAS' | 'TODAS' | 'RANGO';
+type Atajo = Exclude<Cuando, 'RANGO'>;
 type EstadoFiltro = EstadoGestion | 'TODOS' | 'COMPLETADO' | 'POR_COBRAR';
 type ApprovalDraft = {
   fecha: string;
@@ -63,7 +64,7 @@ const ESTADO_OPTIONS: Array<{ value: EstadoFiltro; label: string }> = [
   { value: 'POR_COBRAR', label: 'Por cobrar' },
   { value: 'RECHAZADO', label: 'Rechazadas' },
 ];
-const CUANDO_OPTIONS: Array<{ value: Cuando; label: string }> = [
+const CUANDO_ATAJOS: Array<{ value: Atajo; label: string }> = [
   { value: 'PROXIMAS', label: 'Próximas' },
   { value: 'PASADAS', label: 'Pasadas' },
   { value: 'TODAS', label: 'Todas' },
@@ -225,15 +226,16 @@ export function BandejaReservas() {
 	const [localesDisponibles, setLocalesDisponibles] = useState<LocalRow[]>([]);
   const [localFiltro, setLocalFiltro] = useState(ALL_LOCALS_FILTER);
   const [tipoFiltro, setTipoFiltro] = useState('TODOS');
-  const [fechaFiltro, setFechaFiltro] = useState('');
   const [cuando, setCuando] = useState<Cuando>('PROXIMAS');
+  const [rangoDesde, setRangoDesde] = useState('');
+  const [rangoHasta, setRangoHasta] = useState('');
   const adminLocalScope = useAdminLocalScopeState();
   const scopedLocalName = adminLocalScope.workplace?.nombre_local ?? '';
   const effectiveLocalFiltro = scopedLocalName || (adminLocalScope.ready ? localFiltro : LOCAL_SCOPE_PENDING);
 	const vigenteFecha = useMemo(() => getDateISOWithOffset(0), []);
 	const vigenteHora = useMemo(() => getCurrentTimeHHMM(), []);
 	const aplicaVigenciaPendientes = estadoFiltro === 'PENDIENTE' || estadoFiltro === 'TODOS';
-	const pagination = useCursorPagination(`${effectiveLocalFiltro}|${estadoFiltro}|${tipoFiltro}|${fechaFiltro}|${cuando}|${debouncedSearchQuery}|${aplicaVigenciaPendientes ? `${vigenteFecha}|${vigenteHora}` : ''}`);
+	const pagination = useCursorPagination(`${effectiveLocalFiltro}|${estadoFiltro}|${tipoFiltro}|${cuando}|${rangoDesde}|${rangoHasta}|${debouncedSearchQuery}|${aplicaVigenciaPendientes ? `${vigenteFecha}|${vigenteHora}` : ''}`);
 	const { cursor: paginationCursor, requestRevision, shouldIncludeTotal, setMetadata: setPaginationMetadata } = pagination;
   const paginationRequestRef = useRef(0);
   const paginationControllerRef = useRef<AbortController | null>(null);
@@ -278,15 +280,13 @@ export function BandejaReservas() {
 
     try {
       const response = await getReservasDB({
-        // Un dia concreto manda sobre Proximas/Pasadas.
-        fecha_desde: !fechaFiltro && cuando === 'PROXIMAS' ? vigenteFecha : undefined,
-        fecha_hasta: !fechaFiltro && cuando === 'PASADAS' ? getDateISOWithOffset(-1) : undefined,
+        fecha_desde: cuando === 'PROXIMAS' ? vigenteFecha : cuando === 'RANGO' ? rangoDesde : undefined,
+        fecha_hasta: cuando === 'PASADAS' ? getDateISOWithOffset(-1) : cuando === 'RANGO' ? rangoHasta : undefined,
         ordenar_por: 'fecha',
         sentido: cuando === 'PASADAS' ? 'desc' : 'asc',
 		local: effectiveLocalFiltro !== ALL_LOCALS_FILTER && effectiveLocalFiltro !== LOCAL_SCOPE_PENDING ? effectiveLocalFiltro : undefined,
 		estado: estadoFiltro === 'POR_COBRAR' ? 'COMPLETADO' : estadoFiltro !== 'TODOS' ? estadoFiltro : undefined,
 		estado_cobro: estadoFiltro === 'POR_COBRAR' ? 'POR_COBRAR' : undefined,
-		fecha: fechaFiltro || undefined,
 		tipo: tipoFiltro !== 'TODOS' ? tipoFiltro.toLowerCase() as 'mesa' | 'bicicleta' : undefined,
 		busqueda: debouncedSearchQuery || undefined,
 		vigente_fecha: aplicaVigenciaPendientes ? vigenteFecha : undefined,
@@ -312,7 +312,7 @@ export function BandejaReservas() {
 		setIsFetching(false);
 	  }
     }
-  }, [adminLocalScope.ready, aplicaVigenciaPendientes, debouncedSearchQuery, effectiveLocalFiltro, estadoFiltro, fechaFiltro, cuando, tipoFiltro, vigenteFecha, vigenteHora, paginationCursor, requestRevision, shouldIncludeTotal, setPaginationMetadata]);
+  }, [adminLocalScope.ready, aplicaVigenciaPendientes, debouncedSearchQuery, effectiveLocalFiltro, estadoFiltro, cuando, rangoDesde, rangoHasta, tipoFiltro, vigenteFecha, vigenteHora, paginationCursor, requestRevision, shouldIncludeTotal, setPaginationMetadata]);
 
 	useEffect(() => () => {
 		paginationRequestRef.current += 1;
@@ -682,7 +682,7 @@ export function BandejaReservas() {
     });
 
     return () => window.cancelAnimationFrame(raf);
-  }, [effectiveLocalFiltro, estadoFiltro, fechaFiltro, reservas.length, reservasVisibles.length, searchQuery, tipoFiltro]);
+  }, [effectiveLocalFiltro, estadoFiltro, cuando, rangoDesde, rangoHasta, reservas.length, reservasVisibles.length, searchQuery, tipoFiltro]);
 
   useEffect(() => {
     if (!approvalReserva) return undefined;
@@ -811,17 +811,19 @@ export function BandejaReservas() {
                 searchable={false}
               />
             </FilterBar.Item>
-            <FilterBar.Item label="Cuándo">
-              <CustomSelect
-                value={cuando}
-                onChange={(value) => preserveScrollPosition(() => setCuando(value as Cuando))}
-                options={CUANDO_OPTIONS}
-                searchable={false}
-                disabled={Boolean(fechaFiltro)}
+            <FilterBar.Item label="Fechas">
+              <RangoFechasFiltro
+                atajos={CUANDO_ATAJOS}
+                valor={cuando}
+                onAtajo={(valor) => preserveScrollPosition(() => setCuando(valor))}
+                desde={rangoDesde}
+                hasta={rangoHasta}
+                onRango={(desde, hasta) => preserveScrollPosition(() => {
+                  setRangoDesde(desde);
+                  setRangoHasta(hasta);
+                  setCuando('RANGO');
+                })}
               />
-            </FilterBar.Item>
-            <FilterBar.Item label="Un día">
-              <FechaFiltro value={fechaFiltro} onChange={(valor) => preserveScrollPosition(() => setFechaFiltro(valor))} />
             </FilterBar.Item>
           </FilterBar>
 
@@ -854,8 +856,8 @@ export function BandejaReservas() {
                 <div className={styles.emptyState}>
                   <CalendarCheck size={32} strokeWidth={1.5} />
                   <strong>No hay reservas con estos filtros</strong>
-                  <span>{cuando === 'PROXIMAS' && !fechaFiltro ? 'Solo se muestran las próximas. Para buscar una reserva pasada, elige Pasadas o Todas en Cuándo.' : 'Cambia la búsqueda o los filtros.'}</span>
-                  {cuando === 'PROXIMAS' && !fechaFiltro && (
+                  <span>{cuando === 'PROXIMAS' ? 'Solo se muestran las próximas. Para buscar una reserva pasada, elige Pasadas o Todas en Fechas.' : 'Cambia la búsqueda o los filtros.'}</span>
+                  {cuando === 'PROXIMAS' && (
                     <AdminButton variant="secondary" size="sm" onClick={() => setCuando('TODAS')}>Ver todas las fechas</AdminButton>
                   )}
                 </div>

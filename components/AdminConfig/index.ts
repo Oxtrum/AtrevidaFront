@@ -33,4 +33,4 @@ export type { ChoiceOption } from './ChoiceChips';
 export { VisibilityToggle } from './VisibilityToggle';
 export { FechaHechoField } from './FechaHechoField';
 export { TipoPagoSelector } from './TipoPagoSelector';
-export { FechaFiltro } from './FechaFiltro';
+export { RangoFechasFiltro } from './RangoFechasFiltro';

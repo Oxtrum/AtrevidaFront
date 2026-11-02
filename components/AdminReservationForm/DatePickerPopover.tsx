@@ -21,6 +21,14 @@ interface DatePickerPopoverProps {
   triggerLabel?: React.ReactNode;
   /** Clase del contenedor, para que el disparador ocupe todo el ancho de su campo. */
   wrapClassName?: string;
+  /**
+   * Modo rango: el primer toque fija el inicio y el segundo el fin (en cualquier orden). Con `onSelectRange` el
+   * calendario marca el tramo elegido y `onSelect` no se usa.
+   */
+  rango?: { desde: string; hasta: string };
+  onSelectRange?: (desde: string, hasta: string) => void;
+  /** Contenido sobre el calendario (por ejemplo atajos); recibe la funcion para cerrar el popover. */
+  encabezado?: (cerrar: () => void) => React.ReactNode;
 }
 
 const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
@@ -32,10 +40,15 @@ const toISO = (d: Date) => d.toLocaleDateString('en-CA');
 export function DatePickerPopover({
   value, min, max, onSelect,
   triggerClassName, iconSize = 18, align = 'right', triggerLabel, wrapClassName,
+  rango, onSelectRange, encabezado,
 }: DatePickerPopoverProps) {
   const [open, setOpen] = useState(false);
+  // Inicio del rango ya tocado, a la espera del fin.
+  const [inicio, setInicio] = useState<string | null>(null);
+  const enRango = Boolean(onSelectRange);
+  const referencia = enRango ? rango?.desde ?? '' : value;
   const [mes, setMes] = useState(() => {
-    const base = value ? new Date(`${value}T00:00:00`) : new Date();
+    const base = referencia ? new Date(`${referencia}T00:00:00`) : new Date();
     return new Date(base.getFullYear(), base.getMonth(), 1);
   });
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -57,10 +70,11 @@ export function DatePickerPopover({
   }, [open]);
 
   const toggle = () => {
-    if (!open && value) {
-      const base = new Date(`${value}T00:00:00`);
+    if (!open && referencia) {
+      const base = new Date(`${referencia}T00:00:00`);
       setMes(new Date(base.getFullYear(), base.getMonth(), 1));
     }
+    setInicio(null);
     setOpen(o => !o);
   };
 
@@ -85,6 +99,26 @@ export function DatePickerPopover({
   const puedeRetroceder = toISO(new Date(mes.getFullYear(), mes.getMonth(), 0)) >= min;
   const puedeAvanzar = toISO(new Date(mes.getFullYear(), mes.getMonth() + 1, 1)) <= max;
   const hoy = toISO(new Date());
+  const cerrar = () => { setOpen(false); setInicio(null); };
+
+  // Tramo que se pinta: el ya elegido, o el inicio tocado hasta que se toque el fin.
+  const tramoDesde = enRango ? (inicio ?? rango?.desde ?? '') : '';
+  const tramoHasta = enRango ? (inicio ? inicio : rango?.hasta ?? '') : '';
+
+  const elegir = (iso: string) => {
+    if (!enRango) {
+      onSelect(iso);
+      setOpen(false);
+      return;
+    }
+    if (inicio === null) {
+      setInicio(iso);
+      return;
+    }
+    const [a, b] = inicio <= iso ? [inicio, iso] : [iso, inicio];
+    onSelectRange?.(a, b);
+    cerrar();
+  };
 
   return (
     <div className={[styles.datePickerWrap, wrapClassName].filter(Boolean).join(' ')} ref={wrapRef}>
@@ -103,6 +137,7 @@ export function DatePickerPopover({
 
       {open && (
         <div className={`${styles.calendarPopover} ${align === 'left' ? styles.calendarPopoverLeft : ''}`} role="dialog" aria-label="Calendario">
+          {encabezado?.(cerrar)}
           <div className={styles.calendarHeader}>
             <button
               type="button"
@@ -138,12 +173,13 @@ export function DatePickerPopover({
                   type="button"
                   className={[
                     styles.calendarDay,
-                    c.iso === value ? styles.calendarDayActive : '',
+                    (enRango ? c.iso === tramoDesde || c.iso === tramoHasta : c.iso === value) ? styles.calendarDayActive : '',
+                    enRango && c.iso > tramoDesde && c.iso < tramoHasta ? styles.calendarDayRango : '',
                     c.iso === hoy ? styles.calendarDayToday : '',
                   ].filter(Boolean).join(' ')}
                   disabled={c.deshabilitado}
-                  aria-pressed={c.iso === value}
-                  onClick={() => { onSelect(c.iso); setOpen(false); }}
+                  aria-pressed={enRango ? c.iso === tramoDesde || c.iso === tramoHasta : c.iso === value}
+                  onClick={() => elegir(c.iso)}
                 >
                   {c.dia}
                 </button>
