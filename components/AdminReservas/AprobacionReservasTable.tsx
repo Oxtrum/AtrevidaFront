@@ -47,8 +47,8 @@ export function AprobacionReservasTable({ reservas, showLocal, renderActions, on
       label: 'Cita',
       render: (_v, r) => (
         <div className={styles.stack}>
-          <strong className={styles.primary}>{formatDiaCorto(r.fecha)}</strong>
-          <span className={styles.secondary}>{r.hora_desde} – {r.hora_hasta}</span>
+          <strong className={styles.dia}>{formatDiaCorto(r.fecha)}</strong>
+          <span className={styles.hora}>{r.hora_desde} – {r.hora_hasta}</span>
         </div>
       ),
     },
@@ -56,20 +56,14 @@ export function AprobacionReservasTable({ reservas, showLocal, renderActions, on
       key: 'cliente',
       label: 'Cliente',
       render: (_v, r) => (
-        <div className={styles.stack}>
-          <span className={styles.primary}>
-            <ClientePopover
-              nombre={r.cliente || 'Cliente sin nombre'}
-              telefono={r.numero_telefono}
-              telefonoE164={r.telefono_e164}
-              clienteId={r.cliente_id}
-              reservaId={r.id}
-              onVinculado={onVinculado}
-            />{' '}
-            <span className={styles.id}>#{r.id}</span>
-          </span>
-          <span className={styles.secondary}>{r.numero_telefono || 'Sin teléfono'}</span>
-        </div>
+        <ClientePopover
+          nombre={r.cliente || 'Cliente sin nombre'}
+          telefono={r.numero_telefono}
+          telefonoE164={r.telefono_e164}
+          clienteId={r.cliente_id}
+          reservaId={r.id}
+          onVinculado={onVinculado}
+        />
       ),
     },
     {

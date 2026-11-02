@@ -196,3 +196,8 @@
   min-height: 36px;
   padding: 0.4rem 0.75rem;
 }
+
+.customSelectDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

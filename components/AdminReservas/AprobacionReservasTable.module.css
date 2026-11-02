@@ -18,10 +18,20 @@
   font-variant-numeric: tabular-nums;
 }
 
-.id {
-  font-size: 0.7rem;
+/* Fecha y hora de la cita: lo primero que se busca en la lista, asi que van grandes y con el color del texto. */
+.dia {
+  font-size: 0.95rem;
   font-weight: 700;
-  color: var(--admin-text-dim);
+  color: var(--admin-foreground);
+  font-variant-numeric: tabular-nums;
+  text-transform: capitalize;
+}
+
+.hora {
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--admin-foreground);
+  font-variant-numeric: tabular-nums;
 }
 
 .note {

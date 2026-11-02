@@ -17,7 +17,7 @@ import {
 import { AprobacionReservasTable } from '@/components/AdminReservas';
 import { WhatsappIcon } from '@/components/icons/WhatsappIcon';
 import { toast } from '@/components/Shared/Toast';
-import { AdminButton, AdminPanel, ConfirmDialog, CursorPagination, FilterBar, FormField, FormGrid, FormModal, FormSubmitError, ReasonDialog, RowActionsMenu } from '@/components/AdminConfig';
+import { AdminButton, AdminPanel, ConfirmDialog, CursorPagination, FechaFiltro, FilterBar, FormField, FormGrid, FormModal, FormSubmitError, ReasonDialog, RowActionsMenu } from '@/components/AdminConfig';
 import { CATEGORIAS_ORDEN } from '@/components/AdminReservationForm/constants';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { actualizarEstadoReservaDB, actualizarReservaDB, actualizarReservaNotificadoDB, eliminarReservaDB, getReservasDB } from '@/lib/api/reservas';
@@ -37,6 +37,7 @@ import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
 
 type EstadoGestion = Extract<EstadoReserva, 'PENDIENTE' | 'AGENDADO' | 'RECHAZADO'>;
 type EstadoNormalizado = EstadoGestion | 'COMPLETADO';
+type Cuando = 'PROXIMAS' | 'PASADAS' | 'TODAS';
 type EstadoFiltro = EstadoGestion | 'TODOS' | 'COMPLETADO' | 'POR_COBRAR';
 type ApprovalDraft = {
   fecha: string;
@@ -61,6 +62,11 @@ const ESTADO_OPTIONS: Array<{ value: EstadoFiltro; label: string }> = [
   { value: 'COMPLETADO', label: 'Completadas' },
   { value: 'POR_COBRAR', label: 'Por cobrar' },
   { value: 'RECHAZADO', label: 'Rechazadas' },
+];
+const CUANDO_OPTIONS: Array<{ value: Cuando; label: string }> = [
+  { value: 'PROXIMAS', label: 'Próximas' },
+  { value: 'PASADAS', label: 'Pasadas' },
+  { value: 'TODAS', label: 'Todas' },
 ];
 const COMPLETION_REASON_DONE = 'Ya se brindo el servicio';
 const ALL_LOCALS_FILTER = 'TODOS';
@@ -151,23 +157,6 @@ const getReservaServiceSummary = (reserva: ReservaBD) => {
 const normalizeSearchText = (value?: string | number | null) =>
   String(value ?? '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-const normalizeTimeForDate = (time?: string) => {
-  const [hours = '0', minutes = '0'] = (time || '0:00').split(':');
-  return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}:00`;
-};
-
-const getReservaDateTimeMs = (reserva: ReservaBD, time: string) => {
-  const timestamp = new Date(`${reserva.fecha}T${normalizeTimeForDate(time)}`).getTime();
-  return Number.isFinite(timestamp) ? timestamp : 0;
-};
-
-const getReservaStartMs = (reserva: ReservaBD) => getReservaDateTimeMs(reserva, reserva.hora_desde);
-
-const getReservaAuditMs = (reserva: ReservaBD) => {
-  const timestamp = new Date(reserva.actualizado_en || reserva.creado_en || '').getTime();
-  return Number.isFinite(timestamp) ? timestamp : getReservaStartMs(reserva);
-};
-
 const getDateISOWithOffset = (daysOffset: number) => {
   const date = new Date();
   date.setDate(date.getDate() + daysOffset);
@@ -201,30 +190,24 @@ function ReservaResumen({ reserva, servicios }: { reserva: ReservaBD; servicios:
   );
 }
 
-interface BandejaReservasProps {
-  /** Cuantas solicitudes esperan aprobacion (sin filtros). La pagina lo muestra en la pestaña. */
-  onPendientes?: (total: number) => void;
-}
-
 /**
  * Lista de reservas con las acciones del dia a dia: aprobar, rechazar, confirmar por WhatsApp, completar y cobrar.
- * Se filtra por estado, sucursal, tipo y una fecha; cambiar de estado no toca los demas filtros.
+ * Por defecto muestra las proximas (de hoy en adelante, la mas cercana primero); Pasadas y Todas se piden a mano.
+ * Los filtros son independientes: cambiar uno no mueve los demas.
  */
-export function BandejaReservas({ onPendientes }: BandejaReservasProps = {}) {
+export function BandejaReservas() {
   const router = useRouter();
   const pageRef = useRef<HTMLDivElement>(null);
   const cardsGridRef = useRef<HTMLDivElement>(null);
   const hasLoadedRef = useRef(false);
   const hasRenderedListRef = useRef(false);
   const preservedScrollYRef = useRef<number | null>(null);
-  const sortStampByReservaIdRef = useRef<Map<number, number>>(new Map());
 
   const [reservas, setReservas] = useState<ReservaBD[]>([]);
   const [renderedReservas, setRenderedReservas] = useState<ReservaBD[]>([]);
   const [initialLoading, setInitialLoading] = useState(true);
   const [isFetching, setIsFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [conteosEstado, setConteosEstado] = useState<Partial<Record<'PENDIENTE' | 'AGENDADO' | 'RECHAZADO' | 'POR_COBRAR', number>>>({});
   const [cobroSugerido, setCobroSugerido] = useState<ReservaBD | null>(null);
   const [actionId, setActionId] = useState<number | null>(null);
   const [rejectTarget, setRejectTarget] = useState<ReservaBD | null>(null);
@@ -243,13 +226,14 @@ export function BandejaReservas({ onPendientes }: BandejaReservasProps = {}) {
   const [localFiltro, setLocalFiltro] = useState(ALL_LOCALS_FILTER);
   const [tipoFiltro, setTipoFiltro] = useState('TODOS');
   const [fechaFiltro, setFechaFiltro] = useState('');
+  const [cuando, setCuando] = useState<Cuando>('PROXIMAS');
   const adminLocalScope = useAdminLocalScopeState();
   const scopedLocalName = adminLocalScope.workplace?.nombre_local ?? '';
   const effectiveLocalFiltro = scopedLocalName || (adminLocalScope.ready ? localFiltro : LOCAL_SCOPE_PENDING);
 	const vigenteFecha = useMemo(() => getDateISOWithOffset(0), []);
 	const vigenteHora = useMemo(() => getCurrentTimeHHMM(), []);
 	const aplicaVigenciaPendientes = estadoFiltro === 'PENDIENTE' || estadoFiltro === 'TODOS';
-	const pagination = useCursorPagination(`${effectiveLocalFiltro}|${estadoFiltro}|${tipoFiltro}|${fechaFiltro}|${debouncedSearchQuery}|${aplicaVigenciaPendientes ? `${vigenteFecha}|${vigenteHora}` : ''}`);
+	const pagination = useCursorPagination(`${effectiveLocalFiltro}|${estadoFiltro}|${tipoFiltro}|${fechaFiltro}|${cuando}|${debouncedSearchQuery}|${aplicaVigenciaPendientes ? `${vigenteFecha}|${vigenteHora}` : ''}`);
 	const { cursor: paginationCursor, requestRevision, shouldIncludeTotal, setMetadata: setPaginationMetadata } = pagination;
   const paginationRequestRef = useRef(0);
   const paginationControllerRef = useRef<AbortController | null>(null);
@@ -294,8 +278,11 @@ export function BandejaReservas({ onPendientes }: BandejaReservasProps = {}) {
 
     try {
       const response = await getReservasDB({
-        // Lo por cobrar y lo completado no caducan: se ven todos. El resto, desde hace dos semanas.
-        fecha_desde: estadoFiltro === 'POR_COBRAR' || estadoFiltro === 'COMPLETADO' ? undefined : getDateISOWithOffset(-14),
+        // Un dia concreto manda sobre Proximas/Pasadas.
+        fecha_desde: !fechaFiltro && cuando === 'PROXIMAS' ? vigenteFecha : undefined,
+        fecha_hasta: !fechaFiltro && cuando === 'PASADAS' ? getDateISOWithOffset(-1) : undefined,
+        ordenar_por: 'fecha',
+        sentido: cuando === 'PASADAS' ? 'desc' : 'asc',
 		local: effectiveLocalFiltro !== ALL_LOCALS_FILTER && effectiveLocalFiltro !== LOCAL_SCOPE_PENDING ? effectiveLocalFiltro : undefined,
 		estado: estadoFiltro === 'POR_COBRAR' ? 'COMPLETADO' : estadoFiltro !== 'TODOS' ? estadoFiltro : undefined,
 		estado_cobro: estadoFiltro === 'POR_COBRAR' ? 'POR_COBRAR' : undefined,
@@ -312,15 +299,6 @@ export function BandejaReservas({ onPendientes }: BandejaReservasProps = {}) {
 	  if (requestId !== paginationRequestRef.current) return;
       const nextReservas = response.data?.reservas ?? [];
 	  setPaginationMetadata(response.data?.paginacion);
-      const nextIds = new Set(nextReservas.map((reserva) => reserva.id));
-      sortStampByReservaIdRef.current.forEach((_, reservaId) => {
-        if (!nextIds.has(reservaId)) sortStampByReservaIdRef.current.delete(reservaId);
-      });
-      nextReservas.forEach((reserva) => {
-        if (!sortStampByReservaIdRef.current.has(reserva.id)) {
-          sortStampByReservaIdRef.current.set(reserva.id, getReservaAuditMs(reserva));
-        }
-      });
       setReservas(nextReservas);
       hasLoadedRef.current = true;
     } catch (fetchError) {
@@ -334,7 +312,7 @@ export function BandejaReservas({ onPendientes }: BandejaReservasProps = {}) {
 		setIsFetching(false);
 	  }
     }
-  }, [adminLocalScope.ready, aplicaVigenciaPendientes, debouncedSearchQuery, effectiveLocalFiltro, estadoFiltro, fechaFiltro, tipoFiltro, vigenteFecha, vigenteHora, paginationCursor, requestRevision, shouldIncludeTotal, setPaginationMetadata]);
+  }, [adminLocalScope.ready, aplicaVigenciaPendientes, debouncedSearchQuery, effectiveLocalFiltro, estadoFiltro, fechaFiltro, cuando, tipoFiltro, vigenteFecha, vigenteHora, paginationCursor, requestRevision, shouldIncludeTotal, setPaginationMetadata]);
 
 	useEffect(() => () => {
 		paginationRequestRef.current += 1;
@@ -375,13 +353,7 @@ export function BandejaReservas({ onPendientes }: BandejaReservasProps = {}) {
     [adminLocalScope.ready, localesDisponibles, scopedLocalName],
   );
 
-  const estadoOptions = useMemo(
-    () => ESTADO_OPTIONS.map((option) => {
-      const total = option.value === 'TODOS' || option.value === 'COMPLETADO' ? undefined : conteosEstado[option.value];
-      return { value: option.value, label: total === undefined ? option.label : `${option.label} (${total})` };
-    }),
-    [conteosEstado],
-  );
+  const estadoOptions = ESTADO_OPTIONS;
 
   const tipoFilterOptions = useMemo(() => [
     { value: 'TODOS', label: 'Todos' },
@@ -389,75 +361,11 @@ export function BandejaReservas({ onPendientes }: BandejaReservasProps = {}) {
     { value: 'bicicleta', label: TIPO_LABELS.B },
   ], []);
 
-  const reservasVisibles = useMemo(() => {
-    if (estadoFiltro !== 'AGENDADO') {
-      return reservas;
-    }
-
-    return [...reservas].sort((a, b) => {
-      const stampA = sortStampByReservaIdRef.current.get(a.id) ?? getReservaAuditMs(a);
-      const stampB = sortStampByReservaIdRef.current.get(b.id) ?? getReservaAuditMs(b);
-      return stampB - stampA;
-    });
-  }, [estadoFiltro, reservas]);
-
+  const reservasVisibles = reservas;
   const reservasVisiblesSignature = useMemo(
     () => reservasVisibles.map((reserva) => `${reserva.id}:${reserva.estado}:${reserva.servicio_confirmado ?? ''}:${reserva.notificado ? '1' : '0'}`).join('|'),
     [reservasVisibles],
   );
-
-  // Conteo de cada pestaña: independiente de la pestaña activa, con los mismos filtros de la lista.
-  useEffect(() => {
-    void requestRevision;
-    if (!adminLocalScope.ready) return;
-    const controller = new AbortController();
-    const base = {
-      local: effectiveLocalFiltro !== ALL_LOCALS_FILTER && effectiveLocalFiltro !== LOCAL_SCOPE_PENDING ? effectiveLocalFiltro : undefined,
-      fecha: fechaFiltro || undefined,
-      tipo: tipoFiltro !== 'TODOS' ? tipoFiltro.toLowerCase() as 'mesa' | 'bicicleta' : undefined,
-      busqueda: debouncedSearchQuery || undefined,
-      limit: 1,
-      include_total: true,
-    };
-    (['PENDIENTE', 'AGENDADO', 'RECHAZADO', 'POR_COBRAR'] as const).forEach((estado) => {
-      getReservasDB({
-        ...base,
-        ...(estado !== 'POR_COBRAR' && { fecha_desde: getDateISOWithOffset(-14) }),
-        ...(estado === 'POR_COBRAR' ? { estado: 'COMPLETADO' as const, estado_cobro: 'POR_COBRAR' as const } : { estado }),
-        ...(estado === 'PENDIENTE' && { vigente_fecha: vigenteFecha, vigente_hora: vigenteHora }),
-      }, controller.signal)
-        .then((response) => {
-          const total = response.data?.paginacion?.total_registros;
-          if (!controller.signal.aborted && total !== undefined) {
-            setConteosEstado((current) => ({ ...current, [estado]: total }));
-          }
-        })
-        .catch(() => { /* el contador es informativo: si falla se conserva el último valor */ });
-    });
-    return () => controller.abort();
-  }, [adminLocalScope.ready, debouncedSearchQuery, effectiveLocalFiltro, fechaFiltro, requestRevision, tipoFiltro, vigenteFecha, vigenteHora]);
-
-  // Pendientes sin filtros: es el numero que la pagina muestra en la pestaña.
-  useEffect(() => {
-    void reservas;
-    if (!onPendientes || !adminLocalScope.ready) return;
-    const controller = new AbortController();
-    getReservasDB({
-      fecha_desde: getDateISOWithOffset(-14),
-      local: scopedLocalName || undefined,
-      estado: 'PENDIENTE',
-      vigente_fecha: vigenteFecha,
-      vigente_hora: vigenteHora,
-      limit: 1,
-      include_total: true,
-    }, controller.signal)
-      .then((response) => {
-        const total = response.data?.paginacion?.total_registros;
-        if (!controller.signal.aborted && total !== undefined) onPendientes(total);
-      })
-      .catch(() => { /* informativo */ });
-    return () => controller.abort();
-  }, [reservas, onPendientes, adminLocalScope.ready, scopedLocalName, vigenteFecha, vigenteHora]);
 
   // Al volver a la pestaña del navegador se actualiza: pueden haber llegado solicitudes nuevas.
   useEffect(() => {
@@ -563,7 +471,6 @@ export function BandejaReservas({ onPendientes }: BandejaReservasProps = {}) {
 
     try {
       await eliminarReservaDB(reservaId);
-      sortStampByReservaIdRef.current.delete(reservaId);
       setReservas((current) => current.filter((item) => item.id !== reservaId));
       setNotificationReserva((current) => current?.id === reservaId ? null : current);
       setDeleteReserva(null);
@@ -700,8 +607,6 @@ export function BandejaReservas({ onPendientes }: BandejaReservasProps = {}) {
         tipo: confirmedService.tipoEspacio === 'B' ? 'B' : 'M',
         notificado: false,
       };
-      sortStampByReservaIdRef.current.set(updatedReserva.id, Date.now());
-
       setReservas((current) =>
         current.map((item) => item.id === approvalReserva.id ? updatedReserva : item),
       );
@@ -835,7 +740,7 @@ export function BandejaReservas({ onPendientes }: BandejaReservasProps = {}) {
               icon: <Banknote size={14} strokeWidth={1.8} />,
               onClick: () => router.push(`/atrevida-gestion/caja?reserva=${reserva.id}`),
             }] : []),
-            ...(estado === 'PENDIENTE' && whatsappHref ? [{
+            ...(whatsappHref ? [{
               label: 'Contactar por WhatsApp',
               icon: <WhatsappIcon size={14} />,
               onClick: () => { window.open(whatsappHref, '_blank', 'noopener,noreferrer'); },
@@ -906,13 +811,17 @@ export function BandejaReservas({ onPendientes }: BandejaReservasProps = {}) {
                 searchable={false}
               />
             </FilterBar.Item>
-            <FilterBar.Item label="Fecha">
-              <input
-                type="date"
-                value={fechaFiltro}
-                onChange={(event) => preserveScrollPosition(() => setFechaFiltro(event.target.value))}
-                aria-label="Filtrar por fecha"
+            <FilterBar.Item label="Cuándo">
+              <CustomSelect
+                value={cuando}
+                onChange={(value) => preserveScrollPosition(() => setCuando(value as Cuando))}
+                options={CUANDO_OPTIONS}
+                searchable={false}
+                disabled={Boolean(fechaFiltro)}
               />
+            </FilterBar.Item>
+            <FilterBar.Item label="Un día">
+              <FechaFiltro value={fechaFiltro} onChange={(valor) => preserveScrollPosition(() => setFechaFiltro(valor))} />
             </FilterBar.Item>
           </FilterBar>
 
@@ -945,7 +854,10 @@ export function BandejaReservas({ onPendientes }: BandejaReservasProps = {}) {
                 <div className={styles.emptyState}>
                   <CalendarCheck size={32} strokeWidth={1.5} />
                   <strong>No hay reservas con estos filtros</strong>
-                  <span>Ajusta la búsqueda, limpia filtros o actualiza la bandeja para revisar nuevas solicitudes.</span>
+                  <span>{cuando === 'PROXIMAS' && !fechaFiltro ? 'Solo se muestran las próximas. Para buscar una reserva pasada, elige Pasadas o Todas en Cuándo.' : 'Cambia la búsqueda o los filtros.'}</span>
+                  {cuando === 'PROXIMAS' && !fechaFiltro && (
+                    <AdminButton variant="secondary" size="sm" onClick={() => setCuando('TODAS')}>Ver todas las fechas</AdminButton>
+                  )}
                 </div>
               )}
 

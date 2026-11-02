@@ -29,6 +29,8 @@ interface CustomSelectProps {
   allowClear?: boolean;
   /** Altura reducida (36px) para filas de tablas/editores. */
   compact?: boolean;
+  /** No se puede abrir ni cambiar (por ejemplo, cuando otro filtro lo reemplaza). */
+  disabled?: boolean;
 }
 
 export function CustomSelect({
@@ -43,6 +45,7 @@ export function CustomSelect({
   searchable = true,
   allowClear = false,
   compact = false,
+  disabled = false,
 }: CustomSelectProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -254,10 +257,12 @@ export function CustomSelect({
       <div
         ref={triggerRef}
         id={id}
-        className={`${styles.customSelectTrigger} ${compact ? styles.customSelectCompact : ''}`}
-        onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(prev => !prev); }}
-        tabIndex={0}
+        className={`${styles.customSelectTrigger} ${compact ? styles.customSelectCompact : ''} ${disabled ? styles.customSelectDisabled : ''}`}
+        onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); if (!disabled) setOpen(prev => !prev); }}
+        tabIndex={disabled ? -1 : 0}
+        aria-disabled={disabled || undefined}
         onKeyDown={(e) => {
+          if (disabled) return;
           if (!open) {
             if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(true); }
           } else {

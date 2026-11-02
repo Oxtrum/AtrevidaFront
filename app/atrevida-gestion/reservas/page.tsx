@@ -18,6 +18,11 @@ import styles from './page.module.css';
 
 type Vista = 'calendario' | 'lista';
 
+const VISTAS: TabItem<Vista>[] = [
+  { key: 'calendario', label: 'Calendario', icon: <CalendarDays size={14} strokeWidth={2} /> },
+  { key: 'lista', label: 'Lista', icon: <List size={14} strokeWidth={2} /> },
+];
+
 const DEFAULT_LOCAL = 'SAN MARTIN';
 const LOCAL_SCOPE_PENDING = '__LOCAL_SCOPE_PENDING__';
 
@@ -34,7 +39,6 @@ export default function AdminReservasPage() {
   const [sucursalActiva, setSucursalActiva] = useState(DEFAULT_LOCAL);
   const [semanaActiva, setSemanaActiva] = useState('0');
   const [vistaActiva, setVistaActiva] = useState<Vista>('calendario');
-  const [pendientes, setPendientes] = useState(0);
   const [calendarRevision, setCalendarRevision] = useState(0);
 
   const { locales } = useLocales();
@@ -45,11 +49,6 @@ export default function AdminReservasPage() {
   const scopedLocalName = adminLocalScope.workplace?.nombre_local ?? '';
   const effectiveSucursalActiva = scopedLocalName || (adminLocalScope.ready ? sucursalActiva : '');
 
-  // El conteo de pendientes va en la pestaña Lista: es lo que hay que atender ahí.
-  const vistas: TabItem<Vista>[] = useMemo(() => [
-    { key: 'calendario', label: 'Calendario', icon: <CalendarDays size={14} strokeWidth={2} /> },
-    { key: 'lista', label: 'Lista', icon: <List size={14} strokeWidth={2} />, count: pendientes },
-  ], [pendientes]);
 
   // Fechas de la semana que muestra el calendario. Se derivan igual que en
   // CalendarAdmin (generarSemanas() + getFechasDeSemana), y `semanaActiva` se
@@ -242,12 +241,9 @@ export default function AdminReservasPage() {
             />
           </div>
 
-          <Tabs tabs={vistas} active={vistaActiva} onChange={cambiarVista} ariaLabel="Vistas de reservas" />
+          <Tabs tabs={VISTAS} active={vistaActiva} onChange={cambiarVista} ariaLabel="Vistas de reservas" />
 
-          {/* La lista queda montada para que el conteo de pendientes de la pestaña siempre este al dia. */}
-          <div className="admin-stack" style={vistaActiva !== 'lista' ? { display: 'none' } : undefined}>
-            <BandejaReservas onPendientes={setPendientes} />
-          </div>
+          {vistaActiva === 'lista' && <BandejaReservas />}
 
           {vistaActiva === 'calendario' && (
             <>

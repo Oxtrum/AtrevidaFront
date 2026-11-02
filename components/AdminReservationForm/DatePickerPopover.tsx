@@ -17,6 +17,10 @@ interface DatePickerPopoverProps {
   iconSize?: number;
   /** Lado del que se ancla el popover respecto al botón. */
   align?: 'left' | 'right';
+  /** Texto junto al icono del disparador (por ejemplo la fecha elegida). Sin él, solo el icono. */
+  triggerLabel?: React.ReactNode;
+  /** Clase del contenedor, para que el disparador ocupe todo el ancho de su campo. */
+  wrapClassName?: string;
 }
 
 const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
@@ -27,7 +31,7 @@ const toISO = (d: Date) => d.toLocaleDateString('en-CA');
 /** Calendario mensual en popover. Bloquea domingos y fechas fuera de [min, max]. */
 export function DatePickerPopover({
   value, min, max, onSelect,
-  triggerClassName, iconSize = 18, align = 'right',
+  triggerClassName, iconSize = 18, align = 'right', triggerLabel, wrapClassName,
 }: DatePickerPopoverProps) {
   const [open, setOpen] = useState(false);
   const [mes, setMes] = useState(() => {
@@ -83,7 +87,7 @@ export function DatePickerPopover({
   const hoy = toISO(new Date());
 
   return (
-    <div className={styles.datePickerWrap} ref={wrapRef}>
+    <div className={[styles.datePickerWrap, wrapClassName].filter(Boolean).join(' ')} ref={wrapRef}>
       <button
         type="button"
         className={triggerClassName ?? styles.weekStepButton}
@@ -94,6 +98,7 @@ export function DatePickerPopover({
         title="Elegir fecha"
       >
         <CalendarDays size={iconSize} strokeWidth={1.8} />
+        {triggerLabel}
       </button>
 
       {open && (

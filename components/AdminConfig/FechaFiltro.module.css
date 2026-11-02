@@ -1,0 +1,66 @@
+.campo {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.contenedor {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Misma caja que los demas campos de una FilterBar. */
+.disparador {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  min-height: 42px;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-input-bg);
+  color: var(--admin-text-muted);
+  font-family: inherit;
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.disparador:hover,
+.disparador:focus-visible {
+  border-color: var(--admin-accent-primary);
+  outline: none;
+}
+
+.valor {
+  color: var(--admin-foreground);
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.vacio {
+  color: var(--admin-text-dim);
+}
+
+.quitar {
+  position: absolute;
+  right: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: var(--admin-radius-sm, 6px);
+  background: transparent;
+  color: var(--admin-text-muted);
+  cursor: pointer;
+}
+
+.quitar:hover {
+  color: var(--admin-foreground);
+  background: rgba(255, 255, 255, 0.08);
+}
