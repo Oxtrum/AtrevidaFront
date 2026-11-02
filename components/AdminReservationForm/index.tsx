@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle, CalendarPlus, UserPlus } from 'lucide-react';
+import { AlertTriangle, CalendarPlus, Check, UserPlus } from 'lucide-react';
 import { CustomSelect } from '../Custom/CustomSelectAdmin';
 import { TimeSlotPicker } from './TimeSlotPicker';
 import { horarioHabilitado } from '@/lib/utils/diaSeleccion';
@@ -28,14 +28,9 @@ interface ReservationFormProps {
 
 const MIN_CLIENT_SEARCH_LENGTH = 2;
 const MAX_CLIENT_SUGGESTIONS = 7;
-// Mismo umbral que validateReservationForm: fijos de 7 dígitos son válidos.
-const MIN_PHONE_DIGITS = 7;
-
 const getClienteNombreCompleto = (cliente: ClientePG) => `${cliente.nombre} ${cliente.apellido}`.trim();
 
 const normalizeSearch = (value: string) => value.trim().toLowerCase();
-
-const normalizeClientPhone = (value: string, e164?: string) => phoneValueFrom(e164 || value).nationalNumber;
 
 export default function AdminReservationForm({ initialData, onSuccess }: ReservationFormProps) {
   const router = useRouter();
@@ -50,6 +45,7 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
     dia,
     horaDesde, horaHasta,
     cliente, setCliente,
+    clienteId, setClienteId,
     numeroTelefono, setNumeroTelefono,
     telefonoE164, setTelefonoE164,
     notas, setNotas,
@@ -133,24 +129,15 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
     && clienteDropdownOpen
     && clienteQuery.length >= MIN_CLIENT_SEARCH_LENGTH;
 
-  // El teléfono identifica al cliente sólo mientras el nombre esté vacío. Se
-  // resuelve al teclear y no en un efecto: si reaccionara a que "Cliente" quedó
-  // vacío, borrar un nombre elegido por error lo volvería a escribir solo.
+  // El cliente se elige en el buscador. El teléfono ya no lo adivina: no es confiable.
   const handleTelefonoChange = (phone: PhoneValue) => {
-    const telefono = phone.nationalNumber;
-    setNumeroTelefono(telefono);
+    setNumeroTelefono(phone.nationalNumber);
     setTelefonoE164(phone.e164);
-
-    if (!initialData?.isAdmin || cliente.trim() || telefono.length < MIN_PHONE_DIGITS) return;
-
-    const match = clientesDirectorio.find(
-      (clienteItem) => normalizeClientPhone(clienteItem.numero_telefono, clienteItem.telefono_e164) === telefono,
-    );
-    if (match) setCliente(getClienteNombreCompleto(match));
   };
 
   const selectClienteSugerido = (clienteItem: ClientePG) => {
     setCliente(getClienteNombreCompleto(clienteItem));
+    setClienteId(clienteItem.id);
     const phone = phoneValueFrom(clienteItem.telefono_e164 || clienteItem.numero_telefono);
     setNumeroTelefono(phone.nationalNumber);
     setTelefonoE164(phone.e164);
@@ -159,6 +146,7 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
 
   const handleClienteCreado = (nuevo: ClientePG) => {
     setCliente(getClienteNombreCompleto(nuevo));
+    setClienteId(nuevo.id);
     const phone = phoneValueFrom(nuevo.telefono_e164 || nuevo.numero_telefono);
     setNumeroTelefono(phone.nationalNumber);
     setTelefonoE164(phone.e164);
@@ -294,6 +282,8 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
               value={cliente}
               onChange={(e) => {
                 setCliente(e.target.value);
+                // Escribir de nuevo suelta al cliente elegido: hay que volver a elegir uno de la lista.
+                setClienteId(null);
                 setClienteDropdownOpen(true);
               }}
               onFocus={() => setClienteDropdownOpen(true)}
@@ -337,11 +327,17 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
                       }}
                     >
                       <UserPlus size={14} strokeWidth={2} />
-                      Registrar «{cliente.trim()}» como cliente nuevo
+                      Registrar “{cliente.trim()}” como cliente nuevo
                     </button>
                   </>
                 )}
               </div>
+            )}
+            {initialData?.isAdmin && clienteId != null && (
+              <span className={styles.clientLinked}>
+                <Check size={13} strokeWidth={2.4} />
+                Cliente registrado
+              </span>
             )}
             {errors.cliente && <span className={styles.errorText}>{errors.cliente}</span>}
           </div>

@@ -96,6 +96,8 @@ export function useReservationForm(
   // Reservas que el cliente ya tiene ese día: el backend avisa y espera confirmación.
   const [reservasDuplicadas, setReservasDuplicadas] = useState<ReservaDuplicada[] | null>(null);
   const [cliente, setCliente] = useState('');
+  // Cliente registrado elegido en el buscador. El panel no agenda sin uno: nada se vincula por adivinanza.
+  const [clienteId, setClienteId] = useState<number | null>(null);
   const [numeroTelefono, setNumeroTelefono] = useState('');
   const [telefonoE164, setTelefonoE164] = useState<string | undefined>();
   const [servicio, setServicio] = useState(initialData?.servicio || '');
@@ -524,6 +526,9 @@ export function useReservationForm(
     } else if (horaDesde && hoursAvailability.get(horaDesde) === 'closed') {
       e.horaDesde = 'Ese horario está fuera de atención';
     }
+    if (initialData?.isAdmin && clienteId == null) {
+      e.cliente = 'Elige un cliente de la lista o crea uno nuevo';
+    }
     // El fallback boliviano sólo existe para clientes API anteriores. Desde la
     // interfaz, un país seleccionado debe producir siempre su E.164 válido.
     if (numeroTelefono.trim() && !telefonoE164) {
@@ -597,6 +602,7 @@ export function useReservationForm(
           hora_hasta: horaHastaNorm,
           tipo: tipoBody,
           cliente,
+          cliente_id: initialData?.isAdmin ? clienteId ?? undefined : undefined,
           numero_telefono: numeroTelefono.replace(/\D/g, ''),
           telefono_e164: telefonoE164,
           servicio,
@@ -686,6 +692,7 @@ export function useReservationForm(
     dia,
     horaDesde, horaHasta,
     cliente, setCliente,
+    clienteId, setClienteId,
     numeroTelefono, setNumeroTelefono,
     telefonoE164, setTelefonoE164,
     notas, setNotas,

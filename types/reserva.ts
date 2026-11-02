@@ -398,6 +398,8 @@ export interface ReservaBD {
   hora_desde: string; // "8:00"
   hora_hasta: string; // "9:30"
   cliente: string;
+  /** Cliente registrado dueño de la reserva; ausente si esta por vincular. */
+  cliente_id?: number | null;
   numero_telefono?: string;
   telefono_e164?: string;
   servicio: string;

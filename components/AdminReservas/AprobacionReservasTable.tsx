@@ -24,7 +24,7 @@ export function estadoDeAprobacion(r: ReservaBD): { label: string; tone: Reserva
     case 'AGENDADO':
       return r.notificado
         ? { label: 'Confirmada', tone: 'info', hint: 'La cita está agendada y ya le enviaste la confirmación al cliente por WhatsApp. Puedes reenviarla si la necesita.' }
-        : { label: 'Sin confirmar', tone: 'pendiente', hint: 'La cita está agendada, pero todavía no le avisaste al cliente. Pulsa «Confirmar» para enviarle el mensaje por WhatsApp.' };
+        : { label: 'Sin confirmar', tone: 'pendiente', hint: 'La cita está agendada, pero todavía no le avisaste al cliente. Pulsa “Confirmar” para enviarle el mensaje por WhatsApp.' };
     case 'COMPLETADO':
       return r.estado_cobro === 'POR_COBRAR'
         ? { label: 'Por cobrar', tone: 'pendiente', hint: POR_COBRAR_HINT }

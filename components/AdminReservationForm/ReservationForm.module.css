@@ -141,6 +141,16 @@
   margin-top: 0.25rem;
 }
 
+.clientLinked {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--admin-accent-success, #34d399);
+}
+
 /* ────────────────────────────────────────────────────────────────
    DAY SELECTOR
    ──────────────────────────────────────────────────────────────── */

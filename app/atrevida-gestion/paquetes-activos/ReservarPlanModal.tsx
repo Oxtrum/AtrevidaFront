@@ -186,7 +186,7 @@ export default function ReservarPlanModal({ locales, onClose, onReservado }: Pro
                       }}
                     >
                       <UserPlus size={14} strokeWidth={2} />
-                      Registrar «{clienteQuery.trim()}» como cliente nuevo
+                      Registrar “{clienteQuery.trim()}” como cliente nuevo
                     </button>
                   </>
                 )}

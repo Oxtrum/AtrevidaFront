@@ -43,7 +43,7 @@ export function AnularEgresoFijoDialog({ isOpen, movimiento, onClose, onDone }: 
   return (
     <FormModal isOpen={isOpen} onClose={onClose} title={`Deshacer pago ${movimiento.codigo}`} onSubmit={handleSubmit} loading={saving} submitLabel="Deshacer pago">
       <p className={styles.lead}>
-        Este egreso viene de un gasto fijo{movimiento.descripcion ? ` (${movimiento.descripcion})` : ''}. Vuelve a Pendiente y lo puedes pagar de nuevo desde «Pagar o adelantar». Úsalo si te equivocaste o el pago no salió.
+        Este egreso viene de un gasto fijo{movimiento.descripcion ? ` (${movimiento.descripcion})` : ''}. Vuelve a Pendiente y lo puedes pagar de nuevo desde “Pagar o adelantar”. Úsalo si te equivocaste o el pago no salió.
       </p>
       <FormSubmitError message={error} />
     </FormModal>
