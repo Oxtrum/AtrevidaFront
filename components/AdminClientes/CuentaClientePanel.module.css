@@ -1,64 +1,47 @@
-.totales {
-  margin: 0;
-  font-size: 0.8rem;
-  color: var(--admin-text-muted);
-  font-variant-numeric: tabular-nums;
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.seccion + .seccion {
-  margin-top: 1.25rem;
-}
-
-.seccionCabecera {
+.cabecera {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  margin-bottom: 0.5rem;
 }
 
-.seccionTitulo {
+.titulo {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
   margin: 0;
+  color: var(--admin-foreground);
   font-size: 0.95rem;
   font-weight: 700;
-  color: var(--admin-foreground);
 }
 
-.acciones {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.mostrarAnulados {
+.anulados {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.78rem;
   color: var(--admin-text-muted);
+  font-size: var(--admin-fs-sm);
   cursor: pointer;
 }
 
-.concepto {
+.celda {
   display: flex;
+  min-width: 10rem;
   flex-direction: column;
-  gap: 0.15rem;
-  min-width: 12rem;
+  gap: 0.1rem;
 }
 
-.conceptoTipo {
-  font-size: 0.7rem;
-  color: var(--admin-text-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.anulado {
-  text-decoration: line-through;
-  color: var(--admin-text-dim);
+.detalle {
+  display: block;
+  color: var(--admin-text-muted);
+  font-size: var(--admin-fs-xs);
+  font-weight: 500;
 }
 
 .num {
@@ -66,14 +49,9 @@
   white-space: nowrap;
 }
 
-.sinAplicar {
-  color: #34d399;
-  font-weight: 600;
-}
-
-.panel {
-  display: flex;
-  flex-direction: column;
+.anulado {
+  text-decoration: line-through;
+  opacity: 0.6;
 }
 
 .origen {
@@ -90,13 +68,7 @@ a.origen:hover {
   color: var(--admin-accent-primary);
 }
 
-.origenDetalle {
-  color: var(--admin-text-muted);
-  font-size: var(--admin-fs-xs);
-  font-weight: 500;
-}
-
-.origenManual {
+.manual {
   color: var(--admin-text-dim);
   font-size: var(--admin-fs-sm);
 }

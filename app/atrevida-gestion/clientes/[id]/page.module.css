@@ -72,7 +72,7 @@
 
 /* Las pestañas ocupan lo que necesitan, no todo el ancho. */
 .pestanas {
-  max-width: 24rem;
+  width: fit-content;
 }
 
 .pestanas > div {

@@ -1,17 +1,17 @@
 .contacto {
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.15rem;
-  white-space: nowrap;
+  gap: 0.25rem 0.6rem;
 }
 
 .telefono {
-  margin-right: 0.25rem;
   border-radius: var(--admin-radius-sm);
   color: inherit;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .telefono:hover {
@@ -20,41 +20,33 @@
   text-underline-offset: 3px;
 }
 
-.boton {
-  display: grid;
-  width: 1.65rem;
-  height: 1.65rem;
-  place-items: center;
-  border: 0;
-  border-radius: var(--admin-radius-md);
-  background: transparent;
-  color: var(--admin-text-muted);
-  cursor: pointer;
-  text-decoration: none;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.boton:hover {
-  background: var(--admin-pill-bg);
-  color: var(--admin-foreground);
-}
-
-.whatsapp,
-.whatsapp:hover {
+.whatsapp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.12rem 0.55rem;
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  border-radius: var(--admin-radius-full);
+  background: rgba(52, 211, 153, 0.1);
   color: #34d399;
+  font-size: var(--admin-fs-xs);
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.15s ease;
 }
 
 .whatsapp:hover {
-  background: rgba(52, 211, 153, 0.12);
+  background: rgba(52, 211, 153, 0.2);
 }
 
-:global([data-admin-theme='light']) .whatsapp,
-:global([data-admin-theme='light']) .whatsapp:hover {
+:global([data-admin-theme='light']) .whatsapp {
+  border-color: rgba(4, 120, 87, 0.35);
+  background: rgba(4, 120, 87, 0.08);
   color: #047857;
 }
 
 .telefono:focus-visible,
-.boton:focus-visible {
+.whatsapp:focus-visible {
   outline: 2px solid var(--admin-accent-primary);
   outline-offset: 2px;
 }

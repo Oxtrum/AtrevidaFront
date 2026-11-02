@@ -136,7 +136,7 @@ export function CobroModal({ isOpen, clienteId, nombre, cuenta, preseleccionados
         <section aria-labelledby="cobro-cargos">
           <h3 id="cobro-cargos" className={styles.titulo}>Qué paga ahora</h3>
           {cobrables.length === 0 ? (
-            <p className={styles.vacio}>Este cliente no tiene cargos pendientes. Puedes recargar saldo disponible más abajo.</p>
+            <p className={styles.vacio}>Sin cargos pendientes. Puedes recargar saldo.</p>
           ) : (
             <ul className={styles.cargos}>
               {cobrables.map((cargo) => {
@@ -149,7 +149,7 @@ export function CobroModal({ isOpen, clienteId, nombre, cuenta, preseleccionados
                         <span className={styles.cargoConcepto}>{cargo.concepto}</span>
                         <span className={styles.cargoDetalle}>
                           {tipoCargoTexto(cargo.tipo)} · {formatFecha(cargo.fecha_hecho)}
-                          {cargo.tipo === 'PAQUETE' && falta > 0 && ` · Faltan ${formatMoney(falta)} de saldo para cubrirlo`}
+                          {cargo.tipo === 'PAQUETE' && falta > 0 && ` · Faltan ${formatMoney(falta)} de saldo`}
                         </span>
                       </span>
                       <span className={styles.cargoMonto}>{formatMoney(cargo.pendiente)}</span>
@@ -163,7 +163,7 @@ export function CobroModal({ isOpen, clienteId, nombre, cuenta, preseleccionados
 
         <section className={styles.resumen} aria-label="Resumen del cobro">
           <div className={styles.linea}>
-            <span>Total de lo marcado</span>
+            <span>Total marcado</span>
             <strong>{formatMoney(plan.total)}</strong>
           </div>
           <div className={styles.linea}>
@@ -173,7 +173,7 @@ export function CobroModal({ isOpen, clienteId, nombre, cuenta, preseleccionados
           {disponible > 0 && marcados.size > 0 && (
             <label className={styles.casilla}>
               <input type="checkbox" checked={usarSaldo} onChange={(e) => setUsarSaldo(e.target.checked)} />
-              <span>Usar el saldo disponible. Si el cliente prefiere guardarlo, desmárcalo.</span>
+              <span>Usar saldo disponible</span>
             </label>
           )}
           {plan.usaSaldo > 0 && (
@@ -189,7 +189,7 @@ export function CobroModal({ isOpen, clienteId, nombre, cuenta, preseleccionados
         </section>
 
         <div className={styles.campos}>
-          <FormField label="Recargar saldo (opcional)" htmlFor="cobro-recarga" hint="Queda como saldo disponible para servicios futuros.">
+          <FormField label="Recargar saldo (opcional)" htmlFor="cobro-recarga" hint="Queda como saldo disponible.">
             <input
               id="cobro-recarga"
               type="text"

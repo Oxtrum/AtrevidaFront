@@ -241,7 +241,6 @@ export default function ClienteFichaPage() {
             loading={cargandoCuenta}
             verAnulados={verAnulados}
             onVerAnulados={setVerAnulados}
-            onNuevoCargo={() => setNuevoCargo(true)}
             onAnular={setAAnular}
           />
         )}

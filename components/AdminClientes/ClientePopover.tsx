@@ -207,7 +207,7 @@ export function ClientePopover({ nombre, telefono, telefonoE164, clienteId, rese
             {sinVincular && (
               <p className={styles.aviso}>
                 <TriangleAlert size={16} strokeWidth={1.8} aria-hidden="true" />
-                <span>Esta reserva no tiene un cliente registrado.</span>
+                <span>Reserva sin cliente registrado.</span>
               </p>
             )}
 

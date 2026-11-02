@@ -133,7 +133,7 @@ export function VincularReservaModal({
       <FormModal
         isOpen={isOpen}
         onClose={onClose}
-        title="Vincular reserva a un cliente"
+        title="Vincular reserva"
         submitLabel={elegido ? `Vincular a ${nombreCompleto(elegido)}` : 'Vincular'}
         submitDisabled={!elegido}
         loading={guardando}
@@ -141,7 +141,7 @@ export function VincularReservaModal({
       >
         <div className={styles.cuerpo}>
           <p className={styles.reserva}>
-            Reserva a nombre de <strong>{nombre}</strong>
+            Reserva de <strong>{nombre}</strong>
             {telefonoMostrado && <> · {telefonoMostrado}</>}
           </p>
 
@@ -184,8 +184,8 @@ export function VincularReservaModal({
             {candidatos.length === 0 && (
               <p className={styles.vacio}>
                 {busqueda.length >= MIN_BUSQUEDA
-                  ? buscando ? 'Buscando...' : 'Ningún cliente coincide con esa búsqueda.'
-                  : 'No hay coincidencias claras. Busca al cliente por su nombre o teléfono, o crea uno nuevo.'}
+                  ? buscando ? 'Buscando...' : 'Ningún cliente coincide.'
+                  : 'Sin coincidencias. Busca por nombre o teléfono.'}
               </p>
             )}
           </div>
@@ -199,7 +199,7 @@ export function VincularReservaModal({
           {hayTelefono && (
             <label className={styles.casilla}>
               <input type="checkbox" checked={mismoTelefono} onChange={(e) => setMismoTelefono(e.target.checked)} />
-              <span>Vincular también las otras reservas sin cliente con este mismo teléfono</span>
+              <span>Vincular también las demás reservas con este teléfono</span>
             </label>
           )}
         </div>

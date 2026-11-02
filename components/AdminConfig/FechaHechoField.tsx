@@ -24,7 +24,7 @@ export function FechaHechoField({ id, value, onChange, label = 'Fecha del hecho'
       htmlFor={id}
       error={error}
       wide={wide}
-      hint="Vacía = ahora. Cámbiala si ocurrió otro día."
+      hint="Vacía = ahora."
     >
       <input id={id} type="date" value={value} max={todayISO()} onChange={(e) => onChange(e.target.value)} />
     </FormField>

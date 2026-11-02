@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { FechaHechoField, FormField, FormGrid, FormModal, FormSubmitError } from '@/components/AdminConfig';
+import { ChoiceChips, FechaHechoField, FormField, FormGrid, FormModal, FormSubmitError } from '@/components/AdminConfig';
 import { toast } from '@/components/Shared/Toast';
 import { crearCargo } from '@/lib/api/cuenta';
 import { parseMonto, TIPOS_CARGO } from '@/lib/utils/cuenta';
@@ -56,20 +56,16 @@ export function CargoFormModal({ isOpen, clienteId, onClose, onSaved }: CargoFor
   return (
     <FormModal isOpen={isOpen} onClose={onClose} title="Nuevo cargo" onSubmit={handleSubmit} loading={saving} submitLabel="Registrar cargo">
       <FormGrid>
-        <FormField label="Tipo" htmlFor="cargo-tipo" required>
-          <select id="cargo-tipo" value={tipo} onChange={(e) => setTipo(e.target.value as TipoCargo)}>
-            {TIPOS_CARGO.map((t) => (
-              <option key={t.value} value={t.value}>{t.label}</option>
-            ))}
-          </select>
+        <FormField label="Tipo" labelId="cargo-tipo" required wide>
+          <ChoiceChips options={TIPOS_CARGO} value={tipo} onChange={setTipo} ariaLabel="Tipo de cargo" />
         </FormField>
-        <FormField label="Monto" htmlFor="cargo-monto" required error={errors.monto} hint="Con 0 queda registrado sin cobrar.">
+        <FormField label="Monto" htmlFor="cargo-monto" required error={errors.monto} hint="0 = sin cobro.">
           <input id="cargo-monto" type="text" inputMode="decimal" value={monto} onChange={(e) => { setMonto(e.target.value); setErrors({}); }} placeholder="0.00" />
         </FormField>
-        <FormField label="Concepto" htmlFor="cargo-concepto" required error={errors.concepto} wide>
+        <FormField label="Concepto" htmlFor="cargo-concepto" required error={errors.concepto}>
           <input id="cargo-concepto" type="text" maxLength={300} value={concepto} onChange={(e) => { setConcepto(e.target.value); setErrors({}); }} placeholder="Ej. Paquete Relax 4 sesiones" autoFocus />
         </FormField>
-        <FechaHechoField id="cargo-fecha" value={fecha} onChange={setFecha} wide />
+        <FechaHechoField id="cargo-fecha" value={fecha} onChange={setFecha} />
       </FormGrid>
       <FormSubmitError message={errors.submit} />
     </FormModal>
