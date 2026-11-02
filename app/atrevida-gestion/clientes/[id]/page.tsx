@@ -16,6 +16,8 @@ import {
   SaldoCliente,
 } from '@/components/AdminClientes';
 import { ReservaAcciones, ReservaEstadoCelda } from '@/components/AdminReservas';
+import { PaqueteDetalleModal } from '@/components/AdminPaquetes/PaqueteDetalleModal';
+import { PlanAcciones } from '@/components/AdminPaquetes/PlanAcciones';
 import { toast } from '@/components/Shared/Toast';
 import { getClienteByID, type ClientePG } from '@/lib/api/clientes';
 import { anularCargo, getCuentaCliente, type CargoCliente, type CuentaCliente } from '@/lib/api/cuenta';
@@ -61,6 +63,7 @@ export default function ClienteFichaPage() {
   const [totalReservas, setTotalReservas] = useState(0);
   const [paquetes, setPaquetes] = useState<PlanItem[]>([]);
   const [cargandoPaquetes, setCargandoPaquetes] = useState(true);
+  const [paqueteAbierto, setPaqueteAbierto] = useState<PlanItem | null>(null);
   const [errorPaquetes, setErrorPaquetes] = useState<string | null>(null);
   const [cargandoCliente, setCargandoCliente] = useState(true);
   const [cargandoCuenta, setCargandoCuenta] = useState(true);
@@ -233,6 +236,18 @@ export default function ClienteFichaPage() {
       searchable: false,
       render: (_v, row) => <span className={styles.numero}>{formatMoney(row.precio_total)}</span>,
     },
+    {
+      key: 'acciones',
+      label: '',
+      searchable: false,
+      sortable: false,
+      render: (_v, row) => (
+        <div onClick={(e) => e.stopPropagation()}>
+          <PlanAcciones plan={row} onCambio={() => void cargarPaquetes()} />
+        </div>
+      ),
+    },
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   ], []);
 
   const pestanas: TabItem<Pestana>[] = [
@@ -326,6 +341,7 @@ export default function ClienteFichaPage() {
             error={errorPaquetes}
             onRefresh={cargarPaquetes}
             getRowKey={(p) => p.id}
+            onRowClick={(p) => setPaqueteAbierto(p)}
             hideSearch
             emptyMessage="Este cliente no tiene paquetes"
           />
@@ -341,6 +357,10 @@ export default function ClienteFichaPage() {
           />
         )}
       </>
+
+      {paqueteAbierto && (
+        <PaqueteDetalleModal plan={paqueteAbierto} onClose={() => setPaqueteAbierto(null)} onCambio={() => void cargarPaquetes()} />
+      )}
 
       {cliente && (
         <ClienteFormModal
