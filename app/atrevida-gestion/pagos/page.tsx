@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
 import { CreditCard, LockKeyhole, Search } from 'lucide-react';
-import Header from '@/components/AdminHeader/Header';
 import { PageHeader, DataTable, CursorPagination } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
@@ -209,11 +208,7 @@ export default function PagosPage() {
   ];
 
   return (
-    <div ref={containerRef} className={styles.pageContainer}>
-      <div className="admin-mesh" />
-      <Header />
-      <main className={styles.main}>
-        <div className={styles.container}>
+    <div ref={containerRef} className="admin-stack">
           <PageHeader
             kicker="Auditoría"
             kickerIcon={<CreditCard size={14} strokeWidth={2} />}
@@ -303,8 +298,6 @@ export default function PagosPage() {
               </>
             )}
           </div>
-        </div>
-      </main>
       {detallePagoCodigo && (
         <PagoDetalleModal
           key={detallePagoCodigo}

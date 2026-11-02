@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
 import { ArrowRight, KeyRound, MapPin, Plus, ShieldCheck, UserX, UserCheck } from 'lucide-react';
-import Header from '@/components/AdminHeader/Header';
 import { PageHeader, DataTable, FormModal, RowActionsMenu } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import type { Column, RowAction } from '@/components/AdminConfig';
@@ -442,11 +441,7 @@ export default function UsuariosPage() {
   ];
 
   return (
-    <div ref={containerRef} className={styles.pageContainer}>
-      <div className="admin-mesh" />
-      <Header />
-      <main className={styles.main}>
-        <div className={styles.container}>
+    <div ref={containerRef} className="admin-stack">
           <PageHeader
           kicker="Administración"
           kickerIcon={<ShieldCheck size={14} strokeWidth={2} />}
@@ -486,8 +481,6 @@ export default function UsuariosPage() {
             emptyMessage="No hay usuarios registrados"
           />
         </div>
-        </div>
-      </main>
 
       {/* Modal: Nuevo usuario */}
       <FormModal

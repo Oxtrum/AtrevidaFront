@@ -19,7 +19,6 @@ import {
   UserRound,
   Wallet,
 } from 'lucide-react';
-import Header from '@/components/AdminHeader/Header';
 import { FormModal, PageHeader } from '@/components/AdminConfig';
 import { toast } from '@/components/Shared/Toast';
 import { cambiarPassword } from '@/lib/api/auth';
@@ -264,11 +263,7 @@ export default function ConfiguracionPage() {
   };
 
   return (
-    <div className={styles.pageContainer}>
-      <div className="admin-mesh" />
-      <Header />
-      <main className={styles.main}>
-        <div className={styles.container}>
+    <>
           <PageHeader
             kicker="Panel de control"
             title="Ajustes del Sistema"
@@ -320,8 +315,6 @@ export default function ConfiguracionPage() {
               </div>
             ))}
           </div>
-        </div>
-      </main>
 
       <FormModal
         isOpen={passwordModalOpen}
@@ -413,6 +406,6 @@ export default function ConfiguracionPage() {
           {passwordErrors.submit && <div className={styles.submitError}>{passwordErrors.submit}</div>}
         </div>
       </FormModal>
-    </div>
+    </>
   );
 }

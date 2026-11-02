@@ -4,8 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
 import { CheckCircle, Filter, Package2, PlayCircle, Plus, X, XCircle } from 'lucide-react';
-import Header from '@/components/AdminHeader/Header';
-import { PageHeader, DataTable, AdminPanel, Column, RowActionsMenu, RowAction, CursorPagination } from '@/components/AdminConfig';
+import { PageHeader, DataTable, Column, RowActionsMenu, RowAction, CursorPagination } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
 import { getLocalesDB } from '@/lib/api/servicios';
@@ -255,10 +254,7 @@ export default function PaquetesActivosPage() {
   ];
 
   return (
-    <AdminPanel ref={containerRef}>
-      <Header />
-      <main className={styles.main}>
-        <div className={styles.container}>
+    <div ref={containerRef} className="admin-stack">
           <PageHeader
             kicker="Operación"
             kickerIcon={<Package2 size={14} strokeWidth={2} />}
@@ -343,8 +339,6 @@ export default function PaquetesActivosPage() {
 
             
           </div>
-        </div>
-      </main>
       {planAbierto && (
               <div className={styles.detalleOverlay} onClick={() => setPlanAbierto(null)}>
                 <div className={styles.detalleModal} onClick={(e) => e.stopPropagation()}>
@@ -423,6 +417,6 @@ export default function PaquetesActivosPage() {
           onCobrado={pagination.resetAfterMutation}
         />
       )}
-    </AdminPanel>
+    </div>
   );
 }

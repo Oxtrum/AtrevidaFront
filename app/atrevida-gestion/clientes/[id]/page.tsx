@@ -173,7 +173,7 @@ export default function ClienteFichaPage() {
 
   return (
     <AdminPageShell>
-      <div className={styles.pagina}>
+      <>
         <Link href="/atrevida-gestion/clientes" className={styles.volver}>
           <ArrowLeft size={14} strokeWidth={2} />
           Clientes
@@ -244,7 +244,7 @@ export default function ClienteFichaPage() {
             onAnular={setAAnular}
           />
         )}
-      </div>
+      </>
 
       {cliente && (
         <ClienteFormModal

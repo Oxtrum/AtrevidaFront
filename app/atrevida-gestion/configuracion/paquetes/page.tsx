@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Filter, Layers, MapPin, Package2, Plus, Pencil, Trash2 } from 'lucide-react';
-import Header from '@/components/AdminHeader/Header';
 import { PageHeader, FormModal, RowActionsMenu, CursorPagination, Tooltip, VisibilityToggle, AlertBanner } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
@@ -214,11 +213,7 @@ export default function PaquetesPage() {
   ];
 
   return (
-    <div ref={containerRef} className={styles.pageContainer}>
-      <div className="admin-mesh" />
-      <Header />
-      <main className={styles.main}>
-        <div className={styles.container}>
+    <div ref={containerRef} className="admin-stack">
           <PageHeader
             kicker="Configuración"
             kickerIcon={<Package2 size={14} strokeWidth={2} />}
@@ -388,8 +383,6 @@ export default function PaquetesPage() {
               </>
             )}
           </div>
-        </div>
-      </main>
 
       <PaqueteFormModal
         open={paqueteModalOpen}

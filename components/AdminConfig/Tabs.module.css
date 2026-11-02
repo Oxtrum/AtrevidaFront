@@ -3,7 +3,7 @@
   gap: 0.25rem;
   overflow-x: auto;
   border-bottom: 1px solid var(--admin-border-subtle);
-  margin-bottom: 1.25rem;
+
   scrollbar-width: none;
 }
 

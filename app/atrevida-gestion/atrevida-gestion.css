@@ -105,6 +105,8 @@
   --admin-font-family: var(--font-geist), "Manrope", ui-sans-serif, system-ui, sans-serif;
   --admin-font-mono: var(--font-geist-mono), "JetBrains Mono", ui-monospace, monospace;
   --admin-sidebar-width: 284px;
+  /* Espacio entre las secciones de una pagina: lo aplica .admin-stack, el contenedor de AdminShell. */
+  --admin-page-gap: clamp(0.9rem, 2vh, 1.5rem);
 
   --color-background: var(--admin-bg) !important;
   --color-foreground: var(--admin-foreground) !important;
@@ -574,4 +576,11 @@
   --admin-chart-neutral: rgba(20, 16, 28, 0.32);
   --admin-chart-grid: rgba(20, 16, 28, 0.09);
   --admin-chart-surface: #ffffff;
+}
+
+/* Pila vertical con el espacio estandar entre secciones. Cada pagina del panel la recibe del layout. */
+[data-admin="true"] .admin-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--admin-page-gap);
 }

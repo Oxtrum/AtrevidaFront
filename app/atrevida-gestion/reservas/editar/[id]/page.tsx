@@ -4,7 +4,6 @@ import { useParams, useRouter } from 'next/navigation';
 import { useRef, useState, useEffect, useMemo } from 'react';
 import gsap from 'gsap';
 import { Save } from 'lucide-react';
-import Header from '@/components/AdminHeader/Header';
 import { actualizarReservaDB, actualizarEstadoReservaDB, getReservaByID, reservasDuplicadasDeError, type ReservaDuplicada } from '@/lib/api/reservas';
 import { ReservaDuplicadaDialog } from '@/components/AdminReservas/ReservaDuplicadaDialog';
 import { getServiciosDB } from '@/lib/api/servicios';
@@ -614,29 +613,19 @@ function EditarReservaContent() {
 
   if (initialLoading) {
     return (
-      <div className={styles.pageContainer}>
-        <Header />
-        <main className={styles.main}>
-          <div className={styles.loading}>
-            <div className={styles.loadingSpinner} />
-            <p>Cargando reserva...</p>
-          </div>
-        </main>
+      <div className={styles.loading}>
+        <div className={styles.loadingSpinner} />
+        <p>Cargando reserva...</p>
       </div>
     );
   }
 
   if (!reserva) {
     return (
-      <div className={styles.pageContainer}>
-        <Header />
-        <main className={styles.main}>
-          <div className={styles.emptyState}>
-            <h3>Reserva no encontrada</h3>
-            <p>La reserva que buscas no existe o fue eliminada.</p>
-            <button onClick={() => router.push('/atrevida-gestion/reservas')}>Volver</button>
-          </div>
-        </main>
+      <div className={styles.emptyState}>
+        <h3>Reserva no encontrada</h3>
+        <p>La reserva que buscas no existe o fue eliminada.</p>
+        <button onClick={() => router.push('/atrevida-gestion/reservas')}>Volver</button>
       </div>
     );
   }
@@ -863,11 +852,6 @@ function EditarReservaContent() {
 
 export default function EditarReservaPage() {
   return (
-    <div className={styles.pageContainer}>
-      <Header />
-      <main className={styles.main}>
-        <EditarReservaContent />
-      </main>
-    </div>
+    <EditarReservaContent />
   );
 }

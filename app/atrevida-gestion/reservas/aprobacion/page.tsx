@@ -20,7 +20,6 @@ import {
   XCircle,
 } from 'lucide-react';
 
-import Header from '@/components/AdminHeader/Header';
 import { AprobacionReservasTable } from '@/components/AdminReservas';
 import { WhatsappIcon } from '@/components/icons/WhatsappIcon';
 import { toast } from '@/components/Shared/Toast';
@@ -854,13 +853,9 @@ export default function AdminReservasAprobacionPage() {
   };
 
   return (
-    <div ref={pageRef} className={styles.pageContainer}>
-      <Header />
+    <div ref={pageRef} className="admin-stack">
 
-      <main className={styles.main}>
-        <div className="admin-mesh" />
 
-        <div className={styles.container}>
           <div ref={headerRef}>
             <PageHeader
               kicker="Gestión de reservas"
@@ -887,13 +882,6 @@ export default function AdminReservasAprobacionPage() {
           </div>
 
           <AdminPanel>
-            <div className={styles.boardHeader}>
-              <div>
-                <h2>{estadoFiltro === 'TODOS' ? 'Todas las solicitudes' : `Reservas ${ESTADO_OPTIONS.find((option) => option.value === estadoFiltro)?.label.toLowerCase()}`}</h2>
-              </div>
-              <StatusBadge>{totalRegistros ?? reservasVisibles.length} resultado{(totalRegistros ?? reservasVisibles.length) === 1 ? '' : 's'}</StatusBadge>
-            </div>
-
             <div className={styles.controlsPanel}>
               <label className={`${styles.controlField} ${styles.searchField}`}>
                 <span>Buscar reserva</span>
@@ -1006,8 +994,6 @@ export default function AdminReservasAprobacionPage() {
             </div>
           </AdminPanel>
 
-        </div>
-      </main>
 
       <ReasonDialog
         isOpen={rejectTarget !== null}

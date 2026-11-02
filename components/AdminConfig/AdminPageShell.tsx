@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LockKeyhole } from 'lucide-react';
-import Header from '@/components/AdminHeader/Header';
 import { getStoredAdminRole } from '@/lib/auth/adminSession';
 import styles from './AdminPageShell.module.css';
 
@@ -16,8 +15,8 @@ interface AdminPageShellProps {
 }
 
 /**
- * Esqueleto de toda página admin: guard de token, malla de fondo, sidebar y
- * contenedor. Reemplaza el boilerplate repetido en cada page.tsx.
+ * Control de acceso de una pagina: sin token manda al login y con un rol sin permiso muestra un aviso. El menu, el
+ * fondo y el espacio entre secciones los pone AdminShell desde el layout del panel.
  */
 export function AdminPageShell({
   children,
@@ -34,26 +33,19 @@ export function AdminPageShell({
     }
     const role = getStoredAdminRole();
     const next = !roles || (role && roles.includes(role)) ? 'ok' : 'denied';
-    // setTimeout: el rol/token solo existen en el cliente (mismo patrón que Header).
+    // setTimeout: el rol/token solo existen en el cliente (mismo patron que Header).
     const timer = window.setTimeout(() => setState(next), 0);
     return () => window.clearTimeout(timer);
   }, [router, roles]);
 
-  return (
-    <div className={styles.pageContainer}>
-      <div className="admin-mesh" />
-      <Header />
-      <main className={styles.main}>
-        <div className={styles.container}>
-          {state === 'ok' && children}
-          {state === 'denied' && (
-            <div className={styles.denied}>
-              <LockKeyhole size={28} strokeWidth={1.5} />
-              <p>{deniedMessage}</p>
-            </div>
-          )}
-        </div>
-      </main>
-    </div>
-  );
+  if (state === 'ok') return <>{children}</>;
+  if (state === 'denied') {
+    return (
+      <div className={styles.denied}>
+        <LockKeyhole size={28} strokeWidth={1.5} />
+        <p>{deniedMessage}</p>
+      </div>
+    );
+  }
+  return null;
 }

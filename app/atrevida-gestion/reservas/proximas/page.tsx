@@ -12,7 +12,6 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 
-import Header from '@/components/AdminHeader/Header';
 import { AdminButton, AdminPanel, CursorPagination, PageHeader, StatCard, StatGrid, StatusBadge } from '@/components/AdminConfig';
 import { ClientePopover } from '@/components/AdminClientes';
 import { ReservaContacto, ReservaRow, ReservaStockHint, formatDuracion, formatFalta } from '@/components/AdminReservas';
@@ -248,13 +247,9 @@ export default function AdminReservasProximasPage() {
   );
 
   return (
-    <div ref={pageRef} className={styles.pageContainer}>
-      <Header />
+    <div ref={pageRef} className="admin-stack">
 
-      <main className={styles.main}>
-        <div className="admin-mesh" />
 
-        <div className={styles.container}>
           <div ref={headerRef}>
             <PageHeader
               kicker="Recordatorios operativos"
@@ -314,8 +309,6 @@ export default function AdminReservasProximasPage() {
 			  </>
             )}
           </AdminPanel>
-        </div>
-      </main>
     </div>
   );
 }

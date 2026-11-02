@@ -14,7 +14,6 @@ import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import { DataTable, Column, RowActionsMenu, PageHeader, AdminPanel, ConfirmDialog, CursorPagination } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { Input } from '@/components/Shared';
-import Header from '@/components/AdminHeader/Header';
 import { eliminarReservaDB } from '@/lib/api/reservas';
 import { toast } from '@/components/Shared/Toast';
 import { ReservaDetailModal, ReservasToolbar } from '@/components/AdminReservas';
@@ -399,11 +398,7 @@ export default function AdminReservasPage() {
   };
 
   return (
-    <div ref={containerRef} className={styles.pageContainer}>
-      <div className="admin-mesh" />
-      <Header />
-      <main className={styles.main}>
-        <div className={styles.container}>
+    <div ref={containerRef} className="admin-stack">
           <div ref={headerRef}>
             <PageHeader
               kicker="Operación diaria"
@@ -553,8 +548,6 @@ export default function AdminReservasPage() {
               onSemanaChange={handleSemanaChange}
             />
           )}
-        </div>
-      </main>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import AdminSessionGuard from "@/components/AdminSessionGuard/AdminSessionGuard";
+import { AdminShell } from "@/components/AdminConfig/AdminShell";
 import "./atrevida-gestion.css";
 
 export const metadata: Metadata = {
@@ -19,7 +20,7 @@ export default function AdminLayout({
   return (
     <div data-admin="true" className="admin-page">
       <AdminSessionGuard />
-      {children}
+      <AdminShell>{children}</AdminShell>
     </div>
   );
 }

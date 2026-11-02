@@ -528,11 +528,7 @@ export function NotificationBell() {
                 </div>
               ) : reservas.length === 0 ? (
                 <div className={styles.empty}>
-                  <span className={styles.emptyIcon}>
-                    <Bell size={21} strokeWidth={1.7} />
-                  </span>
-                  <strong>No hay reservas pendientes</strong>
-                  <span>Cuando una reserva agendada requiera atención, aparecerá en esta lista.</span>
+               
                 </div>
               ) : (
                 <div className={styles.list}>

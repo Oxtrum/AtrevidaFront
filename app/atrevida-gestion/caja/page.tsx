@@ -13,7 +13,6 @@ import {
   Search,
   Trash2,
 } from 'lucide-react';
-import Header from '@/components/AdminHeader/Header';
 import { AdminButton, AlertBanner, PageHeader, DataTable, FormModal, CursorPagination, Tabs, TipoPagoSelector } from '@/components/AdminConfig';
 import { CobroReservaLoader } from './CobroReservaLoader';
 import type { ReservaBD } from '@/types/reserva';
@@ -921,11 +920,7 @@ export default function CajaPage() {
   ];
 
   return (
-    <div ref={containerRef} className={styles.pageContainer}>
-      <div className="admin-mesh" />
-      <Header />
-      <main className={styles.main}>
-        <div className={styles.container}>
+    <div ref={containerRef} className="admin-stack">
           <PageHeader
             kicker="Operación diaria"
             kickerIcon={<Banknote size={14} strokeWidth={2} />}
@@ -1449,8 +1444,6 @@ export default function CajaPage() {
               </>
             )}
           </div>
-        </div>
-      </main>
 
       {detallePagoCodigo && (
         <PagoDetalleModal

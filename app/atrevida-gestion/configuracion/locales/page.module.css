@@ -3,28 +3,6 @@
    Esta página NO necesita envolver DataTable en otro .content.
 */
 
-.pageContainer {
-  min-height: 100vh;
-  color: var(--admin-foreground);
-  font-family: var(--admin-font-family);
-  position: relative;
-  overflow-x: hidden;
-}
-
-.main {
-  position: relative;
-  z-index: 1;
-  min-height: 100vh;
-  padding: 2rem 1.5rem 4rem;
-}
-
-.container {
-  position: relative;
-  z-index: 1;
-  max-width: 1440px;
-  margin: 0 auto;
-}
-
 /* ── Submit error banner ── */
 .submitError {
   margin-top: 1rem;

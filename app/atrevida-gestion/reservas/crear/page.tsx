@@ -3,7 +3,6 @@
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useRef } from 'react';
 import gsap from 'gsap';
-import Header from '@/components/AdminHeader/Header';
 import { type ReservationFormInitialData } from '@/components/AdminReservationForm/useReservationForm';
 import { DiaSemana } from '@/types/reserva';
 import styles from './page.module.css';
@@ -42,20 +41,15 @@ function CrearReservaContent() {
 
 export default function CrearReservaPage() {
   return (
-    <div className={styles.pageContainer}>
-      <Header />
-      <main className={styles.main}>
-        <Suspense
-          fallback={
-            <div className={styles.loading}>
-              <div className={styles.loadingSpinner} />
-              <p>Cargando...</p>
-            </div>
-          }
-        >
-          <CrearReservaContent />
-        </Suspense>
-      </main>
-    </div>
+    <Suspense
+      fallback={
+        <div className={styles.loading}>
+          <div className={styles.loadingSpinner} />
+          <p>Cargando...</p>
+        </div>
+      }
+    >
+      <CrearReservaContent />
+    </Suspense>
   );
 }
