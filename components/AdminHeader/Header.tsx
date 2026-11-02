@@ -9,7 +9,6 @@ import {
   Banknote,
   Boxes,
   CalendarDays,
-  Clock3,
   CreditCard,
   LayoutDashboard,
   LogOut,
@@ -39,12 +38,6 @@ const NAV_LINKS = [
     detail: 'Agenda y clientes',
     href: '/atrevida-gestion/reservas',
     icon: CalendarDays,
-  },
-  {
-    label: 'Citas próximas',
-    detail: 'Recordatorios de hoy',
-    href: '/atrevida-gestion/reservas/proximas',
-    icon: Clock3,
   },
   {
     label: 'Cobros',
