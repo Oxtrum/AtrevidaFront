@@ -222,9 +222,6 @@ export default function Header() {
             const Icon = link.icon;
             const active = link.href === '/atrevida-gestion/reservas'
               ? pathname === link.href || pathname.startsWith('/atrevida-gestion/reservas/crear') || pathname.startsWith('/atrevida-gestion/reservas/editar')
-              : link.href === '/atrevida-gestion/caja'
-              // El historial de pagos es una pestaña de Cobros.
-              ? pathname.startsWith(link.href) || pathname.startsWith('/atrevida-gestion/pagos')
               : pathname === link.href || pathname.startsWith(`${link.href}/`);
 
             return (
