@@ -16,8 +16,13 @@ import { formatDateTime } from '@/lib/utils/formatDateTime';
 import styles from './page.module.css';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
 import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
+import { useServerSort } from '@/lib/hooks/useServerSort';
+import type { SortState } from '@/lib/utils/sortRows';
 
 interface PagoRow extends Pago, Record<string, unknown> {}
+
+/** Orden que el servidor aplica sin ordenar_por; solo se usa para marcar el header de fecha. */
+const ORDEN_POR_DEFECTO: SortState = { key: 'fecha_creacion', dir: 'desc' };
 
 const ESTADO_OPTIONS = ['PAGADO', 'PENDIENTE', 'BORRADOR'];
 const ESTADO_LABELS: Record<string, string> = {
@@ -57,7 +62,9 @@ export default function PagosPage() {
 	const clienteActivo = filtroTextoActivo(searchClienteDebounced);
 	const nitActivo = filtroTextoActivo(searchNitDebounced);
 	const productoActivo = filtroTextoActivo(searchProductoDebounced);
-	const filterKey = `${clienteActivo}|${nitActivo}|${productoActivo}|${filterEstado}`;
+	const serverSort = useServerSort(ORDEN_POR_DEFECTO);
+	const { params: sortParams } = serverSort;
+	const filterKey = `${clienteActivo}|${nitActivo}|${productoActivo}|${filterEstado}|${serverSort.key}`;
 	const pagination = useCursorPagination(filterKey);
 	const { cursor: paginationCursor, requestRevision, shouldIncludeTotal, setMetadata: setPaginationMetadata } = pagination;
 	const requestRef = useRef(0);
@@ -96,6 +103,7 @@ export default function PagosPage() {
 		limit: PAGE_LIMIT,
 		cursor: paginationCursor,
 		include_total: shouldIncludeTotal(),
+        ...sortParams,
       }, controller.signal);
 	  if (requestId !== requestRef.current) return;
       setPagos((res.data?.pagos ?? []) as PagoRow[]);
@@ -108,7 +116,7 @@ export default function PagosPage() {
     } finally {
 	  if (requestId === requestRef.current) setLoading(false);
     }
-  }, [clienteActivo, nitActivo, productoActivo, filterEstado, paginationCursor, requestRevision, shouldIncludeTotal, setPaginationMetadata]);
+  }, [clienteActivo, nitActivo, productoActivo, filterEstado, sortParams, paginationCursor, requestRevision, shouldIncludeTotal, setPaginationMetadata]);
 
 	useEffect(() => () => {
 		requestRef.current += 1;
@@ -164,6 +172,7 @@ export default function PagosPage() {
           codigoPago={row.codigo_pago}
           primerProducto={String(value ?? '')}
           cantidadProductos={Number(row.cantidad_productos ?? 0)}
+          esAbono={row.es_abono === true}
           onOpen={setDetallePagoCodigo}
         />
       ),
@@ -184,6 +193,7 @@ export default function PagosPage() {
       key: 'fecha_creacion',
       label: 'Fecha y hora',
       searchable: false,
+      firstSort: 'desc',
       render: (val) => formatDateTime(val as string),
     },
     {
@@ -279,7 +289,7 @@ export default function PagosPage() {
                   </div>
                 </div>
 
-                <DataTable<PagoRow>
+                <DataTable<PagoRow> sort={serverSort.sort} onSortChange={serverSort.onSortChange}
                   columns={columns}
                   data={pagos}
                   loading={loading}

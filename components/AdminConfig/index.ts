@@ -1,6 +1,7 @@
 export { PageHeader } from './PageHeader';
 export { DataTable } from './DataTable';
 export type { Column } from './DataTable';
+export type { SortDirection, SortState } from '@/lib/utils/sortRows';
 export { FormModal } from './FormModal';
 export { ConfirmDialog } from './ConfirmDialog';
 export { RowActionsMenu } from './RowActionsMenu';
@@ -30,3 +31,4 @@ export { MonthPicker, formatMes } from './MonthPicker';
 export { ChoiceChips } from './ChoiceChips';
 export type { ChoiceOption } from './ChoiceChips';
 export { VisibilityToggle } from './VisibilityToggle';
+export { FechaHechoField } from './FechaHechoField';

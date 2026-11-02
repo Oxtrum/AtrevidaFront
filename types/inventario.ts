@@ -137,6 +137,9 @@ export interface GetMovimientosParams {
   limit?: number;
   cursor?: string;
   include_total?: boolean;
+  /** Campo por el que ordena el servidor; sin el, creado_en descendente. */
+  ordenar_por?: string;
+  sentido?: 'asc' | 'desc';
 }
 
 /** Advertencia devuelta al crear/agendar una reserva sin stock suficiente (RN-12). */

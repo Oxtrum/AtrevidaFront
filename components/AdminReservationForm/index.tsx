@@ -14,6 +14,7 @@ import { useReservationForm, type ReservationFormInitialData } from './useReserv
 import { getClientesDB, type ClientePG } from '@/lib/api/clientes';
 import { ClienteFormModal } from '@/components/AdminClientes';
 import { ConfirmDialog } from '@/components/AdminConfig/ConfirmDialog';
+import { ReservaDuplicadaDialog } from '@/components/AdminReservas/ReservaDuplicadaDialog';
 import modalStyles from '@/components/AdminConfig/FormModal.module.css';
 import { PhoneInput } from '@/components/PhoneInput';
 import { phoneValueFrom, type PhoneValue } from '@/lib/utils/phone';
@@ -76,6 +77,9 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
     handleSubmit,
     confirmarDuracion,
     cancelarConfirmacionDuracion,
+    reservasDuplicadas,
+    confirmarDuplicada,
+    cancelarDuplicada,
   } = useReservationForm(initialData, onSuccess);
 
   const clienteQuery = normalizeSearch(cliente);
@@ -457,6 +461,19 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
             </p>
           </>
         )}
+      />
+
+      {/* El cliente ya tiene reserva ese día (en cualquier sucursal): evita agendar dos veces sin darse cuenta. */}
+      <ReservaDuplicadaDialog
+        reservas={reservasDuplicadas}
+        cliente={cliente}
+        telefonoE164={telefonoE164}
+        numeroTelefono={numeroTelefono}
+        fecha={fechaSeleccionadaISO}
+        confirmLabel="Sí, reservar igual"
+        loading={loading}
+        onConfirm={confirmarDuplicada}
+        onClose={cancelarDuplicada}
       />
     </form>
   );

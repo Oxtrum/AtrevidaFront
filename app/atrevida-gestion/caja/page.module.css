@@ -605,7 +605,7 @@
 
 .paymentToggle {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 0.5rem;
   margin-top: 0.85rem;
   padding: 0.35rem;

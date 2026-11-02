@@ -3,17 +3,22 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
-import { Pencil, Plus, Search, Trash2, Users } from 'lucide-react';
+import { Pencil, Plus, Search, Trash2, Users, Wallet } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
 import { PageHeader, DataTable, FormModal, RowActionsMenu, CursorPagination } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import { toast } from '@/components/Shared/Toast';
 import { getClientesDB, eliminarClienteDB } from '@/lib/api/clientes';
 import type { ClientePG } from '@/lib/api/clientes';
-import { ClienteFormModal } from '@/components/AdminClientes';
+import { ClienteFormModal, CuentaClienteModal } from '@/components/AdminClientes';
 import styles from './page.module.css';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
 import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
+import { useServerSort } from '@/lib/hooks/useServerSort';
+import type { SortState } from '@/lib/utils/sortRows';
+
+/** Orden que el servidor aplica sin ordenar_por; solo se usa para marcar el header de apellidos. */
+const ORDEN_POR_DEFECTO: SortState = { key: 'apellido', dir: 'asc' };
 
 interface ClienteRow extends Record<string, unknown> {
   id: number;
@@ -39,7 +44,9 @@ export default function ClientesPage() {
   const [error, setError] = useState<string | null>(null);
 	const [search, setSearch] = useState('');
 	const [debouncedSearch, setDebouncedSearch] = useState('');
-  const pagination = useCursorPagination(debouncedSearch);
+	const serverSort = useServerSort(ORDEN_POR_DEFECTO);
+	const { params: sortParams } = serverSort;
+  const pagination = useCursorPagination(`${debouncedSearch}|${serverSort.key}`);
 	const { cursor: paginationCursor, requestRevision, shouldIncludeTotal, setMetadata: setPaginationMetadata } = pagination;
 	const requestRef = useRef(0);
 	const requestControllerRef = useRef<AbortController | null>(null);
@@ -53,6 +60,7 @@ export default function ClientesPage() {
   const [editingCliente, setEditingCliente] = useState<ClientePG | undefined>(undefined);
 
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
+  const [cuentaDe, setCuentaDe] = useState<ClienteRow | null>(null);
 
   const fetchData = useCallback(async () => {
     void requestRevision;
@@ -63,7 +71,7 @@ export default function ClientesPage() {
     setLoading(true);
     setError(null);
     try {
-	  const res = await getClientesDB({ busqueda: debouncedSearch || undefined, limit: PAGE_LIMIT, cursor: paginationCursor, include_total: shouldIncludeTotal() }, controller.signal);
+	  const res = await getClientesDB({ busqueda: debouncedSearch || undefined, limit: PAGE_LIMIT, cursor: paginationCursor, include_total: shouldIncludeTotal(), ...sortParams }, controller.signal);
 	  if (requestId !== requestRef.current) return;
       const data = (res as { data?: { clientes?: ClientePG[] } }).data;
       setClientes((data?.clientes ?? []) as ClienteRow[]);
@@ -75,7 +83,7 @@ export default function ClientesPage() {
     } finally {
 	  if (requestId === requestRef.current) setLoading(false);
     }
-  }, [debouncedSearch, paginationCursor, requestRevision, shouldIncludeTotal, setPaginationMetadata]);
+  }, [debouncedSearch, sortParams, paginationCursor, requestRevision, shouldIncludeTotal, setPaginationMetadata]);
 
 	useEffect(() => () => {
 		requestRef.current += 1;
@@ -136,8 +144,10 @@ export default function ClientesPage() {
       key: 'acciones',
       label: '',
       searchable: false,
+      sortable: false,
       render: (_val, row) => (
         <RowActionsMenu actions={[
+          { label: 'Ver cuenta', icon: <Wallet size={12} strokeWidth={2} />, onClick: () => setCuentaDe(row) },
           { label: 'Editar', icon: <Pencil size={12} strokeWidth={2} />, onClick: () => openEdit(row) },
           { label: 'Eliminar', icon: <Trash2 size={12} strokeWidth={2} />, onClick: () => handleDelete(row), variant: 'danger' },
         ]} />
@@ -172,7 +182,7 @@ export default function ClientesPage() {
 			<Search size={16} className={styles.searchIcon} />
 			<input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar por nombre, apellido o telefono..." aria-label="Buscar clientes" />
 		  </div>
-          <DataTable<ClienteRow>
+          <DataTable<ClienteRow> sort={serverSort.sort} onSortChange={serverSort.onSortChange}
             columns={columns}
             data={clientes}
             loading={loading}
@@ -195,6 +205,9 @@ export default function ClientesPage() {
         cliente={editingCliente}
         onSaved={pagination.resetAfterMutation}
       />
+
+      {/* Cuenta del cliente: saldo, cargos y abonos */}
+      <CuentaClienteModal isOpen={cuentaDe !== null} cliente={cuentaDe} onClose={() => setCuentaDe(null)} onChanged={pagination.resetAfterMutation} />
 
       {/* Modal confirmar eliminación */}
       <FormModal

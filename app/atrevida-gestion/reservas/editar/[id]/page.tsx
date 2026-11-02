@@ -5,7 +5,8 @@ import { useRef, useState, useEffect, useMemo } from 'react';
 import gsap from 'gsap';
 import { Save } from 'lucide-react';
 import Header from '@/components/AdminHeader/Header';
-import { actualizarReservaDB, actualizarEstadoReservaDB, getReservaByID } from '@/lib/api/reservas';
+import { actualizarReservaDB, actualizarEstadoReservaDB, getReservaByID, reservasDuplicadasDeError, type ReservaDuplicada } from '@/lib/api/reservas';
+import { ReservaDuplicadaDialog } from '@/components/AdminReservas/ReservaDuplicadaDialog';
 import { getServiciosDB } from '@/lib/api/servicios';
 import { getPlanByID, getPlanesDB, type PlanItem } from '@/lib/api/planes';
 import { useReservas } from '@/lib/hooks/useReservas';
@@ -72,6 +73,9 @@ function EditarReservaContent() {
   const [nuevoLocal, setNuevoLocal] = useState('');
   const [nuevoPlanId, setNuevoPlanId] = useState<string>(SIN_PAQUETE);
   const [slotWarning, setSlotWarning] = useState<string | null>(null);
+  // Reservas que el cliente ya tiene en la nueva fecha: el backend avisa y espera confirmación.
+  const [reservasDuplicadas, setReservasDuplicadas] = useState<ReservaDuplicada[] | null>(null);
+  const estadoAplicadoRef = useRef<EstadoReserva | null>(null);
   const [serviciosDisponibles, setServiciosDisponibles] = useState<Array<{ nombre: string; categoria: string; tipoEspacio: string; costo: string; costo_variable?: boolean; tiempo: string }>>([]);
   const [planesDisponibles, setPlanesDisponibles] = useState<PlanItem[]>([]);
 
@@ -457,8 +461,13 @@ function EditarReservaContent() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    void guardar();
+  };
+
+  /** `confirmarDuplicado`: el staff ya vio que el cliente tiene otra reserva en la nueva fecha. */
+  const guardar = async (confirmarDuplicado = false) => {
     if (!reserva) return;
     if (nuevoPrecio.trim() !== '' && (!Number.isFinite(Number(nuevoPrecio)) || Number(nuevoPrecio) < 0 || Number(nuevoPrecio) > 99999999.99)) {
       toast.error('Ingresa un precio válido o deja el campo vacío si está pendiente.');
@@ -505,7 +514,8 @@ function EditarReservaContent() {
       const tipoDeServicio = servicioInfo?.tipoEspacio === 'B' ? 'B' : 'M';
 
       const actualizarEstado = async () => {
-        if (!estadoChanged) return;
+        // Si el aviso de reserva repetida frenó el guardado después de este paso, no repetirlo al confirmar.
+        if (!estadoChanged || estadoAplicadoRef.current === nuevoEstado) return;
         await actualizarEstadoReservaDB({
           id: reserva.id,
           estado: nuevoEstado,
@@ -517,6 +527,7 @@ function EditarReservaContent() {
               : (reserva.tipo === 'M' || reserva.tipo === 'B' ? reserva.tipo : 'M')) as 'M' | 'B',
           }),
         });
+        estadoAplicadoRef.current = nuevoEstado;
       };
 
       const actualizarCamposReserva = async () => {
@@ -524,6 +535,7 @@ function EditarReservaContent() {
         await actualizarReservaDB({
           id: reserva.id,
           local: reserva.local,
+          ...(confirmarDuplicado && { confirmar_duplicado: true }),
           ...(fechaChanged && { nueva_fecha: nuevaFecha }),
           ...(desdeChanged && { nueva_hora_desde: nuevaHoraDesde }),
           ...(hastaChanged && { nueva_hora_hasta: nuevaHoraHasta }),
@@ -585,6 +597,11 @@ function EditarReservaContent() {
       setMessage({ type: 'success', text: 'Reserva actualizada correctamente' });
       window.setTimeout(() => router.push('/atrevida-gestion/reservas'), 1500);
     } catch (err) {
+      const duplicadas = reservasDuplicadasDeError(err);
+      if (duplicadas) {
+        setReservasDuplicadas(duplicadas);
+        return;
+      }
       // También al toast: el aviso del tope de la página queda fuera de
       // pantalla cuando el staff está abajo editando el horario.
       const texto = err instanceof Error ? err.message : 'Error al actualizar reserva';
@@ -827,6 +844,19 @@ function EditarReservaContent() {
         </div>
       </form>
       )}
+
+      {/* Mover la reserva a un día donde el cliente ya tiene otra (en cualquier sucursal). */}
+      <ReservaDuplicadaDialog
+        reservas={reservasDuplicadas}
+        cliente={nuevoCliente.trim() || reserva?.cliente || ''}
+        telefonoE164={nuevoTelefonoE164 ?? reserva?.telefono_e164}
+        numeroTelefono={nuevoTelefono || reserva?.numero_telefono}
+        fecha={nuevaFecha}
+        confirmLabel="Sí, mover igual"
+        loading={loading}
+        onConfirm={() => { setReservasDuplicadas(null); void guardar(true); }}
+        onClose={() => setReservasDuplicadas(null)}
+      />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { apiClient } from './client';
 import { withLocalIdScope, withNombreLocalScope } from './localScope';
 import type { ApiResponse } from '@/types/reserva';
 import type { PaginationMetadata, PaginationParams } from './pagination';
+import type { TipoPago } from '@/lib/utils/tipoPago';
 
 export interface DetalleServicio {
   servicio_id: number | null;
@@ -19,10 +20,12 @@ export interface CrearPagoData {
   cliente_nombre: string;
   descuento: number;
   estado: string;
-  tipo_pago: 'qr' | 'efectivo';
+  tipo_pago: TipoPago;
   activo: boolean;
   /** Reserva que se cobra con este pago (opcional; una reserva admite un solo cobro). */
   reserva_id?: number | null;
+  /** Fecha del hecho (YYYY-MM-DD): cuando ocurrio el cobro. Sin ella es ahora; no puede ser futura. */
+  fecha_hecho?: string;
   detalle: DetalleServicio[];
 }
 
@@ -40,7 +43,12 @@ export interface Pago {
   estado: string;
   tipo_pago?: string;
   activo: boolean;
+  /** Abono a cuenta de un cliente (sin servicios), no una venta de mostrador. */
+  es_abono?: boolean;
+  /** Fecha del hecho: cuando ocurrio el cobro. */
   fecha_creacion: string;
+  /** Momento real en que se registro en el sistema (lo pone el servidor). */
+  registrado_en?: string;
   fecha_modificacion: string;
 }
 
@@ -136,6 +144,8 @@ export async function getPagosDB(params?: GetPagosParams, signal?: AbortSignal):
 	  limit: scopedParams.limit,
 	  cursor: scopedParams.cursor,
 	  include_total: scopedParams.include_total,
+      ordenar_por: scopedParams.ordenar_por,
+      sentido: scopedParams.sentido,
     },
   });
 }

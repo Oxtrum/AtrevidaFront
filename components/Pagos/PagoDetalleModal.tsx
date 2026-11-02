@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { AlertCircle, CalendarClock, CreditCard, LoaderCircle, MapPin, ReceiptText, UserRound, X } from 'lucide-react';
 import { getPagoByID, type PagoCompleto } from '@/lib/api/pagos';
 import { formatDateTime } from '@/lib/utils/formatDateTime';
+import { registradoOtroDia } from '@/lib/utils/registroTardio';
 import styles from './PagoDetalleModal.module.css';
 
 interface PagoDetalleModalProps {
@@ -28,15 +29,18 @@ export function PagoProductosCell({
   codigoPago,
   primerProducto,
   cantidadProductos,
+  esAbono = false,
   onOpen,
 }: {
   codigoPago: string;
   primerProducto: string;
   cantidadProductos: number;
+  /** Pago a cuenta de un cliente: no tiene servicios, se reparte entre sus cargos. */
+  esAbono?: boolean;
   onOpen: (codigo: string) => void;
 }) {
   const adicionales = Math.max(0, cantidadProductos - 1);
-  if (!primerProducto) return <span className={styles.emptyProduct}>Sin detalle</span>;
+  if (!primerProducto) return <span className={styles.emptyProduct}>{esAbono ? 'Abono a cuenta' : 'Sin detalle'}</span>;
 
   return (
     <div className={styles.productSummary} title={primerProducto}>
@@ -154,7 +158,11 @@ export function PagoDetalleModal({ codigoPago, onClose }: PagoDetalleModalProps)
                 <CalendarClock size={15} strokeWidth={1.8} />
                 <span>Fecha y hora</span>
                 <strong>{formatDateTime(pago.fecha_creacion)}</strong>
-                <small>Última actualización: {formatDateTime(pago.fecha_modificacion)}</small>
+                <small>
+                  {registradoOtroDia(pago.fecha_creacion, pago.registrado_en)
+                    ? `Registrado el ${formatDateTime(pago.registrado_en as string)}`
+                    : `Última actualización: ${formatDateTime(pago.fecha_modificacion)}`}
+                </small>
               </div>
             </section>
 

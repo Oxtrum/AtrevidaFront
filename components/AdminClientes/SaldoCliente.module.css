@@ -1,0 +1,44 @@
+.saldo {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 1.25rem;
+}
+
+/* Etiqueta y monto van juntos: una cifra suelta no dice de que saldo habla. */
+.grupo {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.etiqueta {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.monto {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tamaños: md va en celdas y listados; lg encabeza la cuenta del cliente. */
+.md .monto { font-size: 0.9rem; }
+.lg { gap: 0.5rem 2rem; }
+.lg .grupo { gap: 0.75rem; }
+.lg .etiqueta { font-size: 0.78rem; }
+.lg .monto { font-size: 1.6rem; letter-spacing: -0.01em; }
+
+/* El color nunca va solo: la etiqueta escrita dice lo mismo. */
+.success { color: #34d399; }
+.warning { color: #fbbf24; }
+.danger { color: var(--admin-accent-danger); }
+.neutral { color: var(--admin-text-muted); }
+
+/* En tema claro los tonos del oscuro no alcanzan contraste sobre blanco. */
+:global([data-admin-theme='light']) .success { color: #047857; }
+:global([data-admin-theme='light']) .warning { color: #b45309; }
+:global([data-admin-theme='light']) .danger { color: #b91c1c; }

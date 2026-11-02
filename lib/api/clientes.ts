@@ -64,6 +64,8 @@ export async function getClientesDB(params: GetClientesParams, signal?: AbortSig
 	  limit: params.limit,
 	  cursor: params.cursor,
 	  include_total: params.include_total ? 'true' : undefined,
+      ordenar_por: params.ordenar_por,
+      sentido: params.sentido,
     },
     signal,
   });

@@ -6,6 +6,7 @@ import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
 import { crearPagoDB } from '@/lib/api/pagos';
 import { cobrarPlan, type PlanItem } from '@/lib/api/planes';
+import { esTipoPago, opcionesTipoPago, type TipoPago } from '@/lib/utils/tipoPago';
 import styles from './page.module.css';
 
 interface LocalOpt { id: number; nombre: string; }
@@ -23,7 +24,7 @@ interface Props {
  * completo de locales que ya carga la página (independiente del filtro activo).
  */
 export default function CobrarPlanModal({ plan, locales, onClose, onCobrado }: Props) {
-  const [tipoPago, setTipoPago] = useState<'efectivo' | 'qr'>('efectivo');
+  const [tipoPago, setTipoPago] = useState<TipoPago>('efectivo');
   const [saving, setSaving] = useState(false);
 
   const local = locales.find((l) => l.nombre === plan.local_nombre_texto);
@@ -101,11 +102,8 @@ export default function CobrarPlanModal({ plan, locales, onClose, onCobrado }: P
             id="cobrar-tipo-pago"
             ariaLabelledBy="lbl-tipo-pago"
             value={tipoPago}
-            onChange={(v) => setTipoPago(v === 'qr' ? 'qr' : 'efectivo')}
-            options={[
-              { value: 'efectivo', label: 'Efectivo' },
-              { value: 'qr', label: 'QR' },
-            ]}
+            onChange={(v) => setTipoPago(esTipoPago(v) ? v : 'efectivo')}
+            options={opcionesTipoPago()}
           />
         </div>
 

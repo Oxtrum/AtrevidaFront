@@ -1,0 +1,94 @@
+.lead {
+  margin: 0 0 1rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--admin-text-light);
+  text-wrap: balance;
+}
+
+.lead strong {
+  color: var(--admin-foreground);
+  font-weight: 600;
+}
+
+/* Una sola superficie con filas separadas por línea fina: lee como lista, no como tarjetas apiladas. */
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-lg);
+  background: var(--admin-input-bg);
+  overflow: hidden;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 4.25rem minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 0.875rem;
+  padding: 0.75rem 1rem;
+}
+
+.item + .item {
+  border-top: 1px solid var(--admin-border-subtle);
+}
+
+.time {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.timeStart {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--admin-foreground);
+}
+
+.timeEnd {
+  font-size: 0.75rem;
+  color: var(--admin-text-dim);
+}
+
+.detail {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.service {
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--admin-foreground);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.local {
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  color: var(--admin-text-muted);
+}
+
+/* WhatsApp queda a la izquierda del pie (su estilo trae margin-right: auto), separado de las acciones que deciden. */
+.footer {
+  flex-wrap: wrap;
+}
+
+@media (max-width: 480px) {
+  .item {
+    grid-template-columns: 3.75rem minmax(0, 1fr);
+  }
+
+  .item > :last-child {
+    grid-column: 2;
+    justify-self: start;
+  }
+}

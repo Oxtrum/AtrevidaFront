@@ -8,8 +8,10 @@ import {
   Building2,
   CheckCircle2,
   CreditCard,
+  Landmark,
   Minus,
   Plus,
+  QrCode,
   ReceiptText,
   Search,
   Trash2,
@@ -38,6 +40,16 @@ import { formatDateTime } from '@/lib/utils/formatDateTime';
 import styles from './page.module.css';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
 import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
+import { useServerSort } from '@/lib/hooks/useServerSort';
+import type { SortState } from '@/lib/utils/sortRows';
+import { TIPOS_PAGO, etiquetaTipoPago, type TipoPago } from '@/lib/utils/tipoPago';
+
+const ICONO_TIPO_PAGO = {
+  efectivo: WalletCards,
+  tarjeta: CreditCard,
+  qr: QrCode,
+  transferencia: Landmark,
+} satisfies Record<TipoPago, typeof WalletCards>;
 
 interface LocalOption {
   id: number;
@@ -57,6 +69,9 @@ interface ServicioOption {
 interface ClienteOption extends ClientePG, Record<string, unknown> {}
 
 interface PagoRow extends Pago, Record<string, unknown> {}
+
+/** Orden que el servidor aplica sin ordenar_por; solo se usa para marcar el header de fecha. */
+const ORDEN_PAGOS_POR_DEFECTO: SortState = { key: 'fecha_creacion', dir: 'desc' };
 
 interface FormErrors {
   local?: string;
@@ -181,8 +196,10 @@ export default function CajaPage() {
   const pagosClienteActivo = filtroTextoActivo(pagosClienteDebounced);
   const pagosNitActivo = filtroTextoActivo(pagosNitDebounced);
   const pagosProductoActivo = filtroTextoActivo(pagosProductoDebounced);
+	const pagosSort = useServerSort(ORDEN_PAGOS_POR_DEFECTO);
+	const { params: pagosSortParams } = pagosSort;
 	const pagosPagination = useCursorPagination(
-    `${selectedLocal?.id ?? ''}|${pagosClienteActivo}|${pagosNitActivo}|${pagosProductoActivo}|${pagosEstado}`,
+    `${selectedLocal?.id ?? ''}|${pagosClienteActivo}|${pagosNitActivo}|${pagosProductoActivo}|${pagosEstado}|${pagosSort.key}`,
   );
 	const { cursor: pagosCursor, requestRevision: pagosRequestRevision, shouldIncludeTotal: shouldIncludePagosTotal, setMetadata: setPagosMetadata } = pagosPagination;
 	const pagosRequestRef = useRef(0);
@@ -196,7 +213,7 @@ export default function CajaPage() {
   const [loadingClientes, setLoadingClientes] = useState(false);
   const [clienteDropdownOpen, setClienteDropdownOpen] = useState(false);
   const [descuento, setDescuento] = useState(0);
-  const [tipoPago, setTipoPago] = useState<'qr' | 'efectivo'>('qr');
+  const [tipoPago, setTipoPago] = useState<TipoPago>('qr');
   const [detalle, setDetalle] = useState<DetallePagoDraft[]>([]);
   const [customServicio, setCustomServicio] = useState('');
   const [customPrecio, setCustomPrecio] = useState('');
@@ -299,6 +316,7 @@ export default function CajaPage() {
 		limit: PAGE_LIMIT,
 		cursor: pagosCursor,
 		include_total: shouldIncludePagosTotal(),
+        ...pagosSortParams,
       }, controller.signal);
 	  if (requestId !== pagosRequestRef.current) return;
       setPagos((res.data?.pagos ?? []) as PagoRow[]);
@@ -310,7 +328,7 @@ export default function CajaPage() {
     } finally {
 	  if (requestId === pagosRequestRef.current) setLoadingPagos(false);
     }
-  }, [selectedLocal, pagosClienteActivo, pagosNitActivo, pagosProductoActivo, pagosEstado, pagosCursor, pagosRequestRevision, shouldIncludePagosTotal, setPagosMetadata]);
+  }, [selectedLocal, pagosClienteActivo, pagosNitActivo, pagosProductoActivo, pagosEstado, pagosSortParams, pagosCursor, pagosRequestRevision, shouldIncludePagosTotal, setPagosMetadata]);
 
 	useEffect(() => () => {
 		pagosRequestRef.current += 1;
@@ -877,6 +895,7 @@ export default function CajaPage() {
           codigoPago={row.codigo_pago}
           primerProducto={String(value ?? '')}
           cantidadProductos={Number(row.cantidad_productos ?? 0)}
+          esAbono={row.es_abono === true}
           onOpen={setDetallePagoCodigo}
         />
       ),
@@ -897,6 +916,7 @@ export default function CajaPage() {
       key: 'fecha_creacion',
       label: 'Fecha y hora',
       searchable: false,
+      firstSort: 'desc',
       render: (value) => formatDateTime(value as string),
     },
     {
@@ -1281,22 +1301,21 @@ export default function CajaPage() {
                     )}
 
                     <div className={styles.paymentToggle} role="group" aria-label="Tipo de pago">
-                      <button
-                        type="button"
-                        className={tipoPago === 'qr' ? styles.paymentActive : ''}
-                        onClick={() => setTipoPago('qr')}
-                      >
-                        <CreditCard size={16} strokeWidth={1.8} />
-                        QR
-                      </button>
-                      <button
-                        type="button"
-                        className={tipoPago === 'efectivo' ? styles.paymentActive : ''}
-                        onClick={() => setTipoPago('efectivo')}
-                      >
-                        <WalletCards size={16} strokeWidth={1.8} />
-                        Efectivo
-                      </button>
+                      {TIPOS_PAGO.map((tipo) => {
+                        const Icono = ICONO_TIPO_PAGO[tipo];
+                        return (
+                          <button
+                            key={tipo}
+                            type="button"
+                            className={tipoPago === tipo ? styles.paymentActive : ''}
+                            aria-pressed={tipoPago === tipo}
+                            onClick={() => setTipoPago(tipo)}
+                          >
+                            <Icono size={16} strokeWidth={1.8} />
+                            {etiquetaTipoPago(tipo)}
+                          </button>
+                        );
+                      })}
                     </div>
 
                     <div className={styles.ticketColumns}>
@@ -1449,7 +1468,7 @@ export default function CajaPage() {
                     </div>
                   </div>
 
-                  <DataTable<PagoRow>
+                  <DataTable<PagoRow> sort={pagosSort.sort} onSortChange={pagosSort.onSortChange}
                     columns={columns}
                     data={pagos}
                     loading={loadingPagos}

@@ -24,6 +24,7 @@ import CobrarPlanModal from './CobrarPlanModal';
 import styles from './page.module.css';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
 import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
+import { useServerSort } from '@/lib/hooks/useServerSort';
 
 interface LocalOpt { id: number; nombre: string; }
 
@@ -44,7 +45,10 @@ export default function PaquetesActivosPage() {
   const [filtroEstado, setFiltroEstado] = useState(''); // '' = Todos
   const [busqueda, setBusqueda] = useState('');
   const [busquedaDebounced, setBusquedaDebounced] = useState('');
-	const pagination = useCursorPagination(`${filtroLocal}|${filtroEstado}|${scopedLocalName}|${busquedaDebounced}`);
+	// Sin orden pedido el servidor ordena por prioridad de estado (no es una columna), asi que ningun header queda marcado.
+	const serverSort = useServerSort();
+	const { params: sortParams } = serverSort;
+	const pagination = useCursorPagination(`${filtroLocal}|${filtroEstado}|${scopedLocalName}|${busquedaDebounced}|${serverSort.key}`);
 	const { cursor: paginationCursor, requestRevision, shouldIncludeTotal, setMetadata: setPaginationMetadata } = pagination;
 	const requestRef = useRef(0);
 	const requestControllerRef = useRef<AbortController | null>(null);
@@ -79,6 +83,7 @@ export default function PaquetesActivosPage() {
 		limit: PAGE_LIMIT,
 		cursor: paginationCursor,
 		include_total: shouldIncludeTotal(),
+			...sortParams,
       }, controller.signal);
 	  if (requestId !== requestRef.current) return;
       setPlanes((res?.data?.planes ?? []) as unknown as PlanRow[]);
@@ -90,7 +95,7 @@ export default function PaquetesActivosPage() {
     } finally {
 	  if (requestId === requestRef.current) setLoading(false);
     }
-  }, [adminLocalScope.ready, filtroLocal, filtroEstado, busquedaDebounced, paginationCursor, requestRevision, shouldIncludeTotal, setPaginationMetadata]);
+  }, [adminLocalScope.ready, filtroLocal, filtroEstado, busquedaDebounced, sortParams, paginationCursor, requestRevision, shouldIncludeTotal, setPaginationMetadata]);
 
 	useEffect(() => () => {
 		requestRef.current += 1;
@@ -225,6 +230,7 @@ export default function PaquetesActivosPage() {
       key: 'acciones',
       label: '',
       searchable: false,
+      sortable: false,
       render: (_v, row) => {
         const actions: RowAction[] = [];
         if (row.estado === 'RESERVADO') {
@@ -323,7 +329,7 @@ export default function PaquetesActivosPage() {
               </div>
             </div>
 
-            <DataTable<PlanRow>
+            <DataTable<PlanRow> sort={serverSort.sort} onSortChange={serverSort.onSortChange}
               columns={columns}
               data={planes}
               loading={loading}

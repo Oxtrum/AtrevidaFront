@@ -9,15 +9,9 @@ import { useAsyncData } from '@/lib/hooks/useAsyncData';
 import { useConfiguracion } from '@/lib/hooks/useConfiguracion';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { formatMoney, monthRange, todayISO } from '@/lib/utils/format';
+import { etiquetaTipoPago } from '@/lib/utils/tipoPago';
 // Misma estructura que la pestaña Resumen (filtros, tarjetas, dos gráficos): comparten estilos.
 import styles from './ReporteFinancieroPanel.module.css';
-
-function normalizePaymentType(value: string) {
-  if (!value) return 'No definido';
-  const lower = value.trim().toLowerCase();
-  if (lower === 'qr') return 'QR';
-  return lower.charAt(0).toUpperCase() + lower.slice(1);
-}
 
 function cleanServiceName(value: string | null | undefined) {
   if (!value) return 'Sin datos';
@@ -65,7 +59,7 @@ export function ReporteVentasPanel() {
   const paymentTypeItems = useMemo(
     () => (reporte?.ventas_por_tipo_pago ?? []).map((item) => ({
       key: item.tipo_pago || 'sin_tipo',
-      label: normalizePaymentType(item.tipo_pago),
+      label: etiquetaTipoPago(item.tipo_pago),
       value: Number(item.total ?? 0),
     })),
     [reporte],
