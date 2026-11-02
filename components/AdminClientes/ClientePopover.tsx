@@ -38,7 +38,13 @@ export function ClientePopover({ nombre, telefono, telefonoE164, clienteId, rese
   const router = useRouter();
   const id = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const popRef = useRef<HTMLDivElement>(null);
+  const popRef = useRef<HTMLDivElement | null>(null);
+  // La tarjeta vive en un portal que monta un render despues de abrirse: se avisa cuando existe para medirla.
+  const [popMontado, setPopMontado] = useState(false);
+  const montarPop = useCallback((el: HTMLDivElement | null) => {
+    popRef.current = el;
+    setPopMontado(el !== null);
+  }, []);
   const timerRef = useRef<number | null>(null);
   const [abierto, setAbierto] = useState(false);
   const [fijado, setFijado] = useState(false);
@@ -82,7 +88,7 @@ export function ClientePopover({ nombre, telefono, telefonoE164, clienteId, rese
     const ancla = triggerRef.current.getBoundingClientRect();
     const caja = popRef.current.getBoundingClientRect();
     setPos(posicionPopover(ancla, { width: caja.width, height: caja.height }, { width: window.innerWidth, height: window.innerHeight }));
-  }, [abierto, cedula]);
+  }, [abierto, cedula, popMontado]);
 
   useEffect(() => {
     if (!abierto) return;
@@ -177,7 +183,7 @@ export function ClientePopover({ nombre, telefono, telefonoE164, clienteId, rese
       {abierto && (
         <ModalPortal>
           <div
-            ref={popRef}
+            ref={montarPop}
             id={id}
             role="dialog"
             aria-label={`Cliente ${nombre}`}
