@@ -3,70 +3,27 @@
 import { useRef, useEffect, useState, useMemo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import gsap from 'gsap';
-import { Banknote, CalendarDays, CalendarRange, Clock, List, Pencil, Trash2 } from 'lucide-react';
-import { DiaSemana, EstadoReserva, ReservaBD, ReservaDetalle, generarSemanas, getFechasDeSemana } from '@/types/reserva';
+import { CalendarDays, CalendarRange, List } from 'lucide-react';
+import { DiaSemana, ReservaBD, ReservaDetalle, generarSemanas, getFechasDeSemana } from '@/types/reserva';
 import { SLOTS_POR_HORA, calcularHoraFin } from '@/lib/constants/reservationForm';
 import { CalendarAdmin } from '@/components/Calendar';
 import { useLocales } from '@/lib/hooks/useLocales';
-import { useReservasFiltradas } from '@/lib/hooks/useReservasFiltradas';
-import type { ReservaTipoBackend } from '@/lib/api/reservas';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
-import { DataTable, Column, RowActionsMenu, PageHeader, AdminPanel, ConfirmDialog, CursorPagination, Tabs, ChoiceChips } from '@/components/AdminConfig';
+import { PageHeader, ConfirmDialog, Tabs } from '@/components/AdminConfig';
 import type { TabItem } from '@/components/AdminConfig';
-import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
-import { Input } from '@/components/Shared';
 import { eliminarReservaDB } from '@/lib/api/reservas';
 import { toast } from '@/components/Shared/Toast';
 import { BandejaReservas, ReservaDetailModal, ReservasToolbar } from '@/components/AdminReservas';
-import { ClientePopover } from '@/components/AdminClientes';
-import { ReservaEstadoCelda } from '@/components/AdminReservas';
 import styles from './page.module.css';
-import { PAGE_LIMIT } from '@/lib/api/pagination';
-import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
-import { useServerSort } from '@/lib/hooks/useServerSort';
 
-interface ReservaRow extends Record<string, unknown> {
-  id: number;
-  local: string;
-  tipo: string;
-  fecha: string;
-  hora_desde: string;
-  hora_hasta: string;
-  cliente: string;
-  cliente_id?: number | null;
-  numero_telefono?: string;
-  telefono_e164?: string;
-  servicio: string;
-  servicio_solicitado?: string | null;
-  servicio_confirmado?: string | null;
-  precio?: number;
-  notas?: string;
-  estado?: EstadoReserva;
-  /** Faltaba stock de insumos al agendar (trastienda). */
-  alerta_inventario?: boolean;
-  estado_cobro?: 'COBRADA' | 'CUBIERTA_PAQUETE' | 'POR_COBRAR';
-}
-
-type Vista = 'calendario' | 'lista' | 'pendientes';
-type FiltroCobro = 'todas' | 'por_cobrar' | 'completadas';
-
-const VISTAS: TabItem<Vista>[] = [
-  { key: 'calendario', label: 'Calendario', icon: <CalendarDays size={14} strokeWidth={2} /> },
-  { key: 'lista', label: 'Lista', icon: <List size={14} strokeWidth={2} /> },
-  { key: 'pendientes', label: 'Pendientes', icon: <Clock size={14} strokeWidth={2} /> },
-];
-
-const FILTROS_COBRO: { value: FiltroCobro; label: string }[] = [
-  { value: 'todas', label: 'Todas' },
-  { value: 'por_cobrar', label: 'Por cobrar' },
-  { value: 'completadas', label: 'Completadas' },
-];
+type Vista = 'calendario' | 'lista';
 
 const DEFAULT_LOCAL = 'SAN MARTIN';
 const LOCAL_SCOPE_PENDING = '__LOCAL_SCOPE_PENDING__';
 
 /**
- * AdminReservasPage - Página de gestión de reservas para administrador
+ * AdminReservasPage - Página de gestión de reservas para administrador.
+ * Calendario para ver la semana; Lista para aprobar, confirmar, completar y cobrar.
  */
 export default function AdminReservasPage() {
   const router = useRouter();
@@ -76,51 +33,23 @@ export default function AdminReservasPage() {
   const calendarRef = useRef<HTMLDivElement>(null);
   const [sucursalActiva, setSucursalActiva] = useState(DEFAULT_LOCAL);
   const [semanaActiva, setSemanaActiva] = useState('0');
-
-  // Estado para filtros de lista de reservas
   const [vistaActiva, setVistaActiva] = useState<Vista>('calendario');
-  const [filtroLocal, setFiltroLocal] = useState(DEFAULT_LOCAL);
-  const [filtroTipo, setFiltroTipo] = useState<ReservaTipoBackend | ''>('');
-  const [filtroCobro, setFiltroCobro] = useState<FiltroCobro>('todas');
-  const [busqueda, setBusqueda] = useState('');
-  const [busquedaDebounced, setBusquedaDebounced] = useState('');
+  const [pendientes, setPendientes] = useState(0);
+  const [calendarRevision, setCalendarRevision] = useState(0);
 
   const { locales } = useLocales();
-  const { reservas, loading, error, pagination: serverPagination, fetch: fetchReservas } = useReservasFiltradas();
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [selectedReserva, setSelectedReserva] = useState<ReservaBD | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<ReservaBD | null>(null);
   const adminLocalScope = useAdminLocalScopeState();
   const scopedLocalName = adminLocalScope.workplace?.nombre_local ?? '';
   const effectiveSucursalActiva = scopedLocalName || (adminLocalScope.ready ? sucursalActiva : '');
-  const effectiveFiltroLocal = scopedLocalName || (adminLocalScope.ready ? filtroLocal : '');
 
-  // Inicializar fechas por defecto
-  const getInitialFechaDesde = () => {
-    const hoy = new Date();
-    return hoy.toISOString().split('T')[0];
-  };
-  const getInitialFechaHasta = () => {
-    const hoy = new Date();
-    const proximoSabado = new Date(hoy);
-    proximoSabado.setDate(hoy.getDate() + (13 - hoy.getDay()));
-    return proximoSabado.toISOString().split('T')[0];
-  };
-
-  const [filtroFechaDesde, setFiltroFechaDesde] = useState(getInitialFechaDesde);
-  const [filtroFechaHasta, setFiltroFechaHasta] = useState(getInitialFechaHasta);
-	// Sin orden pedido el servidor ordena por local, fecha y hora (no es una sola columna), asi que ningun header queda marcado.
-	const serverSort = useServerSort();
-	const { params: sortParams } = serverSort;
-	const pagination = useCursorPagination(`${effectiveFiltroLocal}|${filtroFechaDesde}|${filtroFechaHasta}|${filtroTipo}|${filtroCobro}|${busquedaDebounced}|${serverSort.key}`);
-	const { cursor: paginationCursor, requestRevision, shouldIncludeTotal, setMetadata: setPaginationMetadata } = pagination;
-
-	useEffect(() => setPaginationMetadata(serverPagination), [setPaginationMetadata, serverPagination]);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => setBusquedaDebounced(busqueda.trim()), 300);
-    return () => window.clearTimeout(timer);
-  }, [busqueda]);
+  // El conteo de pendientes va en la pestaña Lista: es lo que hay que atender ahí.
+  const vistas: TabItem<Vista>[] = useMemo(() => [
+    { key: 'calendario', label: 'Calendario', icon: <CalendarDays size={14} strokeWidth={2} /> },
+    { key: 'lista', label: 'Lista', icon: <List size={14} strokeWidth={2} />, count: pendientes },
+  ], [pendientes]);
 
   // Fechas de la semana que muestra el calendario. Se derivan igual que en
   // CalendarAdmin (generarSemanas() + getFechasDeSemana), y `semanaActiva` se
@@ -133,50 +62,6 @@ export default function AdminReservasPage() {
     return semana ? getFechasDeSemana(semana.fechaInicio) : null;
   }, [semanaActiva]);
 
-  // Fetch reservas filtradas cuando cambian los filtros
-  useEffect(() => {
-    if (vistaActiva === 'lista' && effectiveFiltroLocal && filtroFechaDesde && filtroFechaHasta) {
-      fetchReservas({
-        local: effectiveFiltroLocal,
-        fecha_desde: filtroFechaDesde,
-        fecha_hasta: filtroFechaHasta,
-        tipo: (filtroTipo as 'mesa' | 'bicicleta' | '') || undefined,
-        estado: filtroCobro !== 'todas' ? 'COMPLETADO' : undefined,
-        estado_cobro: filtroCobro === 'por_cobrar' ? 'POR_COBRAR' : undefined,
-		busqueda: busquedaDebounced || undefined,
-		limit: PAGE_LIMIT,
-		cursor: paginationCursor,
-		include_total: shouldIncludeTotal(),
-		...sortParams,
-      });
-    }
-  }, [vistaActiva, effectiveFiltroLocal, filtroFechaDesde, filtroFechaHasta, filtroTipo, filtroCobro, busquedaDebounced, sortParams, fetchReservas, paginationCursor, requestRevision, shouldIncludeTotal]);
-
-  // Aprobacion de reservas redirige aqui con ?vista=pendientes.
-  useEffect(() => {
-    const vista = new URLSearchParams(window.location.search).get('vista');
-    if (vista === 'pendientes' || vista === 'lista') setVistaActiva(vista);
-  }, []);
-
-  const cambiarVista = (vista: Vista) => {
-    setVistaActiva(vista);
-    window.history.replaceState(null, '', vista === 'calendario' ? window.location.pathname : `?vista=${vista}`);
-  };
-
-  // Un chip de cobro mira hacia atras: lo por cobrar suele ser de dias pasados, no de esta semana.
-  const cambiarFiltroCobro = (valor: FiltroCobro) => {
-    setFiltroCobro(valor);
-    if (valor === 'todas') {
-      setFiltroFechaDesde(getInitialFechaDesde());
-      setFiltroFechaHasta(getInitialFechaHasta());
-      return;
-    }
-    const desde = new Date();
-    desde.setDate(desde.getDate() - 30);
-    setFiltroFechaDesde(desde.toISOString().split('T')[0]);
-    setFiltroFechaHasta(getInitialFechaDesde());
-  };
-
   // Verificar autenticación admin
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -184,6 +69,17 @@ export default function AdminReservasPage() {
       router.push('/atrevida-gestion/login');
     }
   }, [router]);
+
+  // Aprobacion de reservas redirige aqui con ?vista=pendientes.
+  useEffect(() => {
+    const vista = new URLSearchParams(window.location.search).get('vista');
+    if (vista === 'pendientes' || vista === 'lista') setVistaActiva('lista');
+  }, []);
+
+  const cambiarVista = (vista: Vista) => {
+    setVistaActiva(vista);
+    window.history.replaceState(null, '', window.location.pathname);
+  };
 
   // Animaciones GSAP
   useEffect(() => {
@@ -240,7 +136,7 @@ export default function AdminReservasPage() {
     try {
       await eliminarReservaDB(reserva.id);
       toast.success('Reserva eliminada');
-      pagination.resetAfterMutation();
+      setCalendarRevision((n) => n + 1);
     } catch (err) {
       if (err instanceof Error) console.error('eliminarReservaDB', err);
       toast.error('No se pudo eliminar la reserva');
@@ -317,118 +213,6 @@ export default function AdminReservasPage() {
     });
     if (idx < 0) return;
     setSemanaActiva(String(idx));
-    // En la lista, la fecha elegida acota el rango a ese día.
-    if (vistaActiva === 'lista') {
-      setFiltroFechaDesde(iso);
-      setFiltroFechaHasta(iso);
-    }
-  };
-
-  const tipoOptions: Array<{ value: ReservaTipoBackend | ''; label: string }> = [
-    { value: '', label: 'Todos' },
-    { value: 'mesa', label: 'Mesa' },
-    { value: 'bicicleta', label: 'Bicicleta' },
-  ];
-
-  const TIPO_COLORS: Record<string, { bg: string; color: string }> = {
-    mesa: { bg: 'rgba(236,0,140,0.12)', color: '#EC008C' },
-    bicicleta: { bg: 'rgba(146,39,143,0.12)', color: '#92278F' },
-  };
-
-  const columns: Column<ReservaRow>[] = [
-    {
-      key: 'fecha',
-      label: 'Fecha',
-      render: (_v, row) => <span style={{ fontVariantNumeric: 'tabular-nums' }}>{row.fecha as string}</span>,
-    },
-    {
-      key: 'hora_desde',
-      label: 'Hora',
-      searchable: false,
-      render: (_v, row) => (
-        <span style={{ fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
-          {row.hora_desde as string} – {row.hora_hasta as string}
-        </span>
-      ),
-    },
-    {
-      key: 'cliente',
-      label: 'Cliente',
-      render: (_v, row) => row.cliente ? (
-        <ClientePopover
-          nombre={row.cliente}
-          telefono={row.numero_telefono}
-          telefonoE164={row.telefono_e164}
-          clienteId={row.cliente_id}
-          reservaId={row.id}
-          onVinculado={pagination.resetAfterMutation}
-        />
-      ) : <span>—</span>,
-    },
-    {
-      key: 'tipo',
-      label: 'Tipo',
-      render: (_v, row) => {
-        const t = ((row.tipo as string) || '').toLowerCase();
-        const key = t === 'm' ? 'mesa' : t === 'b' ? 'bicicleta' : t;
-        const c = TIPO_COLORS[key] ?? { bg: 'rgba(255,255,255,0.08)', color: 'inherit' };
-        const label = key === 'mesa' ? 'Mesa' : key === 'bicicleta' ? 'Bicicleta' : key || '—';
-        return (
-          <span style={{ background: c.bg, color: c.color, borderRadius: 6, padding: '2px 8px', fontSize: '0.73rem', fontWeight: 600, whiteSpace: 'nowrap' }}>
-            {label}
-          </span>
-        );
-      },
-    },
-    {
-      key: 'servicio',
-      label: 'Servicio',
-      render: (_v, row) => (
-        <span style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
-          {(row.servicio_confirmado as string) || (row.servicio as string) || (row.servicio_solicitado as string) || 'Por definir'}
-        </span>
-      ),
-    },
-    {
-      key: 'estado',
-      label: 'Estado',
-      searchable: false,
-      render: (_v, row) => (
-        <ReservaEstadoCelda estado={row.estado} estadoCobro={row.estado_cobro} alertaInventario={row.alerta_inventario} />
-      ),
-    },
-    {
-      key: 'local',
-      label: 'Local',
-      render: (_v, row) => (
-        <span style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 6, padding: '2px 8px', fontSize: '0.73rem', whiteSpace: 'nowrap' }}>
-          {row.local as string}
-        </span>
-      ),
-    },
-    {
-      key: 'acciones',
-      label: '',
-      searchable: false,
-      sortable: false,
-      render: (_v, row) => (
-        <div onClick={e => e.stopPropagation()}>
-          <RowActionsMenu actions={[
-            ...(row.estado === 'COMPLETADO' && row.estado_cobro === 'POR_COBRAR'
-              ? [{ label: 'Cobrar', icon: <Banknote size={12} strokeWidth={2} />, onClick: () => router.push(`/atrevida-gestion/caja?reserva=${row.id}`) }]
-              : []),
-            ...(row.estado !== 'COMPLETADO'
-              ? [{ label: 'Editar', icon: <Pencil size={12} strokeWidth={2} />, onClick: () => router.push(`/atrevida-gestion/reservas/editar/${row.id}`) }]
-              : []),
-            { label: 'Eliminar', icon: <Trash2 size={12} strokeWidth={2} />, onClick: () => requestDeleteReserva(row as unknown as ReservaBD), variant: 'danger', disabled: deletingId === (row.id as number) },
-          ]} />
-        </div>
-      ),
-    },
-  ];
-
-  const handleTipoFiltroChange = (value: string) => {
-    setFiltroTipo(value === 'mesa' || value === 'bicicleta' ? value : '');
   };
 
   return (
@@ -439,7 +223,7 @@ export default function AdminReservasPage() {
               kickerIcon={<CalendarRange size={14} strokeWidth={2} />}
               title="Gestión de Reservas"
               accentWord="Reservas"
-              subtitle="Vista detallada de reservas. Filtra por local, fecha, estado y tipo."
+              subtitle="Agenda de la semana y lista de reservas por atender."
               actions={
                 <button
                   className={styles.createButton}
@@ -458,85 +242,40 @@ export default function AdminReservasPage() {
             />
           </div>
 
-          <Tabs tabs={VISTAS} active={vistaActiva} onChange={cambiarVista} ariaLabel="Vistas de reservas" />
+          <Tabs tabs={vistas} active={vistaActiva} onChange={cambiarVista} ariaLabel="Vistas de reservas" />
 
-          {vistaActiva === 'pendientes' && <BandejaReservas />}
+          {/* La lista queda montada para que el conteo de pendientes de la pestaña siempre este al dia. */}
+          <div className="admin-stack" style={vistaActiva !== 'lista' ? { display: 'none' } : undefined}>
+            <BandejaReservas onPendientes={setPendientes} />
+          </div>
 
-          {vistaActiva !== 'pendientes' && (
-          <ReservasToolbar
-            vista={vistaActiva}
-            localValue={effectiveSucursalActiva}
-            localOptions={localesOptions}
-            onLocalChange={(value) => {
-              handleSucursalChange(value);
-              setFiltroLocal(scopedLocalName || value);
-            }}
-            localLocked={!!scopedLocalName}
-            semanaIndex={Number(semanaActiva)}
-            semanaOptions={semanaOptions}
-            onSemanaChange={handleSemanaChange}
-            fechaISO={semanaFechaISO}
-            minISO={rangoFechas.min}
-            maxISO={rangoFechas.max}
-            onFechaSelect={handleFechaSelect}
-            filtros={
-              <>
-                <div className={styles.filtroGroup}>
-                  <label>Buscar</label>
-                  <Input
-                    type="search"
-                    value={busqueda}
-                    onChange={(e) => setBusqueda(e.target.value)}
-                    placeholder="Cliente, servicio, teléfono..."
-                  />
-                </div>
-                <div className={styles.filtroGroup}>
-                  <label>Fecha desde</label>
-                  <Input
-                    type="date"
-                    value={filtroFechaDesde}
-                    onChange={(e) => setFiltroFechaDesde(e.target.value)}
-                  />
-                </div>
-                <div className={styles.filtroGroup}>
-                  <label>Fecha hasta</label>
-                  <Input
-                    type="date"
-                    value={filtroFechaHasta}
-                    onChange={(e) => setFiltroFechaHasta(e.target.value)}
-                  />
-                </div>
-                <div className={styles.filtroGroup}>
-                  <label>Tipo</label>
-                  <CustomSelect
-                    value={filtroTipo}
-                    onChange={handleTipoFiltroChange}
-                    options={tipoOptions}
-                  />
-                </div>
-                <div className={styles.filtroGroup}>
-                  <label>Estado</label>
-                  <ChoiceChips options={FILTROS_COBRO} value={filtroCobro} onChange={cambiarFiltroCobro} ariaLabel="Estado de las reservas" />
-                </div>
-              </>
-            }
-          />
-          )}
-
-          {vistaActiva === 'lista' && (
-            <AdminPanel>
-              <DataTable<ReservaRow> sort={serverSort.sort} onSortChange={serverSort.onSortChange}
-                columns={columns}
-                data={reservas as unknown as ReservaRow[]}
-                loading={loading}
-                error={error}
-                getRowKey={(r) => r.id as number}
-                hideSearch
-                emptyMessage="No se encontraron reservas"
-                onRowClick={(row) => setSelectedReserva(row as unknown as ReservaBD)}
+          {vistaActiva === 'calendario' && (
+            <>
+              <ReservasToolbar
+                localValue={effectiveSucursalActiva}
+                localOptions={localesOptions}
+                onLocalChange={handleSucursalChange}
+                localLocked={!!scopedLocalName}
+                semanaIndex={Number(semanaActiva)}
+                semanaOptions={semanaOptions}
+                onSemanaChange={handleSemanaChange}
+                fechaISO={semanaFechaISO}
+                minISO={rangoFechas.min}
+                maxISO={rangoFechas.max}
+                onFechaSelect={handleFechaSelect}
               />
-			  <CursorPagination page={pagination.page} totalPages={pagination.totalPages} hasNext={pagination.hasNext} loading={loading} onPrevious={pagination.previous} onNext={pagination.next} />
-            </AdminPanel>
+
+              <CalendarAdmin
+                key={`${pathname}-${calendarRevision}`}
+                hideControls
+                sucursal={effectiveSucursalActiva}
+                semanaIndex={Number(semanaActiva)}
+                onSlotClick={handleSlotClick}
+                onReservaClick={abrirDetalleDesdeCalendario}
+                onSucursalChange={handleSucursalChange}
+                onSemanaChange={handleSemanaChange}
+              />
+            </>
           )}
 
           {selectedReserva && (
@@ -569,20 +308,6 @@ export default function AdminReservasPage() {
             }}
             onClose={() => setConfirmDelete(null)}
           />
-
-          {vistaActiva === 'calendario' && (
-
-            <CalendarAdmin
-              key={pathname}
-              hideControls
-              sucursal={effectiveSucursalActiva}
-              semanaIndex={Number(semanaActiva)}
-              onSlotClick={handleSlotClick}
-              onReservaClick={abrirDetalleDesdeCalendario}
-              onSucursalChange={handleSucursalChange}
-              onSemanaChange={handleSemanaChange}
-            />
-          )}
     </div>
   );
 }

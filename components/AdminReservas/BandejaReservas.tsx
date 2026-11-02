@@ -5,14 +5,11 @@ import { useRouter } from 'next/navigation';
 import {
   AlertCircle,
   Banknote,
-  Calendar,
   CalendarCheck,
   Check,
   CheckCircle2,
   Pencil,
   RefreshCw,
-  Search,
-  SlidersHorizontal,
   Trash2,
   XCircle,
 } from 'lucide-react';
@@ -20,7 +17,7 @@ import {
 import { AprobacionReservasTable } from '@/components/AdminReservas';
 import { WhatsappIcon } from '@/components/icons/WhatsappIcon';
 import { toast } from '@/components/Shared/Toast';
-import { AdminButton, AdminPanel, ConfirmDialog, CursorPagination, FormField, FormGrid, FormModal, FormSubmitError, ReasonDialog, RowActionsMenu, Tabs } from '@/components/AdminConfig';
+import { AdminButton, AdminPanel, ConfirmDialog, CursorPagination, FilterBar, FormField, FormGrid, FormModal, FormSubmitError, ReasonDialog, RowActionsMenu } from '@/components/AdminConfig';
 import { CATEGORIAS_ORDEN } from '@/components/AdminReservationForm/constants';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { actualizarEstadoReservaDB, actualizarReservaDB, actualizarReservaNotificadoDB, eliminarReservaDB, getReservasDB } from '@/lib/api/reservas';
@@ -40,7 +37,7 @@ import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
 
 type EstadoGestion = Extract<EstadoReserva, 'PENDIENTE' | 'AGENDADO' | 'RECHAZADO'>;
 type EstadoNormalizado = EstadoGestion | 'COMPLETADO';
-type EstadoFiltro = EstadoGestion | 'TODOS' | 'POR_COBRAR';
+type EstadoFiltro = EstadoGestion | 'TODOS' | 'COMPLETADO' | 'POR_COBRAR';
 type ApprovalDraft = {
   fecha: string;
   horaDesde: string;
@@ -61,8 +58,9 @@ const ESTADO_OPTIONS: Array<{ value: EstadoFiltro; label: string }> = [
   { value: 'TODOS', label: 'Todas' },
   { value: 'PENDIENTE', label: 'Pendientes' },
   { value: 'AGENDADO', label: 'Agendadas' },
-  { value: 'RECHAZADO', label: 'Rechazadas' },
+  { value: 'COMPLETADO', label: 'Completadas' },
   { value: 'POR_COBRAR', label: 'Por cobrar' },
+  { value: 'RECHAZADO', label: 'Rechazadas' },
 ];
 const COMPLETION_REASON_DONE = 'Ya se brindo el servicio';
 const ALL_LOCALS_FILTER = 'TODOS';
@@ -203,8 +201,16 @@ function ReservaResumen({ reserva, servicios }: { reserva: ReservaBD; servicios:
   );
 }
 
-/** Bandeja de solicitudes: aprobar, rechazar, confirmar por WhatsApp y completar. Es la pestaña Pendientes de Reservas. */
-export function BandejaReservas() {
+interface BandejaReservasProps {
+  /** Cuantas solicitudes esperan aprobacion (sin filtros). La pagina lo muestra en la pestaña. */
+  onPendientes?: (total: number) => void;
+}
+
+/**
+ * Lista de reservas con las acciones del dia a dia: aprobar, rechazar, confirmar por WhatsApp, completar y cobrar.
+ * Se filtra por estado, sucursal, tipo y una fecha; cambiar de estado no toca los demas filtros.
+ */
+export function BandejaReservas({ onPendientes }: BandejaReservasProps = {}) {
   const router = useRouter();
   const pageRef = useRef<HTMLDivElement>(null);
   const cardsGridRef = useRef<HTMLDivElement>(null);
@@ -218,7 +224,6 @@ export function BandejaReservas() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [isFetching, setIsFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
-	const [totalRegistros, setTotalRegistros] = useState<number | null>(null);
   const [conteosEstado, setConteosEstado] = useState<Partial<Record<'PENDIENTE' | 'AGENDADO' | 'RECHAZADO' | 'POR_COBRAR', number>>>({});
   const [cobroSugerido, setCobroSugerido] = useState<ReservaBD | null>(null);
   const [actionId, setActionId] = useState<number | null>(null);
@@ -231,7 +236,7 @@ export function BandejaReservas() {
   const [completionError, setCompletionError] = useState<string | null>(null);
   const [deleteReserva, setDeleteReserva] = useState<ReservaBD | null>(null);
   const [notificationReserva, setNotificationReserva] = useState<ReservaBD | null>(null);
-  const [estadoFiltro, setEstadoFiltro] = useState<EstadoFiltro>('PENDIENTE');
+  const [estadoFiltro, setEstadoFiltro] = useState<EstadoFiltro>('TODOS');
   const [searchQuery, setSearchQuery] = useState('');
 	const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
 	const [localesDisponibles, setLocalesDisponibles] = useState<LocalRow[]>([]);
@@ -240,7 +245,6 @@ export function BandejaReservas() {
   const [fechaFiltro, setFechaFiltro] = useState('');
   const adminLocalScope = useAdminLocalScopeState();
   const scopedLocalName = adminLocalScope.workplace?.nombre_local ?? '';
-  const defaultLocalFiltro = scopedLocalName || ALL_LOCALS_FILTER;
   const effectiveLocalFiltro = scopedLocalName || (adminLocalScope.ready ? localFiltro : LOCAL_SCOPE_PENDING);
 	const vigenteFecha = useMemo(() => getDateISOWithOffset(0), []);
 	const vigenteHora = useMemo(() => getCurrentTimeHHMM(), []);
@@ -249,6 +253,11 @@ export function BandejaReservas() {
 	const { cursor: paginationCursor, requestRevision, shouldIncludeTotal, setMetadata: setPaginationMetadata } = pagination;
   const paginationRequestRef = useRef(0);
   const paginationControllerRef = useRef<AbortController | null>(null);
+
+	// Aprobacion de reservas redirige a ?vista=pendientes: se abre ya filtrada por pendientes.
+	useEffect(() => {
+		if (new URLSearchParams(window.location.search).get('vista') === 'pendientes') setEstadoFiltro('PENDIENTE');
+	}, []);
 
 	useEffect(() => {
 		const timer = window.setTimeout(() => setDebouncedSearchQuery(searchQuery.trim()), 300);
@@ -285,7 +294,8 @@ export function BandejaReservas() {
 
     try {
       const response = await getReservasDB({
-        fecha_desde: getDateISOWithOffset(-14),
+        // Lo por cobrar y lo completado no caducan: se ven todos. El resto, desde hace dos semanas.
+        fecha_desde: estadoFiltro === 'POR_COBRAR' || estadoFiltro === 'COMPLETADO' ? undefined : getDateISOWithOffset(-14),
 		local: effectiveLocalFiltro !== ALL_LOCALS_FILTER && effectiveLocalFiltro !== LOCAL_SCOPE_PENDING ? effectiveLocalFiltro : undefined,
 		estado: estadoFiltro === 'POR_COBRAR' ? 'COMPLETADO' : estadoFiltro !== 'TODOS' ? estadoFiltro : undefined,
 		estado_cobro: estadoFiltro === 'POR_COBRAR' ? 'POR_COBRAR' : undefined,
@@ -302,9 +312,6 @@ export function BandejaReservas() {
 	  if (requestId !== paginationRequestRef.current) return;
       const nextReservas = response.data?.reservas ?? [];
 	  setPaginationMetadata(response.data?.paginacion);
-	  if (response.data?.paginacion?.total_registros !== undefined) {
-		setTotalRegistros(response.data.paginacion.total_registros);
-	  }
       const nextIds = new Set(nextReservas.map((reserva) => reserva.id));
       sortStampByReservaIdRef.current.forEach((_, reservaId) => {
         if (!nextIds.has(reservaId)) sortStampByReservaIdRef.current.delete(reservaId);
@@ -368,6 +375,14 @@ export function BandejaReservas() {
     [adminLocalScope.ready, localesDisponibles, scopedLocalName],
   );
 
+  const estadoOptions = useMemo(
+    () => ESTADO_OPTIONS.map((option) => {
+      const total = option.value === 'TODOS' || option.value === 'COMPLETADO' ? undefined : conteosEstado[option.value];
+      return { value: option.value, label: total === undefined ? option.label : `${option.label} (${total})` };
+    }),
+    [conteosEstado],
+  );
+
   const tipoFilterOptions = useMemo(() => [
     { value: 'TODOS', label: 'Todos' },
     { value: 'mesa', label: TIPO_LABELS.M },
@@ -386,23 +401,10 @@ export function BandejaReservas() {
     });
   }, [estadoFiltro, reservas]);
 
-  const hasAdvancedFilters = Boolean(
-    searchQuery.trim()
-    || (adminLocalScope.ready && effectiveLocalFiltro !== defaultLocalFiltro)
-    || tipoFiltro !== 'TODOS'
-    || fechaFiltro,
-  );
   const reservasVisiblesSignature = useMemo(
     () => reservasVisibles.map((reserva) => `${reserva.id}:${reserva.estado}:${reserva.servicio_confirmado ?? ''}:${reserva.notificado ? '1' : '0'}`).join('|'),
     [reservasVisibles],
   );
-
-  const resetFilters = () => preserveScrollPosition(() => {
-    setSearchQuery('');
-    setLocalFiltro(defaultLocalFiltro);
-    setTipoFiltro('TODOS');
-    setFechaFiltro('');
-  });
 
   // Conteo de cada pestaña: independiente de la pestaña activa, con los mismos filtros de la lista.
   useEffect(() => {
@@ -410,7 +412,6 @@ export function BandejaReservas() {
     if (!adminLocalScope.ready) return;
     const controller = new AbortController();
     const base = {
-      fecha_desde: getDateISOWithOffset(-14),
       local: effectiveLocalFiltro !== ALL_LOCALS_FILTER && effectiveLocalFiltro !== LOCAL_SCOPE_PENDING ? effectiveLocalFiltro : undefined,
       fecha: fechaFiltro || undefined,
       tipo: tipoFiltro !== 'TODOS' ? tipoFiltro.toLowerCase() as 'mesa' | 'bicicleta' : undefined,
@@ -421,6 +422,7 @@ export function BandejaReservas() {
     (['PENDIENTE', 'AGENDADO', 'RECHAZADO', 'POR_COBRAR'] as const).forEach((estado) => {
       getReservasDB({
         ...base,
+        ...(estado !== 'POR_COBRAR' && { fecha_desde: getDateISOWithOffset(-14) }),
         ...(estado === 'POR_COBRAR' ? { estado: 'COMPLETADO' as const, estado_cobro: 'POR_COBRAR' as const } : { estado }),
         ...(estado === 'PENDIENTE' && { vigente_fecha: vigenteFecha, vigente_hora: vigenteHora }),
       }, controller.signal)
@@ -434,6 +436,35 @@ export function BandejaReservas() {
     });
     return () => controller.abort();
   }, [adminLocalScope.ready, debouncedSearchQuery, effectiveLocalFiltro, fechaFiltro, requestRevision, tipoFiltro, vigenteFecha, vigenteHora]);
+
+  // Pendientes sin filtros: es el numero que la pagina muestra en la pestaña.
+  useEffect(() => {
+    void reservas;
+    if (!onPendientes || !adminLocalScope.ready) return;
+    const controller = new AbortController();
+    getReservasDB({
+      fecha_desde: getDateISOWithOffset(-14),
+      local: scopedLocalName || undefined,
+      estado: 'PENDIENTE',
+      vigente_fecha: vigenteFecha,
+      vigente_hora: vigenteHora,
+      limit: 1,
+      include_total: true,
+    }, controller.signal)
+      .then((response) => {
+        const total = response.data?.paginacion?.total_registros;
+        if (!controller.signal.aborted && total !== undefined) onPendientes(total);
+      })
+      .catch(() => { /* informativo */ });
+    return () => controller.abort();
+  }, [reservas, onPendientes, adminLocalScope.ready, scopedLocalName, vigenteFecha, vigenteHora]);
+
+  // Al volver a la pestaña del navegador se actualiza: pueden haber llegado solicitudes nuevas.
+  useEffect(() => {
+    const alVolver = () => { void fetchReservas(); };
+    window.addEventListener('focus', alVolver);
+    return () => window.removeEventListener('focus', alVolver);
+  }, [fetchReservas]);
 
   const approvalServiceGroups = useMemo(() => {
     if (!approvalReserva || approvalCatalog?.local !== approvalReserva.local) return [];
@@ -841,80 +872,51 @@ export function BandejaReservas() {
     <div ref={pageRef} className="admin-stack">
 
 
+          <FilterBar>
+            <FilterBar.Item label="Buscar" grow>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(event) => preserveScrollPosition(() => setSearchQuery(event.target.value))}
+                placeholder="Cliente, teléfono, servicio o #ID"
+                aria-label="Buscar reserva"
+              />
+            </FilterBar.Item>
+            <FilterBar.Item label="Estado">
+              <CustomSelect
+                value={estadoFiltro}
+                onChange={(value) => preserveScrollPosition(() => setEstadoFiltro(value as EstadoFiltro))}
+                options={estadoOptions}
+                searchable={false}
+              />
+            </FilterBar.Item>
+            <FilterBar.Item label="Sucursal">
+              <CustomSelect
+                value={effectiveLocalFiltro}
+                onChange={(value) => preserveScrollPosition(() => setLocalFiltro(scopedLocalName || value))}
+                options={localFilterOptions}
+                searchable={false}
+              />
+            </FilterBar.Item>
+            <FilterBar.Item label="Tipo">
+              <CustomSelect
+                value={tipoFiltro}
+                onChange={(value) => preserveScrollPosition(() => setTipoFiltro(value))}
+                options={tipoFilterOptions}
+                searchable={false}
+              />
+            </FilterBar.Item>
+            <FilterBar.Item label="Fecha">
+              <input
+                type="date"
+                value={fechaFiltro}
+                onChange={(event) => preserveScrollPosition(() => setFechaFiltro(event.target.value))}
+                aria-label="Filtrar por fecha"
+              />
+            </FilterBar.Item>
+          </FilterBar>
+
           <AdminPanel>
-            <div className={styles.controlsPanel}>
-              <label className={`${styles.controlField} ${styles.searchField}`}>
-                <span>Buscar reserva</span>
-                <div className={styles.searchInputWrap}>
-                  <Search size={16} strokeWidth={1.8} />
-                  <input
-                    value={searchQuery}
-                    onChange={(event) => preserveScrollPosition(() => setSearchQuery(event.target.value))}
-                    placeholder="Cliente, teléfono, servicio o #ID"
-                  />
-                </div>
-              </label>
-
-              <label className={styles.controlField}>
-                <span>Sucursal</span>
-                <CustomSelect
-                  value={effectiveLocalFiltro}
-                  onChange={(value) => preserveScrollPosition(() => setLocalFiltro(scopedLocalName || value))}
-                  options={localFilterOptions}
-                />
-              </label>
-
-              <label className={styles.controlField}>
-                <span>Tipo</span>
-                <CustomSelect
-                  value={tipoFiltro}
-                  onChange={(value) => preserveScrollPosition(() => setTipoFiltro(value))}
-                  options={tipoFilterOptions}
-                />
-              </label>
-
-              <label className={styles.controlField}>
-                <span>Fecha</span>
-                <div className={styles.dateInputWrap}>
-                  <Calendar size={16} strokeWidth={1.8} />
-                  <input
-                    type="date"
-                    value={fechaFiltro}
-                    onChange={(event) => preserveScrollPosition(() => setFechaFiltro(event.target.value))}
-                  />
-                </div>
-              </label>
-
-              <AdminButton
-                variant="secondary"
-                icon={<SlidersHorizontal size={15} strokeWidth={1.8} />}
-                onClick={resetFilters}
-                disabled={!hasAdvancedFilters}
-              >
-                Limpiar
-              </AdminButton>
-
-              <AdminButton
-                variant="secondary"
-                icon={<RefreshCw size={15} strokeWidth={1.8} className={isFetching ? styles.spinIcon : ''} />}
-                onClick={() => preserveScrollPosition(() => { void fetchReservas(); })}
-                disabled={initialLoading || isFetching}
-              >
-                {isFetching ? 'Actualizando' : 'Actualizar'}
-              </AdminButton>
-            </div>
-
-            <Tabs
-              ariaLabel="Filtrar reservas por estado"
-              active={estadoFiltro}
-              onChange={(value) => preserveScrollPosition(() => setEstadoFiltro(value))}
-              tabs={ESTADO_OPTIONS.map((option) => ({
-                key: option.value,
-                label: option.label,
-                count: option.value === 'TODOS' ? undefined : conteosEstado[option.value],
-              }))}
-            />
-
             <div className={styles.resultsSurface}>
               {isFetching && !initialLoading && (
                 <div className={styles.updatingPill}>

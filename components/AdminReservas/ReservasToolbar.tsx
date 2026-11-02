@@ -6,7 +6,6 @@ import { DatePickerPopover } from '@/components/AdminReservationForm/DatePickerP
 import styles from './ReservasToolbar.module.css';
 
 interface ReservasToolbarProps {
-  vista: 'calendario' | 'lista';
   localValue: string;
   localOptions: { value: string; label: string }[];
   onLocalChange: (value: string) => void;
@@ -20,17 +19,14 @@ interface ReservasToolbarProps {
   minISO: string;
   maxISO: string;
   onFechaSelect: (iso: string) => void;
-  /** Segunda fila, sólo en vista lista. */
-  filtros?: React.ReactNode;
 }
 
 /**
- * Reúne sucursal, semana y el toggle de vista en una sola barra compacta.
+ * Reúne sucursal y semana del calendario en una sola barra compacta.
  * Antes eran cuatro controles del mismo nivel repartidos en dos superficies,
  * con los selects ocupando media pantalla cada uno.
  */
 export function ReservasToolbar({
-  vista,
   localValue,
   localOptions,
   onLocalChange,
@@ -42,7 +38,6 @@ export function ReservasToolbar({
   minISO,
   maxISO,
   onFechaSelect,
-  filtros,
 }: ReservasToolbarProps) {
   const ultimaSemana = semanaOptions.length - 1;
 
@@ -111,8 +106,6 @@ export function ReservasToolbar({
           </button>
         </div>
       </div>
-
-      {vista === 'lista' && filtros && <div className={styles.filtrosRow}>{filtros}</div>}
     </div>
   );
 }
