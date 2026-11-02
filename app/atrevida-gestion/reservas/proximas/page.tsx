@@ -259,7 +259,7 @@ export default function AdminReservasProximasPage() {
               subtitle="Vista limpia para contactar a las clientas de hoy y mañana."
               actions={
                 <div className={styles.headerActions}>
-                  <AdminButton variant="secondary" href="/atrevida-gestion/reservas/aprobacion" icon={<ArrowLeft size={16} strokeWidth={1.8} />}>
+                  <AdminButton variant="secondary" href="/atrevida-gestion/reservas?vista=pendientes" icon={<ArrowLeft size={16} strokeWidth={1.8} />}>
                     Aprobaciones
                   </AdminButton>
                   <AdminButton

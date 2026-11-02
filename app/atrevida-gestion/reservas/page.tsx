@@ -3,7 +3,7 @@
 import { useRef, useEffect, useState, useMemo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import gsap from 'gsap';
-import { Banknote, CalendarRange, Pencil, Trash2 } from 'lucide-react';
+import { Banknote, CalendarDays, CalendarRange, Clock, List, Pencil, Trash2 } from 'lucide-react';
 import { DiaSemana, EstadoReserva, ReservaBD, ReservaDetalle, generarSemanas, getFechasDeSemana } from '@/types/reserva';
 import { SLOTS_POR_HORA, calcularHoraFin } from '@/lib/constants/reservationForm';
 import { CalendarAdmin } from '@/components/Calendar';
@@ -11,12 +11,13 @@ import { useLocales } from '@/lib/hooks/useLocales';
 import { useReservasFiltradas } from '@/lib/hooks/useReservasFiltradas';
 import type { ReservaTipoBackend } from '@/lib/api/reservas';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
-import { DataTable, Column, RowActionsMenu, PageHeader, AdminPanel, ConfirmDialog, CursorPagination } from '@/components/AdminConfig';
+import { DataTable, Column, RowActionsMenu, PageHeader, AdminPanel, ConfirmDialog, CursorPagination, Tabs, ChoiceChips } from '@/components/AdminConfig';
+import type { TabItem } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { Input } from '@/components/Shared';
 import { eliminarReservaDB } from '@/lib/api/reservas';
 import { toast } from '@/components/Shared/Toast';
-import { ReservaDetailModal, ReservasToolbar } from '@/components/AdminReservas';
+import { BandejaReservas, ReservaDetailModal, ReservasToolbar } from '@/components/AdminReservas';
 import { ClientePopover } from '@/components/AdminClientes';
 import { ReservaEstadoCelda } from '@/components/AdminReservas';
 import styles from './page.module.css';
@@ -46,6 +47,21 @@ interface ReservaRow extends Record<string, unknown> {
   estado_cobro?: 'COBRADA' | 'CUBIERTA_PAQUETE' | 'POR_COBRAR';
 }
 
+type Vista = 'calendario' | 'lista' | 'pendientes';
+type FiltroCobro = 'todas' | 'por_cobrar' | 'completadas';
+
+const VISTAS: TabItem<Vista>[] = [
+  { key: 'calendario', label: 'Calendario', icon: <CalendarDays size={14} strokeWidth={2} /> },
+  { key: 'lista', label: 'Lista', icon: <List size={14} strokeWidth={2} /> },
+  { key: 'pendientes', label: 'Pendientes', icon: <Clock size={14} strokeWidth={2} /> },
+];
+
+const FILTROS_COBRO: { value: FiltroCobro; label: string }[] = [
+  { value: 'todas', label: 'Todas' },
+  { value: 'por_cobrar', label: 'Por cobrar' },
+  { value: 'completadas', label: 'Completadas' },
+];
+
 const DEFAULT_LOCAL = 'SAN MARTIN';
 const LOCAL_SCOPE_PENDING = '__LOCAL_SCOPE_PENDING__';
 
@@ -62,10 +78,10 @@ export default function AdminReservasPage() {
   const [semanaActiva, setSemanaActiva] = useState('0');
 
   // Estado para filtros de lista de reservas
-  const [vistaActiva, setVistaActiva] = useState<'calendario' | 'lista'>('calendario');
+  const [vistaActiva, setVistaActiva] = useState<Vista>('calendario');
   const [filtroLocal, setFiltroLocal] = useState(DEFAULT_LOCAL);
   const [filtroTipo, setFiltroTipo] = useState<ReservaTipoBackend | ''>('');
-  const [filtroEstado, setFiltroEstado] = useState<EstadoReserva | ''>('');
+  const [filtroCobro, setFiltroCobro] = useState<FiltroCobro>('todas');
   const [busqueda, setBusqueda] = useState('');
   const [busquedaDebounced, setBusquedaDebounced] = useState('');
 
@@ -96,7 +112,7 @@ export default function AdminReservasPage() {
 	// Sin orden pedido el servidor ordena por local, fecha y hora (no es una sola columna), asi que ningun header queda marcado.
 	const serverSort = useServerSort();
 	const { params: sortParams } = serverSort;
-	const pagination = useCursorPagination(`${effectiveFiltroLocal}|${filtroFechaDesde}|${filtroFechaHasta}|${filtroTipo}|${filtroEstado}|${busquedaDebounced}|${serverSort.key}`);
+	const pagination = useCursorPagination(`${effectiveFiltroLocal}|${filtroFechaDesde}|${filtroFechaHasta}|${filtroTipo}|${filtroCobro}|${busquedaDebounced}|${serverSort.key}`);
 	const { cursor: paginationCursor, requestRevision, shouldIncludeTotal, setMetadata: setPaginationMetadata } = pagination;
 
 	useEffect(() => setPaginationMetadata(serverPagination), [setPaginationMetadata, serverPagination]);
@@ -119,13 +135,14 @@ export default function AdminReservasPage() {
 
   // Fetch reservas filtradas cuando cambian los filtros
   useEffect(() => {
-    if (effectiveFiltroLocal && filtroFechaDesde && filtroFechaHasta) {
+    if (vistaActiva === 'lista' && effectiveFiltroLocal && filtroFechaDesde && filtroFechaHasta) {
       fetchReservas({
         local: effectiveFiltroLocal,
         fecha_desde: filtroFechaDesde,
         fecha_hasta: filtroFechaHasta,
         tipo: (filtroTipo as 'mesa' | 'bicicleta' | '') || undefined,
-        estado: filtroEstado || undefined,
+        estado: filtroCobro !== 'todas' ? 'COMPLETADO' : undefined,
+        estado_cobro: filtroCobro === 'por_cobrar' ? 'POR_COBRAR' : undefined,
 		busqueda: busquedaDebounced || undefined,
 		limit: PAGE_LIMIT,
 		cursor: paginationCursor,
@@ -133,7 +150,32 @@ export default function AdminReservasPage() {
 		...sortParams,
       });
     }
-  }, [effectiveFiltroLocal, filtroFechaDesde, filtroFechaHasta, filtroTipo, filtroEstado, busquedaDebounced, sortParams, fetchReservas, paginationCursor, requestRevision, shouldIncludeTotal]);
+  }, [vistaActiva, effectiveFiltroLocal, filtroFechaDesde, filtroFechaHasta, filtroTipo, filtroCobro, busquedaDebounced, sortParams, fetchReservas, paginationCursor, requestRevision, shouldIncludeTotal]);
+
+  // Aprobacion de reservas redirige aqui con ?vista=pendientes.
+  useEffect(() => {
+    const vista = new URLSearchParams(window.location.search).get('vista');
+    if (vista === 'pendientes' || vista === 'lista') setVistaActiva(vista);
+  }, []);
+
+  const cambiarVista = (vista: Vista) => {
+    setVistaActiva(vista);
+    window.history.replaceState(null, '', vista === 'calendario' ? window.location.pathname : `?vista=${vista}`);
+  };
+
+  // Un chip de cobro mira hacia atras: lo por cobrar suele ser de dias pasados, no de esta semana.
+  const cambiarFiltroCobro = (valor: FiltroCobro) => {
+    setFiltroCobro(valor);
+    if (valor === 'todas') {
+      setFiltroFechaDesde(getInitialFechaDesde());
+      setFiltroFechaHasta(getInitialFechaHasta());
+      return;
+    }
+    const desde = new Date();
+    desde.setDate(desde.getDate() - 30);
+    setFiltroFechaDesde(desde.toISOString().split('T')[0]);
+    setFiltroFechaHasta(getInitialFechaDesde());
+  };
 
   // Verificar autenticación admin
   useEffect(() => {
@@ -288,14 +330,6 @@ export default function AdminReservasPage() {
     { value: 'bicicleta', label: 'Bicicleta' },
   ];
 
-  const estadoOptions: Array<{ value: EstadoReserva | ''; label: string }> = [
-    { value: '', label: 'Todos' },
-    { value: 'PENDIENTE', label: 'Pendiente' },
-    { value: 'AGENDADO', label: 'Agendado' },
-    { value: 'RECHAZADO', label: 'Rechazado' },
-    { value: 'COMPLETADO', label: 'Completado' },
-  ];
-
   const TIPO_COLORS: Record<string, { bg: string; color: string }> = {
     mesa: { bg: 'rgba(236,0,140,0.12)', color: '#EC008C' },
     bicicleta: { bg: 'rgba(146,39,143,0.12)', color: '#92278F' },
@@ -424,9 +458,13 @@ export default function AdminReservasPage() {
             />
           </div>
 
+          <Tabs tabs={VISTAS} active={vistaActiva} onChange={cambiarVista} ariaLabel="Vistas de reservas" />
+
+          {vistaActiva === 'pendientes' && <BandejaReservas />}
+
+          {vistaActiva !== 'pendientes' && (
           <ReservasToolbar
             vista={vistaActiva}
-            onVistaChange={setVistaActiva}
             localValue={effectiveSucursalActiva}
             localOptions={localesOptions}
             onLocalChange={(value) => {
@@ -478,15 +516,12 @@ export default function AdminReservasPage() {
                 </div>
                 <div className={styles.filtroGroup}>
                   <label>Estado</label>
-                  <CustomSelect
-                    value={filtroEstado}
-                    onChange={(v) => setFiltroEstado(v as EstadoReserva | '')}
-                    options={estadoOptions}
-                  />
+                  <ChoiceChips options={FILTROS_COBRO} value={filtroCobro} onChange={cambiarFiltroCobro} ariaLabel="Estado de las reservas" />
                 </div>
               </>
             }
           />
+          )}
 
           {vistaActiva === 'lista' && (
             <AdminPanel>

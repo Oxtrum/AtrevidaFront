@@ -17,7 +17,6 @@ import {
   Package2,
   PanelLeftClose,
   Settings,
-  ShieldCheck,
   Users,
   ArrowLeftRight,
   UsersRound,
@@ -40,12 +39,6 @@ const NAV_LINKS = [
     detail: 'Agenda y clientes',
     href: '/atrevida-gestion/reservas',
     icon: CalendarDays,
-  },
-  {
-    label: 'Aprobaciones',
-    detail: 'Solicitudes pendientes',
-    href: '/atrevida-gestion/reservas/aprobacion',
-    icon: ShieldCheck,
   },
   {
     label: 'Citas próximas',

@@ -7,7 +7,6 @@ import styles from './ReservasToolbar.module.css';
 
 interface ReservasToolbarProps {
   vista: 'calendario' | 'lista';
-  onVistaChange: (vista: 'calendario' | 'lista') => void;
   localValue: string;
   localOptions: { value: string; label: string }[];
   onLocalChange: (value: string) => void;
@@ -32,7 +31,6 @@ interface ReservasToolbarProps {
  */
 export function ReservasToolbar({
   vista,
-  onVistaChange,
   localValue,
   localOptions,
   onLocalChange,
@@ -110,23 +108,6 @@ export function ReservasToolbar({
             aria-label="Semana siguiente"
           >
             <ChevronRight size={16} strokeWidth={2.2} />
-          </button>
-        </div>
-
-        <div className={styles.vistaToggle} role="group" aria-label="Vista de reservas">
-          <button
-            type="button"
-            className={`${styles.vistaButton} ${vista === 'calendario' ? styles.vistaActive : ''}`}
-            onClick={() => onVistaChange('calendario')}
-          >
-            Calendario
-          </button>
-          <button
-            type="button"
-            className={`${styles.vistaButton} ${vista === 'lista' ? styles.vistaActive : ''}`}
-            onClick={() => onVistaChange('lista')}
-          >
-            Lista
           </button>
         </div>
       </div>

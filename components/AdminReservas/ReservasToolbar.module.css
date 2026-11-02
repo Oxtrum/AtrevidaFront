@@ -94,44 +94,6 @@
   cursor: not-allowed;
 }
 
-/* El toggle se va al extremo derecho */
-.vistaToggle {
-  display: inline-flex;
-  flex: 0 1 auto;
-  margin-left: auto;
-  background: var(--admin-pill-bg);
-  border: 1px solid var(--admin-border-subtle);
-  border-radius: var(--admin-radius-lg);
-  padding: 4px;
-  gap: 4px;
-}
-
-.vistaButton {
-  flex: 1;
-  min-height: 34px;
-  padding: 0.4rem 0.9rem;
-  border-radius: var(--admin-radius-md);
-  border: none;
-  background: transparent;
-  color: var(--admin-text-muted);
-  font-size: 0.8rem;
-  font-weight: 800;
-  font-family: inherit;
-  cursor: pointer;
-  transition: color 0.2s ease, background 0.2s ease;
-}
-
-.vistaButton:hover {
-  color: var(--admin-foreground);
-  background: rgba(236, 0, 140, 0.08);
-}
-
-.vistaActive {
-  background: rgba(236, 0, 140, 0.16);
-  color: #ffffff;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-}
-
 /* Buscar ocupa dos columnas; el resto se reparte sin dejar huecos. */
 .filtrosRow {
   display: grid;
@@ -168,11 +130,6 @@
   .chipSelect > *,
   .chipSelectWide > * {
     min-width: 0;
-  }
-
-  .vistaToggle {
-    margin-left: 0;
-    width: 100%;
   }
 
   .filtrosRow {
