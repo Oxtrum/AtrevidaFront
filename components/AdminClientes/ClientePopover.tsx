@@ -219,7 +219,11 @@ export function ClientePopover({ nombre, telefono, telefonoE164, clienteId, rese
 
             {puedeVincular && (
               <div className={styles.acciones}>
-                <AdminButton variant="primary" size="sm" fullWidth icon={<Link2 size={15} strokeWidth={1.8} />} onClick={() => setVinculando(true)}>
+                <AdminButton variant="primary" size="sm" fullWidth icon={<Link2 size={15} strokeWidth={1.8} />} onClick={() => {
+                    // La tarjeta se cierra: si no, quedaria encima del modal.
+                    cerrar();
+                    setVinculando(true);
+                  }}>
                   Vincular cliente
                 </AdminButton>
               </div>

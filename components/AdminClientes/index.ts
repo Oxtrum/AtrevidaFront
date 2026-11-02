@@ -5,5 +5,7 @@ export { DeudoresTable } from './DeudoresTable';
 export { CargoFormModal } from './CargoFormModal';
 export { SaldoCliente, DeudaCliente } from './SaldoCliente';
 export { ClientePopover } from './ClientePopover';
+export { ClienteSelect } from './ClienteSelect';
+export type { ClienteSugerencia } from './ClienteSelect';
 export { ContactoCliente } from './ContactoCliente';
 export { VincularReservaModal } from './VincularReservaModal';

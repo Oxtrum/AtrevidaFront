@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle, CalendarPlus, Check, UserPlus } from 'lucide-react';
+import { AlertTriangle, CalendarPlus } from 'lucide-react';
 import { CustomSelect } from '../Custom/CustomSelectAdmin';
 import { TimeSlotPicker } from './TimeSlotPicker';
 import { horarioHabilitado } from '@/lib/utils/diaSeleccion';
@@ -11,34 +10,22 @@ import { WeekStepper } from './WeekStepper';
 import PlanSelector from './PlanSelector';
 import { ServiceSelect } from './ServiceSelect';
 import { useReservationForm, type ReservationFormInitialData } from './useReservationForm';
-import { getClientesDB, type ClientePG } from '@/lib/api/clientes';
-import { ClienteFormModal } from '@/components/AdminClientes';
+import type { ClientePG } from '@/lib/api/clientes';
+import { ClienteSelect } from '@/components/AdminClientes';
 import { ConfirmDialog } from '@/components/AdminConfig/ConfirmDialog';
 import { ReservaDuplicadaDialog } from '@/components/AdminReservas/ReservaDuplicadaDialog';
 import modalStyles from '@/components/AdminConfig/FormModal.module.css';
 import { PhoneInput } from '@/components/PhoneInput';
 import { phoneValueFrom, type PhoneValue } from '@/lib/utils/phone';
 import styles from './ReservationForm.module.css';
-import { PAGE_LIMIT } from '@/lib/api/pagination';
 
 interface ReservationFormProps {
   initialData?: ReservationFormInitialData;
   onSuccess?: () => void;
 }
 
-const MIN_CLIENT_SEARCH_LENGTH = 2;
-const MAX_CLIENT_SUGGESTIONS = 7;
-const getClienteNombreCompleto = (cliente: ClientePG) => `${cliente.nombre} ${cliente.apellido}`.trim();
-
-const normalizeSearch = (value: string) => value.trim().toLowerCase();
-
 export default function AdminReservationForm({ initialData, onSuccess }: ReservationFormProps) {
   const router = useRouter();
-  const [clientesDirectorio, setClientesDirectorio] = useState<ClientePG[]>([]);
-  const [clientesLoading, setClientesLoading] = useState(false);
-  const [clientesError, setClientesError] = useState<string | null>(null);
-  const [clienteDropdownOpen, setClienteDropdownOpen] = useState(false);
-  const [clienteModalOpen, setClienteModalOpen] = useState(false);
   const {
     sucursal, setSucursal,
     semanaIndex,
@@ -78,82 +65,19 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
     cancelarDuplicada,
   } = useReservationForm(initialData, onSuccess);
 
-  const clienteQuery = normalizeSearch(cliente);
-
-  useEffect(() => {
-    if (!initialData?.isAdmin || clienteQuery.length < MIN_CLIENT_SEARCH_LENGTH) {
-      return;
-    }
-    const controller = new AbortController();
-    const timer = window.setTimeout(() => {
-      setClientesLoading(true);
-      setClientesError(null);
-      getClientesDB({ busqueda: clienteQuery, limit: PAGE_LIMIT }, controller.signal)
-        .then((res) => {
-          if (controller.signal.aborted) return;
-          setClientesDirectorio(res.data?.clientes ?? []);
-        })
-        .catch((err) => {
-          if (controller.signal.aborted) return;
-          setClientesDirectorio([]);
-          setClientesError(err instanceof Error ? err.message : 'No se pudo cargar el directorio de clientes');
-        })
-        .finally(() => {
-          if (!controller.signal.aborted) setClientesLoading(false);
-        });
-    }, 300);
-
-    return () => {
-      window.clearTimeout(timer);
-      controller.abort();
-    };
-  }, [clienteQuery, initialData?.isAdmin]);
-
-  const clientesSugeridos = useMemo(() => {
-    if (!initialData?.isAdmin || clienteQuery.length < MIN_CLIENT_SEARCH_LENGTH) return [];
-
-    return clientesDirectorio
-      .filter((clienteItem) => {
-        const nombre = normalizeSearch(clienteItem.nombre);
-        const apellido = normalizeSearch(clienteItem.apellido);
-        const nombreCompleto = normalizeSearch(getClienteNombreCompleto(clienteItem));
-
-        return nombre.includes(clienteQuery)
-          || apellido.includes(clienteQuery)
-          || nombreCompleto.includes(clienteQuery);
-      })
-      .slice(0, MAX_CLIENT_SUGGESTIONS);
-  }, [clienteQuery, clientesDirectorio, initialData?.isAdmin]);
-
-  const showClienteDropdown = initialData?.isAdmin
-    && clienteDropdownOpen
-    && clienteQuery.length >= MIN_CLIENT_SEARCH_LENGTH;
-
   // El cliente se elige en el buscador. El teléfono ya no lo adivina: no es confiable.
   const handleTelefonoChange = (phone: PhoneValue) => {
     setNumeroTelefono(phone.nationalNumber);
     setTelefonoE164(phone.e164);
   };
 
-  const selectClienteSugerido = (clienteItem: ClientePG) => {
-    setCliente(getClienteNombreCompleto(clienteItem));
+  // Elegido de la lista o recien creado: el nombre y el telefono del cliente pasan a la reserva.
+  const handleClienteElegido = (clienteItem: ClientePG) => {
+    setCliente(`${clienteItem.nombre} ${clienteItem.apellido}`.trim());
     setClienteId(clienteItem.id);
     const phone = phoneValueFrom(clienteItem.telefono_e164 || clienteItem.numero_telefono);
     setNumeroTelefono(phone.nationalNumber);
     setTelefonoE164(phone.e164);
-    setClienteDropdownOpen(false);
-  };
-
-  const handleClienteCreado = (nuevo: ClientePG) => {
-    setCliente(getClienteNombreCompleto(nuevo));
-    setClienteId(nuevo.id);
-    const phone = phoneValueFrom(nuevo.telefono_e164 || nuevo.numero_telefono);
-    setNumeroTelefono(phone.nationalNumber);
-    setTelefonoE164(phone.e164);
-    // El directorio se carga una sola vez al montar. Sin este push, el cliente
-    // recien creado no aparece al volver a buscarlo en la misma sesion.
-    setClientesDirectorio((prev) => [nuevo, ...prev]);
-    setClienteDropdownOpen(false);
   };
 
   return (
@@ -262,84 +186,36 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
           <div className={styles.formDivider} />
 
           {/* Cliente */}
-          <div className={`${styles.formGroup} ${styles.fullWidth} ${styles.clientAutocomplete}`}>
-            <div className={styles.labelRow}>
-              <label htmlFor="reserva-cliente">Cliente</label>
-              {initialData?.isAdmin && (
-                <button
-                  type="button"
-                  className={styles.inlineAction}
-                  onClick={() => setClienteModalOpen(true)}
-                >
-                  <UserPlus size={13} strokeWidth={2} />
-                  Nuevo
-                </button>
-              )}
-            </div>
-            <input
-              id="reserva-cliente"
-              type="text"
-              value={cliente}
-              onChange={(e) => {
-                setCliente(e.target.value);
-                // Escribir de nuevo suelta al cliente elegido: hay que volver a elegir uno de la lista.
-                setClienteId(null);
-                setClienteDropdownOpen(true);
-              }}
-              onFocus={() => setClienteDropdownOpen(true)}
-              onBlur={() => window.setTimeout(() => setClienteDropdownOpen(false), 120)}
-              placeholder="Nombre del cliente"
-              className={errors.cliente ? styles.inputError : ''}
-              autoComplete="off"
-            />
-            {showClienteDropdown && (
-              <div className={styles.clientDropdown} role="listbox" aria-label="Clientes registrados">
-                {clientesLoading ? (
-                  <div className={styles.clientDropdownStatus}>Cargando directorio...</div>
-                ) : clientesError ? (
-                  <div className={styles.clientDropdownStatus}>{clientesError}</div>
-                ) : clientesSugeridos.length > 0 ? (
-                  clientesSugeridos.map((clienteItem) => (
-                    <button
-                      key={clienteItem.id}
-                      type="button"
-                      className={styles.clientOption}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        selectClienteSugerido(clienteItem);
-                      }}
-                      role="option"
-                      aria-selected={false}
-                    >
-                      <strong>{getClienteNombreCompleto(clienteItem)}</strong>
-                      <span>{clienteItem.numero_telefono || 'Sin telefono registrado'}</span>
-                    </button>
-                  ))
-                ) : (
-                  <>
-                    <div className={styles.clientDropdownStatus}>Sin coincidencias registradas</div>
-                    <button
-                      type="button"
-                      className={styles.clientRegisterOption}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        setClienteModalOpen(true);
-                      }}
-                    >
-                      <UserPlus size={14} strokeWidth={2} />
-                      Registrar “{cliente.trim()}” como cliente nuevo
-                    </button>
-                  </>
-                )}
-              </div>
+          <div className={`${styles.formGroup} ${styles.fullWidth}`}>
+            {initialData?.isAdmin ? (
+              <ClienteSelect
+                id="reserva-cliente"
+                value={cliente}
+                onValueChange={(texto) => {
+                  setCliente(texto);
+                  // Escribir de nuevo suelta al cliente elegido: hay que volver a elegir uno de la lista.
+                  setClienteId(null);
+                }}
+                selectedId={clienteId}
+                onSelect={handleClienteElegido}
+                initialTelefono={numeroTelefono}
+                error={errors.cliente}
+              />
+            ) : (
+              <>
+                <label htmlFor="reserva-cliente">Cliente</label>
+                <input
+                  id="reserva-cliente"
+                  type="text"
+                  value={cliente}
+                  onChange={(e) => setCliente(e.target.value)}
+                  placeholder="Nombre del cliente"
+                  className={errors.cliente ? styles.inputError : ''}
+                  autoComplete="off"
+                />
+                {errors.cliente && <span className={styles.errorText}>{errors.cliente}</span>}
+              </>
             )}
-            {initialData?.isAdmin && clienteId != null && (
-              <span className={styles.clientLinked}>
-                <Check size={13} strokeWidth={2.4} />
-                Cliente registrado
-              </span>
-            )}
-            {errors.cliente && <span className={styles.errorText}>{errors.cliente}</span>}
           </div>
 
           <div className={`${styles.formGroup} ${styles.fullWidth}`}>
@@ -421,14 +297,6 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
         </div>
 
       </div>
-
-      <ClienteFormModal
-        isOpen={clienteModalOpen}
-        onClose={() => setClienteModalOpen(false)}
-        initialNombre={cliente}
-        initialTelefono={numeroTelefono}
-        onSaved={handleClienteCreado}
-      />
 
       {/* El rango elegido no dura lo que el servicio: confirmar antes de
           ocupar ambientes de más (o de menos) sin querer. */}
