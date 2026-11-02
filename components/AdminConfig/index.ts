@@ -34,3 +34,4 @@ export { VisibilityToggle } from './VisibilityToggle';
 export { FechaHechoField } from './FechaHechoField';
 export { TipoPagoSelector } from './TipoPagoSelector';
 export { RangoFechasFiltro } from './RangoFechasFiltro';
+export { CampoFecha } from './CampoFecha';

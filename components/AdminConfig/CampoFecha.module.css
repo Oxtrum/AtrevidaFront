@@ -70,3 +70,7 @@
   color: rgba(245, 245, 245, 0.55);
   font-size: 0.74rem;
 }
+
+.vacio {
+  color: var(--admin-text-dim);
+}

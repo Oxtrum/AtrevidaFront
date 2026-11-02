@@ -129,6 +129,7 @@ export function ClienteSelect({
         onBlur={() => window.setTimeout(() => setAbierto(false), 120)}
         placeholder={placeholder}
         className={error ? styles.conError : ''}
+        aria-invalid={error ? true : undefined}
         autoComplete="off"
         autoFocus={autoFocus}
       />

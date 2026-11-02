@@ -1,12 +1,14 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FormModal } from '@/components/AdminConfig';
 import { toast } from '@/components/Shared/Toast';
 import type { ClientePG } from '@/lib/api/clientes';
-import { getSugerenciasCliente, vincularReservaCliente, type ClienteSugerido } from '@/lib/api/vinculo';
-import { formatPhoneForDisplay, resolvePhoneE164 } from '@/lib/utils/phone';
-import { ClienteSelect, type ClienteSugerencia } from './ClienteSelect';
+import { vincularReservaCliente } from '@/lib/api/vinculo';
+import { formatPhoneForDisplay } from '@/lib/utils/phone';
+import { telefonosDistintos } from '@/lib/utils/telefonoCliente';
+import { ClienteSelect } from './ClienteSelect';
+import { useSugerenciasCliente } from './useSugerenciasCliente';
 import styles from './VincularReservaModal.module.css';
 
 interface VincularReservaModalProps {
@@ -22,13 +24,6 @@ interface VincularReservaModalProps {
 
 const nombreCompleto = (c: ClientePG) => `${c.nombre} ${c.apellido}`.trim();
 
-function pistaDe(s: ClienteSugerido): string | undefined {
-  if (s.por_telefono && s.por_nombre) return 'mismo teléfono y nombre';
-  if (s.por_telefono) return 'mismo teléfono';
-  if (s.por_nombre) return 'mismo nombre';
-  return undefined;
-}
-
 /**
  * Enlaza una reserva sin cliente con un cliente registrado. Nada se vincula solo: el cajero busca al cliente (o lo
  * crea) en el mismo buscador de Nueva reserva, elige y confirma. Al enfocar el campo vacio salen las posibles
@@ -43,13 +38,11 @@ export function VincularReservaModal({
   onClose,
   onVinculado,
 }: VincularReservaModalProps) {
-  const [sugeridos, setSugeridos] = useState<ClienteSugerido[]>([]);
   const [texto, setTexto] = useState('');
   const [elegido, setElegido] = useState<ClientePG | null>(null);
-  const [mismoTelefono, setMismoTelefono] = useState(true);
+  const [actualizarTelefono, setActualizarTelefono] = useState(false);
   const [guardando, setGuardando] = useState(false);
 
-  const hayTelefono = Boolean(resolvePhoneE164(telefonoE164, telefono));
   const telefonoMostrado = formatPhoneForDisplay(telefonoE164, telefono);
 
   // Al abrir se parte de cero: lo elegido en una reserva no debe quedar para la siguiente.
@@ -57,18 +50,13 @@ export function VincularReservaModal({
     if (!isOpen) return;
     setTexto('');
     setElegido(null);
-    setMismoTelefono(true);
-    const control = new AbortController();
-    getSugerenciasCliente(reservaId, control.signal)
-      .then((res) => setSugeridos(res.data ?? []))
-      .catch(() => setSugeridos([]));
-    return () => control.abort();
+    setActualizarTelefono(false);
   }, [isOpen, reservaId]);
 
-  const sugerencias: ClienteSugerencia[] = useMemo(
-    () => sugeridos.map((s) => ({ cliente: s, pista: pistaDe(s) })),
-    [sugeridos],
-  );
+  const sugerencias = useSugerenciasCliente(isOpen ? reservaId : null);
+
+  // Solo se ofrece cuando el cliente elegido tiene otro telefono (o ninguno).
+  const ofrecerTelefono = elegido != null && telefonosDistintos(elegido, { telefono_e164: telefonoE164, numero_telefono: telefono });
 
   const vincular = async () => {
     if (!elegido) return;
@@ -76,10 +64,11 @@ export function VincularReservaModal({
     try {
       const res = await vincularReservaCliente(reservaId, {
         cliente_id: elegido.id,
-        vincular_mismo_telefono: hayTelefono && mismoTelefono,
+        actualizar_telefono: ofrecerTelefono && actualizarTelefono,
       });
-      const n = res.data?.vinculadas ?? 1;
-      toast.success(n > 1 ? `${n} reservas vinculadas a ${nombreCompleto(elegido)}` : `Reserva vinculada a ${nombreCompleto(elegido)}`);
+      toast.success(res.data?.telefono_actualizado
+        ? `Reserva vinculada a ${nombreCompleto(elegido)}. Teléfono actualizado.`
+        : `Reserva vinculada a ${nombreCompleto(elegido)}`);
       onVinculado();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'No se pudo vincular la reserva');
@@ -110,6 +99,7 @@ export function VincularReservaModal({
           onValueChange={(valor) => {
             setTexto(valor);
             setElegido(null);
+            setActualizarTelefono(false);
           }}
           selectedId={elegido?.id ?? null}
           onSelect={(cliente) => {
@@ -123,10 +113,14 @@ export function VincularReservaModal({
           sugerencias={sugerencias}
         />
 
-        {hayTelefono && (
+        {ofrecerTelefono && elegido && (
           <label className={styles.casilla}>
-            <input type="checkbox" checked={mismoTelefono} onChange={(e) => setMismoTelefono(e.target.checked)} />
-            <span>Vincular también las otras reservas de {nombre} con este teléfono</span>
+            <input type="checkbox" checked={actualizarTelefono} onChange={(e) => setActualizarTelefono(e.target.checked)} />
+            <span>
+              El teléfono de la reserva ({telefonoMostrado}) es distinto al de {nombreCompleto(elegido)}
+              {' '}({formatPhoneForDisplay(elegido.telefono_e164, elegido.numero_telefono) || 'sin teléfono'}).
+              {' '}Reemplazar el del cliente.
+            </span>
           </label>
         )}
       </div>

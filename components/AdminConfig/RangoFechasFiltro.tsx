@@ -1,7 +1,7 @@
 'use client';
 
 import { DatePickerPopover } from '@/components/AdminReservationForm/DatePickerPopover';
-import styles from './RangoFechasFiltro.module.css';
+import styles from './CampoFecha.module.css';
 
 interface Atajo<V extends string> {
   value: V;

@@ -500,7 +500,8 @@ export function useReservationForm(
   };
 
   // ── Validación y submit ────────────────────────────────
-  const validate = (): boolean => {
+  // Devuelve el primer error (o null si todo esta bien) para decirselo al usuario.
+  const validate = (): string | null => {
     const e = validateReservationForm(
       effectiveSucursal,
       fechaDelDia(fechasSemana, dia)?.toISOString().split('T')[0] || '',
@@ -535,14 +536,21 @@ export function useReservationForm(
       e.numeroTelefono = 'El número no es válido para el país seleccionado';
     }
     setErrors(e);
-    return Object.keys(e).length === 0;
+    return Object.values(e)[0] ?? null;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validate()) {
-      toast.error('Faltan datos o hay campos con error. Revisa los marcados en rojo.');
+    const primerError = validate();
+    if (primerError) {
+      toast.error(primerError);
+      // El campo con error puede quedar fuera de pantalla: se lleva al primero.
+      window.setTimeout(() => {
+        const campo = document.querySelector<HTMLElement>('form [aria-invalid="true"], form [class*="inputError"], form [class*="errorText"]');
+        campo?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        campo?.focus({ preventScroll: true });
+      }, 0);
       return;
     }
 

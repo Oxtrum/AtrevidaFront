@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import gsap from 'gsap';
 import {
   AlertCircle,
   Banknote,
@@ -15,18 +16,15 @@ import {
 } from 'lucide-react';
 
 import { AprobacionReservasTable } from '@/components/AdminReservas';
+import { AprobarReservaModal } from './AprobarReservaModal';
 import { WhatsappIcon } from '@/components/icons/WhatsappIcon';
 import { toast } from '@/components/Shared/Toast';
-import { AdminButton, AdminPanel, ConfirmDialog, CursorPagination, FilterBar, FormField, FormGrid, FormModal, FormSubmitError, RangoFechasFiltro, ReasonDialog, RowActionsMenu } from '@/components/AdminConfig';
-import { CATEGORIAS_ORDEN } from '@/components/AdminReservationForm/constants';
+import { AdminButton, AdminPanel, ConfirmDialog, CursorPagination, FilterBar, FormField, FormModal, RangoFechasFiltro, ReasonDialog, RowActionsMenu } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
-import { actualizarEstadoReservaDB, actualizarReservaDB, actualizarReservaNotificadoDB, eliminarReservaDB, getReservasDB } from '@/lib/api/reservas';
-import { getLocalesDB, getServiciosDB, type LocalRow, type ServicioRow } from '@/lib/api/servicios';
-import { formatCostoServicio } from '@/lib/utils/serviceCost';
+import { actualizarEstadoReservaDB, actualizarReservaNotificadoDB, eliminarReservaDB, getReservasDB } from '@/lib/api/reservas';
+import { getLocalesDB, type LocalRow } from '@/lib/api/servicios';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import { buildClientWhatsappUrl } from '@/lib/utils/whatsapp';
-import { phoneValueFrom } from '@/lib/utils/phone';
-import { PhoneInput } from '@/components/PhoneInput';
 import {
   type EstadoReserva,
   type ReservaBD,
@@ -40,15 +38,6 @@ type EstadoNormalizado = EstadoGestion | 'COMPLETADO';
 type Cuando = 'PROXIMAS' | 'PASADAS' | 'TODAS' | 'RANGO';
 type Atajo = Exclude<Cuando, 'RANGO'>;
 type EstadoFiltro = EstadoGestion | 'TODOS' | 'COMPLETADO' | 'POR_COBRAR';
-type ApprovalDraft = {
-  fecha: string;
-  horaDesde: string;
-  horaHasta: string;
-  telefono: string;
-  telefonoE164?: string;
-  notas: string;
-  servicioConfirmado: string;
-};
 type CompletionReasonMode = 'DONE' | 'OTHER';
 type CompletionDraft = {
   reserva: ReservaBD;
@@ -124,10 +113,6 @@ const getConfirmationWhatsappHref = (reserva: ReservaBD) => {
   ].join('\n');
 
   return buildClientWhatsappUrl(reserva.telefono_e164, reserva.numero_telefono, message);
-};
-
-const getDefaultConfirmedService = (reserva: ReservaBD) => {
-  return reserva.servicio_confirmado || reserva.servicio_solicitado || reserva.servicio || '';
 };
 
 const getReservaServiceSummary = (reserva: ReservaBD) => {
@@ -213,9 +198,6 @@ export function BandejaReservas() {
   const [actionId, setActionId] = useState<number | null>(null);
   const [rejectTarget, setRejectTarget] = useState<ReservaBD | null>(null);
   const [approvalReserva, setApprovalReserva] = useState<ReservaBD | null>(null);
-  const [approvalDraft, setApprovalDraft] = useState<ApprovalDraft | null>(null);
-  const [approvalError, setApprovalError] = useState<string | null>(null);
-  const [approvalCatalog, setApprovalCatalog] = useState<{ local: string; servicios: ServicioRow[]; error?: string } | null>(null);
   const [completionDraft, setCompletionDraft] = useState<CompletionDraft | null>(null);
   const [completionError, setCompletionError] = useState<string | null>(null);
   const [deleteReserva, setDeleteReserva] = useState<ReservaBD | null>(null);
@@ -374,39 +356,6 @@ export function BandejaReservas() {
     return () => window.removeEventListener('focus', alVolver);
   }, [fetchReservas]);
 
-  const approvalServiceGroups = useMemo(() => {
-    if (!approvalReserva || approvalCatalog?.local !== approvalReserva.local) return [];
-    const categorias = new Map<string, ServicioRow[]>();
-    for (const servicio of approvalCatalog.servicios) {
-      const categoria = servicio.categoria || 'Otros';
-      if (!categorias.has(categoria)) categorias.set(categoria, []);
-      categorias.get(categoria)!.push(servicio);
-    }
-    const orden = [...CATEGORIAS_ORDEN, ...Array.from(categorias.keys()).filter(c => !(CATEGORIAS_ORDEN as readonly string[]).includes(c))];
-    return orden.filter(c => categorias.has(c)).map(c => ({
-      label: c,
-      options: categorias.get(c)!.map(servicio => ({
-        value: servicio.nombre,
-        label: `${servicio.nombre} — ${String(servicio.tiempo || '')} — ${formatCostoServicio(servicio)}`,
-      })),
-    }));
-  }, [approvalReserva, approvalCatalog]);
-
-  const approvalLocal = approvalReserva?.local;
-  const approvalId = approvalReserva?.id;
-  useEffect(() => {
-    if (!approvalLocal) return;
-    let active = true;
-    void getServiciosDB({ local: approvalLocal })
-      .then(response => {
-        if (active) setApprovalCatalog({ local: approvalLocal, servicios: (response.data?.servicios ?? []).filter(s => s.activo !== false) });
-      })
-      .catch(() => {
-        if (active) setApprovalCatalog({ local: approvalLocal, servicios: [], error: 'No se pudo cargar el catálogo de servicios. Cierra el formulario y vuelve a abrirlo.' });
-      });
-    return () => { active = false; };
-  }, [approvalLocal, approvalId]);
-
   const completionServiceSummary = useMemo(
     () => completionDraft ? getReservaServiceSummary(completionDraft.reserva) : { visible: [], remaining: 0 },
     [completionDraft],
@@ -416,28 +365,16 @@ export function BandejaReservas() {
     [deleteReserva],
   );
 
-  const openApprovalModal = (reserva: ReservaBD) => {
-    setApprovalCatalog(null);
-    const phone = phoneValueFrom(reserva.telefono_e164 || reserva.numero_telefono);
-    setApprovalReserva(reserva);
-    setApprovalDraft({
-      fecha: reserva.fecha,
-      horaDesde: reserva.hora_desde,
-      horaHasta: reserva.hora_hasta,
-      telefono: phone.nationalNumber,
-      telefonoE164: phone.e164,
-      notas: reserva.notas ?? '',
-      servicioConfirmado: getDefaultConfirmedService(reserva),
-    });
-    setApprovalError(null);
-  };
+  const openApprovalModal = (reserva: ReservaBD) => setApprovalReserva(reserva);
 
-  const closeApprovalModal = useCallback(() => {
-    if (actionId) return;
+  // La reserva ya quedo agendada: se actualiza la fila y se ofrece avisar al cliente por WhatsApp.
+  const handleAprobada = (updatedReserva: ReservaBD) => {
+    setReservas((current) => current.map((item) => item.id === updatedReserva.id ? updatedReserva : item));
     setApprovalReserva(null);
-    setApprovalDraft(null);
-    setApprovalError(null);
-  }, [actionId]);
+    setNotificationReserva(updatedReserva);
+    toast.success(`Reserva #${updatedReserva.id} agendada correctamente.`);
+    pagination.resetAfterMutation();
+  };
 
   const openCompletionModal = (reserva: ReservaBD) => {
     setCompletionDraft({
@@ -542,88 +479,6 @@ export function BandejaReservas() {
     }
   };
 
-  const approveReservaFromModal = async () => {
-    if (!approvalReserva || !approvalDraft) return;
-
-    const confirmedService = approvalCatalog?.local === approvalReserva.local
-      ? approvalCatalog.servicios.find(servicio => servicio.nombre === approvalDraft.servicioConfirmado)
-      : undefined;
-
-    if (!confirmedService) {
-      setApprovalError('Selecciona el servicio confirmado para agendar la reserva.');
-      return;
-    }
-
-    const rawDigits = approvalDraft.telefono.replace(/\D/g, '');
-    const cleanPhone = rawDigits;
-    const originalPhone = phoneValueFrom(approvalReserva.telefono_e164 || approvalReserva.numero_telefono);
-    const phoneChanged = cleanPhone !== originalPhone.nationalNumber.replace(/\D/g, '')
-      || approvalDraft.telefonoE164 !== originalPhone.e164;
-    if (phoneChanged && cleanPhone && !approvalDraft.telefonoE164) {
-      setApprovalError('El número no es válido para el país seleccionado.');
-      return;
-    }
-    const mismoServicio = approvalReserva.servicio_confirmado === confirmedService.nombre || (!approvalReserva.servicio_confirmado && approvalReserva.servicio === confirmedService.nombre);
-    const precio = mismoServicio && approvalReserva.precio != null
-      ? approvalReserva.precio
-      : confirmedService.costo_variable === true ? undefined : Number(confirmedService.costo) || 0;
-    const updateData = {
-      id: approvalReserva.id,
-      local: approvalReserva.local,
-      ...(approvalDraft.fecha !== approvalReserva.fecha && { nueva_fecha: approvalDraft.fecha }),
-      ...(approvalDraft.horaDesde !== approvalReserva.hora_desde && { nueva_hora_desde: approvalDraft.horaDesde }),
-      ...(approvalDraft.horaHasta !== approvalReserva.hora_hasta && { nueva_hora_hasta: approvalDraft.horaHasta }),
-      ...(phoneChanged && cleanPhone && {
-        nuevo_numero_telefono: cleanPhone,
-        nuevo_telefono_e164: approvalDraft.telefonoE164,
-      }),
-      ...(approvalDraft.notas !== (approvalReserva.notas ?? '') && { nuevas_notas: approvalDraft.notas }),
-      nuevo_estado: 'AGENDADO' as const,
-      nuevo_servicio_confirmado: approvalDraft.servicioConfirmado,
-      ...(precio !== undefined ? { nuevo_precio: precio } : {}),
-      nuevo_tipo: confirmedService.tipoEspacio === 'B' ? 'B' as const : 'M' as const,
-    };
-
-    setActionId(approvalReserva.id);
-    setApprovalError(null);
-
-    try {
-      // El backend aplica el horario final, servicio, precio, tipo y estado
-      // AGENDADO en una sola transacción, incluida la comprobación de cupo.
-      await actualizarReservaDB(updateData);
-
-      const updatedReserva: ReservaBD = {
-        ...approvalReserva,
-        estado: 'AGENDADO',
-        fecha: approvalDraft.fecha,
-        hora_desde: approvalDraft.horaDesde,
-        hora_hasta: approvalDraft.horaHasta,
-        numero_telefono: cleanPhone,
-        telefono_e164: approvalDraft.telefonoE164,
-        notas: approvalDraft.notas,
-        servicio_confirmado: confirmedService.nombre,
-        precio,
-        costo_variable: mismoServicio && approvalReserva.costo_variable != null ? approvalReserva.costo_variable : confirmedService.costo_variable === true,
-        tipo: confirmedService.tipoEspacio === 'B' ? 'B' : 'M',
-        notificado: false,
-      };
-      setReservas((current) =>
-        current.map((item) => item.id === approvalReserva.id ? updatedReserva : item),
-      );
-
-      setApprovalReserva(null);
-      setApprovalDraft(null);
-      setNotificationReserva(updatedReserva);
-      toast.success(`Reserva #${approvalReserva.id} agendada correctamente.`);
-      pagination.resetAfterMutation();
-    } catch (updateError) {
-      const message = updateError instanceof Error ? updateError.message : 'No se pudo agendar la reserva.';
-      setApprovalError(message.replace(/^capacidad de reserva no disponible:\s*/i, ''));
-    } finally {
-      setActionId(null);
-    }
-  };
-
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
     if (!token) {
@@ -683,22 +538,6 @@ export function BandejaReservas() {
 
     return () => window.cancelAnimationFrame(raf);
   }, [effectiveLocalFiltro, estadoFiltro, cuando, rangoDesde, rangoHasta, reservas.length, reservasVisibles.length, searchQuery, tipoFiltro]);
-
-  useEffect(() => {
-    if (!approvalReserva) return undefined;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') closeApprovalModal();
-    };
-
-    document.body.style.overflow = 'hidden';
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.body.style.overflow = '';
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [approvalReserva, closeApprovalModal]);
 
   const renderReservaActions = (reserva: ReservaBD) => {
     const estado = normalizeEstado(reserva.estado);
@@ -889,106 +728,13 @@ export function BandejaReservas() {
         onClose={() => setRejectTarget(null)}
       />
 
-      {approvalReserva && approvalDraft && (
-        <FormModal
-          isOpen
-          size="lg"
-          title={`Aprobar reserva #${approvalReserva.id}`}
-          onClose={closeApprovalModal}
-          onSubmit={approveReservaFromModal}
-          loading={actionId === approvalReserva.id}
-          submitDisabled={approvalCatalog?.local !== approvalReserva.local || !!approvalCatalog.error || approvalCatalog.servicios.length === 0}
-          submitLabel={approvalError ? 'Reintentar aprobación' : 'Aprobar y agendar'}
-        >
-          <p className={styles.dialogLead}>
-            Confirma los datos de la solicitud y el servicio definitivo antes de pasarla a agenda.
-            {' '}Solicitado: <strong>{approvalReserva.servicio_solicitado || approvalReserva.servicio || 'Por definir'}</strong>
-            {approvalReserva.servicio_confirmado && <> · Confirmado previo: <strong>{approvalReserva.servicio_confirmado}</strong></>}
-          </p>
-
-          <FormGrid>
-            <FormField label="Cliente" htmlFor="approval-cliente">
-              <input id="approval-cliente" value={approvalReserva.cliente || 'Cliente sin nombre'} disabled />
-            </FormField>
-            <FormField label="Local" htmlFor="approval-local">
-              <input id="approval-local" value={approvalReserva.local} disabled />
-            </FormField>
-            <FormField label="Teléfono">
-              <PhoneInput
-                value={approvalDraft.telefono}
-                e164={approvalDraft.telefonoE164}
-                onChange={(phone) => {
-                  setApprovalError(null);
-                  setApprovalDraft((current) => current ? {
-                    ...current,
-                    telefono: phone.nationalNumber,
-                    telefonoE164: phone.e164,
-                  } : current);
-                }}
-                placeholder="77777777"
-              />
-            </FormField>
-            <FormField label="Fecha" htmlFor="approval-fecha">
-              <input
-                id="approval-fecha"
-                type="date"
-                value={approvalDraft.fecha}
-                onChange={(event) => {
-                  setApprovalError(null);
-                  setApprovalDraft((current) => current ? { ...current, fecha: event.target.value } : current);
-                }}
-              />
-            </FormField>
-            <FormField label="Hora inicio" htmlFor="approval-hora-desde">
-              <input
-                id="approval-hora-desde"
-                type="time"
-                value={approvalDraft.horaDesde}
-                onChange={(event) => {
-                  setApprovalError(null);
-                  setApprovalDraft((current) => current ? { ...current, horaDesde: event.target.value } : current);
-                }}
-              />
-            </FormField>
-            <FormField label="Hora fin" htmlFor="approval-hora-hasta">
-              <input
-                id="approval-hora-hasta"
-                type="time"
-                value={approvalDraft.horaHasta}
-                onChange={(event) => {
-                  setApprovalError(null);
-                  setApprovalDraft((current) => current ? { ...current, horaHasta: event.target.value } : current);
-                }}
-              />
-            </FormField>
-            <FormField label="Servicio definitivo" labelId="approval-servicio-lbl" wide error={approvalCatalog?.error || undefined}>
-              <CustomSelect
-                value={approvalDraft.servicioConfirmado}
-                onChange={(value) => {
-                  setApprovalError(null);
-                  setApprovalDraft((current) => current ? { ...current, servicioConfirmado: value } : current);
-                }}
-                groups={approvalServiceGroups}
-                placeholder={approvalCatalog?.local === approvalReserva.local ? 'Seleccionar servicio' : 'Cargando servicios...'}
-                hasError={false}
-              />
-            </FormField>
-            <FormField label="Notas" htmlFor="approval-notas" wide>
-              <textarea
-                id="approval-notas"
-                value={approvalDraft.notas}
-                onChange={(event) => {
-                  setApprovalError(null);
-                  setApprovalDraft((current) => current ? { ...current, notas: event.target.value } : current);
-                }}
-                placeholder="Añade una observación para el equipo si hace falta."
-              />
-            </FormField>
-          </FormGrid>
-
-          <FormSubmitError message={approvalError ?? undefined} />
-        </FormModal>
-      )}
+      <AprobarReservaModal
+        reserva={approvalReserva}
+        locales={localesDisponibles}
+        localBloqueado={scopedLocalName || undefined}
+        onClose={() => setApprovalReserva(null)}
+        onAprobada={handleAprobada}
+      />
 
       {completionDraft && (
         <FormModal

@@ -29,8 +29,13 @@ export interface ClienteSugerido extends ClientePG {
 
 export interface VincularReservaData {
   cliente_id: number;
-  /** Tambien vincula las demas reservas sin cliente que tengan exactamente el mismo telefono. */
-  vincular_mismo_telefono?: boolean;
+  /** Reemplaza el telefono del cliente por el de la reserva (solo si son distintos). */
+  actualizar_telefono?: boolean;
+}
+
+export interface ResultadoVinculo {
+  vinculadas: number;
+  telefono_actualizado: boolean;
 }
 
 export async function getReservasPorVincular(
@@ -53,6 +58,6 @@ export async function getSugerenciasCliente(
 export async function vincularReservaCliente(
   reservaId: number,
   data: VincularReservaData,
-): Promise<ApiResponse<{ vinculadas: number }>> {
-  return apiClient.patch<ApiResponse<{ vinculadas: number }>>(`/bd/reservas/${reservaId}/cliente`, data);
+): Promise<ApiResponse<ResultadoVinculo>> {
+  return apiClient.patch<ApiResponse<ResultadoVinculo>>(`/bd/reservas/${reservaId}/cliente`, data);
 }
