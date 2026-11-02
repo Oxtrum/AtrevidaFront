@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { AlertTriangle, CalendarPlus } from 'lucide-react';
+import { AlertTriangle, CalendarPlus, Save } from 'lucide-react';
 import { CustomSelect } from '../Custom/CustomSelectAdmin';
 import { TimeSlotPicker } from './TimeSlotPicker';
 import { horarioHabilitado } from '@/lib/utils/diaSeleccion';
@@ -63,6 +63,7 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
     reservasDuplicadas,
     confirmarDuplicada,
     cancelarDuplicada,
+    editando,
   } = useReservationForm(initialData, onSuccess);
 
   // El cliente se elige en el buscador. El teléfono ya no lo adivina: no es confiable.
@@ -90,9 +91,11 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
             <span className={styles.eyebrowDot} />
             AtrevidaFit
           </div>
-          <h2 className={styles.formTitle}>Nueva Reserva</h2>
+          <h2 className={styles.formTitle}>{editando ? `Editar Reserva #${initialData?.reserva?.id}` : 'Nueva Reserva'}</h2>
           <p className={styles.formSubtitle}>
-            Selecciona el horario disponible y completa los datos del cliente
+            {editando
+              ? 'Cambia lo que haga falta. Aprobar, rechazar y completar se hacen desde la lista.'
+              : 'Selecciona el horario disponible y completa los datos del cliente'}
           </p>
         </div>
 
@@ -187,7 +190,12 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
 
           {/* Cliente */}
           <div className={`${styles.formGroup} ${styles.fullWidth}`}>
-            {initialData?.isAdmin ? (
+            {editando && initialData?.reserva?.cliente_id != null ? (
+              <>
+                <label htmlFor="reserva-cliente">Cliente</label>
+                <input id="reserva-cliente" type="text" value={cliente} disabled />
+              </>
+            ) : initialData?.isAdmin ? (
               <ClienteSelect
                 id="reserva-cliente"
                 value={cliente}
@@ -248,6 +256,7 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
             />
           </div>
 
+          {!editando && (
           <div className={`${styles.formGroup} ${styles.fullWidth}`}>
             <label className={styles.directToggle}>
               <input
@@ -267,6 +276,7 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
               </span>
             </label>
           </div>
+          )}
 
         </div>
 
@@ -285,7 +295,12 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
           </button>
           <button type="submit" className={styles.submitButton} disabled={loading}>
             <span className={styles.submitButtonText}>
-              {loading ? 'Creando...' : (
+              {loading ? (editando ? 'Guardando...' : 'Creando...') : editando ? (
+                <>
+                  <Save size={17} strokeWidth={1.8} />
+                  Guardar cambios
+                </>
+              ) : (
                 <>
                   <CalendarPlus size={17} strokeWidth={1.8} />
                   Reservar
@@ -302,7 +317,7 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
       <ConfirmDialog
         isOpen={confirmandoDuracion && !!desajusteDuracion}
         title="La duración no coincide con el servicio"
-        confirmLabel="Reservar así"
+        confirmLabel={editando ? 'Guardar así' : 'Reservar así'}
         cancelLabel="Ajustar horario"
         loading={loading}
         onConfirm={confirmarDuracion}
@@ -333,7 +348,7 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
         telefonoE164={telefonoE164}
         numeroTelefono={numeroTelefono}
         fecha={fechaSeleccionadaISO}
-        confirmLabel="Sí, reservar igual"
+        confirmLabel={editando ? 'Sí, guardar igual' : 'Sí, reservar igual'}
         loading={loading}
         onConfirm={confirmarDuplicada}
         onClose={cancelarDuplicada}
