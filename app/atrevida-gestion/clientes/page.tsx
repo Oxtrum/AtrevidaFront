@@ -10,7 +10,7 @@ import type { Column } from '@/components/AdminConfig';
 import { toast } from '@/components/Shared/Toast';
 import { getClientesDB, eliminarClienteDB } from '@/lib/api/clientes';
 import type { ClientePG } from '@/lib/api/clientes';
-import { ClienteFormModal, CuentaClienteModal } from '@/components/AdminClientes';
+import { ClienteFormModal } from '@/components/AdminClientes';
 import styles from './page.module.css';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
 import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
@@ -60,7 +60,6 @@ export default function ClientesPage() {
   const [editingCliente, setEditingCliente] = useState<ClientePG | undefined>(undefined);
 
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
-  const [cuentaDe, setCuentaDe] = useState<ClienteRow | null>(null);
 
   const fetchData = useCallback(async () => {
     void requestRevision;
@@ -107,6 +106,8 @@ export default function ClientesPage() {
     return () => ctx.revert();
   }, []);
 
+  const verCliente = (row: ClienteRow) => router.push(`/atrevida-gestion/clientes/${row.id}`);
+
   const openCreate = () => { setEditingCliente(undefined); setModalOpen(true); };
 
   const openEdit = (row: ClienteRow) => {
@@ -147,7 +148,7 @@ export default function ClientesPage() {
       sortable: false,
       render: (_val, row) => (
         <RowActionsMenu actions={[
-          { label: 'Ver cuenta', icon: <Wallet size={12} strokeWidth={2} />, onClick: () => setCuentaDe(row) },
+          { label: 'Ver cliente', icon: <Wallet size={12} strokeWidth={2} />, onClick: () => verCliente(row) },
           { label: 'Editar', icon: <Pencil size={12} strokeWidth={2} />, onClick: () => openEdit(row) },
           { label: 'Eliminar', icon: <Trash2 size={12} strokeWidth={2} />, onClick: () => handleDelete(row), variant: 'danger' },
         ]} />
@@ -189,6 +190,7 @@ export default function ClientesPage() {
             error={error}
             onRefresh={fetchData}
             getRowKey={(c) => c.id}
+            onRowClick={verCliente}
             searchPlaceholder="Buscar por nombre..."
 			hideSearch
             emptyMessage="No se encontraron clientes"
@@ -205,9 +207,6 @@ export default function ClientesPage() {
         cliente={editingCliente}
         onSaved={pagination.resetAfterMutation}
       />
-
-      {/* Cuenta del cliente: saldo, cargos y abonos */}
-      <CuentaClienteModal isOpen={cuentaDe !== null} cliente={cuentaDe} onClose={() => setCuentaDe(null)} onChanged={pagination.resetAfterMutation} />
 
       {/* Modal confirmar eliminación */}
       <FormModal

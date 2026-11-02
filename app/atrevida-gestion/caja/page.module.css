@@ -604,35 +604,7 @@
 }
 
 .paymentToggle {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.5rem;
   margin-top: 0.85rem;
-  padding: 0.35rem;
-  border: 1px solid var(--admin-border-subtle);
-  border-radius: var(--admin-radius-md);
-  background: var(--admin-input-bg);
-}
-
-.paymentToggle button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
-  min-height: 38px;
-  border: 1px solid transparent;
-  border-radius: var(--admin-radius-sm);
-  background: transparent;
-  color: var(--admin-text-muted);
-  font-family: inherit;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.paymentToggle .paymentActive {
-  border-color: rgba(236, 0, 140, 0.24);
-  background: rgba(236, 0, 140, 0.12);
-  color: var(--admin-foreground);
 }
 
 .clientDropdown {

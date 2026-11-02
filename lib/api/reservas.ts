@@ -35,6 +35,8 @@ export interface GetReservasDBParams extends PaginationParams {
   fecha_hasta?: string;
   tipo?: ReservaTipoBackend;
   cliente?: string;
+  /** Solo las reservas de este cliente registrado. */
+  cliente_id?: number;
   estado?: EstadoReserva;
   numero_telefono?: string;
   servicio_solicitado?: string;
@@ -225,6 +227,7 @@ export async function getReservasDB(params: GetReservasDBParams, signal?: AbortS
       fecha_hasta: scopedParams.fecha_hasta,
       tipo: scopedParams.tipo,
       cliente: scopedParams.cliente,
+      cliente_id: scopedParams.cliente_id,
       estado: scopedParams.estado,
       numero_telefono: scopedParams.numero_telefono,
       servicio_solicitado: scopedParams.servicio_solicitado,

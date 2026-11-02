@@ -19,8 +19,7 @@ import { eliminarReservaDB } from '@/lib/api/reservas';
 import { toast } from '@/components/Shared/Toast';
 import { ReservaDetailModal, ReservasToolbar } from '@/components/AdminReservas';
 import { ClientePopover } from '@/components/AdminClientes';
-import { POR_COBRAR_HINT, RESERVA_ESTADO_HINT, ReservaEstadoPill, ReservaNote, ReservaStockHint } from '@/components/AdminReservas';
-import type { ReservaEstadoPillTone } from '@/components/AdminReservas/ReservaEstadoPill';
+import { ReservaEstadoCelda } from '@/components/AdminReservas';
 import styles from './page.module.css';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
 import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
@@ -298,13 +297,6 @@ export default function AdminReservasPage() {
     { value: 'COMPLETADO', label: 'Completado' },
   ];
 
-  const ESTADO_TONE: Record<string, ReservaEstadoPillTone> = {
-    AGENDADO: 'info',
-    COMPLETADO: 'success',
-    RECHAZADO: 'danger',
-    PENDIENTE: 'pendiente',
-  };
-
   const TIPO_COLORS: Record<string, { bg: string; color: string }> = {
     mesa: { bg: 'rgba(236,0,140,0.12)', color: '#EC008C' },
     bicicleta: { bg: 'rgba(146,39,143,0.12)', color: '#92278F' },
@@ -368,16 +360,9 @@ export default function AdminReservasPage() {
       key: 'estado',
       label: 'Estado',
       searchable: false,
-      render: (_v, row) => {
-        const e = (row.estado as string) || 'PENDIENTE';
-        return (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
-            <ReservaEstadoPill tone={ESTADO_TONE[e] ?? 'neutral'} hint={RESERVA_ESTADO_HINT[e]}>{e}</ReservaEstadoPill>
-            {row.alerta_inventario === true && e !== 'COMPLETADO' && <ReservaStockHint />}
-            {e === 'COMPLETADO' && row.estado_cobro === 'POR_COBRAR' && <ReservaNote warn hint={POR_COBRAR_HINT}>Por cobrar</ReservaNote>}
-          </span>
-        );
-      },
+      render: (_v, row) => (
+        <ReservaEstadoCelda estado={row.estado} estadoCobro={row.estado_cobro} alertaInventario={row.alerta_inventario} />
+      ),
     },
     {
       key: 'local',

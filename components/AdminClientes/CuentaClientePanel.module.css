@@ -76,3 +76,8 @@
   color: #34d399;
   font-weight: 600;
 }
+
+.panel {
+  display: flex;
+  flex-direction: column;
+}

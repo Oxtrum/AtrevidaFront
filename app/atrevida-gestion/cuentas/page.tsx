@@ -1,10 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Eye, Wallet } from 'lucide-react';
 import { AdminPageShell, CursorPagination, DataTable, FilterBar, PageHeader, RowActionsMenu } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
-import { CuentaClienteModal, DeudaCliente } from '@/components/AdminClientes';
+import { ClientePopover, DeudaCliente } from '@/components/AdminClientes';
 import { getDeudores } from '@/lib/api/cuenta';
 import type { DeudorCliente } from '@/lib/api/cuenta';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
@@ -20,6 +21,7 @@ const ORDEN_POR_DEFECTO: SortState = { key: 'deuda', dir: 'desc' };
 
 /** Clientes con deuda, de mayor a menor. Desde aquí se abre la cuenta de cada uno. */
 export default function CuentasPorCobrarPage() {
+  const router = useRouter();
   const [busqueda, setBusqueda] = useState('');
   const [busquedaDebounced, setBusquedaDebounced] = useState('');
   const serverSort = useServerSort(ORDEN_POR_DEFECTO);
@@ -30,7 +32,6 @@ export default function CuentasPorCobrarPage() {
   const [deudores, setDeudores] = useState<DeudorCliente[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [cuentaDe, setCuentaDe] = useState<DeudorCliente | null>(null);
   const requestRef = useRef(0);
   const controllerRef = useRef<AbortController | null>(null);
 
@@ -72,12 +73,16 @@ export default function CuentasPorCobrarPage() {
     controllerRef.current?.abort();
   }, []);
 
+  const verCliente = useCallback((row: DeudorCliente) => router.push(`/atrevida-gestion/clientes/${row.cliente_id}`), [router]);
+
   const columns: Column<Row>[] = useMemo(() => [
     {
       key: 'apellido',
       label: 'Cliente',
       searchable: false,
-      render: (_v, row) => `${row.nombre} ${row.apellido}`,
+      render: (_v, row) => (
+        <ClientePopover nombre={`${row.nombre} ${row.apellido}`.trim()} telefono={row.numero_telefono} clienteId={row.cliente_id} />
+      ),
     },
     { key: 'numero_telefono', label: 'Teléfono', searchable: false },
     { key: 'total_cargos', label: 'Cargado', searchable: false, render: (_v, row) => <span style={{ fontVariantNumeric: 'tabular-nums' }}>{formatMoney(row.total_cargos)}</span> },
@@ -95,10 +100,10 @@ export default function CuentasPorCobrarPage() {
       searchable: false,
       sortable: false,
       render: (_v, row) => (
-        <RowActionsMenu actions={[{ label: 'Ver cuenta', icon: <Eye size={12} strokeWidth={2} />, onClick: () => setCuentaDe(row) }]} />
+        <RowActionsMenu actions={[{ label: 'Ver cliente', icon: <Eye size={12} strokeWidth={2} />, onClick: () => verCliente(row) }]} />
       ),
     },
-  ], []);
+  ], [verCliente]);
 
   return (
     <AdminPageShell>
@@ -107,7 +112,7 @@ export default function CuentasPorCobrarPage() {
         kickerIcon={<Wallet size={14} strokeWidth={2} />}
         title="Cuentas por cobrar"
         accentWord="cobrar"
-        subtitle="Clientes con deuda, de mayor a menor. Entra a una cuenta para ver sus cargos y abonos."
+        subtitle="Clientes con deuda, de mayor a menor. Abre un cliente para ver su cuenta y cobrarle."
       />
 
       <FilterBar>
@@ -123,20 +128,13 @@ export default function CuentasPorCobrarPage() {
         error={error}
         onRefresh={cargar}
         getRowKey={(r) => r.cliente_id}
-        onRowClick={setCuentaDe}
+        onRowClick={verCliente}
         sort={serverSort.sort}
         onSortChange={serverSort.onSortChange}
         hideSearch
         emptyMessage="No hay clientes con deuda"
       />
       <CursorPagination page={pagination.page} totalPages={pagination.totalPages} hasNext={pagination.hasNext} loading={loading} onPrevious={pagination.previous} onNext={pagination.next} />
-
-      <CuentaClienteModal
-        isOpen={cuentaDe !== null}
-        cliente={cuentaDe ? { id: cuentaDe.cliente_id, nombre: cuentaDe.nombre, apellido: cuentaDe.apellido } : null}
-        onClose={() => setCuentaDe(null)}
-        onChanged={pagination.resetAfterMutation}
-      />
     </AdminPageShell>
   );
 }
