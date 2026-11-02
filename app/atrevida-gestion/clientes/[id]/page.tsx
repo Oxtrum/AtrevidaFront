@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Banknote, CalendarDays, Pencil, Plus, Wallet } from 'lucide-react';
-import { AdminButton, AdminPageShell, AlertBanner, DataTable, ReasonDialog, Tabs } from '@/components/AdminConfig';
+import { ArrowLeft, Banknote, CalendarDays, Package2, Pencil, Plus, Wallet } from 'lucide-react';
+import { AdminButton, AdminPageShell, AlertBanner, DataTable, ReasonDialog, StatusBadge, Tabs } from '@/components/AdminConfig';
+import type { BadgeTone } from '@/components/AdminConfig';
 import type { Column, TabItem } from '@/components/AdminConfig';
 import {
   CargoFormModal,
@@ -18,13 +19,30 @@ import { ReservaEstadoCelda } from '@/components/AdminReservas';
 import { toast } from '@/components/Shared/Toast';
 import { getClienteByID, type ClientePG } from '@/lib/api/clientes';
 import { anularCargo, getCuentaCliente, type CargoCliente, type CuentaCliente } from '@/lib/api/cuenta';
+import { getPlanesDB, type PlanItem } from '@/lib/api/planes';
 import { getReservasDB } from '@/lib/api/reservas';
 import type { ReservaBD } from '@/types/reserva';
 import { formatMoney } from '@/lib/utils/format';
 import styles from './page.module.css';
 
-type Pestana = 'reservas' | 'cuenta';
+type Pestana = 'reservas' | 'paquetes' | 'cuenta';
 type ReservaFila = ReservaBD & Record<string, unknown>;
+type PaqueteFila = PlanItem & Record<string, unknown>;
+
+const ESTADO_PAQUETE: Record<string, { label: string; tone: BadgeTone }> = {
+  RESERVADO: { label: 'Reservado', tone: 'warning' },
+  ACTIVO: { label: 'Activo', tone: 'info' },
+  COMPLETADO: { label: 'Completado', tone: 'success' },
+  VENCIDO: { label: 'Vencido', tone: 'danger' },
+  CANCELADO: { label: 'Cancelado', tone: 'neutral' },
+};
+
+const COBRANZA_PAQUETE: Record<string, { label: string; tone: BadgeTone }> = {
+  PENDIENTE: { label: 'Sin pagar', tone: 'warning' },
+  PARCIAL: { label: 'Pago parcial', tone: 'warning' },
+  PAGADO: { label: 'Pagado', tone: 'success' },
+  VENCIDO: { label: 'Vencido', tone: 'danger' },
+};
 
 const RESERVAS_POR_PAGINA = 100;
 
@@ -41,6 +59,9 @@ export default function ClienteFichaPage() {
   const [cuenta, setCuenta] = useState<CuentaCliente | null>(null);
   const [reservas, setReservas] = useState<ReservaBD[]>([]);
   const [totalReservas, setTotalReservas] = useState(0);
+  const [paquetes, setPaquetes] = useState<PlanItem[]>([]);
+  const [cargandoPaquetes, setCargandoPaquetes] = useState(true);
+  const [errorPaquetes, setErrorPaquetes] = useState<string | null>(null);
   const [cargandoCliente, setCargandoCliente] = useState(true);
   const [cargandoCuenta, setCargandoCuenta] = useState(true);
   const [cargandoReservas, setCargandoReservas] = useState(true);
@@ -99,10 +120,24 @@ export default function ClienteFichaPage() {
     }
   }, [clienteId, idValido]);
 
+  const cargarPaquetes = useCallback(async () => {
+    if (!idValido) return;
+    try {
+      const res = await getPlanesDB({ cliente_id: clienteId, orden: 'prioridad_estado', limit: 100 });
+      setPaquetes(res.data?.planes ?? []);
+      setErrorPaquetes(null);
+    } catch (err) {
+      setErrorPaquetes(err instanceof Error ? err.message : 'No se pudieron cargar los paquetes');
+    } finally {
+      setCargandoPaquetes(false);
+    }
+  }, [clienteId, idValido]);
+
   useEffect(() => {
     void cargarCliente();
     void cargarReservas();
-  }, [cargarCliente, cargarReservas]);
+    void cargarPaquetes();
+  }, [cargarCliente, cargarReservas, cargarPaquetes]);
 
   useEffect(() => {
     void cargarCuenta();
@@ -153,8 +188,44 @@ export default function ClienteFichaPage() {
     },
   ], []);
 
+  const columnasPaquetes: Column<PaqueteFila>[] = useMemo(() => [
+    { key: 'combo_nombre_texto', label: 'Paquete', render: (_v, row) => row.combo_nombre_texto || row.codigo },
+    {
+      key: 'sesiones_usadas',
+      label: 'Avance',
+      searchable: false,
+      render: (_v, row) => <span className={styles.numero}>{row.sesiones_usadas} de {row.sesiones_totales}</span>,
+    },
+    { key: 'local_nombre_texto', label: 'Local', searchable: false },
+    {
+      key: 'estado',
+      label: 'Estado',
+      searchable: false,
+      render: (_v, row) => {
+        const e = ESTADO_PAQUETE[row.estado] ?? { label: row.estado, tone: 'neutral' as BadgeTone };
+        return <StatusBadge tone={e.tone}>{e.label}</StatusBadge>;
+      },
+    },
+    {
+      key: 'estado_cobranza',
+      label: 'Pago',
+      searchable: false,
+      render: (_v, row) => {
+        const c = COBRANZA_PAQUETE[row.estado_cobranza] ?? { label: row.estado_cobranza, tone: 'neutral' as BadgeTone };
+        return <StatusBadge tone={c.tone}>{c.label}</StatusBadge>;
+      },
+    },
+    {
+      key: 'precio_total',
+      label: 'Total',
+      searchable: false,
+      render: (_v, row) => <span className={styles.numero}>{formatMoney(row.precio_total)}</span>,
+    },
+  ], []);
+
   const pestanas: TabItem<Pestana>[] = [
     { key: 'reservas', label: 'Reservas', icon: <CalendarDays size={14} strokeWidth={2} />, count: cargandoReservas ? undefined : totalReservas },
+    { key: 'paquetes', label: 'Paquetes', icon: <Package2 size={14} strokeWidth={2} />, count: cargandoPaquetes ? undefined : paquetes.length },
     { key: 'cuenta', label: 'Cuenta', icon: <Wallet size={14} strokeWidth={2} /> },
   ];
 
@@ -233,6 +304,19 @@ export default function ClienteFichaPage() {
               <p className={styles.nota}>Se muestran sus {reservas.length} reservas más recientes de {totalReservas}.</p>
             )}
           </>
+        )}
+
+        {pestana === 'paquetes' && (
+          <DataTable<PaqueteFila>
+            columns={columnasPaquetes}
+            data={paquetes as PaqueteFila[]}
+            loading={cargandoPaquetes}
+            error={errorPaquetes}
+            onRefresh={cargarPaquetes}
+            getRowKey={(p) => p.id}
+            hideSearch
+            emptyMessage="Este cliente no tiene paquetes"
+          />
         )}
 
         {pestana === 'cuenta' && (

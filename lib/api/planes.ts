@@ -37,6 +37,8 @@ export interface GetPlanesParams extends PaginationParams, Record<string, string
   local?: string;
   local_id?: number;
   cliente?: string;
+  /** Id exacto del cliente (la ficha); el nombre no distingue homonimos. */
+  cliente_id?: number;
   estado?: string;
 }
 
