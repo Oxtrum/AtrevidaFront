@@ -1,0 +1,67 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.split {
+  display: grid;
+  grid-template-columns: 188px minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: stretch;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+/* Input con texto fijo (moneda/unidad). */
+.affix {
+  position: relative;
+}
+
+/* Clase repetida: gana de forma determinista al padding que FormField da a sus inputs. */
+.affix.affix input:not([type='checkbox']):not([type='radio']):not([type='file']) {
+  padding-left: var(--affix-start, 0.9rem);
+  padding-right: var(--affix-end, 0.9rem);
+}
+
+.affixText {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: var(--admin-fs-sm, 0.8125rem);
+  font-weight: 600;
+  color: var(--admin-text-dim);
+  pointer-events: none;
+}
+
+.affixStart {
+  left: 0.9rem;
+}
+
+.affixEnd {
+  right: 0.9rem;
+}
+
+@media (max-width: 640px) {
+  .split,
+  .row {
+    grid-template-columns: 1fr;
+  }
+}

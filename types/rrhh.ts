@@ -24,6 +24,8 @@ export interface Empleado {
   fecha_baja?: string | null;
   activo: boolean;
   notas?: string | null;
+  /** URL de lectura temporal (caduca ~1 h); ausente si no tiene foto. */
+  foto_url?: string | null;
   adelantos_pendientes: number;
 }
 

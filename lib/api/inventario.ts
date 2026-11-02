@@ -1,5 +1,6 @@
 import { apiClient } from './client';
 import { withLocalIdScope } from './localScope';
+import { subirAUrlFirmada } from './storage';
 import type { PaginationMetadata } from './pagination';
 import type { ApiResponse } from '@/types/reserva';
 import type {
@@ -65,18 +66,7 @@ export async function subirImagenInventario(id: number, imagen: Blob): Promise<s
   const firma = await apiClient.post<ApiResponse<InventarioImagenUpload>>(`/bd/inventario/items/${id}/imagen/upload-url`, undefined);
   const { upload_url, imagen_key, headers } = firma.data;
 
-  // PUT al storage: la URL es absoluta y firmada, no pasa por apiClient (no lleva el token del admin).
-  let res: Response;
-  try {
-    res = await fetch(upload_url, {
-      method: 'PUT',
-      headers: headers ?? { 'Content-Type': imagen.type },
-      body: imagen,
-    });
-  } catch {
-    throw new Error('No se pudo contactar el almacenamiento de imágenes. Revisa tu conexión o el CORS del bucket');
-  }
-  if (!res.ok) throw new Error(`El almacenamiento rechazó la imagen (HTTP ${res.status})`);
+  await subirAUrlFirmada(upload_url, imagen, headers);
 
   const confirmado = await apiClient.put<ApiResponse<{ imagen_url: string }>>(`/bd/inventario/items/${id}/imagen`, { imagen_key });
   return confirmado.data.imagen_url;

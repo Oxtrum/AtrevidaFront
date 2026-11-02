@@ -1,4 +1,5 @@
 import { apiClient } from './client';
+import { subirAUrlFirmada } from './storage';
 import type { ApiResponse } from '@/types/reserva';
 import type {
   Adelanto,
@@ -21,9 +22,32 @@ export async function getEmpleados(): Promise<Empleado[]> {
   return res.data?.empleados ?? [];
 }
 
-export async function guardarEmpleado(data: EmpleadoInput, id?: number): Promise<void> {
-  if (id) await apiClient.patch(`/bd/rrhh/empleados/${id}`, data);
-  else await apiClient.post('/bd/rrhh/empleados', data);
+/** Crea o edita la ficha y devuelve el empleado (con su id, necesario para subir la foto). */
+export async function guardarEmpleado(data: EmpleadoInput, id?: number): Promise<Empleado> {
+  const res = id
+    ? await apiClient.patch<ApiResponse<{ empleado: Empleado }>>(`/bd/rrhh/empleados/${id}`, data)
+    : await apiClient.post<ApiResponse<{ empleado: Empleado }>>('/bd/rrhh/empleados', data);
+  return res.data.empleado;
+}
+
+interface EmpleadoFotoUpload {
+  upload_url: string;
+  foto_key: string;
+  /** Headers firmados en la URL: el PUT debe enviarlos exactamente. */
+  headers?: Record<string, string>;
+}
+
+/** Sube la foto (ya en WebP) a una carpeta privada y devuelve una URL de lectura temporal. */
+export async function subirFotoEmpleado(id: number, foto: Blob): Promise<string> {
+  const firma = await apiClient.post<ApiResponse<EmpleadoFotoUpload>>(`/bd/rrhh/empleados/${id}/foto/upload-url`, undefined);
+  const { upload_url, foto_key, headers } = firma.data;
+  await subirAUrlFirmada(upload_url, foto, headers);
+  const confirmada = await apiClient.put<ApiResponse<{ foto_url: string }>>(`/bd/rrhh/empleados/${id}/foto`, { foto_key });
+  return confirmada.data.foto_url;
+}
+
+export async function eliminarFotoEmpleado(id: number): Promise<void> {
+  await apiClient.delete(`/bd/rrhh/empleados/${id}/foto`);
 }
 
 /** Baja lógica: deja de generarse su planilla; el historial se conserva. */

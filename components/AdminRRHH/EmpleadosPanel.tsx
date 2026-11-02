@@ -9,6 +9,7 @@ import { darDeBajaEmpleado } from '@/lib/api/rrhh';
 import { useConfiguracion } from '@/lib/hooks/useConfiguracion';
 import { formatDateISO, formatMoney } from '@/lib/utils/format';
 import type { Empleado } from '@/types/rrhh';
+import { EmpleadoAvatar } from './EmpleadoAvatar';
 import { EmpleadoFormModal } from './EmpleadoFormModal';
 import styles from './RRHHPanel.module.css';
 
@@ -56,9 +57,12 @@ export function EmpleadosPanel({ empleados, loading, error, onReload, onAdelanto
       key: 'apellido',
       label: 'Empleado',
       render: (_v, r) => (
-        <span className={r.activo ? undefined : styles.inactivo}>
-          <strong>{r.nombre} {r.apellido}</strong>
-          <span className={styles.sub}>{[r.cargo, r.local_nombre ?? 'General'].filter(Boolean).join(' · ')}</span>
+        <span className={styles.empCell}>
+          <EmpleadoAvatar empleado={r} />
+          <span className={r.activo ? undefined : styles.inactivo}>
+            <strong>{r.nombre} {r.apellido}</strong>
+            <span className={styles.sub}>{[r.cargo, r.local_nombre ?? 'General'].filter(Boolean).join(' · ')}</span>
+          </span>
         </span>
       ),
     },
