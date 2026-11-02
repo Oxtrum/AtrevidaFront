@@ -1,22 +1,19 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { UserPlus } from 'lucide-react';
-import { AdminButton, FormModal } from '@/components/AdminConfig';
-import { ClienteFormModal } from '@/components/AdminClientes';
+import { useEffect, useState } from 'react';
+import { FormModal } from '@/components/AdminConfig';
+import { ClienteSelect } from '@/components/AdminClientes';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
 import { crearPlan } from '@/lib/api/planes';
 import { getCombosDB } from '@/lib/api/servicios';
-import { getClientesDB, type ClientePG } from '@/lib/api/clientes';
+import type { ClientePG } from '@/lib/api/clientes';
 import styles from './PaquetesActivos.module.css';
-import { PAGE_LIMIT } from '@/lib/api/pagination';
 
 interface LocalOpt { id: number; nombre: string; }
 interface ComboOpt { id: number; nombre: string; }
 
-const getClienteNombreCompleto = (c: ClientePG) => `${c.nombre} ${c.apellido}`.trim();
-const normalizeSearch = (v: string) => v.trim().toLowerCase();
+const nombreCompleto = (c: ClientePG) => `${c.nombre} ${c.apellido}`.trim();
 
 interface Props {
   locales: LocalOpt[];
@@ -25,28 +22,13 @@ interface Props {
 }
 
 export default function ReservarPlanModal({ locales, onClose, onReservado }: Props) {
-  const [clienteQuery, setClienteQuery] = useState('');
+  const [clienteTexto, setClienteTexto] = useState('');
   const [clienteId, setClienteId] = useState('');
   const [localId, setLocalId] = useState('');
   const [comboId, setComboId] = useState('');
-  const [clientes, setClientes] = useState<ClientePG[]>([]);
   const [combos, setCombos] = useState<ComboOpt[]>([]);
   const [loadingCombos, setLoadingCombos] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [clienteModalOpen, setClienteModalOpen] = useState(false);
-	const query = normalizeSearch(clienteQuery);
-
-  useEffect(() => {
-	if (query.length < 2) { setClientes([]); return; }
-	const controller = new AbortController();
-	const timer = window.setTimeout(() => {
-	  getClientesDB({ busqueda: query, limit: PAGE_LIMIT }, controller.signal)
-		.then((r) => { if (!controller.signal.aborted) setClientes(r?.data?.clientes ?? []); })
-		.catch(() => { if (!controller.signal.aborted) setClientes([]); });
-	}, 300);
-	return () => { window.clearTimeout(timer); controller.abort(); };
-  }, [query]);
 
   useEffect(() => {
     const local = locales.find((l) => String(l.id) === localId);
@@ -64,33 +46,6 @@ export default function ReservarPlanModal({ locales, onClose, onReservado }: Pro
       .catch(() => setCombos([]))
       .finally(() => setLoadingCombos(false));
   }, [localId, locales]);
-
-  const sugeridos = useMemo(() => {
-    if (query.length < 2) return [];
-    return clientes
-      .filter((c) => {
-        const n = normalizeSearch(c.nombre);
-        const a = normalizeSearch(c.apellido);
-        const full = normalizeSearch(getClienteNombreCompleto(c));
-        return n.includes(query) || a.includes(query) || full.includes(query);
-      })
-      .slice(0, 7);
-  }, [query, clientes]);
-
-  const showDropdown = dropdownOpen && query.length >= 2;
-
-  const selectCliente = (c: ClientePG) => {
-    setClienteQuery(getClienteNombreCompleto(c));
-    setClienteId(String(c.id));
-    setDropdownOpen(false);
-  };
-
-  // El cliente recién creado queda seleccionado: no hay que volver a buscarlo.
-  const handleClienteCreado = (nuevo: ClientePG) => {
-    setClienteQuery(getClienteNombreCompleto(nuevo));
-    setClienteId(String(nuevo.id));
-    setDropdownOpen(false);
-  };
 
   const handleSubmit = async () => {
     if (!clienteId || !localId || !comboId) {
@@ -125,75 +80,20 @@ export default function ReservarPlanModal({ locales, onClose, onReservado }: Pro
       submitLabel="Reservar"
     >
       <div className={styles.formStack}>
-        <div className={styles.field}>
-          <div className={styles.labelRow}>
-            <label id="lbl-reservar-cliente" htmlFor="reservar-cliente">Cliente</label>
-            <AdminButton variant="inline" icon={<UserPlus size={13} strokeWidth={2} />} onClick={() => setClienteModalOpen(true)}>
-              Nuevo
-            </AdminButton>
-          </div>
-          <div className={styles.clientAutocomplete}>
-            <div className={styles.clientTrigger}>
-              <input
-                id="reservar-cliente"
-                type="text"
-                value={clienteQuery}
-                onChange={(e) => {
-                  setClienteQuery(e.target.value);
-                  if (clienteId) setClienteId('');
-                  setDropdownOpen(true);
-                }}
-                onFocus={() => setDropdownOpen(true)}
-                onBlur={() => window.setTimeout(() => setDropdownOpen(false), 120)}
-                placeholder="Busca un cliente…"
-                autoComplete="off"
-                className={styles.clientInput}
-              />
-              <span className={`${styles.clientArrow} ${dropdownOpen ? styles.clientArrowOpen : ''}`}>
-                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true">
-                  <path d="M5 6L0 0H10L5 6Z" fill="currentColor" />
-                </svg>
-              </span>
-            </div>
-            {showDropdown && (
-              <div className={styles.clientDropdown} role="listbox" aria-label="Clientes registrados">
-                {sugeridos.length > 0 ? (
-                  sugeridos.map((c) => (
-                    <button
-                      key={c.id}
-                      type="button"
-                      className={styles.clientOption}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        selectCliente(c);
-                      }}
-                      role="option"
-                      aria-selected={String(c.id) === clienteId}
-                    >
-                      <strong>{getClienteNombreCompleto(c)}</strong>
-                      <span>{c.numero_telefono || 'Sin teléfono'}</span>
-                    </button>
-                  ))
-                ) : (
-                  <>
-                    <div className={styles.clientDropdownStatus}>Sin coincidencias registradas</div>
-                    <button
-                      type="button"
-                      className={styles.clientRegisterOption}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        setClienteModalOpen(true);
-                      }}
-                    >
-                      <UserPlus size={14} strokeWidth={2} />
-                      Registrar “{clienteQuery.trim()}” como cliente nuevo
-                    </button>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
+        <ClienteSelect
+          id="reservar-cliente"
+          value={clienteTexto}
+          onValueChange={(texto) => {
+            setClienteTexto(texto);
+            // Escribir de nuevo suelta al cliente elegido: hay que volver a elegir uno de la lista.
+            setClienteId('');
+          }}
+          onSelect={(cliente) => {
+            setClienteTexto(nombreCompleto(cliente));
+            setClienteId(String(cliente.id));
+          }}
+          placeholder="Busca un cliente…"
+        />
 
         <div className={styles.field}>
           <label id="lbl-reservar-local" htmlFor="reservar-local">Local</label>
@@ -219,12 +119,6 @@ export default function ReservarPlanModal({ locales, onClose, onReservado }: Pro
           />
         </div>
       </div>
-      <ClienteFormModal
-        isOpen={clienteModalOpen}
-        onClose={() => setClienteModalOpen(false)}
-        initialNombre={clienteQuery}
-        onSaved={handleClienteCreado}
-      />
     </FormModal>
   );
 }
