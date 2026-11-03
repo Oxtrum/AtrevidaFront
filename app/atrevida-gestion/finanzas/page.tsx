@@ -40,6 +40,7 @@ import { useAsyncData } from '@/lib/hooks/useAsyncData';
 import { useConfiguracion } from '@/lib/hooks/useConfiguracion';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { formatDateISO, formatMoney, monthRange, todayISO } from '@/lib/utils/format';
+import { horaDeMovimiento } from '@/lib/utils/horaMovimiento';
 import type {
   CategoriaFinanciera,
   EstadoMovimiento,
@@ -152,7 +153,15 @@ function MovimientosPanel() {
   ];
 
   const columns: Column<Row>[] = [
-    { key: 'fecha', label: 'Fecha', searchable: false, render: (v) => formatDateISO(v as string) },
+    {
+      key: 'fecha',
+      label: 'Fecha y hora',
+      searchable: false,
+      render: (v, r) => {
+        const hora = horaDeMovimiento(r.origen, r.ts);
+        return hora ? <>{formatDateISO(v as string)} <span style={{ color: 'var(--admin-text-dim)' }}>{hora}</span></> : formatDateISO(v as string);
+      },
+    },
     {
       key: 'origen',
       label: 'Origen',

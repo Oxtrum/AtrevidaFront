@@ -160,6 +160,8 @@ export interface FlujoMovimiento {
   estado: EstadoMovimiento;
   /** Saldo acumulado del rango filtrado (solo cuentan los PAGADO). */
   saldo: number;
+  /** Momento del movimiento (ISO); en gastos y egresos solo importa el día. */
+  ts?: string;
 }
 
 export interface FlujoTotales {
