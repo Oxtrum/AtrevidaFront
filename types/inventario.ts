@@ -27,6 +27,8 @@ export type TipoMovimientoInventario =
   | 'ENTRADA_COMPRA'
   | 'SALIDA_SERVICIO'
   | 'REVERSION_SERVICIO'
+  | 'SALIDA_VENTA'
+  | 'REVERSION_VENTA'
   | 'AJUSTE_POSITIVO'
   | 'AJUSTE_NEGATIVO';
 
@@ -34,6 +36,8 @@ export const TIPOS_MOVIMIENTO_LABEL: Record<TipoMovimientoInventario, string> = 
   ENTRADA_COMPRA: 'Entrada por compra',
   SALIDA_SERVICIO: 'Salida por servicio',
   REVERSION_SERVICIO: 'Reversión de servicio',
+  SALIDA_VENTA: 'Venta en caja',
+  REVERSION_VENTA: 'Reversión de venta',
   AJUSTE_POSITIVO: 'Ajuste (+)',
   AJUSTE_NEGATIVO: 'Ajuste (−)',
 };
@@ -42,6 +46,7 @@ export const TIPOS_MOVIMIENTO_LABEL: Record<TipoMovimientoInventario, string> = 
 export const TIPOS_MOVIMIENTO_ENTRADA: TipoMovimientoInventario[] = [
   'ENTRADA_COMPRA',
   'REVERSION_SERVICIO',
+  'REVERSION_VENTA',
   'AJUSTE_POSITIVO',
 ];
 
@@ -66,6 +71,8 @@ export interface InventarioItem {
   categoria_nombre?: string | null;
   unidad_medida: UnidadMedida;
   costo_referencia?: number | null;
+  /** Precio al que se vende en caja; ausente = sin precio definido. */
+  precio_venta?: number | null;
   stock_minimo: number;
   /** Stock del local consultado (o suma si no se filtra por local). */
   stock_actual: number;
@@ -86,6 +93,7 @@ export interface InventarioItemInput {
   categoria_id?: number | null;
   unidad_medida: UnidadMedida;
   costo_referencia?: number | null;
+  precio_venta?: number | null;
   stock_minimo: number;
   activo?: boolean;
 }

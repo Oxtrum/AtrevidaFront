@@ -42,6 +42,7 @@ interface FormState {
   categoria_id: string;
   unidad_medida: UnidadMedida;
   costo_referencia: string;
+  precio_venta: string;
   stock_minimo: string;
 }
 
@@ -51,6 +52,7 @@ const EMPTY: FormState = {
   categoria_id: '',
   unidad_medida: 'UNIDAD',
   costo_referencia: '',
+  precio_venta: '',
   stock_minimo: '0',
 };
 
@@ -89,6 +91,7 @@ export function ItemFormModal({ isOpen, item, categorias, moneda, onClose, onSav
             categoria_id: item.categoria_id ? String(item.categoria_id) : '',
             unidad_medida: item.unidad_medida,
             costo_referencia: item.costo_referencia != null ? String(item.costo_referencia) : '',
+            precio_venta: item.precio_venta != null ? String(item.precio_venta) : '',
             stock_minimo: String(item.stock_minimo),
           }
         : EMPTY,
@@ -107,6 +110,7 @@ export function ItemFormModal({ isOpen, item, categorias, moneda, onClose, onSav
     const min = toNumber(form.stock_minimo || '0');
     if (!Number.isFinite(min) || min < 0) e.stock_minimo = 'Debe ser 0 o mayor';
     if (form.costo_referencia && !(toNumber(form.costo_referencia) >= 0)) e.costo_referencia = 'Costo inválido';
+    if (form.precio_venta && !(toNumber(form.precio_venta) >= 0)) e.precio_venta = 'Precio inválido';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -123,6 +127,7 @@ export function ItemFormModal({ isOpen, item, categorias, moneda, onClose, onSav
       categoria_id: form.categoria_id ? Number(form.categoria_id) : null,
       unidad_medida: form.unidad_medida,
       costo_referencia: form.costo_referencia ? toNumber(form.costo_referencia) : null,
+      precio_venta: form.precio_venta ? toNumber(form.precio_venta) : null,
       stock_minimo: toNumber(form.stock_minimo || '0'),
     };
 
@@ -261,6 +266,24 @@ export function ItemFormModal({ isOpen, item, categorias, moneda, onClose, onSav
               </InputAffix>
             </FormField>
           </FormRow>
+
+          <FormField
+            label="Precio de venta"
+            htmlFor="inv-precio-venta"
+            error={errors.precio_venta}
+            hint="Lo que se cobra en caja. Se puede cambiar al vender."
+          >
+            <InputAffix start={prefijoMoneda || undefined}>
+              <input
+                id="inv-precio-venta"
+                type="text"
+                inputMode="decimal"
+                value={form.precio_venta}
+                onChange={(e) => patch({ precio_venta: e.target.value })}
+                placeholder="Sin precio"
+              />
+            </InputAffix>
+          </FormField>
         </FormSection>
       </FormStack>
       <FormSubmitError message={errors.submit} />
