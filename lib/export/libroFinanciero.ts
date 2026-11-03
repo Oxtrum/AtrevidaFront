@@ -135,12 +135,13 @@ function pagosUnicos(lineas: VentaDetalleLinea[]): Map<string, PagoUnico> {
   const out = new Map<string, PagoUnico>();
   lineas.forEach((l) => {
     const p = out.get(l.codigo_pago);
+    const servicios = l.tipo_linea === 'SERVICIO' ? l.cantidad : 0;
     if (p) {
-      p.servicios += l.cantidad;
+      p.servicios += servicios;
     } else {
       out.set(l.codigo_pago, {
         fecha: l.fecha, local: l.local || 'Sin local', tipo: l.tipo_pago, cajero: l.cajero || 'Sin registrar',
-        total: l.total_pago, servicios: l.cantidad,
+        total: l.total_pago, servicios,
       });
     }
   });
@@ -223,7 +224,7 @@ export async function descargarLibroFinanciero({ month, localId, localNombre, mo
   bloque('Inventario y gastos', [
     ['Valor del stock', reporte.inventario.valor_stock],
     ['Items con stock bajo', reporte.inventario.items_bajo_stock, INT],
-    ['Consumo de insumos por servicios', reporte.inventario.consumo_servicios],
+    ['Consumo de insumos (servicios y ventas)', reporte.inventario.consumo_servicios],
     ['Gastos generales', reporte.gastos_generales],
   ]);
   if (vigentes.length) {
@@ -246,10 +247,13 @@ export async function descargarLibroFinanciero({ month, localId, localNombre, mo
   }
   anchos(resumen, [46, 18, 14]);
 
+  // Los reportes por servicio cuentan solo servicios del catálogo; insumos, paquetes y líneas libres quedan fuera.
+  const lineasServicio = lineas.filter((l) => l.tipo_linea === 'SERVICIO');
+
   // ── Por sucursal ──
   const porLocalVentas = agrupar([...pagos.values()], (p) => p.local);
   const serviciosPorLocal = new Map<string, number>();
-  lineas.forEach((l) => serviciosPorLocal.set(l.local || 'Sin local', (serviciosPorLocal.get(l.local || 'Sin local') ?? 0) + l.cantidad));
+  lineasServicio.forEach((l) => serviciosPorLocal.set(l.local || 'Sin local', (serviciosPorLocal.get(l.local || 'Sin local') ?? 0) + l.cantidad));
   const netoPorLocal = new Map<string, number>();
   lineas.forEach((l) => netoPorLocal.set(l.local || 'Sin local', redondear((netoPorLocal.get(l.local || 'Sin local') ?? 0) + neto(l))));
   const finanzasPorLocal = new Map(reporte.detalle_por_local.map((d) => [d.local, d.resumen]));
@@ -271,7 +275,7 @@ export async function descargarLibroFinanciero({ month, localId, localNombre, mo
     { formatos: { 2: INT, 3: INT, 4: MONEY, 5: MONEY, 6: MONEY, 7: MONEY, 8: MONEY, 9: PCT }, totales: nombresLocales.length > 1 ? [2, 3, 4, 6, 7, 8] : [] });
 
   // ── Por servicio ──
-  const porServicio = [...agrupar(lineas, (l) => l.servicio || 'Sin nombre').entries()]
+  const porServicio = [...agrupar(lineasServicio, (l) => l.servicio || 'Sin nombre').entries()]
     .map(([servicio, ls]) => ({
       servicio, cantidad: ls.reduce((s, l) => s + l.cantidad, 0), bruto: suma(ls.map((l) => l.subtotal)),
       desc: suma(ls.map((l) => l.descuento_prorrateado)), neto: suma(ls.map(neto)),
@@ -287,7 +291,7 @@ export async function descargarLibroFinanciero({ month, localId, localNombre, mo
   const localesVenta = [...porLocalVentas.keys()].sort();
   if (localesVenta.length) {
     const celdas = new Map<string, number>();
-    lineas.forEach((l) => {
+    lineasServicio.forEach((l) => {
       const k = `${l.servicio || 'Sin nombre'}|${l.local || 'Sin local'}`;
       celdas.set(k, redondear((celdas.get(k) ?? 0) + neto(l)));
     });

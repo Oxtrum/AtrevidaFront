@@ -10,19 +10,9 @@ import { useConfiguracion } from '@/lib/hooks/useConfiguracion';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { formatMoney, monthRange, todayISO } from '@/lib/utils/format';
 import { etiquetaTipoPago } from '@/lib/utils/tipoPago';
+import { agruparVentasPorNombre } from '@/lib/utils/ventasPorTipo';
 // Misma estructura que la pestaña Resumen (filtros, tarjetas, dos gráficos): comparten estilos.
 import styles from './ReporteFinancieroPanel.module.css';
-
-function cleanServiceName(value: string | null | undefined) {
-  if (!value) return 'Sin datos';
-
-  return value
-    .trim()
-    .replace(/^\d+\s*[-–—:|]\s*/, '')
-    .replace(/^#?\d+\s*[-–—:|]\s*/, '')
-    .replace(/^#?\d+(?=[A-Za-zÁÉÍÓÚÜÑáéíóúüñ])/, '')
-    .trim() || 'Sin datos';
-}
 
 const formatNumber = (value: number) => value.toLocaleString('es-BO');
 
@@ -66,23 +56,16 @@ export function ReporteVentasPanel() {
   );
 
   // Por unidades vendidas; el monto neto (subtotal menos el descuento que le toca) va como detalle.
-  const servicioItems = useMemo(() => {
-    const porServicio = new Map<string, { neto: number; cantidad: number }>();
-    (detalle.data?.lineas ?? []).forEach((l) => {
-      const nombre = cleanServiceName(l.servicio);
-      const acc = porServicio.get(nombre) ?? { neto: 0, cantidad: 0 };
-      acc.neto += l.subtotal - l.descuento_prorrateado;
-      acc.cantidad += l.cantidad;
-      porServicio.set(nombre, acc);
-    });
-    return [...porServicio.entries()].map(([label, v]) => ({
-      key: label,
-      label,
+  const servicioItems = useMemo(
+    () => agruparVentasPorNombre(detalle.data?.lineas ?? [], 'SERVICIO').map((v) => ({
+      key: v.nombre,
+      label: v.nombre,
       value: v.cantidad,
-      hint: money(Math.round(v.neto * 100) / 100),
-    }));
+      hint: money(v.neto),
+    })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [detalle.data, moneda]);
+    [detalle.data, moneda],
+  );
 
   const sinVentas = (reporte?.cantidad_pagos ?? 0) === 0;
 

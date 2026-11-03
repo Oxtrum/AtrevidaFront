@@ -6,6 +6,8 @@ import type { TipoPago } from '@/lib/utils/tipoPago';
 
 export interface DetalleServicio {
   servicio_id: number | null;
+  /** Insumo del inventario vendido en la linea (excluye a servicio_id); al registrar el pago baja su stock. */
+  item_id?: number | null;
   servicio: string;
   precio_unitario: number;
   cantidad: number;
@@ -183,6 +185,8 @@ export interface VentaDetalleLinea {
   cajero: string;
   tipo_pago: string;
   servicio: string;
+  /** Qué se vendió: servicio del catálogo, insumo, paquete o línea libre. */
+  tipo_linea: 'SERVICIO' | 'INSUMO' | 'PAQUETE' | 'OTRO';
   cantidad: number;
   precio_unitario: number;
   subtotal: number;
