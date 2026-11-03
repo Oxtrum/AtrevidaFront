@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import gsap from 'gsap';
 import {
   AlertCircle,
@@ -112,10 +112,15 @@ export function BandejaReservas() {
   const paginationRequestRef = useRef(0);
   const paginationControllerRef = useRef<AbortController | null>(null);
 
-	// Aprobacion de reservas redirige a ?vista=pendientes: se abre ya filtrada por pendientes.
+	// Aprobaciones del menu llega con ?vista=pendientes: se abre ya filtrada por pendientes.
+	// Al volver a Reservas (sin el parametro) se quita ese filtro.
+	const vistaParam = useSearchParams().get('vista');
+	const vistaPrevRef = useRef<string | null>(null);
 	useEffect(() => {
-		if (new URLSearchParams(window.location.search).get('vista') === 'pendientes') setEstadoFiltro('PENDIENTE');
-	}, []);
+		if (vistaParam === 'pendientes') setEstadoFiltro('PENDIENTE');
+		else if (vistaPrevRef.current === 'pendientes') setEstadoFiltro('TODOS');
+		vistaPrevRef.current = vistaParam;
+	}, [vistaParam]);
 
 	useEffect(() => {
 		const timer = window.setTimeout(() => setDebouncedSearchQuery(searchQuery.trim()), 300);

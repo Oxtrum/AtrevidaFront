@@ -1,7 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import gsap from 'gsap';
 import { Pencil, Plus, Trash2, Users, Wallet } from 'lucide-react';
 import { PageHeader, DataTable, FormModal, RowActionsMenu, CursorPagination, FilterBar, Tabs } from '@/components/AdminConfig';
@@ -42,7 +42,7 @@ interface ConfirmState {
   onConfirm: () => void;
 }
 
-export default function ClientesPage() {
+function ClientesContent() {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -115,11 +115,12 @@ export default function ClientesPage() {
     return () => ctx.revert();
   }, []);
 
-  // Cuentas por cobrar redirige aqui con ?vista=deuda.
+  // El menu (Con deuda, Paquetes activos) y las rutas viejas llegan con ?vista=; se reacciona al cambio
+  // de URL porque pasar entre entradas del menu no remonta la pagina.
+  const vistaParam = useSearchParams().get('vista');
   useEffect(() => {
-    const param = new URLSearchParams(window.location.search).get('vista');
-    if (param === 'deuda' || param === 'paquetes') setVista(param);
-  }, []);
+    setVista(vistaParam === 'deuda' || vistaParam === 'paquetes' ? vistaParam : 'todos');
+  }, [vistaParam]);
 
   const cambiarVista = (siguiente: Vista) => {
     setVista(siguiente);
@@ -248,5 +249,13 @@ export default function ClientesPage() {
         </p>
       </FormModal>
     </div>
+  );
+}
+
+export default function ClientesPage() {
+  return (
+    <Suspense fallback={null}>
+      <ClientesContent />
+    </Suspense>
   );
 }

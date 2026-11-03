@@ -1,7 +1,7 @@
 'use client';
 
-import { useRef, useEffect, useState, useMemo } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { Suspense, useRef, useEffect, useState, useMemo } from 'react';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import gsap from 'gsap';
 import { CalendarDays, CalendarRange, List } from 'lucide-react';
 import { DiaSemana, ReservaBD, ReservaDetalle, generarSemanas, getFechasDeSemana } from '@/types/reserva';
@@ -30,7 +30,7 @@ const LOCAL_SCOPE_PENDING = '__LOCAL_SCOPE_PENDING__';
  * AdminReservasPage - Página de gestión de reservas para administrador.
  * Calendario para ver la semana; Lista para aprobar, confirmar, completar y cobrar.
  */
-export default function AdminReservasPage() {
+function AdminReservasContent() {
   const router = useRouter();
   const pathname = usePathname();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -69,11 +69,12 @@ export default function AdminReservasPage() {
     }
   }, [router]);
 
-  // Aprobacion de reservas redirige aqui con ?vista=pendientes.
+  // Aprobaciones del menu y la ruta vieja llegan con ?vista=pendientes; se reacciona al cambio de URL
+  // porque pasar de Reservas a Aprobaciones no remonta la pagina.
+  const vistaParam = useSearchParams().get('vista');
   useEffect(() => {
-    const vista = new URLSearchParams(window.location.search).get('vista');
-    if (vista === 'pendientes' || vista === 'lista') setVistaActiva('lista');
-  }, []);
+    if (vistaParam === 'pendientes' || vistaParam === 'lista') setVistaActiva('lista');
+  }, [vistaParam]);
 
   const cambiarVista = (vista: Vista) => {
     setVistaActiva(vista);
@@ -305,5 +306,13 @@ export default function AdminReservasPage() {
             onClose={() => setConfirmDelete(null)}
           />
     </div>
+  );
+}
+
+export default function AdminReservasPage() {
+  return (
+    <Suspense fallback={null}>
+      <AdminReservasContent />
+    </Suspense>
   );
 }

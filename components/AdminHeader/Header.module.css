@@ -286,6 +286,121 @@
   white-space: nowrap;
 }
 
+/* Grupos con submenú: el botón reutiliza el aspecto de .navLink y el panel se pliega con grid. */
+.navGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.navGroupButton {
+  width: 100%;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.navChevron {
+  flex: 0 0 auto;
+  margin-left: auto;
+  color: var(--admin-text-dim);
+  transition:
+    transform var(--admin-t-normal) var(--admin-ease),
+    color var(--admin-t-normal) var(--admin-ease);
+}
+
+.navChevronOpen {
+  transform: rotate(180deg);
+}
+
+.navGroupButton:hover .navChevron,
+.navGroupButton.navLinkActive .navChevron {
+  color: var(--admin-foreground);
+}
+
+.subMenu {
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition:
+    grid-template-rows var(--admin-t-normal) var(--admin-ease),
+    visibility 0s linear var(--admin-t-normal);
+}
+
+.subMenuOpen {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  transition:
+    grid-template-rows var(--admin-t-normal) var(--admin-ease),
+    visibility 0s;
+}
+
+.subMenuInner {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+  margin: 0 0 0 1.5rem;
+  padding: 0.28rem 0 0.1rem 0.9rem;
+  border-left: 1px solid var(--admin-border-subtle);
+  overflow: hidden;
+}
+
+.subLink {
+  position: relative;
+  display: block;
+  padding: 0.5rem 0.7rem;
+  border-radius: var(--admin-radius-md);
+  color: var(--admin-text-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition:
+    color var(--admin-t-normal) var(--admin-ease),
+    background var(--admin-t-normal) var(--admin-ease);
+}
+
+.subLink::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 3px;
+  height: 14px;
+  border-radius: var(--admin-radius-full);
+  background: var(--admin-grad-primary);
+  opacity: 0;
+  transform: translateY(-50%);
+  transition: opacity var(--admin-t-normal) var(--admin-ease);
+}
+
+.subLink:hover,
+.subLinkActive {
+  color: var(--admin-foreground);
+  background: rgba(236, 0, 140, 0.1);
+}
+
+.subLinkActive::before {
+  opacity: 1;
+}
+
+[data-admin="true"][data-admin-theme="light"] .subLink:hover,
+[data-admin="true"][data-admin-theme="light"] .subLinkActive {
+  background: rgba(236, 0, 140, 0.07);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .subMenu,
+  .subMenuOpen,
+  .navChevron {
+    transition: none;
+  }
+}
+
 .sidePanel {
   flex-shrink: 0;
   padding: 1rem;

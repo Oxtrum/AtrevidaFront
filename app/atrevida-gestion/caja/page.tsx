@@ -17,7 +17,7 @@ import {
   UserPlus,
   Wallet,
 } from 'lucide-react';
-import { AdminButton, AlertBanner, PageHeader, FormModal, Tabs, TipoPagoSelector } from '@/components/AdminConfig';
+import { AdminButton, AlertBanner, PageHeader, FormModal, TipoPagoSelector } from '@/components/AdminConfig';
 import { CobroReservaLoader } from './CobroReservaLoader';
 import type { ReservaBD } from '@/types/reserva';
 import { toast } from '@/components/Shared/Toast';
@@ -27,23 +27,15 @@ import { PhoneInput } from '@/components/PhoneInput';
 import { ClienteFormModal } from '@/components/AdminClientes';
 import { crearPagoDB } from '@/lib/api/pagos';
 import type { CrearPagoData, DetalleServicio } from '@/lib/api/pagos';
-import { ReservasPorCobrar } from './ReservasPorCobrar';
 import { actualizarEstadoReservaDB, actualizarReservaDB } from '@/lib/api/reservas';
 import { cobrarCliente, crearCargosLote, getCuentaCliente, type CuentaCliente } from '@/lib/api/cuenta';
-import { cargosCobrables } from '@/lib/utils/cobro';
-import { tipoCargoTexto } from '@/lib/utils/cuenta';
-import { formatFecha } from '@/lib/utils/formatDateTime';
 import { metodoValido, resumenTicket, type MetodoCaja } from '@/lib/utils/ticketCuenta';
 import { cargosDesdeDetalle } from '@/lib/utils/cuentaCaja';
-import { agregarInsumo, prepararDetallePago, parsePrecioPago, subtotalDetallePago, type DetallePagoDraft } from '@/lib/utils/paymentDraft';
-import { getInventarioItems } from '@/lib/api/inventario';
-import type { InventarioItem } from '@/types/inventario';
+import { prepararDetallePago, parsePrecioPago, subtotalDetallePago, type DetallePagoDraft } from '@/lib/utils/paymentDraft';
 import { formatCostoServicio } from '@/lib/utils/serviceCost';
 import { CAJA_LOCAL_STORAGE_KEY } from '@/lib/utils/localCaja';
 import { getLocalesDB, getServiciosDB, getCombosDB } from '@/lib/api/servicios';
-import { cambiarEstadoPlan, crearPlan, cobrarPlan, getPlanesDB } from '@/lib/api/planes';
-import type { PlanItem } from '@/lib/api/planes';
-import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
+import { cambiarEstadoPlan, crearPlan } from '@/lib/api/planes';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import styles from './page.module.css';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
@@ -111,9 +103,6 @@ const getTodayStamp = () => new Date().toLocaleDateString('es-BO', {
   year: 'numeric',
 });
 
-/** Ventas netas más deudas anteriores, en centavos exactos: lo que el saldo tendría que cubrir. */
-const resumenBase = (ventas: number, cargosAnteriores: number) => Math.round((ventas + cargosAnteriores) * 100) / 100;
-
 const getClienteNombreCompleto = (cliente: ClientePG) => `${cliente.nombre} ${cliente.apellido}`.trim();
 
 const splitClienteNombre = (fullName: string): Pick<NewClientForm, 'nombre' | 'apellido'> => {
@@ -167,10 +156,11 @@ export default function CajaPage() {
   const [loadingCombos, setLoadingCombos] = useState(false);
   // Paquetes agregados al pago; el plan se crea al registrar el pago. Clave = nombre de la línea.
   const [combosVenta, setCombosVenta] = useState<Record<string, { combo_id: number; precio: number }>>({});
-  const [insumos, setInsumos] = useState<InventarioItem[]>([]);
-  const [loadingInsumos, setLoadingInsumos] = useState(false);
-  const [catalogoTab, setCatalogoTab] = useState<'reservas' | 'servicios' | 'paquetes' | 'insumos' | 'cuenta'>('reservas');
+  const [catalogoTab, setCatalogoTab] = useState<'servicios' | 'paquetes' | 'otro'>('servicios');
   const [serviceQuery, setServiceQuery] = useState('');
+  // Linea libre ("Otro"): concepto escrito a mano y su monto.
+  const [otroConcepto, setOtroConcepto] = useState('');
+  const [otroMonto, setOtroMonto] = useState('');
 
 
   const [clienteNit, setClienteNit] = useState('');
@@ -194,23 +184,13 @@ export default function CajaPage() {
   });
   const [newClientErrors, setNewClientErrors] = useState<NewClientErrors>({});
   const [savingNewClient, setSavingNewClient] = useState(false);
-  // Modo "cobrar reserva": en vez de agregar elementos a un pago nuevo, se elige un plan
-  // RESERVADO existente y el pago lo activa (no crea un plan nuevo).
-  const [modo, setModo] = useState<'venta' | 'cobrarReserva'>('venta');
-  const [planesReservados, setPlanesReservados] = useState<PlanItem[]>([]);
-  const [loadingPlanesReservados, setLoadingPlanesReservados] = useState(false);
-  const [planReservado, setPlanReservado] = useState<PlanItem | null>(null);
   // Reserva completada que se está cobrando (viene de ?reserva=<id>); el pago queda ligado a ella.
   const [reservaCobro, setReservaCobro] = useState<ReservaBD | null>(null);
   const reservaAplicadaRef = useRef<number | null>(null);
-  // Sube al registrar un cobro para que la lista de reservas por cobrar se lea de nuevo.
+  // Sube al registrar un cobro para que la cuenta del cliente se lea de nuevo.
   const [recargaReservas, setRecargaReservas] = useState(0);
-  // Cuenta del cliente elegido: saldo disponible y deudas que se pueden cobrar desde la caja.
+  // Cuenta del cliente elegido: su saldo disponible.
   const [cuentaLeida, setCuentaLeida] = useState<{ clienteId: number; cuenta: CuentaCliente } | null>(null);
-  // Deudas anteriores que se pagan en este ticket y recarga de saldo, ambas del cliente elegido.
-  const [cargosElegidos, setCargosElegidos] = useState<number[]>([]);
-  const [recargaElegida, setRecargaElegida] = useState<{ clienteId: number; monto: number } | null>(null);
-  const [recargaTexto, setRecargaTexto] = useState('');
   // saldo / a_cuenta cuando no paga con uno de los cuatro metodos; null = paga con el metodo de tipoPago.
   const [nuevoClienteAbierto, setNuevoClienteAbierto] = useState(false);
   const [modoCuenta, setModoCuenta] = useState<'saldo' | null>(null);
@@ -286,19 +266,6 @@ export default function CajaPage() {
     return () => controller.abort();
   }, [selectedClienteId, recargaReservas]);
 
-  const fetchInsumos = useCallback(async (local: LocalOption) => {
-    setLoadingInsumos(true);
-    try {
-      setInsumos(await getInventarioItems({ local_id: local.id, activo: true, limit: 500 }));
-    } catch {
-      setInsumos([]);
-      toast.error('No se cargaron los insumos del local');
-    } finally {
-      setLoadingInsumos(false);
-    }
-  }, []);
-
-
   useEffect(() => {
     if (!adminLocalScope.ready) return;
 
@@ -314,8 +281,7 @@ export default function CajaPage() {
     if (!selectedLocal) return;
     void fetchServicios(selectedLocal);
     void fetchCombos(selectedLocal);
-    void fetchInsumos(selectedLocal);
-  }, [selectedLocal, fetchServicios, fetchCombos, fetchInsumos]);
+  }, [selectedLocal, fetchServicios, fetchCombos]);
 
   useEffect(() => {
     const query = clienteNombre.trim();
@@ -345,34 +311,6 @@ export default function CajaPage() {
       window.clearTimeout(timer);
     };
   }, [clienteNombre, selectedClienteId]);
-
-  useEffect(() => {
-    if (modo !== 'cobrarReserva' || !selectedLocal) return;
-    const nombre = clienteNombre.trim();
-    if (nombre.length < 2) {
-      setPlanesReservados([]);
-      return;
-    }
-
-    let cancelled = false;
-    const timer = window.setTimeout(async () => {
-      setLoadingPlanesReservados(true);
-      try {
-		const res = await getPlanesDB({ cliente: nombre, estado: 'RESERVADO', local: selectedLocal.nombre, limit: PAGE_LIMIT });
-        if (cancelled) return;
-        setPlanesReservados(res.data?.planes ?? []);
-      } catch {
-        if (!cancelled) setPlanesReservados([]);
-      } finally {
-        if (!cancelled) setLoadingPlanesReservados(false);
-      }
-    }, 280);
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-    };
-  }, [modo, clienteNombre, selectedLocal]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -465,16 +403,12 @@ export default function CajaPage() {
 
   const cuenta = selectedClienteId && cuentaLeida?.clienteId === selectedClienteId ? cuentaLeida.cuenta : null;
   const disponible = cuenta?.saldo.disponible ?? 0;
-  const cargosPorPagar = useMemo(() => cargosCobrables(cuenta?.cargos ?? []), [cuenta]);
-  const cargosEnTicket = cargosPorPagar.filter((c) => cargosElegidos.includes(c.id));
-  const cargosAnteriores = Math.round(cargosEnTicket.reduce((suma, c) => suma + c.pendiente, 0) * 100) / 100;
-  const hayLineaRecarga = !!selectedClienteId && recargaElegida?.clienteId === selectedClienteId;
-  const recarga = hayLineaRecarga && recargaElegida ? recargaElegida.monto : 0;
   const hayCliente = !!selectedClienteId;
-  const contextoMetodo = { hayCliente, disponible, total: resumenBase(totalFinal, cargosAnteriores), cargosAnteriores, recarga };
-  // Si el metodo elegido deja de valer (p. ej. se agrega una recarga), se vuelve al metodo normal.
+  // La caja ya no paga deudas anteriores ni recarga saldo: el ticket solo trae las ventas nuevas.
+  const contextoMetodo = { hayCliente, disponible, total: roundMoney(totalFinal), cargosAnteriores: 0, recarga: 0 };
+  // Si el metodo elegido deja de valer, se vuelve al metodo normal.
   const metodoActual: MetodoCaja = modoCuenta && metodoValido(modoCuenta, contextoMetodo) ? modoCuenta : tipoPago;
-  const resumen = resumenTicket({ ventas: totalFinal, cargosAnteriores, recarga, disponible, metodo: metodoActual });
+  const resumen = resumenTicket({ ventas: totalFinal, cargosAnteriores: 0, recarga: 0, disponible, metodo: metodoActual });
   // Saldo siempre se ve; se puede elegir solo si el saldo del cliente cubre todo el ticket.
   const saldoValido = metodoValido('saldo', contextoMetodo);
   const extrasMetodo = [{
@@ -484,9 +418,7 @@ export default function CajaPage() {
     disabled: !saldoValido,
     title: !hayCliente
       ? 'Elige un cliente para pagar con su saldo'
-      : recarga > 0
-        ? 'No se puede pagar con saldo mientras haya una recarga en el ticket'
-        : saldoValido ? undefined : `Saldo insuficiente: tiene ${formatMoney(disponible)}`,
+      : saldoValido ? undefined : `Saldo insuficiente: tiene ${formatMoney(disponible)}`,
   }];
   const cambiarMetodo = (valor: MetodoCaja) => {
     if (valor === 'saldo') {
@@ -496,20 +428,8 @@ export default function CajaPage() {
       setTipoPago(valor);
     }
   };
-  // A cuenta es un boton aparte: siempre se ve, se habilita con cliente y ventas, sin recarga ni deudas anteriores.
-  const puedeDejarACuenta = modo === 'venta' && detalle.length > 0 && metodoValido('a_cuenta', contextoMetodo);
-  const tab = catalogoTab === 'cuenta' && !selectedClienteId ? 'reservas' : catalogoTab;
-  const alternarCargo = (id: number) =>
-    setCargosElegidos((actuales) => (actuales.includes(id) ? actuales.filter((x) => x !== id) : [...actuales, id]));
-  const agregarRecarga = () => {
-    const monto = Number(recargaTexto.trim().replace(',', '.'));
-    if (!selectedClienteId || !Number.isFinite(monto) || monto <= 0) {
-      toast.error('Ingresa un monto de recarga mayor a 0');
-      return;
-    }
-    setRecargaElegida({ clienteId: selectedClienteId, monto: Math.round(monto * 100) / 100 });
-    setRecargaTexto('');
-  };
+  // A cuenta es un boton aparte: siempre se ve, se habilita con cliente y ventas.
+  const puedeDejarACuenta = detalle.length > 0 && metodoValido('a_cuenta', contextoMetodo);
 
   const serviciosFiltrados = useMemo(() => {
     const query = serviceQuery.trim().toLowerCase();
@@ -524,12 +444,6 @@ export default function CajaPage() {
     if (!query) return combos;
     return combos.filter((combo) => combo.nombre.toLowerCase().includes(query));
   }, [combos, serviceQuery]);
-
-  const insumosFiltrados = useMemo(() => {
-    const query = serviceQuery.trim().toLowerCase();
-    if (!query) return insumos;
-    return insumos.filter((item) => item.nombre.toLowerCase().includes(query));
-  }, [insumos, serviceQuery]);
 
   const clearFieldError = (field: keyof FormErrors) => {
     if (formErrors[field]) setFormErrors((prev) => ({ ...prev, [field]: undefined }));
@@ -560,8 +474,20 @@ export default function CajaPage() {
     clearFieldError('detalle');
   };
 
-  const addInsumo = (insumo: InventarioItem) => {
-    setDetalle((prev) => agregarInsumo(prev, insumo));
+  const agregarOtro = () => {
+    const concepto = otroConcepto.trim();
+    const precio = parsePrecioPago(otroMonto);
+    if (!concepto) {
+      toast.error('Escribe el concepto del cobro');
+      return;
+    }
+    if (precio === null || precio <= 0) {
+      toast.error('Ingresa un monto mayor a 0');
+      return;
+    }
+    setDetalle((prev) => [...prev, { servicio_id: null, servicio: concepto, precio_unitario: precio, cantidad: 1, subtotal: precio }]);
+    setOtroConcepto('');
+    setOtroMonto('');
     clearFieldError('detalle');
   };
 
@@ -600,9 +526,6 @@ export default function CajaPage() {
 
   const resetSale = () => {
     planesACuentaRef.current = {};
-    setCargosElegidos([]);
-    setRecargaElegida(null);
-    setRecargaTexto('');
     setModoCuenta(null);
     setClienteNit('');
     setNitPropuesto(false);
@@ -615,38 +538,6 @@ export default function CajaPage() {
     setDetalle([]);
     setCombosVenta({});
     setFormErrors({});
-    setPlanReservado(null);
-    setPlanesReservados([]);
-  };
-
-  const handleModoChange = (nextModo: 'venta' | 'cobrarReserva') => {
-    if (nextModo === modo) return;
-    setModo(nextModo);
-    setDetalle([]);
-    setCombosVenta({});
-    setPlanReservado(null);
-    setPlanesReservados([]);
-    setFormErrors({});
-  };
-
-  const handleSelectPlanReservado = (value: string) => {
-    const plan = planesReservados.find((p) => String(p.id) === value) ?? null;
-    setPlanReservado(plan);
-    if (plan) {
-      setClienteNombre(plan.cliente);
-      setSelectedClienteId(plan.cliente_id ?? null);
-      setClienteDropdownOpen(false);
-      setDetalle([{
-        servicio_id: null,
-        servicio: plan.combo_nombre_texto ?? 'Paquete',
-        precio_unitario: plan.precio_total,
-        cantidad: 1,
-        subtotal: plan.precio_total,
-      }]);
-    } else {
-      setDetalle([]);
-    }
-    clearFieldError('detalle');
   };
 
   const resetNewClientModal = () => {
@@ -694,12 +585,7 @@ export default function CajaPage() {
     const errors: FormErrors = {};
     if (!selectedLocal) errors.local = 'Selecciona un local para abrir caja';
     if (!clienteNombre.trim()) errors.cliente_nombre = 'El nombre del cliente es obligatorio';
-    if (detalle.length === 0 && (modo === 'cobrarReserva' || (cargosEnTicket.length === 0 && !hayLineaRecarga))) {
-      errors.detalle = modo === 'cobrarReserva'
-        ? 'Selecciona un paquete reservado para cobrar'
-        : 'Agrega al menos un servicio';
-    }
-    if (modo === 'venta' && hayLineaRecarga && recarga <= 0) errors.detalle = 'La recarga debe ser mayor a 0';
+    if (detalle.length === 0) errors.detalle = 'Agrega al menos un servicio, paquete u otro concepto';
     const { errorIndex } = prepararDetallePago(detalle);
     if (errorIndex !== null) {
       const item = detalle[errorIndex];
@@ -747,12 +633,8 @@ export default function CajaPage() {
     if (!selectedLocal || !validate()) return;
     const detallePreparado = prepararDetallePago(detalle);
     if (detallePreparado.errorIndex !== null) return;
-    if (modo === 'cobrarReserva' && !planReservado) {
-      toast.error('Selecciona un paquete reservado para cobrar.');
-      return;
-    }
     // Un paquete nuevo es una membresía: necesita un cliente registrado como dueño.
-    const tienePaquete = modo === 'venta' && detalle.some((i) => combosVenta[i.servicio]);
+    const tienePaquete = detalle.some((i) => combosVenta[i.servicio]);
     if (tienePaquete && !clienteId) {
       toast.error('Un paquete necesita un cliente registrado. Selecciona o crea el cliente.');
       return;
@@ -770,43 +652,30 @@ export default function CajaPage() {
         estado: 'PAGADO',
         tipo_pago: tipoPago,
         activo: true,
-        reserva_id: modo === 'venta' ? reservaCobro?.id ?? null : null,
+        reserva_id: reservaCobro?.id ?? null,
         detalle: detallePreparado.detalle,
       };
       // Si completar la reserva falla, no se registra el pago.
-      if (modo === 'venta') await completarReservaDelCobro();
+      await completarReservaDelCobro();
       const pagoRes = await crearPagoDB(payload);
       const codigoPago = pagoRes.data?.codigo_pago;
 
-      if (modo === 'cobrarReserva' && planReservado) {
-        // La reserva ya existe como plan RESERVADO: solo se le adjunta el pago
-        // recién creado, lo que la activa (no se crea un plan nuevo).
-        if (codigoPago) {
-          try {
-            await cobrarPlan(planReservado.id, codigoPago);
-          } catch (err) {
-            if (err instanceof Error) console.error('cobrar reserva tras pago', err);
-            toast.error('El pago se registró, pero la reserva no se activó. Actívala en Paquetes.');
-          }
-        }
-      } else {
-        // Crear el paquete (ya ACTIVO) de cada línea de paquete que quedó en el detalle del pago.
-        // Nace ACTIVO porque ya está pagado: el cliente puede usar sus sesiones de inmediato.
-        // Se pasa el código del pago para aplicarlo a la cuota (queda PAGADO).
-        const paquetes = detalle.filter((i) => i.servicio_id === null && combosVenta[i.servicio]);
-        if (paquetes.length > 0 && clienteId) {
-          try {
-            await Promise.all(
-              paquetes.map((i) => crearPlan({ combo_id: combosVenta[i.servicio].combo_id, cliente_id: clienteId, local_id: selectedLocal.id, tipo_pago: 'UNICO', pago_codigo: codigoPago })),
-            );
-          } catch (err) {
-            if (err instanceof Error) console.error('crear paquete tras pago', err);
-            toast.error('El pago se registró, pero un paquete no se creó. Créalo en Paquetes.');
-          }
+      // Crear el paquete (ya ACTIVO) de cada línea de paquete que quedó en el detalle del pago.
+      // Nace ACTIVO porque ya está pagado: el cliente puede usar sus sesiones de inmediato.
+      // Se pasa el código del pago para aplicarlo a la cuota (queda PAGADO).
+      const paquetes = detalle.filter((i) => i.servicio_id === null && combosVenta[i.servicio]);
+      if (paquetes.length > 0 && clienteId) {
+        try {
+          await Promise.all(
+            paquetes.map((i) => crearPlan({ combo_id: combosVenta[i.servicio].combo_id, cliente_id: clienteId, local_id: selectedLocal.id, tipo_pago: 'UNICO', pago_codigo: codigoPago })),
+          );
+        } catch (err) {
+          if (err instanceof Error) console.error('crear paquete tras pago', err);
+          toast.error('El pago se registró, pero un paquete no se creó. Créalo en Paquetes.');
         }
       }
 
-      toast.success(modo === 'cobrarReserva' ? 'Paquete cobrado y activado' : reservaCobro ? `Reserva #${reservaCobro.id} cobrada` : 'Pago registrado en caja');
+      toast.success(reservaCobro ? `Reserva #${reservaCobro.id} cobrada` : 'Pago registrado en caja');
       if (reservaCobro) {
         setReservaCobro(null);
         reservaAplicadaRef.current = null;
@@ -814,7 +683,6 @@ export default function CajaPage() {
       }
       resetSale();
       setRecargaReservas((n) => n + 1);
-      if (detalle.some((i) => i.item_id != null)) void fetchInsumos(selectedLocal);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al registrar pago';
       setFormErrors({ submit: message });
@@ -847,26 +715,23 @@ export default function CajaPage() {
   };
 
   /** Deja el ticket listo para el siguiente cliente despues de pasar por la cuenta. */
-  const terminarTicketDeCuenta = (local: LocalOption, mensaje: string) => {
+  const terminarTicketDeCuenta = (mensaje: string) => {
     toast.success(mensaje);
     if (reservaCobro) {
       setReservaCobro(null);
       reservaAplicadaRef.current = null;
       router.replace('/atrevida-gestion/caja');
     }
-    const vendioInsumos = detalle.some((i) => i.item_id != null);
     resetSale();
     setRecargaReservas((n) => n + 1);
-    if (vendioInsumos) void fetchInsumos(local);
   };
 
   /**
-   * Registra el ticket por la cuenta del cliente: las ventas se vuelven cargos (los insumos bajan stock) y despues se
-   * cobra todo junto con saldo y/o un metodo, o se deja a cuenta sin mover dinero. Tambien paga deudas anteriores y
-   * recarga saldo. Si algo falla antes de crear los cargos, no queda ninguno.
+   * Registra el ticket por la cuenta del cliente: las ventas se vuelven cargos y despues se cobra todo junto con saldo
+   * y/o un metodo, o se deja a cuenta sin mover dinero. Si algo falla antes de crear los cargos, no queda ninguno.
    */
   const registrarPorCuenta = async (aCuenta = false) => {
-    if (!selectedLocal || !selectedClienteId || modo !== 'venta') return;
+    if (!selectedLocal || !selectedClienteId) return;
     const detallePreparado = prepararDetallePago(detalle);
     if (detallePreparado.errorIndex !== null) return;
     const local = selectedLocal;
@@ -876,16 +741,15 @@ export default function CajaPage() {
     try {
       const nuevos = detallePreparado.detalle.length > 0 ? await crearCargosDelTicket(local, clienteId, detallePreparado.detalle) : [];
       if (aCuenta) {
-        terminarTicketDeCuenta(local, `Dejado a cuenta de ${clienteNombre.trim()}`);
+        terminarTicketDeCuenta(`Dejado a cuenta de ${clienteNombre.trim()}`);
         return;
       }
       try {
         await cobrarCliente(clienteId, {
           local_id: local.id,
           local_nombre: local.nombre,
-          cargo_ids: [...nuevos, ...cargosEnTicket.map((c) => c.id)],
+          cargo_ids: nuevos,
           usar_saldo: metodoActual === 'saldo',
-          recarga: recarga > 0 ? recarga : undefined,
           tipo_pago: resumen.aPagarAhora > 0 ? tipoPago : undefined,
         });
       } catch (err) {
@@ -893,10 +757,10 @@ export default function CajaPage() {
         // Los cargos ya existen: quedaron a cuenta y se pueden cobrar desde la ficha del cliente.
         const motivo = err instanceof Error ? err.message : 'error desconocido';
         toast.error(`Quedó a cuenta, pero el cobro falló: ${motivo}. Cóbralo desde la ficha del cliente.`);
-        terminarTicketDeCuenta(local, `Dejado a cuenta de ${clienteNombre.trim()}`);
+        terminarTicketDeCuenta(`Dejado a cuenta de ${clienteNombre.trim()}`);
         return;
       }
-      terminarTicketDeCuenta(local, 'Cobro registrado');
+      terminarTicketDeCuenta('Cobro registrado');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'No se pudo registrar el cobro';
       setFormErrors({ submit: message });
@@ -908,10 +772,6 @@ export default function CajaPage() {
 
   const handleSubmit = async () => {
     if (!validate() || !selectedLocal) return;
-    if (modo === 'cobrarReserva') {
-      await registerPayment(planReservado?.cliente_id ?? selectedClienteId ?? null);
-      return;
-    }
     if (selectedClienteId && resumen.usaCuenta) {
       await registrarPorCuenta();
       return;
@@ -993,7 +853,7 @@ export default function CajaPage() {
               >
                 {reservaCobro.cliente} · {reservaCobro.servicio_confirmado || reservaCobro.servicio} · {reservaCobro.fecha}.
                 {reservaCobro.estado === 'AGENDADO'
-                  ? ` Al registrar el pago se completa${reservaCobro.fecha > new Date().toLocaleDateString('en-CA') ? ' y pasa a hoy' : ''}. Puedes agregar insumos.`
+                  ? ` Al registrar el pago se completa${reservaCobro.fecha > new Date().toLocaleDateString('en-CA') ? ' y pasa a hoy' : ''}.`
                   : reservaCobro.estado === 'COMPLETADO'
                     ? ' Revisa el precio y el método de pago; al registrar el pago la reserva queda como cobrada.'
                     : ` Está ${reservaCobro.estado === 'RECHAZADO' ? 'cancelada' : 'pendiente'}: el pago queda a su nombre y su estado no cambia.`}
@@ -1048,72 +908,22 @@ export default function CajaPage() {
                   </div>
                 </section>
 
-                <Tabs
-                  tabs={[
-                    { key: 'venta', label: 'Venta nueva', icon: <ReceiptText size={16} strokeWidth={1.8} /> },
-                    { key: 'cobrarReserva', label: 'Cobrar paquete reservado', icon: <CheckCircle2 size={16} strokeWidth={1.8} /> },
-                  ]}
-                  active={modo}
-                  onChange={handleModoChange}
-                  ariaLabel="Modo de cobro"
-                />
-
                 <section className={styles.saleShell}>
                   <div className={styles.catalogPanel}>
                     <div className={styles.panelHeader}>
                       <div>
-                        <span className={styles.kicker}>{modo === 'venta' ? 'Catálogo' : 'Cobrar paquete reservado'}</span>
-                        <h2>{modo === 'venta' ? 'Agregar al pago' : 'Paquete seleccionado'}</h2>
+                        <span className={styles.kicker}>Catálogo</span>
+                        <h2>Agregar al pago</h2>
                       </div>
-                      {modo === 'venta'
-                        ? (loadingServicios || loadingCombos) && <span className="admin-badge">Cargando</span>
-                        : loadingPlanesReservados && <span className="admin-badge">Buscando</span>}
+                      {(loadingServicios || loadingCombos) && <span className="admin-badge">Cargando</span>}
                     </div>
 
-                    {modo === 'cobrarReserva' ? (
-                      <div className={styles.catalogBody}>
-                        {planReservado ? (
-                          <div className={styles.summaryCard}>
-                            <div className={styles.summaryRow}>
-                              <span>Cliente</span>
-                              <strong>{planReservado.cliente}</strong>
-                            </div>
-                            <div className={styles.summaryRow}>
-                              <span>Paquete</span>
-                              <strong>{planReservado.combo_nombre_texto ?? '—'}</strong>
-                            </div>
-                            <div className={styles.summaryRow}>
-                              <span>Sesiones</span>
-                              <strong>{planReservado.sesiones_totales}</strong>
-                            </div>
-                            <div className={styles.summaryRow}>
-                              <span>Precio</span>
-                              <strong>{formatMoney(planReservado.precio_total)}</strong>
-                            </div>
-                          </div>
-                        ) : (
-                          <p className={styles.mutedText}>
-                            Escribe el nombre del cliente en el panel derecho y elige su paquete reservado para agregarlo al pago.
-                          </p>
-                        )}
-                      </div>
-                    ) : (
-                    <>
                     <div className={styles.catalogTabs} role="tablist">
                       <button
                         type="button"
                         role="tab"
-                        aria-selected={tab === 'reservas'}
-                        className={`${styles.catalogTab} ${tab === 'reservas' ? styles.catalogTabActive : ''}`}
-                        onClick={() => setCatalogoTab('reservas')}
-                      >
-                        Reservas
-                      </button>
-                      <button
-                        type="button"
-                        role="tab"
-                        aria-selected={tab === 'servicios'}
-                        className={`${styles.catalogTab} ${tab === 'servicios' ? styles.catalogTabActive : ''}`}
+                        aria-selected={catalogoTab === 'servicios'}
+                        className={`${styles.catalogTab} ${catalogoTab === 'servicios' ? styles.catalogTabActive : ''}`}
                         onClick={() => setCatalogoTab('servicios')}
                       >
                         Servicios
@@ -1121,8 +931,8 @@ export default function CajaPage() {
                       <button
                         type="button"
                         role="tab"
-                        aria-selected={tab === 'paquetes'}
-                        className={`${styles.catalogTab} ${tab === 'paquetes' ? styles.catalogTabActive : ''}`}
+                        aria-selected={catalogoTab === 'paquetes'}
+                        className={`${styles.catalogTab} ${catalogoTab === 'paquetes' ? styles.catalogTabActive : ''}`}
                         onClick={() => setCatalogoTab('paquetes')}
                       >
                         Paquetes
@@ -1131,100 +941,28 @@ export default function CajaPage() {
                       <button
                         type="button"
                         role="tab"
-                        aria-selected={tab === 'insumos'}
-                        className={`${styles.catalogTab} ${tab === 'insumos' ? styles.catalogTabActive : ''}`}
-                        onClick={() => setCatalogoTab('insumos')}
+                        aria-selected={catalogoTab === 'otro'}
+                        className={`${styles.catalogTab} ${catalogoTab === 'otro' ? styles.catalogTabActive : ''}`}
+                        onClick={() => setCatalogoTab('otro')}
                       >
-                        Insumos
-                      </button>
-                      <button
-                        type="button"
-                        role="tab"
-                        aria-selected={tab === 'cuenta'}
-                        className={`${styles.catalogTab} ${tab === 'cuenta' ? styles.catalogTabActive : ''}`}
-                        onClick={() => setCatalogoTab('cuenta')}
-                        disabled={!selectedClienteId}
-                        title={selectedClienteId ? undefined : 'Elige un cliente para ver su saldo y sus deudas'}
-                      >
-                        Cuenta
-                        {cargosPorPagar.length > 0 && <span className={styles.tabCount}>{cargosPorPagar.length}</span>}
+                        Otro
                       </button>
                     </div>
 
-                    {tab !== 'reservas' && tab !== 'cuenta' && (
+                    {catalogoTab !== 'otro' && (
                       <div className={styles.searchBox}>
                         <Search size={15} strokeWidth={1.8} />
                         <input
                           type="text"
                           value={serviceQuery}
                           onChange={(e) => setServiceQuery(e.target.value)}
-                          placeholder={tab === 'servicios' ? 'Buscar servicio...' : tab === 'paquetes' ? 'Buscar paquete...' : 'Buscar insumo...'}
+                          placeholder={catalogoTab === 'servicios' ? 'Buscar servicio...' : 'Buscar paquete...'}
                         />
                       </div>
                     )}
 
                     <div className={styles.catalogBody}>
-                      {tab === 'reservas' && (
-                        <ReservasPorCobrar
-                          local={selectedLocal.nombre}
-                          clienteId={selectedClienteId}
-                          clienteNombre={clienteNombre.trim()}
-                          seleccionadaId={reservaCobro?.id ?? null}
-                          recarga={recargaReservas}
-                          onSeleccionar={handleReservaCargada}
-                        />
-                      )}
-
-                      {tab === 'cuenta' && selectedClienteId && (
-                        <div className={styles.serviceList}>
-                          <div className={styles.cuentaResumen}>
-                            <div>
-                              <span>Saldo disponible</span>
-                              <strong>{formatMoney(disponible)}</strong>
-                            </div>
-                            <div>
-                              <span>Debe</span>
-                              <strong>{formatMoney(cuenta?.saldo.por_pagar ?? 0)}</strong>
-                            </div>
-                          </div>
-                          {cargosPorPagar.map((cargo) => (
-                            <button
-                              key={cargo.id}
-                              type="button"
-                              className={`${styles.serviceItem} ${cargosElegidos.includes(cargo.id) ? styles.serviceItemActive : ''}`}
-                              aria-pressed={cargosElegidos.includes(cargo.id)}
-                              onClick={() => alternarCargo(cargo.id)}
-                            >
-                              <span>
-                                <strong>{cargo.concepto}</strong>
-                                <small>{tipoCargoTexto(cargo.tipo)} · {formatFecha(cargo.fecha_hecho)}</small>
-                              </span>
-                              <span className={styles.servicePrice}>
-                                <b>{formatMoney(cargo.pendiente)}</b>
-                                <small>{cargosElegidos.includes(cargo.id) ? 'En el ticket' : 'Por pagar'}</small>
-                              </span>
-                            </button>
-                          ))}
-                          {cuenta && cargosPorPagar.length === 0 && <p className={styles.mutedText}>No tiene deudas por pagar.</p>}
-                          <div className={styles.recargaFila}>
-                            <input
-                              type="text"
-                              inputMode="decimal"
-                              value={recargaTexto}
-                              onChange={(e) => setRecargaTexto(e.target.value)}
-                              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); agregarRecarga(); } }}
-                              placeholder="Recargar saldo"
-                              aria-label="Monto a recargar"
-                            />
-                            <button type="button" className="admin-button admin-button-secondary" onClick={agregarRecarga}>
-                              <Plus size={16} strokeWidth={2} />
-                              Agregar
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
-                      {tab === 'servicios' && (
+                      {catalogoTab === 'servicios' && (
                         <div className={styles.serviceList}>
                           {serviciosFiltrados.map((servicio) => (
                             <button
@@ -1249,7 +987,7 @@ export default function CajaPage() {
                         </div>
                       )}
 
-                      {tab === 'paquetes' && (
+                      {catalogoTab === 'paquetes' && (
                         <div className={styles.serviceList}>
                           {combosFiltrados.map((combo) => (
                             <button
@@ -1274,42 +1012,53 @@ export default function CajaPage() {
                         </div>
                       )}
 
-                      {tab === 'insumos' && (
-                        <div className={styles.serviceList}>
-                          {insumosFiltrados.map((insumo) => (
-                            <button
-                              key={insumo.id}
-                              type="button"
-                              className={styles.serviceItem}
-                              onClick={() => addInsumo(insumo)}
-                            >
-                              <span>
-                                <strong>{insumo.nombre}</strong>
-                                <small>Stock {insumo.stock_actual}</small>
-                              </span>
-                              <span className={styles.servicePrice}>
-                                <b>{insumo.precio_venta != null ? formatMoney(insumo.precio_venta) : 'Sin precio'}</b>
-                              </span>
-                            </button>
-                          ))}
-                          {!loadingInsumos && insumosFiltrados.length === 0 && (
-                            <p className={styles.mutedText}>
-                              {insumos.length === 0 ? 'Este local no tiene insumos.' : 'No hay insumos para ese filtro.'}
-                            </p>
-                          )}
-                        </div>
+                      {catalogoTab === 'otro' && (
+                        <form
+                          className={styles.otroForm}
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            agregarOtro();
+                          }}
+                        >
+                          <p className={styles.mutedText}>Para cobrar algo que no está en servicios ni paquetes.</p>
+                          <label>
+                            <span>Concepto</span>
+                            <input
+                              type="text"
+                              value={otroConcepto}
+                              onChange={(e) => setOtroConcepto(e.target.value)}
+                              placeholder="Ej. Recargo, producto, ajuste"
+                              maxLength={120}
+                              autoComplete="off"
+                            />
+                          </label>
+                          <label>
+                            <span>Monto (Bs.)</span>
+                            <input
+                              type="number"
+                              min={0}
+                              max={99999999.99}
+                              step="0.01"
+                              inputMode="decimal"
+                              value={otroMonto}
+                              onChange={(e) => setOtroMonto(e.target.value)}
+                              placeholder="0.00"
+                            />
+                          </label>
+                          <button type="submit" className="admin-button admin-button-secondary">
+                            <Plus size={16} strokeWidth={2} />
+                            Agregar al pago
+                          </button>
+                        </form>
                       )}
-
                     </div>
-                    </>
-                    )}
                   </div>
 
                   <div className={styles.ticketPanel}>
                     <div className={styles.panelHeader}>
                       <div>
-                        <span className={styles.kicker}>{modo === 'venta' ? 'Nuevo pago' : 'Cobrar paquete reservado'}</span>
-                        <h2>{modo === 'venta' ? 'Detalle de caja' : 'Paquete a cobrar'}</h2>
+                        <span className={styles.kicker}>Nuevo pago</span>
+                        <h2>Detalle de caja</h2>
                       </div>
                       <ReceiptText size={22} strokeWidth={1.7} />
                     </div>
@@ -1392,31 +1141,6 @@ export default function CajaPage() {
                       </p>
                     )}
 
-                    {modo === 'cobrarReserva' && (
-                      <div className={styles.modalField}>
-                        <span>Paquete reservado</span>
-                        {loadingPlanesReservados ? (
-                          <p className={styles.mutedText}>Buscando paquetes...</p>
-                        ) : clienteNombre.trim().length < 2 ? (
-                          <p className={styles.mutedText}>Escribe el nombre del cliente para buscar sus paquetes reservados.</p>
-                        ) : planesReservados.length === 0 ? (
-                          <p className={styles.mutedText}>Este cliente no tiene paquetes reservados pendientes de cobro.</p>
-                        ) : (
-                          <CustomSelect
-                            id="plan-reservado-select"
-                            value={planReservado ? String(planReservado.id) : ''}
-                            onChange={handleSelectPlanReservado}
-                            placeholder="Selecciona el paquete"
-                            hasError={!!formErrors.detalle}
-                            options={planesReservados.map((p) => ({
-                              value: String(p.id),
-                              label: `${p.combo_nombre_texto ?? 'Paquete'} — ${p.sesiones_totales} sesiones — ${formatMoney(p.precio_total)}`,
-                            }))}
-                          />
-                        )}
-                      </div>
-                    )}
-
                     <div className={styles.paymentToggle}>
                       <TipoPagoSelector value={metodoActual} onChange={cambiarMetodo} label="Cómo paga" extras={extrasMetodo} />
                     </div>
@@ -1429,7 +1153,7 @@ export default function CajaPage() {
                       <span aria-hidden="true" />
                     </div>
                     <div className={styles.ticketItems}>
-                      {detalle.length === 0 && cargosEnTicket.length === 0 && !hayLineaRecarga ? (
+                      {detalle.length === 0 ? (
                         <div className={styles.emptyTicket}>
                           <ReceiptText size={20} strokeWidth={1.7} />
                           <p>Agrega servicios desde el catálogo para armar el pago.</p>
@@ -1440,7 +1164,7 @@ export default function CajaPage() {
                             <div>
                               <strong>{item.servicio}</strong>
                             </div>
-                            {modo === 'venta' && !combosVenta[item.servicio] ? (
+                            {!combosVenta[item.servicio] ? (
                               <label className={styles.unitPriceField}>
                                 <span className={styles.currencyPrefix}>Bs.</span>
                                 <input
@@ -1484,49 +1208,6 @@ export default function CajaPage() {
                           </div>
                         ))
                       )}
-                      {modo === 'venta' && cargosEnTicket.map((cargo) => (
-                        <div key={`cargo-${cargo.id}`} className={styles.ticketItem}>
-                          <div>
-                            <strong>Deuda: {cargo.concepto}</strong>
-                          </div>
-                          <span />
-                          <span />
-                          <b>{formatMoney(cargo.pendiente)}</b>
-                          <button type="button" className={styles.iconButton} onClick={() => alternarCargo(cargo.id)} aria-label="Quitar deuda">
-                            <Trash2 size={15} strokeWidth={1.8} />
-                          </button>
-                        </div>
-                      ))}
-                      {modo === 'venta' && hayLineaRecarga && (
-                        <div className={styles.ticketItem}>
-                          <div>
-                            <strong>Recarga de saldo</strong>
-                          </div>
-                          <label className={styles.unitPriceField}>
-                            <span className={styles.currencyPrefix}>Bs.</span>
-                            <input
-                              type="number"
-                              min={0}
-                              step="0.01"
-                              inputMode="decimal"
-                              value={recarga || ''}
-                              placeholder="Monto"
-                              aria-label="Monto de la recarga"
-                              onFocus={(e) => e.currentTarget.select()}
-                              onChange={(e) => {
-                                const monto = Math.max(0, Number(e.target.value) || 0);
-                                if (selectedClienteId) setRecargaElegida({ clienteId: selectedClienteId, monto });
-                                clearFieldError('detalle');
-                              }}
-                            />
-                          </label>
-                          <span />
-                          <b>{formatMoney(recarga)}</b>
-                          <button type="button" className={styles.iconButton} onClick={() => setRecargaElegida(null)} aria-label="Quitar recarga">
-                            <Trash2 size={15} strokeWidth={1.8} />
-                          </button>
-                        </div>
-                      )}
                     </div>
                     {formErrors.detalle && <small className={styles.fieldError}>{formErrors.detalle}</small>}
 
@@ -1547,18 +1228,6 @@ export default function CajaPage() {
                           />
                         </span>
                       </label>
-                      {cargosAnteriores > 0 && (
-                        <div className={styles.totalsRow}>
-                          <span>Deudas anteriores</span>
-                          <span className={styles.totalsValue}>{formatMoney(cargosAnteriores)}</span>
-                        </div>
-                      )}
-                      {recarga > 0 && (
-                        <div className={styles.totalsRow}>
-                          <span>Recarga de saldo</span>
-                          <span className={styles.totalsValue}>{formatMoney(recarga)}</span>
-                        </div>
-                      )}
                       {resumen.usaSaldo > 0 && (
                         <div className={`${styles.totalsRow} ${styles.totalsSaldo}`}>
                           <span>Saldo aplicado</span>
@@ -1589,7 +1258,7 @@ export default function CajaPage() {
                       </button>
                       <button type="button" className="admin-button admin-button-primary" onClick={handleSubmit} disabled={saving || (metodoActual === 'saldo' && !saldoValido)}>
                         <CheckCircle2 size={17} strokeWidth={2} />
-                        {saving ? 'Registrando...' : modo === 'cobrarReserva' ? 'Cobrar paquete' : resumen.usaCuenta ? 'Registrar cobro' : 'Registrar pago'}
+                        {saving ? 'Registrando...' : resumen.usaCuenta ? 'Registrar cobro' : 'Registrar pago'}
                       </button>
                     </div>
                   </div>

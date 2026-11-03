@@ -1091,3 +1091,41 @@
   line-height: 1.4;
   color: var(--admin-text-dim);
 }
+
+/* Pestaña Otro: linea libre (concepto + monto). */
+.otroForm {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.otroForm label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.otroForm label span {
+  color: var(--admin-text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.otroForm input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-input-bg);
+  color: var(--admin-foreground);
+  font: inherit;
+  font-size: 0.875rem;
+}
+
+.otroForm input:focus {
+  outline: none;
+  border-color: var(--admin-accent-primary);
+}
+
+.otroForm button {
+  justify-self: start;
+}
