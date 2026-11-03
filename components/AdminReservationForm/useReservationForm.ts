@@ -12,6 +12,7 @@ import { useReservas } from '@/lib/hooks/useReservas';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { getServiciosDB } from '@/lib/api/servicios';
 import { useMontado } from '@/lib/hooks/useMontado';
+import { useConfiguracion } from '@/lib/hooks/useConfiguracion';
 import { filtrarErroresResueltos } from '@/lib/utils/erroresResueltos';
 import { errorDiaSemana, fechaDelDia } from '@/lib/utils/diaSeleccion';
 import { formatCostoServicio } from '@/lib/utils/serviceCost';
@@ -48,6 +49,7 @@ export function useReservationForm(
   onSuccess?: () => void,
 ) {
   const router = useRouter();
+  const { config } = useConfiguracion();
   const original = initialData?.reserva ?? null;
   const aprobando = original !== null && initialData?.aprobar === true;
   const { loading, error: hookError, crearReserva } = useCrearReserva();
@@ -595,9 +597,10 @@ export function useReservationForm(
           && plan.activo !== false
           && plan.sesiones_usadas < plan.sesiones_totales
           && normalizar(plan.cliente_nombre_texto || plan.cliente) === normalizar(cliente)
-          && normalizar(plan.local_nombre_texto) === normalizar(effectiveSucursal);
+          && normalizar(plan.local_nombre_texto) === normalizar(effectiveSucursal)
+          && (config['paquetes.usar_desde'] !== 'PAGADO' || plan.estado_cobranza === 'PAGADO');
         if (!planValido) {
-          toast.error('El paquete ya no es válido para esta sucursal.');
+          toast.error(config['paquetes.usar_desde'] === 'PAGADO' && plan?.estado_cobranza !== 'PAGADO' ? 'El paquete todavía no está pagado.' : 'El paquete ya no es válido para esta sucursal.');
           setPlanId(null);
           return;
         }

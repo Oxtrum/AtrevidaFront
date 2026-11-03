@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { getPlanByID, getPlanesDB, type PlanItem } from '@/lib/api/planes';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
+import { useConfiguracion } from '@/lib/hooks/useConfiguracion';
 
 interface PlanSelectorProps {
   clienteNombre: string;
@@ -20,6 +21,9 @@ const noteStyle: React.CSSProperties = {
 
 const normalize = (value: string | undefined) => (value ?? '').trim().toLocaleUpperCase('es-BO');
 
+/** Con el parametro en PAGADO, un paquete a cuenta o con pago parcial todavia no se puede usar. */
+const estaPagado = (plan: PlanItem) => plan.estado_cobranza === 'PAGADO';
+
 const isAvailableFor = (plan: PlanItem, client: string, local: string) => (
   plan.estado === 'ACTIVO'
   && plan.activo !== false
@@ -29,6 +33,8 @@ const isAvailableFor = (plan: PlanItem, client: string, local: string) => (
 );
 
 export default function PlanSelector({ clienteNombre, planId, localNombre, onChange }: PlanSelectorProps) {
+  const { config } = useConfiguracion();
+  const soloPagados = config['paquetes.usar_desde'] === 'PAGADO';
   const [planes, setPlanes] = useState<PlanItem[]>([]);
   const [loadedKey, setLoadedKey] = useState('');
   const nombre = clienteNombre.trim();
@@ -70,7 +76,7 @@ export default function PlanSelector({ clienteNombre, planId, localNombre, onCha
       .then((res) => {
         if (cancelled) return;
         const plan = res?.data?.plan;
-        if (!plan || !isAvailableFor(plan, nombre, local)) {
+        if (!plan || !isAvailableFor(plan, nombre, local) || (soloPagados && !estaPagado(plan))) {
           onChange(null);
           return;
         }
@@ -84,7 +90,7 @@ export default function PlanSelector({ clienteNombre, planId, localNombre, onCha
       cancelled = true;
       controller.abort();
     };
-  }, [nombre, local, planId, onChange]);
+  }, [nombre, local, planId, onChange, soloPagados]);
 
   if (!local) {
     return (
@@ -99,10 +105,14 @@ export default function PlanSelector({ clienteNombre, planId, localNombre, onCha
 
   const options = [
     { value: '', label: 'No usar paquete' },
-    ...planes.map((plan) => ({
-      value: String(plan.id),
-      label: `${plan.combo_nombre_texto ?? 'Paquete'} — ${plan.sesiones_totales - plan.sesiones_usadas} sesiones disponibles`,
-    })),
+    ...planes.map((plan) => {
+      const sinPagar = soloPagados && !estaPagado(plan);
+      return {
+        value: String(plan.id),
+        label: `${plan.combo_nombre_texto ?? 'Paquete'} — ${plan.sesiones_totales - plan.sesiones_usadas} sesiones disponibles${sinPagar ? ' (sin pagar)' : ''}`,
+        disabled: sinPagar,
+      };
+    }),
   ];
 
   return (

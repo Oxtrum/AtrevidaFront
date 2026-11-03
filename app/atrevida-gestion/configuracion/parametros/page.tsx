@@ -138,6 +138,15 @@ export default function ParametrosPage() {
                 ariaLabelledBy="p-ses-lbl"
               />
             </FormField>
+            <FormField label="Usar un paquete desde que" labelId="p-uso-lbl" hint="A cuenta = se usa apenas se vende, aunque quede debiendo. Pagado = solo cuando el cliente ya lo pagó completo.">
+              <CustomSelect
+                value={form['paquetes.usar_desde']}
+                onChange={(v) => set('paquetes.usar_desde', v as ConfiguracionSistema['paquetes.usar_desde'])}
+                options={[{ value: 'CUENTA', label: 'Está a cuenta' }, { value: 'PAGADO', label: 'Está pagado' }]}
+                searchable={false}
+                ariaLabelledBy="p-uso-lbl"
+              />
+            </FormField>
             <FormField label="Fecha de un cobro: días hacia atrás permitidos" htmlFor="p-cobro-dias" hint="Para registrar de noche lo anotado en papel. 0 = sin límite.">
               <div className={styles.suffixWrap}>
                 <input id="p-cobro-dias" type="number" min={0} max={365} value={form['cobros.dias_maximo_fecha_pasada']} onChange={(e) => set('cobros.dias_maximo_fecha_pasada', Number(e.target.value))} />

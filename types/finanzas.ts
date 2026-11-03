@@ -264,5 +264,6 @@ export interface ConfiguracionSistema {
   'rrhh.dias_mes_faltas': number;
   'publico.mostrar_paquetes': boolean;
   'paquetes.sesion_en_estado': 'COMPLETADO' | 'AGENDADO';
+  'paquetes.usar_desde': 'CUENTA' | 'PAGADO';
   'cobros.dias_maximo_fecha_pasada': number;
 }

@@ -19,6 +19,7 @@ export const CONFIG_DEFAULTS: ConfiguracionSistema = {
   'rrhh.dias_mes_faltas': 30,
   'publico.mostrar_paquetes': true,
   'paquetes.sesion_en_estado': 'COMPLETADO',
+  'paquetes.usar_desde': 'CUENTA',
   'cobros.dias_maximo_fecha_pasada': 0,
 };
 
