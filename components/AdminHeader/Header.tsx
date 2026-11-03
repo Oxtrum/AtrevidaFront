@@ -246,14 +246,12 @@ export default function Header() {
 
      
         <div className={styles.footer}>
-          <AdminThemeToggle />
-          <Link href="/" className={styles.publicLink}>
+          <AdminThemeToggle soloIcono className={styles.footerIcon} />
+          <Link href="/" className={`${styles.publicLink} ${styles.footerIcon}`} title="Sitio público" aria-label="Sitio público">
             <PanelLeftClose size={17} strokeWidth={1.7} />
-            Sitio público
           </Link>
-          <button type="button" className={styles.logoutButton} onClick={handleLogout}>
+          <button type="button" className={`${styles.logoutButton} ${styles.footerIcon}`} onClick={handleLogout} title="Cerrar sesión" aria-label="Cerrar sesión">
             <LogOut size={17} strokeWidth={1.8} />
-            Cerrar sesión
           </button>
         </div>
       </aside>

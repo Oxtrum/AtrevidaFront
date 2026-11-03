@@ -8,6 +8,8 @@ type AdminTheme = 'dark' | 'light';
 
 interface AdminThemeToggleProps {
   className?: string;
+  /** Solo el icono (el nombre queda en el tooltip y el aria-label): para filas de botones compactos. */
+  soloIcono?: boolean;
 }
 
 const STORAGE_KEY = 'atrevida-admin-theme';
@@ -31,7 +33,7 @@ function getServerThemeSnapshot(): AdminTheme {
   return 'dark';
 }
 
-export function AdminThemeToggle({ className = '' }: AdminThemeToggleProps) {
+export function AdminThemeToggle({ className = '', soloIcono = false }: AdminThemeToggleProps) {
   const theme = useSyncExternalStore(subscribe, getThemeSnapshot, getServerThemeSnapshot);
   const isLight = theme === 'light';
 
@@ -56,7 +58,7 @@ export function AdminThemeToggle({ className = '' }: AdminThemeToggleProps) {
       <span className={styles.iconRail} aria-hidden="true">
         {isLight ? <Sun size={17} strokeWidth={1.8} /> : <Moon size={17} strokeWidth={1.8} />}
       </span>
-      <span className={styles.toggleText}>{isLight ? 'Modo claro' : 'Modo oscuro'}</span>
+      {!soloIcono && <span className={styles.toggleText}>{isLight ? 'Modo claro' : 'Modo oscuro'}</span>}
     </button>
   );
 }
