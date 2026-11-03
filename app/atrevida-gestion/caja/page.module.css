@@ -36,59 +36,6 @@
   gap: 1rem;
 }
 
-.historyHeaderCard {
-  padding: 1rem 1.25rem;
-  background: var(--admin-panel-bg);
-  border: 1px solid var(--admin-border-subtle);
-  border-radius: var(--admin-radius-xl);
-  box-shadow: var(--admin-shadow-sm);
-  backdrop-filter: blur(18px);
-}
-
-.historyFilters {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.65rem;
-  width: min(100%, 930px);
-}
-
-.historyFilter {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex: 1 1 0;
-  min-width: 0;
-  border: 1px solid var(--admin-border-subtle);
-  border-radius: var(--admin-radius-md);
-  padding: 0 0.75rem;
-  color: var(--admin-text-dim);
-  background: var(--admin-input-bg, var(--admin-panel-bg));
-}
-
-.historyFilter input {
-  min-height: 42px;
-  width: 100%;
-  border: 0;
-  outline: 0;
-  color: var(--admin-text-primary);
-  background: transparent;
-}
-
-.historyFilterNit {
-  flex: 0 1 11rem;
-  max-width: 11rem;
-}
-
-.historyFilterProduct {
-  flex: 1.25 1 0;
-}
-
-.historyStatusFilter {
-  flex: 0 1 11.5rem;
-  min-width: 10rem;
-}
-
 .localPickerHeader h2,
 .panelHeader h2 {
   margin: 0.25rem 0 0;
@@ -159,7 +106,7 @@
 
 .cashSummary {
   display: grid;
-  grid-template-columns: 1.1fr repeat(3, minmax(150px, 0.6fr));
+  grid-template-columns: 1.1fr minmax(150px, 0.6fr);
   gap: 0;
   overflow: hidden;
 }
@@ -231,7 +178,6 @@
 }
 
 .searchBox input,
-.customService input,
 .clientGrid input,
 .totalsPanel input {
   width: 100%;
@@ -256,7 +202,6 @@
 }
 
 .searchBox input:focus,
-.customService input:focus,
 .clientGrid input:focus,
 .totalsPanel input:focus {
   outline: none;
@@ -336,6 +281,12 @@
   font-weight: 500;
 }
 
+.serviceItemActive,
+.serviceItemActive:hover {
+  border-color: var(--admin-accent-primary);
+  background: rgba(236, 0, 140, 0.08);
+}
+
 /* ── Resumen de la reserva seleccionada (modo "Cobrar reserva") ── */
 .summaryCard {
   display: flex;
@@ -360,17 +311,12 @@
   font-weight: 600;
 }
 
-.customService {
-  display: grid;
-  gap: 0.65rem;
-  margin-top: 0.65rem;
-}
-
 /* ── Tabs del catálogo (Servicios / Paquetes) ─────────────────── */
 
 .catalogTabs {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
   gap: 0.3rem;
   margin-top: 0.85rem;
   padding: 0.25rem;
@@ -395,7 +341,12 @@
   transition: background 0.2s ease, color 0.2s ease;
 }
 
-.catalogTab:hover {
+.catalogTab:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.catalogTab:hover:not(:disabled) {
   color: var(--admin-foreground);
 }
 
@@ -457,12 +408,6 @@
   margin-left: auto;
 }
 
-.inlineFields {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 0.65rem;
-}
-
 .clientGrid {
   display: grid;
   grid-template-columns: 0.7fr 1fr;
@@ -470,8 +415,7 @@
   margin-top: 1rem;
 }
 
-.clientGrid label,
-.totalsPanel label {
+.clientGrid label {
   display: flex;
   flex-direction: column;
   gap: 0.38rem;
@@ -572,8 +516,7 @@
   position: relative;
 }
 
-.clientGrid span,
-.totalsPanel span {
+.clientGrid span {
   color: var(--admin-text-dim);
   font-size: 0.76rem;
   font-weight: 800;
@@ -845,40 +788,153 @@
 
 .totalsPanel {
   display: grid;
-  gap: 0.7rem;
+  gap: 0.45rem;
   margin-top: 1rem;
-  padding: 0.9rem;
+  padding: 0.85rem 1rem;
   border: 1px solid var(--admin-border-subtle);
   border-radius: var(--admin-radius-lg);
   background: var(--admin-pill-bg);
 }
 
-.totalsPanel > div,
-.totalsPanel label {
-  display: grid;
-  grid-template-columns: 1fr minmax(120px, auto);
+.totalsRow {
+  display: flex;
   align-items: center;
-  gap: 0.85rem;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--admin-text-muted);
+  font-size: 0.86rem;
 }
 
-.totalsPanel strong {
+.totalsValue {
+  color: var(--admin-foreground);
   font-family: var(--admin-font-mono);
-  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
-.totalsPanel input {
-  min-height: 38px;
+.totalsSaldo .totalsValue {
+  color: var(--admin-accent-success);
+}
+
+.discountField {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--admin-text-dim);
+}
+
+.discountField input {
+  width: 7rem;
+  min-height: 34px;
   text-align: right;
 }
 
 .totalFinal {
-  padding-top: 0.75rem;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.35rem;
+  padding-top: 0.7rem;
   border-top: 1px solid var(--admin-border);
+  color: var(--admin-foreground);
+  font-size: 0.92rem;
 }
 
 .totalFinal strong {
   color: var(--admin-accent-primary);
-  font-size: 1.28rem;
+  font-family: var(--admin-font-mono);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Saldo del cliente bajo su nombre, y la pestaña Cuenta del catálogo. */
+.saldoLinea {
+  margin: 0.55rem 0 0;
+  color: var(--admin-text-muted);
+  font-size: 0.82rem;
+}
+
+.cuentaResumen {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  margin: 0 0 0.15rem;
+}
+
+.cuentaResumen > div {
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-input-bg);
+}
+
+.cuentaResumen span {
+  display: block;
+  color: var(--admin-text-dim);
+  font-size: 0.75rem;
+}
+
+.cuentaResumen strong {
+  color: var(--admin-foreground);
+  font-family: var(--admin-font-mono);
+  font-size: 1.05rem;
+  font-weight: 500;
+}
+
+/* Boton "Nuevo" a la derecha de la etiqueta del nombre del cliente. */
+.nuevoCliente {
+  position: absolute;
+  top: -0.2rem;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: transparent;
+  color: var(--admin-accent-primary);
+  font: inherit;
+  font-size: 0.74rem;
+  cursor: pointer;
+}
+
+.nuevoCliente:hover {
+  border-color: var(--admin-accent-primary);
+}
+
+.recargaFila {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.6rem;
+  margin-top: 0.25rem;
+}
+
+.recargaFila input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-input-bg);
+  color: var(--admin-foreground);
+  font: inherit;
+  font-size: 0.875rem;
+}
+
+.recargaFila input:focus {
+  outline: none;
+  border-color: var(--admin-accent-primary);
+}
+
+/* "El resto con": segundo selector cuando el saldo no alcanza. */
+.restoMetodo {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+  color: var(--admin-text-muted);
+  font-size: 0.8rem;
 }
 
 .ticketActions {
@@ -910,21 +966,7 @@
   box-shadow: 0 0 0 3px rgba(255, 77, 109, 0.12) !important;
 }
 
-.historyPanel {
-  display: grid;
-  gap: 1rem;
-}
-
 @media (max-width: 1100px) {
-  .historyHeaderCard {
-    flex-direction: column;
-  }
-
-  .historyFilters {
-    width: 100%;
-    max-width: none;
-  }
-
   .cashSummary {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -949,7 +991,6 @@
 
   .cashSummary,
   .clientGrid,
-  .inlineFields,
   .modalFormGrid {
     grid-template-columns: 1fr;
   }
@@ -987,20 +1028,6 @@
     width: 100%;
   }
 
-  .historyFilters {
-    align-items: stretch;
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .historyFilter,
-  .historyFilterNit,
-  .historyFilterProduct,
-  .historyStatusFilter {
-    width: 100%;
-    max-width: none;
-    min-width: 0;
-  }
 }
 
 .sectionLabel {

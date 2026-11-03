@@ -4,7 +4,7 @@ import type { PaginationMetadata } from '@/lib/api/pagination';
 
 export type TipoReserva = 'm' | 'b' | 'M' | 'B' | 'feriado';
 export type EstadoReserva = 'PENDIENTE' | 'AGENDADO' | 'RECHAZADO' | 'COMPLETADO';
-export type EstadoCobroReserva = 'COBRADA' | 'CUBIERTA_PAQUETE' | 'POR_COBRAR';
+export type EstadoCobroReserva = 'COBRADA' | 'A_CUENTA' | 'CUBIERTA_PAQUETE' | 'POR_COBRAR';
 
 export interface FechaDia {
   dia: number;

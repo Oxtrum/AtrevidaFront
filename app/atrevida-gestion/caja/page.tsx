@@ -6,37 +6,47 @@ import gsap from 'gsap';
 import {
   Banknote,
   Building2,
+  History,
   CheckCircle2,
   Minus,
   Plus,
   ReceiptText,
   Search,
   Trash2,
+  Clock,
+  UserPlus,
+  Wallet,
 } from 'lucide-react';
-import { AdminButton, AlertBanner, PageHeader, DataTable, FormModal, CursorPagination, Tabs, TipoPagoSelector } from '@/components/AdminConfig';
+import { AdminButton, AlertBanner, PageHeader, FormModal, Tabs, TipoPagoSelector } from '@/components/AdminConfig';
 import { CobroReservaLoader } from './CobroReservaLoader';
 import type { ReservaBD } from '@/types/reserva';
-import type { Column } from '@/components/AdminConfig';
 import { toast } from '@/components/Shared/Toast';
 import { crearClienteDB, getClientesDB } from '@/lib/api/clientes';
 import type { ClientePG } from '@/lib/api/clientes';
 import { PhoneInput } from '@/components/PhoneInput';
-import { PagoDetalleCodeButton, PagoDetalleModal, PagoProductosCell } from '@/components/Pagos/PagoDetalleModal';
-import { crearPagoDB, getPagosDB } from '@/lib/api/pagos';
-import type { CrearPagoData, Pago } from '@/lib/api/pagos';
-import { prepararDetallePago, parsePrecioPago, subtotalDetallePago, type DetallePagoDraft } from '@/lib/utils/paymentDraft';
+import { ClienteFormModal } from '@/components/AdminClientes';
+import { crearPagoDB } from '@/lib/api/pagos';
+import type { CrearPagoData, DetalleServicio } from '@/lib/api/pagos';
+import { ReservasPorCobrar } from './ReservasPorCobrar';
+import { actualizarEstadoReservaDB, actualizarReservaDB } from '@/lib/api/reservas';
+import { cobrarCliente, crearCargosLote, getCuentaCliente, type CuentaCliente } from '@/lib/api/cuenta';
+import { cargosCobrables } from '@/lib/utils/cobro';
+import { tipoCargoTexto } from '@/lib/utils/cuenta';
+import { formatFecha } from '@/lib/utils/formatDateTime';
+import { metodoValido, resumenTicket, type MetodoCaja } from '@/lib/utils/ticketCuenta';
+import { cargosDesdeDetalle } from '@/lib/utils/cuentaCaja';
+import { agregarInsumo, prepararDetallePago, parsePrecioPago, subtotalDetallePago, type DetallePagoDraft } from '@/lib/utils/paymentDraft';
+import { getInventarioItems } from '@/lib/api/inventario';
+import type { InventarioItem } from '@/types/inventario';
 import { formatCostoServicio } from '@/lib/utils/serviceCost';
+import { CAJA_LOCAL_STORAGE_KEY } from '@/lib/utils/localCaja';
 import { getLocalesDB, getServiciosDB, getCombosDB } from '@/lib/api/servicios';
-import { crearPlan, cobrarPlan, getPlanesDB } from '@/lib/api/planes';
+import { cambiarEstadoPlan, crearPlan, cobrarPlan, getPlanesDB } from '@/lib/api/planes';
 import type { PlanItem } from '@/lib/api/planes';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
-import { formatDateTime } from '@/lib/utils/formatDateTime';
 import styles from './page.module.css';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
-import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
-import { useServerSort } from '@/lib/hooks/useServerSort';
-import type { SortState } from '@/lib/utils/sortRows';
 import type { TipoPago } from '@/lib/utils/tipoPago';
 
 interface LocalOption {
@@ -56,10 +66,7 @@ interface ServicioOption {
 
 interface ClienteOption extends ClientePG, Record<string, unknown> {}
 
-interface PagoRow extends Pago, Record<string, unknown> {}
 
-/** Orden que el servidor aplica sin ordenar_por; solo se usa para marcar el header de fecha. */
-const ORDEN_PAGOS_POR_DEFECTO: SortState = { key: 'fecha_creacion', dir: 'desc' };
 
 interface FormErrors {
   local?: string;
@@ -83,17 +90,7 @@ interface NewClientErrors {
   submit?: string;
 }
 
-const CAJA_LOCAL_STORAGE_KEY = 'atrevidaCajaLocal';
 
-const ESTADO_OPTIONS = ['PAGADO', 'PENDIENTE', 'BORRADOR'];
-const ESTADO_LABELS: Record<string, string> = {
-  BORRADOR: 'POR CONFIRMAR',
-};
-
-const filtroTextoActivo = (value: string) => {
-  const normalized = value.trim();
-  return normalized.length >= 2 ? normalized : '';
-};
 
 const formatMoney = (value: number | string | null | undefined) => `Bs. ${Number(value ?? 0).toLocaleString('es-BO', {
   minimumFractionDigits: 2,
@@ -113,6 +110,9 @@ const getTodayStamp = () => new Date().toLocaleDateString('es-BO', {
   month: 'short',
   year: 'numeric',
 });
+
+/** Ventas netas más deudas anteriores, en centavos exactos: lo que el saldo tendría que cubrir. */
+const resumenBase = (ventas: number, cargosAnteriores: number) => Math.round((ventas + cargosAnteriores) * 100) / 100;
 
 const getClienteNombreCompleto = (cliente: ClientePG) => `${cliente.nombre} ${cliente.apellido}`.trim();
 
@@ -167,31 +167,11 @@ export default function CajaPage() {
   const [loadingCombos, setLoadingCombos] = useState(false);
   // Paquetes agregados al pago; el plan se crea al registrar el pago. Clave = nombre de la línea.
   const [combosVenta, setCombosVenta] = useState<Record<string, { combo_id: number; precio: number }>>({});
-  const [catalogoTab, setCatalogoTab] = useState<'servicios' | 'paquetes' | 'personalizado'>('servicios');
+  const [insumos, setInsumos] = useState<InventarioItem[]>([]);
+  const [loadingInsumos, setLoadingInsumos] = useState(false);
+  const [catalogoTab, setCatalogoTab] = useState<'reservas' | 'servicios' | 'paquetes' | 'insumos' | 'cuenta'>('reservas');
   const [serviceQuery, setServiceQuery] = useState('');
 
-  const [pagos, setPagos] = useState<PagoRow[]>([]);
-  const [detallePagoCodigo, setDetallePagoCodigo] = useState<string | null>(null);
-  const [loadingPagos, setLoadingPagos] = useState(false);
-  const [pagosError, setPagosError] = useState<string | null>(null);
-  const [pagosCliente, setPagosCliente] = useState('');
-  const [pagosClienteDebounced, setPagosClienteDebounced] = useState('');
-  const [pagosNit, setPagosNit] = useState('');
-  const [pagosNitDebounced, setPagosNitDebounced] = useState('');
-  const [pagosProducto, setPagosProducto] = useState('');
-  const [pagosProductoDebounced, setPagosProductoDebounced] = useState('');
-  const [pagosEstado, setPagosEstado] = useState('PAGADO');
-  const pagosClienteActivo = filtroTextoActivo(pagosClienteDebounced);
-  const pagosNitActivo = filtroTextoActivo(pagosNitDebounced);
-  const pagosProductoActivo = filtroTextoActivo(pagosProductoDebounced);
-	const pagosSort = useServerSort(ORDEN_PAGOS_POR_DEFECTO);
-	const { params: pagosSortParams } = pagosSort;
-	const pagosPagination = useCursorPagination(
-    `${selectedLocal?.id ?? ''}|${pagosClienteActivo}|${pagosNitActivo}|${pagosProductoActivo}|${pagosEstado}|${pagosSort.key}`,
-  );
-	const { cursor: pagosCursor, requestRevision: pagosRequestRevision, shouldIncludeTotal: shouldIncludePagosTotal, setMetadata: setPagosMetadata } = pagosPagination;
-	const pagosRequestRef = useRef(0);
-	const pagosControllerRef = useRef<AbortController | null>(null);
 
   const [clienteNit, setClienteNit] = useState('');
   const [nitPropuesto, setNitPropuesto] = useState(false);
@@ -203,8 +183,6 @@ export default function CajaPage() {
   const [descuento, setDescuento] = useState(0);
   const [tipoPago, setTipoPago] = useState<TipoPago>('qr');
   const [detalle, setDetalle] = useState<DetallePagoDraft[]>([]);
-  const [customServicio, setCustomServicio] = useState('');
-  const [customPrecio, setCustomPrecio] = useState('');
   const [saving, setSaving] = useState(false);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [newClientModalOpen, setNewClientModalOpen] = useState(false);
@@ -225,6 +203,20 @@ export default function CajaPage() {
   // Reserva completada que se está cobrando (viene de ?reserva=<id>); el pago queda ligado a ella.
   const [reservaCobro, setReservaCobro] = useState<ReservaBD | null>(null);
   const reservaAplicadaRef = useRef<number | null>(null);
+  // Sube al registrar un cobro para que la lista de reservas por cobrar se lea de nuevo.
+  const [recargaReservas, setRecargaReservas] = useState(0);
+  // Cuenta del cliente elegido: saldo disponible y deudas que se pueden cobrar desde la caja.
+  const [cuentaLeida, setCuentaLeida] = useState<{ clienteId: number; cuenta: CuentaCliente } | null>(null);
+  // Deudas anteriores que se pagan en este ticket y recarga de saldo, ambas del cliente elegido.
+  const [cargosElegidos, setCargosElegidos] = useState<number[]>([]);
+  const [recargaElegida, setRecargaElegida] = useState<{ clienteId: number; monto: number } | null>(null);
+  const [recargaTexto, setRecargaTexto] = useState('');
+  // saldo / a_cuenta cuando no paga con uno de los cuatro metodos; null = paga con el metodo de tipoPago.
+  const [nuevoClienteAbierto, setNuevoClienteAbierto] = useState(false);
+  const [modoCuenta, setModoCuenta] = useState<'saldo' | null>(null);
+  // Paquetes ya creados al dejar el ticket a cuenta, por nombre de linea: si el lote de cargos falla y se reintenta,
+  // no se crean dos veces.
+  const planesACuentaRef = useRef<Record<string, number>>({});
   const adminLocalScope = useAdminLocalScopeState();
   const scopedWorkplace = adminLocalScope.workplace;
   const hasScopedLocal = !!scopedWorkplace;
@@ -284,59 +276,28 @@ export default function CajaPage() {
     }
   }, []);
 
-  const fetchPagos = useCallback(async (local = selectedLocal) => {
-    void pagosRequestRevision;
-    if (!local) return;
-	pagosControllerRef.current?.abort();
-	const controller = new AbortController();
-	pagosControllerRef.current = controller;
-    setLoadingPagos(true);
-    setPagosError(null);
-	const requestId = ++pagosRequestRef.current;
+  useEffect(() => {
+    if (!selectedClienteId) return;
+    const clienteId = selectedClienteId;
+    const controller = new AbortController();
+    getCuentaCliente(clienteId, false, controller.signal)
+      .then((cuenta) => { if (!controller.signal.aborted) setCuentaLeida({ clienteId, cuenta }); })
+      .catch(() => { if (!controller.signal.aborted) setCuentaLeida(null); });
+    return () => controller.abort();
+  }, [selectedClienteId, recargaReservas]);
+
+  const fetchInsumos = useCallback(async (local: LocalOption) => {
+    setLoadingInsumos(true);
     try {
-      const res = await getPagosDB({
-        local_nombre: local.nombre,
-        cliente_nombre: pagosClienteActivo || undefined,
-        cliente_nit: pagosNitActivo || undefined,
-        producto: pagosProductoActivo || undefined,
-        estado: pagosEstado || undefined,
-        activo: true,
-		limit: PAGE_LIMIT,
-		cursor: pagosCursor,
-		include_total: shouldIncludePagosTotal(),
-        ...pagosSortParams,
-      }, controller.signal);
-	  if (requestId !== pagosRequestRef.current) return;
-      setPagos((res.data?.pagos ?? []) as PagoRow[]);
-	  setPagosMetadata(res.data?.paginacion);
-    } catch (err) {
-	  if (controller.signal.aborted) return;
-	  if (requestId !== pagosRequestRef.current) return;
-      setPagosError(err instanceof Error ? err.message : 'Error al cargar pagos');
+      setInsumos(await getInventarioItems({ local_id: local.id, activo: true, limit: 500 }));
+    } catch {
+      setInsumos([]);
+      toast.error('No se cargaron los insumos del local');
     } finally {
-	  if (requestId === pagosRequestRef.current) setLoadingPagos(false);
+      setLoadingInsumos(false);
     }
-  }, [selectedLocal, pagosClienteActivo, pagosNitActivo, pagosProductoActivo, pagosEstado, pagosSortParams, pagosCursor, pagosRequestRevision, shouldIncludePagosTotal, setPagosMetadata]);
+  }, []);
 
-	useEffect(() => () => {
-		pagosRequestRef.current += 1;
-		pagosControllerRef.current?.abort();
-	}, []);
-
-	useEffect(() => {
-		const timer = window.setTimeout(() => setPagosClienteDebounced(pagosCliente), 350);
-		return () => window.clearTimeout(timer);
-	}, [pagosCliente]);
-
-	useEffect(() => {
-		const timer = window.setTimeout(() => setPagosNitDebounced(pagosNit), 350);
-		return () => window.clearTimeout(timer);
-	}, [pagosNit]);
-
-	useEffect(() => {
-		const timer = window.setTimeout(() => setPagosProductoDebounced(pagosProducto), 350);
-		return () => window.clearTimeout(timer);
-	}, [pagosProducto]);
 
   useEffect(() => {
     if (!adminLocalScope.ready) return;
@@ -353,8 +314,8 @@ export default function CajaPage() {
     if (!selectedLocal) return;
     void fetchServicios(selectedLocal);
     void fetchCombos(selectedLocal);
-    void fetchPagos(selectedLocal);
-  }, [selectedLocal, fetchServicios, fetchCombos, fetchPagos]);
+    void fetchInsumos(selectedLocal);
+  }, [selectedLocal, fetchServicios, fetchCombos, fetchInsumos]);
 
   useEffect(() => {
     const query = clienteNombre.trim();
@@ -462,7 +423,7 @@ export default function CajaPage() {
       subtotal: precio === null ? null : subtotalDetallePago(1, precio),
     }]);
     setClienteNombre(reserva.cliente);
-    setSelectedClienteId(null);
+    setSelectedClienteId(reserva.cliente_id ?? null);
     setClienteNit('');
     // Si el cliente está registrado, se enlaza (por teléfono o nombre exacto) para heredar su NIT.
     void getClientesDB({ busqueda: reserva.cliente, limit: PAGE_LIMIT })
@@ -501,10 +462,54 @@ export default function CajaPage() {
   );
   const totalFinal = Math.max(0, subtotal - descuento);
   const tienePreciosPendientes = detalle.some((item) => item.subtotal === null);
-  const totalLocal = useMemo(
-    () => pagos.reduce((sum, pago) => sum + Number(pago.total_final ?? 0), 0),
-    [pagos],
-  );
+
+  const cuenta = selectedClienteId && cuentaLeida?.clienteId === selectedClienteId ? cuentaLeida.cuenta : null;
+  const disponible = cuenta?.saldo.disponible ?? 0;
+  const cargosPorPagar = useMemo(() => cargosCobrables(cuenta?.cargos ?? []), [cuenta]);
+  const cargosEnTicket = cargosPorPagar.filter((c) => cargosElegidos.includes(c.id));
+  const cargosAnteriores = Math.round(cargosEnTicket.reduce((suma, c) => suma + c.pendiente, 0) * 100) / 100;
+  const hayLineaRecarga = !!selectedClienteId && recargaElegida?.clienteId === selectedClienteId;
+  const recarga = hayLineaRecarga && recargaElegida ? recargaElegida.monto : 0;
+  const hayCliente = !!selectedClienteId;
+  const contextoMetodo = { hayCliente, disponible, total: resumenBase(totalFinal, cargosAnteriores), cargosAnteriores, recarga };
+  // Si el metodo elegido deja de valer (p. ej. se agrega una recarga), se vuelve al metodo normal.
+  const metodoActual: MetodoCaja = modoCuenta && metodoValido(modoCuenta, contextoMetodo) ? modoCuenta : tipoPago;
+  const resumen = resumenTicket({ ventas: totalFinal, cargosAnteriores, recarga, disponible, metodo: metodoActual });
+  // Saldo siempre se ve; se puede elegir solo si el saldo del cliente cubre todo el ticket.
+  const saldoValido = metodoValido('saldo', contextoMetodo);
+  const extrasMetodo = [{
+    value: 'saldo' as const,
+    label: 'Saldo',
+    icon: <Wallet size={16} strokeWidth={1.8} />,
+    disabled: !saldoValido,
+    title: !hayCliente
+      ? 'Elige un cliente para pagar con su saldo'
+      : recarga > 0
+        ? 'No se puede pagar con saldo mientras haya una recarga en el ticket'
+        : saldoValido ? undefined : `Saldo insuficiente: tiene ${formatMoney(disponible)}`,
+  }];
+  const cambiarMetodo = (valor: MetodoCaja) => {
+    if (valor === 'saldo') {
+      setModoCuenta('saldo');
+    } else if (valor !== 'a_cuenta') {
+      setModoCuenta(null);
+      setTipoPago(valor);
+    }
+  };
+  // A cuenta es un boton aparte: siempre se ve, se habilita con cliente y ventas, sin recarga ni deudas anteriores.
+  const puedeDejarACuenta = modo === 'venta' && detalle.length > 0 && metodoValido('a_cuenta', contextoMetodo);
+  const tab = catalogoTab === 'cuenta' && !selectedClienteId ? 'reservas' : catalogoTab;
+  const alternarCargo = (id: number) =>
+    setCargosElegidos((actuales) => (actuales.includes(id) ? actuales.filter((x) => x !== id) : [...actuales, id]));
+  const agregarRecarga = () => {
+    const monto = Number(recargaTexto.trim().replace(',', '.'));
+    if (!selectedClienteId || !Number.isFinite(monto) || monto <= 0) {
+      toast.error('Ingresa un monto de recarga mayor a 0');
+      return;
+    }
+    setRecargaElegida({ clienteId: selectedClienteId, monto: Math.round(monto * 100) / 100 });
+    setRecargaTexto('');
+  };
 
   const serviciosFiltrados = useMemo(() => {
     const query = serviceQuery.trim().toLowerCase();
@@ -519,6 +524,12 @@ export default function CajaPage() {
     if (!query) return combos;
     return combos.filter((combo) => combo.nombre.toLowerCase().includes(query));
   }, [combos, serviceQuery]);
+
+  const insumosFiltrados = useMemo(() => {
+    const query = serviceQuery.trim().toLowerCase();
+    if (!query) return insumos;
+    return insumos.filter((item) => item.nombre.toLowerCase().includes(query));
+  }, [insumos, serviceQuery]);
 
   const clearFieldError = (field: keyof FormErrors) => {
     if (formErrors[field]) setFormErrors((prev) => ({ ...prev, [field]: undefined }));
@@ -549,25 +560,8 @@ export default function CajaPage() {
     clearFieldError('detalle');
   };
 
-  const addCustomDetalle = () => {
-    const nombre = customServicio.trim();
-    const precio = normalizeServicePrice(customPrecio);
-    if (!nombre || precio <= 0) {
-      setFormErrors((prev) => ({ ...prev, detalle: 'Agrega un nombre y precio válido para el servicio personalizado' }));
-      return;
-    }
-    setDetalle((prev) => [
-      ...prev,
-      {
-        servicio_id: null,
-        servicio: nombre,
-        precio_unitario: precio,
-        cantidad: 1,
-        subtotal: precio,
-      },
-    ]);
-    setCustomServicio('');
-    setCustomPrecio('');
+  const addInsumo = (insumo: InventarioItem) => {
+    setDetalle((prev) => agregarInsumo(prev, insumo));
     clearFieldError('detalle');
   };
 
@@ -580,7 +574,6 @@ export default function CajaPage() {
     );
     setCombosVenta((prev) => ({ ...prev, [nombreLinea]: { combo_id: combo.id, precio: combo.precio_total } }));
     clearFieldError('detalle');
-    toast.success(`Paquete "${combo.nombre}" agregado al pago`);
   };
 
   const updateCantidad = (index: number, cantidad: number) => {
@@ -606,6 +599,11 @@ export default function CajaPage() {
   };
 
   const resetSale = () => {
+    planesACuentaRef.current = {};
+    setCargosElegidos([]);
+    setRecargaElegida(null);
+    setRecargaTexto('');
+    setModoCuenta(null);
     setClienteNit('');
     setNitPropuesto(false);
     setClienteNombre('');
@@ -616,8 +614,6 @@ export default function CajaPage() {
     setTipoPago('qr');
     setDetalle([]);
     setCombosVenta({});
-    setCustomServicio('');
-    setCustomPrecio('');
     setFormErrors({});
     setPlanReservado(null);
     setPlanesReservados([]);
@@ -698,11 +694,12 @@ export default function CajaPage() {
     const errors: FormErrors = {};
     if (!selectedLocal) errors.local = 'Selecciona un local para abrir caja';
     if (!clienteNombre.trim()) errors.cliente_nombre = 'El nombre del cliente es obligatorio';
-    if (detalle.length === 0) {
+    if (detalle.length === 0 && (modo === 'cobrarReserva' || (cargosEnTicket.length === 0 && !hayLineaRecarga))) {
       errors.detalle = modo === 'cobrarReserva'
         ? 'Selecciona un paquete reservado para cobrar'
         : 'Agrega al menos un servicio';
     }
+    if (modo === 'venta' && hayLineaRecarga && recarga <= 0) errors.detalle = 'La recarga debe ser mayor a 0';
     const { errorIndex } = prepararDetallePago(detalle);
     if (errorIndex !== null) {
       const item = detalle[errorIndex];
@@ -730,6 +727,20 @@ export default function CajaPage() {
     }
     setNewClientErrors(errors);
     return Object.keys(errors).length === 0;
+  };
+
+  /** Una reserva agendada se completa al cobrarla o dejarla a cuenta; si es de un día futuro, antes se adelanta a hoy. */
+  const completarReservaDelCobro = async () => {
+    let reserva = reservaCobro;
+    if (!reserva || reserva.estado !== 'AGENDADO') return;
+    const hoy = new Date().toLocaleDateString('en-CA');
+    if (reserva.fecha > hoy) {
+      await actualizarReservaDB({ id: reserva.id, local: reserva.local, nueva_fecha: hoy });
+      reserva = { ...reserva, fecha: hoy };
+      setReservaCobro(reserva);
+    }
+    await actualizarEstadoReservaDB({ id: reserva.id, estado: 'COMPLETADO', causa: 'Ya se brindo el servicio' });
+    setReservaCobro({ ...reserva, estado: 'COMPLETADO' });
   };
 
   const registerPayment = async (clienteId: number | null) => {
@@ -762,6 +773,8 @@ export default function CajaPage() {
         reserva_id: modo === 'venta' ? reservaCobro?.id ?? null : null,
         detalle: detallePreparado.detalle,
       };
+      // Si completar la reserva falla, no se registra el pago.
+      if (modo === 'venta') await completarReservaDelCobro();
       const pagoRes = await crearPagoDB(payload);
       const codigoPago = pagoRes.data?.codigo_pago;
 
@@ -800,9 +813,92 @@ export default function CajaPage() {
         router.replace('/atrevida-gestion/caja');
       }
       resetSale();
-      pagosPagination.resetAfterMutation();
+      setRecargaReservas((n) => n + 1);
+      if (detalle.some((i) => i.item_id != null)) void fetchInsumos(selectedLocal);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al registrar pago';
+      setFormErrors({ submit: message });
+      toast.error(message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  /** Crea los cargos de las ventas del ticket: completa la reserva, activa los paquetes y devuelve los ids. */
+  const crearCargosDelTicket = async (local: LocalOption, clienteId: number, lineas: DetalleServicio[]): Promise<number[]> => {
+    await completarReservaDelCobro();
+
+    // Un paquete nace activo: el cliente ya puede usar sus sesiones y el cargo queda ligado a su plan.
+    for (const linea of lineas) {
+      const combo = combosVenta[linea.servicio];
+      if (!combo || planesACuentaRef.current[linea.servicio]) continue;
+      const plan = await crearPlan({ combo_id: combo.combo_id, cliente_id: clienteId, local_id: local.id, tipo_pago: 'UNICO' });
+      await cambiarEstadoPlan(plan.data.id, 'ACTIVO');
+      planesACuentaRef.current[linea.servicio] = plan.data.id;
+    }
+
+    return crearCargosLote(clienteId, cargosDesdeDetalle(lineas, {
+      descuento,
+      localId: local.id,
+      reservaId: reservaCobro?.id ?? null,
+      esPaquete: (linea) => !!combosVenta[linea.servicio],
+      planPorLinea: planesACuentaRef.current,
+    }));
+  };
+
+  /** Deja el ticket listo para el siguiente cliente despues de pasar por la cuenta. */
+  const terminarTicketDeCuenta = (local: LocalOption, mensaje: string) => {
+    toast.success(mensaje);
+    if (reservaCobro) {
+      setReservaCobro(null);
+      reservaAplicadaRef.current = null;
+      router.replace('/atrevida-gestion/caja');
+    }
+    const vendioInsumos = detalle.some((i) => i.item_id != null);
+    resetSale();
+    setRecargaReservas((n) => n + 1);
+    if (vendioInsumos) void fetchInsumos(local);
+  };
+
+  /**
+   * Registra el ticket por la cuenta del cliente: las ventas se vuelven cargos (los insumos bajan stock) y despues se
+   * cobra todo junto con saldo y/o un metodo, o se deja a cuenta sin mover dinero. Tambien paga deudas anteriores y
+   * recarga saldo. Si algo falla antes de crear los cargos, no queda ninguno.
+   */
+  const registrarPorCuenta = async (aCuenta = false) => {
+    if (!selectedLocal || !selectedClienteId || modo !== 'venta') return;
+    const detallePreparado = prepararDetallePago(detalle);
+    if (detallePreparado.errorIndex !== null) return;
+    const local = selectedLocal;
+    const clienteId = selectedClienteId;
+    setSaving(true);
+    setFormErrors({});
+    try {
+      const nuevos = detallePreparado.detalle.length > 0 ? await crearCargosDelTicket(local, clienteId, detallePreparado.detalle) : [];
+      if (aCuenta) {
+        terminarTicketDeCuenta(local, `Dejado a cuenta de ${clienteNombre.trim()}`);
+        return;
+      }
+      try {
+        await cobrarCliente(clienteId, {
+          local_id: local.id,
+          local_nombre: local.nombre,
+          cargo_ids: [...nuevos, ...cargosEnTicket.map((c) => c.id)],
+          usar_saldo: metodoActual === 'saldo',
+          recarga: recarga > 0 ? recarga : undefined,
+          tipo_pago: resumen.aPagarAhora > 0 ? tipoPago : undefined,
+        });
+      } catch (err) {
+        if (nuevos.length === 0) throw err;
+        // Los cargos ya existen: quedaron a cuenta y se pueden cobrar desde la ficha del cliente.
+        const motivo = err instanceof Error ? err.message : 'error desconocido';
+        toast.error(`Quedó a cuenta, pero el cobro falló: ${motivo}. Cóbralo desde la ficha del cliente.`);
+        terminarTicketDeCuenta(local, `Dejado a cuenta de ${clienteNombre.trim()}`);
+        return;
+      }
+      terminarTicketDeCuenta(local, 'Cobro registrado');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'No se pudo registrar el cobro';
       setFormErrors({ submit: message });
       toast.error(message);
     } finally {
@@ -814,6 +910,10 @@ export default function CajaPage() {
     if (!validate() || !selectedLocal) return;
     if (modo === 'cobrarReserva') {
       await registerPayment(planReservado?.cliente_id ?? selectedClienteId ?? null);
+      return;
+    }
+    if (selectedClienteId && resumen.usaCuenta) {
+      await registrarPorCuenta();
       return;
     }
     if (!selectedClienteId) {
@@ -865,60 +965,6 @@ export default function CajaPage() {
     }
   };
 
-  const columns: Column<PagoRow>[] = [
-    {
-      key: 'codigo_pago',
-      label: 'Código',
-      searchable: false,
-      render: (value) => <PagoDetalleCodeButton codigoPago={String(value)} onOpen={setDetallePagoCodigo} />,
-    },
-    { key: 'cliente_nombre', label: 'Cliente' },
-    { key: 'cliente_nit', label: 'NIT', searchable: false },
-    {
-      key: 'primer_producto',
-      label: 'Servicios / productos',
-      searchable: false,
-      render: (value, row) => (
-        <PagoProductosCell
-          codigoPago={row.codigo_pago}
-          primerProducto={String(value ?? '')}
-          cantidadProductos={Number(row.cantidad_productos ?? 0)}
-          esAbono={row.es_abono === true}
-          onOpen={setDetallePagoCodigo}
-        />
-      ),
-    },
-    {
-      key: 'tipo_pago',
-      label: 'Tipo',
-      searchable: false,
-      render: (value) => String(value || 'No definido').toUpperCase(),
-    },
-    {
-      key: 'total_final',
-      label: 'Total',
-      searchable: false,
-      render: (value) => formatMoney(Number(value ?? 0)),
-    },
-    {
-      key: 'fecha_creacion',
-      label: 'Fecha y hora',
-      searchable: false,
-      firstSort: 'desc',
-      render: (value) => formatDateTime(value as string),
-    },
-    {
-      key: 'estado',
-      label: 'Estado',
-      searchable: false,
-      render: (value) => (
-        <span className={value === 'PAGADO' ? 'admin-status-active' : 'admin-status-pending'}>
-          {String(value)}
-        </span>
-      ),
-    },
-  ];
-
   return (
     <div ref={containerRef} className="admin-stack">
           <PageHeader
@@ -926,7 +972,12 @@ export default function CajaPage() {
             kickerIcon={<Banknote size={14} strokeWidth={2} />}
             title="Cobros"
             accentWord="Cobros"
-            subtitle={selectedLocal ? `Registrando cobros de ventas en ${selectedLocal.nombre}. El historial está en Historial de Pagos.` : 'Selecciona el local para registrar el cobro de una venta. El historial está en Historial de Pagos.'}
+            subtitle={selectedLocal ? `Registrando cobros de ventas en ${selectedLocal.nombre}.` : 'Selecciona el local para registrar el cobro de una venta.'}
+            actions={
+              <AdminButton variant="secondary" href="/atrevida-gestion/pagos" icon={<History size={16} strokeWidth={1.8} />}>
+                Historial de pagos
+              </AdminButton>
+            }
           />
 
           <Suspense fallback={null}>
@@ -940,7 +991,12 @@ export default function CajaPage() {
                 title={`Cobrando la reserva #${reservaCobro.id}`}
                 action={<AdminButton variant="secondary" size="sm" onClick={quitarReservaCobro}>Quitar</AdminButton>}
               >
-                {reservaCobro.cliente} · {reservaCobro.servicio_confirmado || reservaCobro.servicio} · {reservaCobro.fecha}. Revisa el precio y el método de pago; al registrar el pago la reserva queda como cobrada.
+                {reservaCobro.cliente} · {reservaCobro.servicio_confirmado || reservaCobro.servicio} · {reservaCobro.fecha}.
+                {reservaCobro.estado === 'AGENDADO'
+                  ? ` Al registrar el pago se completa${reservaCobro.fecha > new Date().toLocaleDateString('en-CA') ? ' y pasa a hoy' : ''}. Puedes agregar insumos.`
+                  : reservaCobro.estado === 'COMPLETADO'
+                    ? ' Revisa el precio y el método de pago; al registrar el pago la reserva queda como cobrada.'
+                    : ` Está ${reservaCobro.estado === 'RECHAZADO' ? 'cancelada' : 'pendiente'}: el pago queda a su nombre y su estado no cambia.`}
               </AlertBanner>
             )}
             {!selectedLocal ? (
@@ -989,14 +1045,6 @@ export default function CajaPage() {
                   <div className={styles.summaryItem}>
                     <span>Fecha</span>
                     <strong>{getTodayStamp()}</strong>
-                  </div>
-                  <div className={styles.summaryItem}>
-                    <span>Pagos del local</span>
-                    <strong>{pagos.length}</strong>
-                  </div>
-                  <div className={styles.summaryItem}>
-                    <span>Total listado</span>
-                    <strong>{formatMoney(totalLocal)}</strong>
                   </div>
                 </section>
 
@@ -1055,8 +1103,17 @@ export default function CajaPage() {
                       <button
                         type="button"
                         role="tab"
-                        aria-selected={catalogoTab === 'servicios'}
-                        className={`${styles.catalogTab} ${catalogoTab === 'servicios' ? styles.catalogTabActive : ''}`}
+                        aria-selected={tab === 'reservas'}
+                        className={`${styles.catalogTab} ${tab === 'reservas' ? styles.catalogTabActive : ''}`}
+                        onClick={() => setCatalogoTab('reservas')}
+                      >
+                        Reservas
+                      </button>
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={tab === 'servicios'}
+                        className={`${styles.catalogTab} ${tab === 'servicios' ? styles.catalogTabActive : ''}`}
                         onClick={() => setCatalogoTab('servicios')}
                       >
                         Servicios
@@ -1064,8 +1121,8 @@ export default function CajaPage() {
                       <button
                         type="button"
                         role="tab"
-                        aria-selected={catalogoTab === 'paquetes'}
-                        className={`${styles.catalogTab} ${catalogoTab === 'paquetes' ? styles.catalogTabActive : ''}`}
+                        aria-selected={tab === 'paquetes'}
+                        className={`${styles.catalogTab} ${tab === 'paquetes' ? styles.catalogTabActive : ''}`}
                         onClick={() => setCatalogoTab('paquetes')}
                       >
                         Paquetes
@@ -1074,28 +1131,100 @@ export default function CajaPage() {
                       <button
                         type="button"
                         role="tab"
-                        aria-selected={catalogoTab === 'personalizado'}
-                        className={`${styles.catalogTab} ${catalogoTab === 'personalizado' ? styles.catalogTabActive : ''}`}
-                        onClick={() => setCatalogoTab('personalizado')}
+                        aria-selected={tab === 'insumos'}
+                        className={`${styles.catalogTab} ${tab === 'insumos' ? styles.catalogTabActive : ''}`}
+                        onClick={() => setCatalogoTab('insumos')}
                       >
-                        Otro
+                        Insumos
+                      </button>
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={tab === 'cuenta'}
+                        className={`${styles.catalogTab} ${tab === 'cuenta' ? styles.catalogTabActive : ''}`}
+                        onClick={() => setCatalogoTab('cuenta')}
+                        disabled={!selectedClienteId}
+                        title={selectedClienteId ? undefined : 'Elige un cliente para ver su saldo y sus deudas'}
+                      >
+                        Cuenta
+                        {cargosPorPagar.length > 0 && <span className={styles.tabCount}>{cargosPorPagar.length}</span>}
                       </button>
                     </div>
 
-                    {catalogoTab !== 'personalizado' && (
+                    {tab !== 'reservas' && tab !== 'cuenta' && (
                       <div className={styles.searchBox}>
                         <Search size={15} strokeWidth={1.8} />
                         <input
                           type="text"
                           value={serviceQuery}
                           onChange={(e) => setServiceQuery(e.target.value)}
-                          placeholder={catalogoTab === 'servicios' ? 'Buscar servicio...' : 'Buscar paquete...'}
+                          placeholder={tab === 'servicios' ? 'Buscar servicio...' : tab === 'paquetes' ? 'Buscar paquete...' : 'Buscar insumo...'}
                         />
                       </div>
                     )}
 
                     <div className={styles.catalogBody}>
-                      {catalogoTab === 'servicios' && (
+                      {tab === 'reservas' && (
+                        <ReservasPorCobrar
+                          local={selectedLocal.nombre}
+                          clienteId={selectedClienteId}
+                          clienteNombre={clienteNombre.trim()}
+                          seleccionadaId={reservaCobro?.id ?? null}
+                          recarga={recargaReservas}
+                          onSeleccionar={handleReservaCargada}
+                        />
+                      )}
+
+                      {tab === 'cuenta' && selectedClienteId && (
+                        <div className={styles.serviceList}>
+                          <div className={styles.cuentaResumen}>
+                            <div>
+                              <span>Saldo disponible</span>
+                              <strong>{formatMoney(disponible)}</strong>
+                            </div>
+                            <div>
+                              <span>Debe</span>
+                              <strong>{formatMoney(cuenta?.saldo.por_pagar ?? 0)}</strong>
+                            </div>
+                          </div>
+                          {cargosPorPagar.map((cargo) => (
+                            <button
+                              key={cargo.id}
+                              type="button"
+                              className={`${styles.serviceItem} ${cargosElegidos.includes(cargo.id) ? styles.serviceItemActive : ''}`}
+                              aria-pressed={cargosElegidos.includes(cargo.id)}
+                              onClick={() => alternarCargo(cargo.id)}
+                            >
+                              <span>
+                                <strong>{cargo.concepto}</strong>
+                                <small>{tipoCargoTexto(cargo.tipo)} · {formatFecha(cargo.fecha_hecho)}</small>
+                              </span>
+                              <span className={styles.servicePrice}>
+                                <b>{formatMoney(cargo.pendiente)}</b>
+                                <small>{cargosElegidos.includes(cargo.id) ? 'En el ticket' : 'Por pagar'}</small>
+                              </span>
+                            </button>
+                          ))}
+                          {cuenta && cargosPorPagar.length === 0 && <p className={styles.mutedText}>No tiene deudas por pagar.</p>}
+                          <div className={styles.recargaFila}>
+                            <input
+                              type="text"
+                              inputMode="decimal"
+                              value={recargaTexto}
+                              onChange={(e) => setRecargaTexto(e.target.value)}
+                              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); agregarRecarga(); } }}
+                              placeholder="Recargar saldo"
+                              aria-label="Monto a recargar"
+                            />
+                            <button type="button" className="admin-button admin-button-secondary" onClick={agregarRecarga}>
+                              <Plus size={16} strokeWidth={2} />
+                              Agregar
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {tab === 'servicios' && (
                         <div className={styles.serviceList}>
                           {serviciosFiltrados.map((servicio) => (
                             <button
@@ -1120,7 +1249,7 @@ export default function CajaPage() {
                         </div>
                       )}
 
-                      {catalogoTab === 'paquetes' && (
+                      {tab === 'paquetes' && (
                         <div className={styles.serviceList}>
                           {combosFiltrados.map((combo) => (
                             <button
@@ -1145,30 +1274,32 @@ export default function CajaPage() {
                         </div>
                       )}
 
-                      {catalogoTab === 'personalizado' && (
-                        <div className={styles.customService}>
-                          <input
-                            type="text"
-                            value={customServicio}
-                            onChange={(e) => setCustomServicio(e.target.value)}
-                            placeholder="Nombre del servicio"
-                          />
-                          <div className={styles.inlineFields}>
-                            <input
-                              type="number"
-                              min={0}
-                              value={customPrecio}
-                              onChange={(e) => setCustomPrecio(e.target.value)}
-                              placeholder="Precio"
-                            />
-                            <button type="button" className="admin-button admin-button-secondary" onClick={addCustomDetalle}>
-                              <Plus size={16} strokeWidth={2} />
-                              Agregar
+                      {tab === 'insumos' && (
+                        <div className={styles.serviceList}>
+                          {insumosFiltrados.map((insumo) => (
+                            <button
+                              key={insumo.id}
+                              type="button"
+                              className={styles.serviceItem}
+                              onClick={() => addInsumo(insumo)}
+                            >
+                              <span>
+                                <strong>{insumo.nombre}</strong>
+                                <small>Stock {insumo.stock_actual}</small>
+                              </span>
+                              <span className={styles.servicePrice}>
+                                <b>{insumo.precio_venta != null ? formatMoney(insumo.precio_venta) : 'Sin precio'}</b>
+                              </span>
                             </button>
-                          </div>
-                          <p className={styles.mutedText}>Cobro puntual que no está en el catálogo.</p>
+                          ))}
+                          {!loadingInsumos && insumosFiltrados.length === 0 && (
+                            <p className={styles.mutedText}>
+                              {insumos.length === 0 ? 'Este local no tiene insumos.' : 'No hay insumos para ese filtro.'}
+                            </p>
+                          )}
                         </div>
                       )}
+
                     </div>
                     </>
                     )}
@@ -1247,8 +1378,19 @@ export default function CajaPage() {
                           </div>
                         )}
                         {formErrors.cliente_nombre && <small className={styles.fieldError}>{formErrors.cliente_nombre}</small>}
+                        <button type="button" className={styles.nuevoCliente} onClick={() => setNuevoClienteAbierto(true)}>
+                          <UserPlus size={13} strokeWidth={2} />
+                          Nuevo
+                        </button>
                       </label>
                     </div>
+
+                    {cuenta && (
+                      <p className={styles.saldoLinea}>
+                        Saldo disponible {formatMoney(disponible)}
+                        {cuenta.saldo.por_pagar > 0 && <> · Por pagar {formatMoney(cuenta.saldo.por_pagar)}</>}
+                      </p>
+                    )}
 
                     {modo === 'cobrarReserva' && (
                       <div className={styles.modalField}>
@@ -1276,7 +1418,7 @@ export default function CajaPage() {
                     )}
 
                     <div className={styles.paymentToggle}>
-                      <TipoPagoSelector value={tipoPago} onChange={setTipoPago} label="Tipo de pago" />
+                      <TipoPagoSelector value={metodoActual} onChange={cambiarMetodo} label="Cómo paga" extras={extrasMetodo} />
                     </div>
 
                     <div className={styles.ticketColumns}>
@@ -1287,7 +1429,7 @@ export default function CajaPage() {
                       <span aria-hidden="true" />
                     </div>
                     <div className={styles.ticketItems}>
-                      {detalle.length === 0 ? (
+                      {detalle.length === 0 && cargosEnTicket.length === 0 && !hayLineaRecarga ? (
                         <div className={styles.emptyTicket}>
                           <ReceiptText size={20} strokeWidth={1.7} />
                           <p>Agrega servicios desde el catálogo para armar el pago.</p>
@@ -1298,7 +1440,7 @@ export default function CajaPage() {
                             <div>
                               <strong>{item.servicio}</strong>
                             </div>
-                            {modo === 'venta' && item.servicio_id !== null ? (
+                            {modo === 'venta' && !combosVenta[item.servicio] ? (
                               <label className={styles.unitPriceField}>
                                 <span className={styles.currencyPrefix}>Bs.</span>
                                 <input
@@ -1342,26 +1484,90 @@ export default function CajaPage() {
                           </div>
                         ))
                       )}
+                      {modo === 'venta' && cargosEnTicket.map((cargo) => (
+                        <div key={`cargo-${cargo.id}`} className={styles.ticketItem}>
+                          <div>
+                            <strong>Deuda: {cargo.concepto}</strong>
+                          </div>
+                          <span />
+                          <span />
+                          <b>{formatMoney(cargo.pendiente)}</b>
+                          <button type="button" className={styles.iconButton} onClick={() => alternarCargo(cargo.id)} aria-label="Quitar deuda">
+                            <Trash2 size={15} strokeWidth={1.8} />
+                          </button>
+                        </div>
+                      ))}
+                      {modo === 'venta' && hayLineaRecarga && (
+                        <div className={styles.ticketItem}>
+                          <div>
+                            <strong>Recarga de saldo</strong>
+                          </div>
+                          <label className={styles.unitPriceField}>
+                            <span className={styles.currencyPrefix}>Bs.</span>
+                            <input
+                              type="number"
+                              min={0}
+                              step="0.01"
+                              inputMode="decimal"
+                              value={recarga || ''}
+                              placeholder="Monto"
+                              aria-label="Monto de la recarga"
+                              onFocus={(e) => e.currentTarget.select()}
+                              onChange={(e) => {
+                                const monto = Math.max(0, Number(e.target.value) || 0);
+                                if (selectedClienteId) setRecargaElegida({ clienteId: selectedClienteId, monto });
+                                clearFieldError('detalle');
+                              }}
+                            />
+                          </label>
+                          <span />
+                          <b>{formatMoney(recarga)}</b>
+                          <button type="button" className={styles.iconButton} onClick={() => setRecargaElegida(null)} aria-label="Quitar recarga">
+                            <Trash2 size={15} strokeWidth={1.8} />
+                          </button>
+                        </div>
+                      )}
                     </div>
                     {formErrors.detalle && <small className={styles.fieldError}>{formErrors.detalle}</small>}
 
                     <div className={styles.totalsPanel}>
-                      <div>
+                      <div className={styles.totalsRow}>
                         <span>Subtotal</span>
-                        <strong>{tienePreciosPendientes ? '—' : formatMoney(subtotal)}</strong>
+                        <span className={styles.totalsValue}>{tienePreciosPendientes ? '—' : formatMoney(subtotal)}</span>
                       </div>
-                      <label>
+                      <label className={styles.totalsRow}>
                         <span>Descuento</span>
-                        <input
-                          type="number"
-                          min={0}
-                          value={descuento}
-                          onChange={(e) => setDescuento(Math.max(0, Number(e.target.value) || 0))}
-                        />
+                        <span className={styles.discountField}>
+                          <span>Bs.</span>
+                          <input
+                            type="number"
+                            min={0}
+                            value={descuento}
+                            onChange={(e) => setDescuento(Math.max(0, Number(e.target.value) || 0))}
+                          />
+                        </span>
                       </label>
+                      {cargosAnteriores > 0 && (
+                        <div className={styles.totalsRow}>
+                          <span>Deudas anteriores</span>
+                          <span className={styles.totalsValue}>{formatMoney(cargosAnteriores)}</span>
+                        </div>
+                      )}
+                      {recarga > 0 && (
+                        <div className={styles.totalsRow}>
+                          <span>Recarga de saldo</span>
+                          <span className={styles.totalsValue}>{formatMoney(recarga)}</span>
+                        </div>
+                      )}
+                      {resumen.usaSaldo > 0 && (
+                        <div className={`${styles.totalsRow} ${styles.totalsSaldo}`}>
+                          <span>Saldo aplicado</span>
+                          <span className={styles.totalsValue}>− {formatMoney(resumen.usaSaldo)}</span>
+                        </div>
+                      )}
                       <div className={styles.totalFinal}>
-                        <span>Total a cobrar</span>
-                        <strong>{tienePreciosPendientes ? '—' : formatMoney(totalFinal)}</strong>
+                        <span>{resumen.usaCuenta ? 'Paga ahora' : 'Total a cobrar'}</span>
+                        <strong>{tienePreciosPendientes ? '—' : formatMoney(resumen.aPagarAhora)}</strong>
                       </div>
                     </div>
 
@@ -1371,87 +1577,37 @@ export default function CajaPage() {
                       <button type="button" className="admin-button admin-button-secondary" onClick={resetSale} disabled={saving}>
                         Limpiar
                       </button>
-                      <button type="button" className="admin-button admin-button-primary" onClick={handleSubmit} disabled={saving}>
+                      <button
+                        type="button"
+                        className="admin-button admin-button-secondary"
+                        onClick={() => { if (validate()) void registrarPorCuenta(true); }}
+                        disabled={saving || !puedeDejarACuenta}
+                        title={!hayCliente ? 'Elige un cliente para dejar el ticket a su cuenta' : 'La deuda se cobra después, desde caja o desde la ficha'}
+                      >
+                        <Clock size={16} strokeWidth={2} />
+                        A cuenta
+                      </button>
+                      <button type="button" className="admin-button admin-button-primary" onClick={handleSubmit} disabled={saving || (metodoActual === 'saldo' && !saldoValido)}>
                         <CheckCircle2 size={17} strokeWidth={2} />
-                        {saving ? 'Registrando...' : modo === 'cobrarReserva' ? 'Cobrar paquete' : 'Registrar pago'}
+                        {saving ? 'Registrando...' : modo === 'cobrarReserva' ? 'Cobrar paquete' : resumen.usaCuenta ? 'Registrar cobro' : 'Registrar pago'}
                       </button>
                     </div>
                   </div>
                 </section>
 
-                <section className={styles.historyPanel}>
-                  <div className={`${styles.historyHeaderCard} ${styles.panelHeader}`}>
-                    <div>
-                      <span className={styles.kicker}>Historial local</span>
-                      <h2>Pagos registrados en {selectedLocal.nombre}</h2>
-                    </div>
-                    <div className={styles.historyFilters}>
-                      <label className={styles.historyFilter}>
-                        <Search size={15} aria-hidden="true" />
-                        <input
-                          type="search"
-                          value={pagosCliente}
-                          onChange={(event) => setPagosCliente(event.target.value)}
-                          placeholder="Buscar por cliente..."
-                          aria-label="Buscar pagos por cliente"
-                        />
-                      </label>
-                      <label className={`${styles.historyFilter} ${styles.historyFilterNit}`}>
-                        <Search size={15} aria-hidden="true" />
-                        <input
-                          type="search"
-                          value={pagosNit}
-                          onChange={(event) => setPagosNit(event.target.value)}
-                          placeholder="Buscar por NIT..."
-                          aria-label="Buscar pagos por NIT"
-                        />
-                      </label>
-                      <label className={`${styles.historyFilter} ${styles.historyFilterProduct}`}>
-                        <Search size={15} aria-hidden="true" />
-                        <input
-                          type="search"
-                          value={pagosProducto}
-                          onChange={(event) => setPagosProducto(event.target.value)}
-                          placeholder="Buscar por servicio/producto..."
-                          aria-label="Buscar pagos por servicio o producto"
-                        />
-                      </label>
-                      <div className={styles.historyStatusFilter}>
-                        <CustomSelect
-                          id="caja-pagos-estado"
-                          value={pagosEstado}
-                          onChange={setPagosEstado}
-                          options={ESTADO_OPTIONS.map((estado) => ({ value: estado, label: ESTADO_LABELS[estado] ?? estado }))}
-                          placeholder="Todos los estados"
-                          allowClear
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <DataTable<PagoRow> sort={pagosSort.sort} onSortChange={pagosSort.onSortChange}
-                    columns={columns}
-                    data={pagos}
-                    loading={loadingPagos}
-                    error={pagosError}
-                    onRefresh={() => fetchPagos(selectedLocal)}
-                    getRowKey={(p) => p.codigo_pago}
-                    hideSearch
-                    emptyMessage="Todavía no hay pagos en este local"
-                  />
-				  <CursorPagination page={pagosPagination.page} totalPages={pagosPagination.totalPages} hasNext={pagosPagination.hasNext} loading={loadingPagos} onPrevious={pagosPagination.previous} onNext={pagosPagination.next} />
-                </section>
               </>
             )}
           </div>
 
-      {detallePagoCodigo && (
-        <PagoDetalleModal
-          key={detallePagoCodigo}
-          codigoPago={detallePagoCodigo}
-          onClose={() => setDetallePagoCodigo(null)}
-        />
-      )}
+      <ClienteFormModal
+        isOpen={nuevoClienteAbierto}
+        onClose={() => setNuevoClienteAbierto(false)}
+        initialNombre={clienteNombre}
+        onSaved={(cliente) => {
+          selectCliente(cliente as ClienteOption);
+          toast.success('Cliente creado');
+        }}
+      />
 
       <FormModal
         isOpen={newClientModalOpen}

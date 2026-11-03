@@ -22,6 +22,36 @@ export function subtotalDetallePago(cantidad: number, precio: number | string | 
   return subtotal <= MAX_IMPORTE ? subtotal : null;
 }
 
+export interface InsumoVendible {
+  id: number;
+  nombre: string;
+  precio_venta?: number | null;
+}
+
+/** Suma un insumo al detalle: el mismo insumo aumenta la cantidad de su linea; sin precio de venta queda pendiente. */
+export function agregarInsumo(draft: DetallePagoDraft[], insumo: InsumoVendible): DetallePagoDraft[] {
+  const existente = draft.findIndex((item) => item.item_id === insumo.id);
+  if (existente >= 0) {
+    return draft.map((item, index) => {
+      if (index !== existente) return item;
+      const cantidad = item.cantidad + 1;
+      return { ...item, cantidad, subtotal: subtotalDetallePago(cantidad, item.precio_unitario) };
+    });
+  }
+  const precio = insumo.precio_venta ?? null;
+  return [
+    ...draft,
+    {
+      servicio_id: null,
+      item_id: insumo.id,
+      servicio: insumo.nombre,
+      precio_unitario: precio,
+      cantidad: 1,
+      subtotal: subtotalDetallePago(1, precio),
+    },
+  ];
+}
+
 /** Solo construye el DTO si todas las lineas tienen un importe definido y valido. */
 export function prepararDetallePago(draft: DetallePagoDraft[]): { detalle: DetalleServicio[]; errorIndex: number | null } {
   const detalle: DetalleServicio[] = [];
