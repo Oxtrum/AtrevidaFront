@@ -21,6 +21,9 @@ export interface CargoCliente {
   tipo: TipoCargo;
   concepto: string;
   monto: number;
+  /** Insumo cobrado y su cantidad (solo cargos de tipo INSUMO). */
+  item_id?: number;
+  cantidad?: number;
   pagado: number;
   pendiente: number;
   estado: EstadoCargo;
@@ -69,6 +72,9 @@ export interface CrearCargoData {
   local_id?: number;
   reserva_id?: number;
   plan_id?: number;
+  /** Insumo que se cobra (tipo INSUMO): exige local_id y cantidad; baja el stock de ese local al crear el cargo. */
+  item_id?: number;
+  cantidad?: number;
 }
 
 /** Cobro de caja: los cargos marcados se pagan completos. */
@@ -109,6 +115,12 @@ export async function getCuentaCliente(clienteId: number, incluirAnulados = fals
 export async function crearCargo(clienteId: number, data: CrearCargoData): Promise<number> {
   const res = await apiClient.post<ApiResponse<{ id: number }>>(`/bd/clientes/${clienteId}/cargos`, data);
   return res.data.id;
+}
+
+/** Crea varios cargos de un cliente en una sola transaccion (si uno falla no queda ninguno). Devuelve sus ids. */
+export async function crearCargosLote(clienteId: number, cargos: CrearCargoData[]): Promise<number[]> {
+  const res = await apiClient.post<ApiResponse<{ ids: number[] }>>(`/bd/clientes/${clienteId}/cargos/lote`, { cargos });
+  return res.data.ids;
 }
 
 export async function anularCargo(cargoId: number, motivo: string): Promise<void> {

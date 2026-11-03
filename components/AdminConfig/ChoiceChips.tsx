@@ -7,6 +7,10 @@ export interface ChoiceOption<V extends string = string> {
   label: string;
   /** Icono a la izquierda del texto. */
   icon?: React.ReactNode;
+  /** La opción se ve pero no se puede elegir (siempre visible: no aparece ni desaparece). */
+  disabled?: boolean;
+  /** Texto de ayuda al pasar el cursor; útil para explicar por qué está deshabilitada. */
+  title?: string;
 }
 
 interface ChoiceChipsProps<V extends string> {
@@ -15,8 +19,8 @@ interface ChoiceChipsProps<V extends string> {
   onChange: (value: V) => void;
   /** Nombre accesible del grupo (qué se está eligiendo). */
   ariaLabel: string;
-  /** chips = botones sueltos (varias opciones); toggle = control compacto de 2 o 3 opciones en una sola pieza; grid = opciones grandes en dos columnas que ocupan todo el ancho. */
-  variant?: 'chips' | 'toggle' | 'grid';
+  /** chips = botones sueltos (varias opciones); toggle = control compacto de 2 o 3 opciones en una sola pieza; grid = opciones grandes en dos columnas que ocupan todo el ancho; fila = todas en una sola fila, repartiendo el ancho. */
+  variant?: 'chips' | 'toggle' | 'grid' | 'fila';
 }
 
 /**
@@ -25,13 +29,15 @@ interface ChoiceChipsProps<V extends string> {
  */
 export function ChoiceChips<V extends string>({ options, value, onChange, ariaLabel, variant = 'chips' }: ChoiceChipsProps<V>) {
   return (
-    <div className={`${styles.group} ${variant === 'toggle' ? styles.toggle : ''} ${variant === 'grid' ? styles.grid : ''}`} role="radiogroup" aria-label={ariaLabel}>
+    <div className={`${styles.group} ${variant === 'toggle' ? styles.toggle : ''} ${variant === 'grid' ? styles.grid : ''} ${variant === 'fila' ? styles.fila : ''}`} role="radiogroup" aria-label={ariaLabel}>
       {options.map((o) => (
         <button
           key={o.value}
           type="button"
           role="radio"
           aria-checked={o.value === value}
+          disabled={o.disabled}
+          title={o.title}
           className={`${styles.chip} ${o.value === value ? styles.selected : ''}`}
           onClick={() => onChange(o.value)}
         >

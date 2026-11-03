@@ -23,7 +23,12 @@
     color var(--admin-t-normal) var(--admin-ease);
 }
 
-.chip:hover {
+.chip:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.chip:hover:not(:disabled) {
   border-color: var(--admin-border-hover);
   color: var(--admin-foreground);
 }
@@ -66,7 +71,19 @@
   background: rgba(236, 0, 140, 0.14);
 }
 
-/* Opciones grandes que ocupan todo el ancho, de dos en dos (metodo de pago). */
+/* Todas las opciones en una sola fila, repartiendo el ancho (metodo de pago). */
+.fila {
+  flex-wrap: nowrap;
+}
+
+.fila .chip {
+  flex: 1 1 0;
+  min-width: 0;
+  padding-inline: 0.4rem;
+  font-weight: 500;
+}
+
+/* Opciones grandes que ocupan todo el ancho, de dos en dos. */
 .grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

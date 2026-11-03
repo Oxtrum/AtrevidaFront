@@ -11,6 +11,7 @@ import {
   CargoFormModal,
   ClienteFormModal,
   CobroModal,
+  RecargaModal,
   ContactoCliente,
   CuentaClientePanel,
   SaldoCliente,
@@ -76,6 +77,7 @@ export default function ClienteFichaPage() {
   const [editando, setEditando] = useState(false);
   const [cobrando, setCobrando] = useState(false);
   const [nuevoCargo, setNuevoCargo] = useState(false);
+  const [recargando, setRecargando] = useState(false);
   const [aAnular, setAAnular] = useState<CargoCliente | null>(null);
 
   const cargarCliente = useCallback(async () => {
@@ -302,6 +304,9 @@ export default function ClienteFichaPage() {
             <AdminButton size="sm" variant="secondary" icon={<Plus size={15} strokeWidth={2} />} onClick={() => setNuevoCargo(true)}>
               Nuevo cargo
             </AdminButton>
+            <AdminButton size="sm" variant="secondary" icon={<Banknote size={15} strokeWidth={2} />} onClick={() => setRecargando(true)}>
+              Recargar saldo
+            </AdminButton>
             {cliente && (
               <AdminButton size="sm" variant="secondary" icon={<Pencil size={15} strokeWidth={2} />} onClick={() => setEditando(true)}>
                 Editar
@@ -380,6 +385,14 @@ export default function ClienteFichaPage() {
         onCobrado={recargarTodo}
       />
 
+      <RecargaModal
+        isOpen={recargando}
+        clienteId={clienteId}
+        nombre={cliente ? `${cliente.nombre} ${cliente.apellido}`.trim() : ''}
+        disponible={cuenta?.saldo.disponible}
+        onClose={() => setRecargando(false)}
+        onRecargado={recargarTodo}
+      />
       <CargoFormModal isOpen={nuevoCargo} clienteId={clienteId} onClose={() => setNuevoCargo(false)} onSaved={recargarTodo} />
 
       <ReasonDialog
