@@ -136,9 +136,14 @@ export function ReservaAcciones({ reserva, onCambio, conCobrar = false }: Reserv
     try {
       await actualizarEstadoReservaDB({ id: reserva.id, estado: 'COMPLETADO', causa });
       setCompletando(false);
-      toast.success(`Reserva #${reserva.id} marcada como completada.`);
-      // Si la paga un paquete no hay nada que cobrar; si no, se sugiere cobrarla (sin obligar).
-      if (!reserva.plan_id) setSugerirCobro(true);
+      // Si la cubre un paquete no hay nada que cobrar y el cajero debe saber por que no se le ofrece el cobro; si no,
+      // se sugiere cobrarla (sin obligar).
+      if (reserva.plan_id) {
+        toast.info(`Reserva #${reserva.id} completada. La cubre un paquete: no hay nada que cobrar.`);
+      } else {
+        toast.success(`Reserva #${reserva.id} marcada como completada.`);
+        setSugerirCobro(true);
+      }
       onCambio();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'No se pudo completar la reserva.');
