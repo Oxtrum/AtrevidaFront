@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import * as Flags from 'country-flag-icons/react/3x2';
 import { ChevronDown, Search } from 'lucide-react';
 import { getCountries, getCountryCallingCode, type CountryCode } from 'libphonenumber-js/min';
@@ -12,6 +13,9 @@ import {
   type PhoneValue,
 } from '@/lib/utils/phone';
 import styles from './PhoneInput.module.css';
+
+/** Alto aproximado del menú abierto (buscador + lista); decide si se abre hacia arriba. */
+const MENU_HEIGHT = 340;
 
 interface PhoneInputProps {
   value?: string | null;
@@ -50,6 +54,10 @@ export function PhoneInput({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [menuPos, setMenuPos] = useState<{ left: number; top?: number; bottom?: number } | null>(null);
+  const [portalTarget, setPortalTarget] = useState<Element | null>(null);
   const resolved = phoneValueFrom(e164 || value, country);
   const selectedCountry = e164 ? resolved.country : country;
   const displayed = resolved.nationalNumber;
@@ -69,14 +77,33 @@ export function PhoneInput({
   useEffect(() => {
     if (!open) return;
     const closeOutside = (event: MouseEvent) => {
-      if (rootRef.current && !rootRef.current.contains(event.target as Node)) setOpen(false);
+      const target = event.target as Node;
+      if (rootRef.current?.contains(target) || menuRef.current?.contains(target)) return;
+      setOpen(false);
     };
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setOpen(false);
     };
+    // El menú va en un portal (fuera del overflow del modal) y sigue al botón.
+    const updatePosition = () => {
+      const el = triggerRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const left = Math.max(8, Math.min(rect.left, window.innerWidth - Math.min(368, window.innerWidth - 16) - 8));
+      const fitsBelow = window.innerHeight - rect.bottom >= MENU_HEIGHT || rect.top < MENU_HEIGHT;
+      setMenuPos(fitsBelow
+        ? { left, top: rect.bottom + 6 }
+        : { left, bottom: window.innerHeight - rect.top + 6 });
+      setPortalTarget(el.closest('[data-admin="true"]') ?? document.body);
+    };
+    updatePosition();
+    window.addEventListener('scroll', updatePosition, true);
+    window.addEventListener('resize', updatePosition);
     document.addEventListener('mousedown', closeOutside);
     document.addEventListener('keydown', closeOnEscape);
     return () => {
+      window.removeEventListener('scroll', updatePosition, true);
+      window.removeEventListener('resize', updatePosition);
       document.removeEventListener('mousedown', closeOutside);
       document.removeEventListener('keydown', closeOnEscape);
     };
@@ -92,6 +119,7 @@ export function PhoneInput({
   return (
     <div ref={rootRef} className={`${styles.root}${className ? ` ${className}` : ''}`}>
       <button
+        ref={triggerRef}
         type="button"
         className={`${styles.country}${open ? ` ${styles.countryOpen}` : ''}`}
         aria-label="País y prefijo telefónico"
@@ -105,8 +133,14 @@ export function PhoneInput({
         <ChevronDown className={styles.chevron} size={16} aria-hidden="true" />
       </button>
 
-      {open && (
-        <div className={styles.menu} role="listbox" aria-label="Seleccionar país y prefijo">
+      {open && menuPos && portalTarget && createPortal(
+        <div
+          ref={menuRef}
+          className={styles.menu}
+          role="listbox"
+          aria-label="Seleccionar país y prefijo"
+          style={{ left: menuPos.left, top: menuPos.top, bottom: menuPos.bottom }}
+        >
           <label className={styles.search}>
             <Search size={15} aria-hidden="true" />
             <input
@@ -134,7 +168,8 @@ export function PhoneInput({
             ))}
             {visibleCountries.length === 0 && <p className={styles.empty}>No se encontró un país.</p>}
           </div>
-        </div>
+        </div>,
+        portalTarget,
       )}
 
       <input

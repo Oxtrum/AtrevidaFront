@@ -92,11 +92,9 @@
 .countryOpen .chevron { transform: rotate(180deg); }
 
 .menu {
-  position: absolute;
-  z-index: 80;
-  top: calc(100% + 0.45rem);
-  left: 0;
-  width: min(23rem, calc(100vw - 2rem));
+  position: fixed;
+  z-index: 10050;
+  width: min(23rem, calc(100vw - 1rem));
   overflow: hidden;
   background: #131316;
   border: 1px solid var(--af-border-hover);
@@ -207,5 +205,4 @@
 
 @media (max-width: 460px) {
   .root { grid-template-columns: 1fr; }
-  .menu { width: 100%; }
 }
