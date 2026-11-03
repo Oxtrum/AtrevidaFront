@@ -64,11 +64,6 @@
   gap: 0.5rem;
 }
 
-/* Las pestañas ocupan lo que necesitan, no todo el ancho. */
-.pestanas {
-  width: fit-content;
-}
-
 .pestanas > div {
   margin-bottom: 0;
 }

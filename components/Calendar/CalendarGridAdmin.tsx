@@ -266,7 +266,7 @@ export default function CalendarGrid({
                 <span className={styles.headerDay}>{DIA_CORTO[dia]}</span>
                 {info && (
                   <span className={styles.headerDate}>
-                    {info.dia}
+                    {info.dia + " "}
                     <span className={styles.headerMonth}>{info.mes}</span>
                   </span>
                 )}
