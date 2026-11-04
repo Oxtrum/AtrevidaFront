@@ -287,7 +287,6 @@
   background: rgba(236, 0, 140, 0.08);
 }
 
-/* ── Resumen de la reserva seleccionada (modo "Cobrar reserva") ── */
 .summaryCard {
   display: flex;
   flex-direction: column;

@@ -7,7 +7,6 @@ import type { TipoPago } from '@/lib/utils/tipoPago';
 export interface DetalleServicio {
   servicio_id: number | null;
   /** Insumo del inventario vendido en la linea (excluye a servicio_id); al registrar el pago baja su stock. */
-  item_id?: number | null;
   servicio: string;
   precio_unitario: number;
   cantidad: number;
@@ -25,7 +24,6 @@ export interface CrearPagoData {
   tipo_pago: TipoPago;
   activo: boolean;
   /** Reserva que se cobra con este pago (opcional; una reserva admite un solo cobro). */
-  reserva_id?: number | null;
   /** Fecha del hecho (YYYY-MM-DD): cuando ocurrio el cobro. Sin ella es ahora; no puede ser futura. */
   fecha_hecho?: string;
   detalle: DetalleServicio[];
