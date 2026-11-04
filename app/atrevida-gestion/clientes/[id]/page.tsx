@@ -183,7 +183,7 @@ export default function ClienteFichaPage() {
       key: 'estado',
       label: 'Estado',
       searchable: false,
-      render: (_v, row) => <ReservaEstadoCelda estado={row.estado} estadoCobro={row.estado_cobro} alertaInventario={row.alerta_inventario} />,
+      render: (_v, row) => <ReservaEstadoCelda estado={row.estado} alertaInventario={row.alerta_inventario} />,
     },
     {
       key: 'precio',
@@ -198,7 +198,7 @@ export default function ClienteFichaPage() {
       sortable: false,
       render: (_v, row) => (
         <div onClick={(e) => e.stopPropagation()}>
-          <ReservaAcciones reserva={row} onCambio={recargarTodo} conCobrar />
+          <ReservaAcciones reserva={row} onCambio={recargarTodo} />
         </div>
       ),
     },

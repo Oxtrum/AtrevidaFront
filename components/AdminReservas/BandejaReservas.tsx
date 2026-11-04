@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import gsap from 'gsap';
 import {
   AlertCircle,
-  Banknote,
+  ClipboardCheck,
   CalendarCheck,
   Check,
   RefreshCw,
@@ -28,18 +28,18 @@ import {
 import styles from './BandejaReservas.module.css';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
 import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
+import { AtencionFormModal } from '@/components/AdminAtenciones/AtencionFormModal';
 
 type EstadoGestion = Extract<EstadoReserva, 'PENDIENTE' | 'AGENDADO' | 'RECHAZADO'>;
 type EstadoNormalizado = EstadoGestion | 'COMPLETADO';
 type Cuando = 'PROXIMAS' | 'PASADAS' | 'TODAS' | 'RANGO';
 type Atajo = Exclude<Cuando, 'RANGO'>;
-type EstadoFiltro = EstadoGestion | 'TODOS' | 'COMPLETADO' | 'POR_COBRAR';
+type EstadoFiltro = EstadoGestion | 'TODOS' | 'COMPLETADO';
 const ESTADO_OPTIONS: Array<{ value: EstadoFiltro; label: string }> = [
   { value: 'TODOS', label: 'Todas' },
   { value: 'PENDIENTE', label: 'Pendientes' },
   { value: 'AGENDADO', label: 'Agendadas' },
   { value: 'COMPLETADO', label: 'Completadas' },
-  { value: 'POR_COBRAR', label: 'Por cobrar' },
   { value: 'RECHAZADO', label: 'Rechazadas' },
 ];
 const CUANDO_ATAJOS: Array<{ value: Atajo; label: string }> = [
@@ -75,7 +75,7 @@ const getCurrentTimeHHMM = () => {
 
 
 /**
- * Lista de reservas con las acciones del dia a dia: aprobar, rechazar, confirmar por WhatsApp, completar y cobrar.
+ * Lista de reservas con las acciones del día a día: aprobar, rechazar, confirmar por WhatsApp y atender.
  * Por defecto muestra las proximas (de hoy en adelante, la mas cercana primero); Pasadas y Todas se piden a mano.
  * Los filtros son independientes: cambiar uno no mueve los demas.
  */
@@ -88,6 +88,7 @@ export function BandejaReservas() {
   const preservedScrollYRef = useRef<number | null>(null);
 
   const [reservas, setReservas] = useState<ReservaBD[]>([]);
+  const [reservaAtencion, setReservaAtencion] = useState<ReservaBD | null>(null);
   const [renderedReservas, setRenderedReservas] = useState<ReservaBD[]>([]);
   const [initialLoading, setInitialLoading] = useState(true);
   const [isFetching, setIsFetching] = useState(false);
@@ -162,8 +163,7 @@ export function BandejaReservas() {
         ordenar_por: 'fecha',
         sentido: cuando === 'PASADAS' ? 'desc' : 'asc',
 		local: effectiveLocalFiltro !== ALL_LOCALS_FILTER && effectiveLocalFiltro !== LOCAL_SCOPE_PENDING ? effectiveLocalFiltro : undefined,
-		estado: estadoFiltro === 'POR_COBRAR' ? 'COMPLETADO' : estadoFiltro !== 'TODOS' ? estadoFiltro : undefined,
-		estado_cobro: estadoFiltro === 'POR_COBRAR' ? 'POR_COBRAR' : undefined,
+		estado: estadoFiltro !== 'TODOS' ? estadoFiltro : undefined,
 		tipo: tipoFiltro !== 'TODOS' ? tipoFiltro.toLowerCase() as 'mesa' | 'bicicleta' : undefined,
 		busqueda: debouncedSearchQuery || undefined,
 		vigente_fecha: aplicaVigenciaPendientes ? vigenteFecha : undefined,
@@ -314,8 +314,6 @@ export function BandejaReservas() {
 
   const renderReservaActions = (reserva: ReservaBD) => {
     const estado = normalizeEstado(reserva.estado);
-    const isCompleted = estado === 'COMPLETADO';
-    const porCobrar = isCompleted && reserva.estado_cobro === 'POR_COBRAR';
     const confirmationSent = Boolean(reserva.notificado);
     const confirmationWhatsappHref = buildConfirmacionWhatsappHref(reserva);
     const busy = false;
@@ -327,9 +325,9 @@ export function BandejaReservas() {
             Aprobar
           </AdminButton>
         )}
-        {porCobrar && (
-          <AdminButton size="xs" icon={<Banknote size={13} strokeWidth={2} />} href={`/atrevida-gestion/caja?reserva=${reserva.id}`} disabled={busy}>
-            Cobrar
+        {estado === 'AGENDADO' && (
+          <AdminButton size="xs" icon={<ClipboardCheck size={13} strokeWidth={2} />} onClick={() => setReservaAtencion(reserva)} disabled={busy}>
+            Atender
           </AdminButton>
         )}
         {estado === 'AGENDADO' && (
@@ -456,6 +454,7 @@ export function BandejaReservas() {
 			  )}
             </div>
           </AdminPanel>
+      <AtencionFormModal reserva={reservaAtencion} onClose={() => setReservaAtencion(null)} onSaved={() => pagination.resetAfterMutation()} />
     </div>
   );
 }

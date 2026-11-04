@@ -6,7 +6,7 @@ import type { ReservaBD } from '@/types/reserva';
 import { ClientePopover } from '@/components/AdminClientes/ClientePopover';
 import { RESERVA_ESTADO_HINT, ReservaEstadoPill } from './ReservaEstadoPill';
 import type { ReservaEstadoPillTone } from './ReservaEstadoPill';
-import { POR_COBRAR_HINT, ReservaStockHint, formatDiaCorto } from './ReservaRow';
+import { ReservaStockHint, formatDiaCorto } from './ReservaRow';
 import styles from './AprobacionReservasTable.module.css';
 
 type Row = ReservaBD & Record<string, unknown>;
@@ -29,12 +29,7 @@ export function estadoDeAprobacion(r: ReservaBD): { label: string; tone: Reserva
         ? { label: 'Confirmada', tone: 'info', hint: 'La cita está agendada y ya le enviaste la confirmación al cliente por WhatsApp. Puedes reenviarla si la necesita.' }
         : { label: 'Sin confirmar', tone: 'pendiente', hint: 'La cita está agendada, pero todavía no le avisaste al cliente. Pulsa “Confirmar” para enviarle el mensaje por WhatsApp.' };
     case 'COMPLETADO':
-      if (r.estado_cobro === 'CUBIERTA_PAQUETE') {
-        return { label: 'Paquete', tone: 'info', hint: 'El servicio ya se realizó y lo cubre un paquete del cliente: no hay nada que cobrar.' };
-      }
-      return r.estado_cobro === 'POR_COBRAR'
-        ? { label: 'Por cobrar', tone: 'pendiente', hint: POR_COBRAR_HINT }
-        : { label: 'Completada', tone: 'success', hint: 'El servicio ya se realizó y el cobro está registrado o lo cubre un paquete del cliente.' };
+      return { label: 'Completada', tone: 'success', hint: 'El servicio ya se realizó.' };
     case 'RECHAZADO':
       return { label: 'Rechazada', tone: 'danger', hint: RESERVA_ESTADO_HINT.RECHAZADO };
     default:

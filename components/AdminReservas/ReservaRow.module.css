@@ -35,7 +35,6 @@
 .completado { --rail: #34d399; }
 .rechazado { --rail: var(--admin-accent-danger); }
 
-/* Por cobrar: sin fondo de color, solo el riel ámbar para que no ensucie la lista. */
 .highlight {
   --rail: #fbbf24;
 }

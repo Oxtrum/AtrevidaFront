@@ -73,7 +73,7 @@
   top: calc(100% - 0.1rem);
   left: 0;
   right: 0;
-  z-index: 20;
+  z-index: 40;
   max-height: 224px;
   overflow: hidden auto;
   border: 1px solid var(--admin-border);

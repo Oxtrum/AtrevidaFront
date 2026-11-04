@@ -2,8 +2,7 @@
 
 import { useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Pencil, Trash2, Clock, CalendarDays, Banknote } from 'lucide-react';
-import { AdminButton, StatusBadge } from '@/components/AdminConfig';
+import { X, Pencil, Trash2, Clock, CalendarDays } from 'lucide-react';
 import type { ReservaBD } from '@/types/reserva';
 import { WhatsappIcon } from '@/components/icons/WhatsappIcon';
 import { buildReminderWhatsappHref } from '@/lib/utils/whatsapp';
@@ -17,6 +16,7 @@ interface ReservaDetailModalProps {
   onEdit: (reserva: ReservaBD) => void;
   onDelete: (reserva: ReservaBD) => void;
   deleting?: boolean;
+  readOnly?: boolean;
 }
 
 const ESTADO_CLASS: Record<string, string> = {
@@ -48,6 +48,7 @@ export function ReservaDetailModal({
   onEdit,
   onDelete,
   deleting = false,
+  readOnly = false,
 }: ReservaDetailModalProps) {
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -111,11 +112,6 @@ export function ReservaDetailModal({
               <span className={styles.fieldValue}>
                 <span className={`${styles.badge} ${estadoClass}`}>{estado}</span>
                 {reserva.alerta_inventario && estado !== 'COMPLETADO' && <InventarioAlertBadge />}
-                {estado === 'COMPLETADO' && reserva.estado_cobro && (
-                  <StatusBadge tone={reserva.estado_cobro === 'COBRADA' ? 'success' : reserva.estado_cobro === 'POR_COBRAR' ? 'warning' : 'info'}>
-                    {reserva.estado_cobro === 'COBRADA' ? 'Cobrada' : reserva.estado_cobro === 'POR_COBRAR' ? 'Por cobrar' : 'Cubierta por paquete'}
-                  </StatusBadge>
-                )}
               </span>
             </div>
 
@@ -204,7 +200,7 @@ export function ReservaDetailModal({
           </div>
         </div>
 
-        <div className={styles.footer}>
+        {!readOnly && <div className={styles.footer}>
           {reminderHref ? (
             <a
               className={styles.reminderButton}
@@ -226,11 +222,6 @@ export function ReservaDetailModal({
               Enviar recordatorio
             </button>
           )}
-          {reserva.estado === 'COMPLETADO' && reserva.estado_cobro === 'POR_COBRAR' && (
-            <AdminButton size="sm" href={`/atrevida-gestion/caja?reserva=${reserva.id}`} icon={<Banknote size={14} strokeWidth={2} />}>
-              Cobrar
-            </AdminButton>
-          )}
           <button
             className={styles.deleteButton}
             onClick={() => onDelete(reserva)}
@@ -245,7 +236,7 @@ export function ReservaDetailModal({
               Editar
             </button>
           )}
-        </div>
+        </div>}
       </div>
     </div>
   );

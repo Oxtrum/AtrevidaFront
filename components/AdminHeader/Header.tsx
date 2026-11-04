@@ -10,6 +10,7 @@ import {
   Banknote,
   Boxes,
   CalendarDays,
+  ClipboardCheck,
   ChevronDown,
   CreditCard,
   LayoutDashboard,
@@ -74,6 +75,7 @@ const NAV_ITEMS: NavItem[] = [
     param: ['vista', 'pendientes'],
     icon: ShieldCheck,
   },
+  { label: 'Atenciones', detail: 'Servicios realizados', path: `${BASE}/atenciones`, icon: ClipboardCheck },
   { label: 'Cobros', detail: 'Registrar una venta', path: `${BASE}/caja`, icon: Banknote },
   {
     label: 'Clientes',

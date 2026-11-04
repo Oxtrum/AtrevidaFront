@@ -149,13 +149,12 @@ interface StatusNote {
   warn?: boolean;
 }
 
-/** Aviso corto en texto, sin píldora: "Sin confirmar", "Por cobrar". `warn` lo pinta ámbar. */
+/** Aviso corto en texto, sin píldora, para notas operativas de la reserva. */
 export function ReservaNote({ warn, hint, children }: { warn?: boolean; hint?: string; children: React.ReactNode }) {
   const note = <span className={`${styles.note} ${warn ? styles.noteWarn : ''}`}>{children}</span>;
   return hint ? <Tooltip content={hint}>{note}</Tooltip> : note;
 }
 
-export const POR_COBRAR_HINT = 'El servicio ya se realizó pero aún no se registró el cobro. Usa “Cobrar” en el menú de acciones de la fila.';
 
 /** Línea de estado discreta: ● Estado · notas · ⚠ Stock. `showEstado` false cuando la pestaña ya dice el estado. */
 export function ReservaStatusLine({ estado, notes = [], stock, showEstado = true }: { estado: string; notes?: StatusNote[]; stock?: boolean; showEstado?: boolean }) {

@@ -95,7 +95,7 @@ export function SiguientesReservas({ local }: SiguientesReservasProps) {
       >
         {!href ? 'Sin teléfono' : confirmada ? 'Recordar' : 'Confirmar'}
       </AdminButton>
-      <ReservaAcciones reserva={reserva} onCambio={() => void cargar()} conCobrar />
+      <ReservaAcciones reserva={reserva} onCambio={() => void cargar()} />
       </>
     );
   };

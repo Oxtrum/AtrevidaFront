@@ -9,7 +9,6 @@ export {
   ReservaContacto,
   ReservaStatusLine,
   ReservaNote,
-  POR_COBRAR_HINT,
   ReservaStockHint,
   RESERVA_ESTADO_LABEL,
   getReservaTone,
