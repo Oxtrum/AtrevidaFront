@@ -139,9 +139,25 @@ export function AtencionFormModal({ reserva, atencion, onClose, onSaved }: Atenc
 
     const controller = new AbortController();
     const timeout = window.setTimeout(() => {
-      void getPersonalSugerido(nombre, controller.signal)
-        .then(setSugerencias)
-        .catch(() => { if (!controller.signal.aborted) setSugerencias([]); });
+      void (async () => {
+        try {
+          const workplace = getStoredAdminWorkplace();
+          let localId = workplace?.local_id;
+          if (!localId) {
+            const locales = await getLocalesDB();
+            localId = locales.data?.locales.find((local) => local.nombre === reserva.local)?.id;
+          }
+          const personal = await getPersonalSugerido(nombre, controller.signal);
+          if (controller.signal.aborted) return;
+          // La API limita por local asignado al usuario. Para usuarios con acceso a varios
+          // locales, acotamos las sugerencias al local de esta reserva desde el formulario.
+          setSugerencias(localId
+            ? personal.filter((item) => item.local_id == null || item.local_id === localId)
+            : personal);
+        } catch {
+          if (!controller.signal.aborted) setSugerencias([]);
+        }
+      })();
     }, 250);
 
     return () => { window.clearTimeout(timeout); controller.abort(); };
