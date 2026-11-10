@@ -125,7 +125,7 @@ export default function AtencionesPage() {
     { key: 'empleado_nombre', label: 'Quien lo atendió' },
     { key: 'reserva_id', label: 'Reserva', render: (value, row) => (
       <button type="button" className={styles.reservaLink} onClick={() => void verReserva(row)} aria-label={`Ver resumen de la reserva ${value}`}>
-        #{value}
+        #{String(value)}
       </button>
     ) },
     { key: 'servicio_reserva', label: 'Servicio', render: (value) => String(value || '—') },
