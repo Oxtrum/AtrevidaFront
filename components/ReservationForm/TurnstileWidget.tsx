@@ -22,7 +22,7 @@ interface TurnstileWidgetProps {
   resetKey: number;
 }
 
-const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '0x4AAAAAAFO4S9vPyLV8JU4S';
+const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '0x4AAAAAAFPaU5isB1hIxAfe';
 const SCRIPT_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
 
 export function TurnstileWidget({ onToken, resetKey }: TurnstileWidgetProps) {
