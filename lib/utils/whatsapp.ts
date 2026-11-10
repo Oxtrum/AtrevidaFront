@@ -103,9 +103,10 @@ export const buildDuplicadaWhatsappHref = (
   },
 ): string | null => {
   const dia = params.fecha ? getDayLabel(params.fecha).toLowerCase() : 'ese día';
-  const lista = params.reservas.map(
-    r => `• ${formatHora12(r.hora_desde)} · Sucursal ${formatLocal(r.local)}`,
-  );
+  const lista = params.reservas.map(r => {
+    const partes = [formatHora12(r.hora_desde), r.servicio?.trim(), `Sucursal ${formatLocal(r.local)}`];
+    return `• ${partes.filter(Boolean).join(' · ')}`;
+  });
   const message = [
     getSaludo(),
     `Revisando la agenda vemos que ${dia} tienes más de una cita:`,
