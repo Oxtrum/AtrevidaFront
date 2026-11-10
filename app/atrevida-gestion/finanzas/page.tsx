@@ -7,6 +7,7 @@ import {
   AdminButton,
   AdminPageShell,
   AlertBanner,
+  CursorPagination,
   DataTable,
   FilterBar,
   LocalSelect,
@@ -35,6 +36,7 @@ import {
   getGastosFijos,
   getMovimientosFinancieros,
 } from '@/lib/api/finanzas';
+import { PAGE_LIMIT } from '@/lib/api/pagination';
 import { descargarLibroFinanciero } from '@/lib/export/libroFinanciero';
 import { useAsyncData } from '@/lib/hooks/useAsyncData';
 import { useConfiguracion } from '@/lib/hooks/useConfiguracion';
@@ -99,8 +101,18 @@ function MovimientosPanel() {
     limit: 500,
   }), [desde, hasta, localId, origen, estadoTab, q]);
 
-  const { data, loading, error, reload } = useAsyncData(() => getFlujoFinanciero(params), JSON.stringify(params));
-  const movimientos = data?.movimientos ?? EMPTY;
+  const paramsKey = JSON.stringify(params);
+  const { data, loading, error, reload } = useAsyncData(() => getFlujoFinanciero(params), paramsKey);
+  const todosLosMovimientos = data?.movimientos ?? EMPTY;
+  // Paginado en el cliente sobre lo ya cargado (el saldo acumulado viene calculado); al cambiar un filtro vuelve a la página 1.
+  const [pagina, setPagina] = useState({ key: paramsKey, page: 1 });
+  const totalPaginas = Math.max(1, Math.ceil(todosLosMovimientos.length / PAGE_LIMIT));
+  const paginaActual = Math.min(pagina.key === paramsKey ? pagina.page : 1, totalPaginas);
+  const irAPagina = (page: number) => setPagina({ key: paramsKey, page });
+  const movimientos = useMemo(
+    () => todosLosMovimientos.slice((paginaActual - 1) * PAGE_LIMIT, paginaActual * PAGE_LIMIT),
+    [todosLosMovimientos, paginaActual],
+  );
   const porLocal = data?.por_local ?? EMPTY_LOCALES;
   const totales = data?.totales;
   const money = (v: number) => formatMoney(v, moneda);
@@ -173,7 +185,7 @@ function MovimientosPanel() {
       key: 'detalle',
       label: 'Detalle',
       render: (_v, r) => (
-        <span>
+        <span className={styles.detalle}>
           {r.detalle || '—'}
           <small className={styles.sub}>{r.categoria}</small>
         </span>
@@ -349,6 +361,16 @@ function MovimientosPanel() {
             hideSearch
             emptyMessage="No hay movimientos con estos filtros"
           />
+          {totalPaginas > 1 && (
+            <CursorPagination
+              page={paginaActual}
+              totalPages={totalPaginas}
+              hasNext={paginaActual < totalPaginas}
+              loading={loading}
+              onPrevious={() => irAPagina(paginaActual - 1)}
+              onNext={() => irAPagina(paginaActual + 1)}
+            />
+          )}
           <p className={styles.note}>
             El saldo acumula solo lo cobrado y pagado del periodo filtrado; los pendientes y anulados se muestran atenuados y no suman.
             Las ventas vienen de Cobros (ver Historial de Pagos) y no se editan aquí; las compras de inventario ya aparecen como egreso.
