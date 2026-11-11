@@ -150,6 +150,80 @@ export interface GetMovimientosParams {
   sentido?: 'asc' | 'desc';
 }
 
+// ── Consumos declarados en atenciones ──
+export type EstadoDescuentoConsumo = 'DESCONTADO' | 'PENDIENTE';
+
+/** Línea de uso declarado dentro de una atención; el pendiente es usado − descontado. */
+export interface ConsumoInsumo {
+  item_id?: number | null;
+  item_nombre: string;
+  unidad_medida: string;
+  cantidad_usada: number;
+  cantidad_descontada: number;
+  cantidad_pendiente: number;
+  estado_descuento: string;
+}
+
+/** Una atención activa con su consumo declarado. No reemplaza al Kardex. */
+export interface ConsumoEvento {
+  atencion_id: number;
+  reserva_id: number;
+  fecha: string;
+  hora_inicio: string;
+  hora_fin?: string | null;
+  /** true cuando falta hora_inicio y se usó la hora de la reserva. */
+  horario_programado: boolean;
+  cliente: string;
+  servicio: string;
+  local_id?: number | null;
+  local_nombre: string;
+  empleado_id?: number | null;
+  empleado_nombre: string;
+  lugar: string;
+  insumos: ConsumoInsumo[];
+  insumos_registrados: number;
+  insumos_pendientes: number;
+}
+
+/** Agregado por insumo y unidad; `atenciones` cuenta atenciones distintas. */
+export interface ConsumoResumen {
+  item_id?: number | null;
+  item_nombre: string;
+  unidad_medida: string;
+  cantidad_usada: number;
+  cantidad_descontada: number;
+  cantidad_pendiente: number;
+  atenciones: number;
+}
+
+/** Agregado operativo por empleado; no suma cantidades entre unidades distintas. */
+export interface ConsumoEmpleadoResumen {
+  empleado_id?: number | null;
+  empleado_nombre: string;
+  atenciones: number;
+  insumos_registrados: number;
+  insumos_distintos: number;
+  insumos_pendientes: number;
+  atenciones_pendientes: number;
+  locales: string;
+}
+
+export interface GetConsumosParams {
+  local_id?: number;
+  fecha_desde?: string;
+  fecha_hasta?: string;
+  item_id?: number;
+  cliente?: string;
+  servicio?: string;
+  empleado?: string;
+  empleado_id?: number;
+  estado_descuento?: EstadoDescuentoConsumo;
+  q?: string;
+  limit?: number;
+  cursor?: string;
+  include_total?: boolean;
+}
+
 /** Advertencia devuelta al crear/agendar una reserva sin stock suficiente (RN-12). */
 export interface AdvertenciaInventario {
   item_id: number;
