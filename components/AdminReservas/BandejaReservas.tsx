@@ -446,6 +446,7 @@ export function BandejaReservas() {
                     showLocal={effectiveLocalFiltro === ALL_LOCALS_FILTER}
                     renderActions={renderReservaActions}
                     onVinculado={() => void fetchReservas()}
+                    paginadaPorServidor
                   />
                 </div>
               )}

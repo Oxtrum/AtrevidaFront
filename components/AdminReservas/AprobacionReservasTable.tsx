@@ -19,6 +19,8 @@ interface AprobacionReservasTableProps {
   renderActions: (reserva: ReservaBD) => React.ReactNode;
   /** Se llama tras vincular una reserva a un cliente, para recargar la lista. */
   onVinculado?: () => void;
+  /** true cuando quien la usa ya pagina contra el servidor: la tabla no agrega su propio paginador. */
+  paginadaPorServidor?: boolean;
 }
 
 /** Lo que el equipo necesita saber de la reserva ahora mismo, en una sola etiqueta. */
@@ -38,7 +40,7 @@ export function estadoDeAprobacion(r: ReservaBD): { label: string; tone: Reserva
 }
 
 /** Tabla de la bandeja de aprobación: una fila por reserva, estado único y acciones al final. */
-export function AprobacionReservasTable({ reservas, showLocal, renderActions, onVinculado }: AprobacionReservasTableProps) {
+export function AprobacionReservasTable({ reservas, showLocal, renderActions, onVinculado, paginadaPorServidor = false }: AprobacionReservasTableProps) {
   const columns: Column<Row>[] = [
     {
       key: 'fecha',
@@ -117,6 +119,7 @@ export function AprobacionReservasTable({ reservas, showLocal, renderActions, on
       data={reservas as Row[]}
       getRowKey={(r) => r.id}
       hideSearch
+      pageSize={paginadaPorServidor ? 0 : undefined}
       emptyMessage="No hay reservas con estos filtros"
     />
   );
