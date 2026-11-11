@@ -291,6 +291,15 @@
   position: relative;
 }
 
+.clickableRow {
+  cursor: pointer;
+}
+
+.clickableRow:focus-visible {
+  outline: 2px solid var(--admin-accent-primary);
+  outline-offset: -2px;
+}
+
 .table tbody tr:hover:not(.skeletonRow) {
   background-color: rgba(236, 0, 140, 0.045);
 }

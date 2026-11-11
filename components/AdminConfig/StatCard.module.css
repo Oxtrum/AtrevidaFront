@@ -27,6 +27,31 @@
   overflow: hidden;
 }
 
+.interactive {
+  width: 100%;
+  appearance: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.interactive:hover {
+  border-color: var(--stat-accent, var(--admin-accent-primary));
+  transform: translateY(-1px);
+}
+
+.interactive:focus-visible {
+  outline: 2px solid var(--stat-accent, var(--admin-accent-primary));
+  outline-offset: 2px;
+}
+
+.active {
+  border-color: var(--stat-accent, var(--admin-accent-primary));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--stat-accent, var(--admin-accent-primary)) 35%, transparent);
+}
+
 .accentBar {
   position: absolute;
   top: 0;
