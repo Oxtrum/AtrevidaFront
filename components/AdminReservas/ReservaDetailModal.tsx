@@ -59,13 +59,16 @@ export function ReservaDetailModal({
   );
 
   useEffect(() => {
+    if (!reserva) return;
+
+    const previousOverflow = document.body.style.overflow;
     document.addEventListener('keydown', handleKeyDown);
     document.body.style.overflow = 'hidden';
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = '';
+      document.body.style.overflow = previousOverflow;
     };
-  }, [handleKeyDown]);
+  }, [handleKeyDown, reserva]);
 
   if (!reserva) return null;
 
