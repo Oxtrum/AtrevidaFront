@@ -1,12 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { AlertTriangle, ChevronLeft, ChevronRight, ClipboardCheck, MapPin, RefreshCw } from 'lucide-react';
-import { AdminPanel, ConfirmDialog, DataTable, FormField, PageHeader, StatusBadge } from '@/components/AdminConfig';
+import { AlertTriangle, ChevronLeft, ChevronRight, ClipboardCheck, MapPin, Plus, RefreshCw } from 'lucide-react';
+import { AdminButton, AdminPanel, ConfirmDialog, DataTable, FormField, PageHeader, RangoFechasFiltro, StatusBadge } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import { AtencionAcciones } from '@/components/AdminAtenciones/AtencionAcciones';
 import { AtencionDetalleModal } from '@/components/AdminAtenciones/AtencionDetalleModal';
 import { AtencionFormModal } from '@/components/AdminAtenciones/AtencionFormModal';
+import { ReservaAgendadaPicker } from '@/components/AdminAtenciones/ReservaAgendadaPicker';
 import { ReservaDetailModal } from '@/components/AdminReservas/ReservaDetailModal';
 import { desactivarAtencion, getAtencion, getAtenciones, type Atencion } from '@/lib/api/atenciones';
 import { getReservaByID } from '@/lib/api/reservas';
@@ -14,6 +15,7 @@ import { useLocales } from '@/lib/hooks/useLocales';
 import { getStoredAdminWorkplace, type AdminWorkplace } from '@/lib/auth/adminSession';
 import type { ReservaBD } from '@/types/reserva';
 import { toast } from '@/components/Shared/Toast';
+import { todayISO } from '@/lib/utils/format';
 import styles from './page.module.css';
 
 const formatDate = (value: string) => {
@@ -25,12 +27,39 @@ const formatDate = (value: string) => {
 
 type AtencionRow = Atencion & Record<string, unknown>;
 interface AtencionConReserva { atencion: Atencion; reserva: ReservaBD }
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 25;
+
+type AtajoFecha = 'TODAS' | 'HOY' | 'AYER' | 'SEMANA';
+const ATAJOS_FECHA: { value: AtajoFecha; label: string }[] = [
+  { value: 'TODAS', label: 'Todas las fechas' },
+  { value: 'HOY', label: 'Hoy' },
+  { value: 'AYER', label: 'Ayer' },
+  { value: 'SEMANA', label: 'Últimos 7 días' },
+];
+
+const haceDias = (dias: number) => {
+  const d = new Date();
+  d.setDate(d.getDate() - dias);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
+/** Rango de fechas de atención que pide cada atajo; TODAS no acota. */
+function rangoDeAtajo(atajo: AtajoFecha | 'RANGO', desde: string, hasta: string): { fecha_desde?: string; fecha_hasta?: string } {
+  if (atajo === 'HOY') return { fecha_desde: todayISO(), fecha_hasta: todayISO() };
+  if (atajo === 'AYER') return { fecha_desde: haceDias(1), fecha_hasta: haceDias(1) };
+  if (atajo === 'SEMANA') return { fecha_desde: haceDias(6), fecha_hasta: todayISO() };
+  if (atajo === 'RANGO') return { fecha_desde: desde, fecha_hasta: hasta };
+  return {};
+}
 
 export default function AtencionesPage() {
   const { locales } = useLocales();
   const [workplace, setWorkplace] = useState<AdminWorkplace | null>(null);
   const [localId, setLocalId] = useState('');
+  const [filtroFecha, setFiltroFecha] = useState<AtajoFecha | 'RANGO'>('TODAS');
+  const [rango, setRango] = useState({ desde: todayISO(), hasta: todayISO() });
+  const [eligiendoReserva, setEligiendoReserva] = useState(false);
+  const [reservaPorAtender, setReservaPorAtender] = useState<ReservaBD | null>(null);
   const [rows, setRows] = useState<Atencion[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -57,6 +86,7 @@ export default function AtencionesPage() {
         limit: PAGE_SIZE,
         offset,
         ...(localId ? { local_id: Number(localId) } : {}),
+        ...rangoDeAtajo(filtroFecha, rango.desde, rango.hasta),
       });
       setRows(response.atenciones);
       setTotal(response.total);
@@ -67,7 +97,7 @@ export default function AtencionesPage() {
     } finally {
       setLoading(false);
     }
-  }, [localId, offset]);
+  }, [localId, offset, filtroFecha, rango]);
 
   useEffect(() => { void cargar(); }, [cargar]);
 
@@ -162,9 +192,14 @@ export default function AtencionesPage() {
         accentWord="Atenciones"
         subtitle="Servicios realizados y cierres de reservas."
         actions={(
-          <button className={styles.refresh} onClick={() => void cargar()} disabled={loading}>
-            <RefreshCw size={15} />Actualizar
-          </button>
+          <div className={styles.headerActions}>
+            <button className={styles.refresh} onClick={() => void cargar()} disabled={loading}>
+              <RefreshCw size={15} />Actualizar
+            </button>
+            <AdminButton icon={<Plus size={16} strokeWidth={2.2} />} onClick={() => setEligiendoReserva(true)}>
+              Registrar atención
+            </AdminButton>
+          </div>
         )}
       />
       <AdminPanel>
@@ -179,6 +214,17 @@ export default function AtencionesPage() {
               </select>
             </div>
           </FormField>
+          <FormField label="Fecha de atención">
+            <RangoFechasFiltro
+              atajos={ATAJOS_FECHA}
+              valor={filtroFecha}
+              onAtajo={(valor) => { setFiltroFecha(valor); setOffset(0); }}
+              desde={rango.desde}
+              hasta={rango.hasta}
+              onRango={(desde, hasta) => { setRango({ desde, hasta }); setFiltroFecha('RANGO'); setOffset(0); }}
+              diasAdelante={0}
+            />
+          </FormField>
         </div>
         <DataTable
           columns={columns}
@@ -188,8 +234,9 @@ export default function AtencionesPage() {
           onRefresh={() => void cargar()}
           getRowKey={(row) => row.id}
           searchPlaceholder="Buscar persona o reserva…"
-          emptyMessage="Todavía no hay atenciones registradas"
-          defaultSort={{ key: 'fecha_atencion', dir: 'desc' }}
+          emptyMessage={filtroFecha === 'TODAS' ? 'Todavía no hay atenciones registradas' : 'No hay atenciones en estas fechas'}
+          sortable={false}
+          pageSize={0}
         />
         <div className={styles.pagination} aria-label="Paginación de atenciones">
           <span>{total === 0 ? 'Sin resultados' : `${offset + 1}–${Math.min(offset + PAGE_SIZE, total)} de ${total}`}</span>
@@ -221,6 +268,17 @@ export default function AtencionesPage() {
         atencion={atencionEnEdicion?.atencion ?? null}
         onClose={() => setAtencionEnEdicion(null)}
         onSaved={() => { setAtencionEnEdicion(null); void cargar(); }}
+      />
+      <ReservaAgendadaPicker
+        isOpen={eligiendoReserva}
+        local={workplace?.nombre_local ?? locales.find((l) => String(l.id) === localId)?.nombre}
+        onClose={() => setEligiendoReserva(false)}
+        onSelect={(reserva) => { setEligiendoReserva(false); setReservaPorAtender(reserva); }}
+      />
+      <AtencionFormModal
+        reserva={reservaPorAtender}
+        onClose={() => setReservaPorAtender(null)}
+        onSaved={() => { setReservaPorAtender(null); setOffset(0); void cargar(); }}
       />
       <ConfirmDialog
         isOpen={!!atencionDesactivar}

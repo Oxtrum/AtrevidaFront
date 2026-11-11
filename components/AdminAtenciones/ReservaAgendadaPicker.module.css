@@ -1,0 +1,36 @@
+.ayuda {
+  margin: 0 0 0.9rem;
+  color: var(--admin-text-dim);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.buscador {
+  position: relative;
+  margin-bottom: 0.9rem;
+}
+
+.buscador > svg {
+  position: absolute;
+  left: 0.8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--admin-text-dim);
+  pointer-events: none;
+}
+
+.buscador input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0.65rem 0.9rem 0.65rem 2.3rem;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-input-bg);
+  color: var(--admin-foreground);
+  font: inherit;
+}
+
+.buscador input:focus-visible {
+  outline: 2px solid var(--admin-accent-primary);
+  outline-offset: 1px;
+}

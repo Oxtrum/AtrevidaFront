@@ -98,6 +98,7 @@ Domain notes:
 | `app/api/bd/` | Next.js proxy routes to backend |
 | `app/atrevida-gestion/configuracion/` | Hub page linking to sub-pages: categorias, combos, locales, servicios, usuarios |
 | `app/atrevida-gestion/rrhh/` + `components/AdminRRHH/` + `lib/api/rrhh.ts` | Recursos Humanos (solo `admin_sys`): empleados, adelantos y planillas de sueldo. La planilla se genera sola el día de pago y crea su egreso "Sueldos y personal" en Finanzas (que no se edita ni anula desde ahí). Parámetros `rrhh.*` en Configuración → Parámetros |
+| `app/atrevida-gestion/rrhh/reportes/` + `components/AdminRRHH/ReportePersonalPanel.tsx` | Reportes de RRHH (solo `admin_sys`): quién atendió más por semana, quincena o mes, general y por local. Lee `GET /bd/rrhh/reportes/atenciones?periodo=&fecha=`; el backend calcula el rango del periodo y el anterior, el front solo navega con `desde`/`hasta` de la respuesta |
 | `design.md` | Brand token source (colors, typography) for public-facing pages — not admin |
 
 ## API Response Shape

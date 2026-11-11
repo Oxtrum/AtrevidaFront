@@ -9,7 +9,9 @@ import type {
   GetPlanillasParams,
   Planilla,
   PlanillaEdicion,
+  PeriodoReporte,
   PlanillasResponse,
+  ReporteAtencionesRRHH,
   TipoBono,
   TipoBonoInput,
 } from '@/types/rrhh';
@@ -114,4 +116,14 @@ export async function pagarPlanilla(id: number, metodo_pago?: MetodoPago | null)
 
 export async function anularPlanilla(id: number, motivo: string): Promise<void> {
   await apiClient.patch(`/bd/rrhh/planillas/${id}/anular`, { motivo });
+}
+
+// ── Reportes ──
+
+/** Ranking del personal por atenciones en el periodo que contiene a `fecha` (YYYY-MM-DD), general y por local. */
+export async function getReporteAtenciones(periodo: PeriodoReporte, fecha: string): Promise<ReporteAtencionesRRHH> {
+  const res = await apiClient.get<ApiResponse<{ reporte: ReporteAtencionesRRHH }>>('/bd/rrhh/reportes/atenciones', {
+    params: { periodo, fecha },
+  });
+  return res.data.reporte;
 }

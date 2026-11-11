@@ -44,7 +44,8 @@ export interface AtencionInput {
   confirmar_stock_insuficiente?: boolean;
 }
 
-export async function getAtenciones(params: { limit: number; offset: number; local_id?: number }): Promise<AtencionesPage> {
+/** Atenciones de la más reciente a la más antigua. `fecha_desde`/`fecha_hasta` (YYYY-MM-DD, incluidas) acotan por fecha de atención. */
+export async function getAtenciones(params: { limit: number; offset: number; local_id?: number; fecha_desde?: string; fecha_hasta?: string }): Promise<AtencionesPage> {
   const response = await apiClient.get<{ data?: AtencionesPage }>('/bd/atenciones', { params });
   return response.data ?? { atenciones: [], total: 0, ...params };
 }

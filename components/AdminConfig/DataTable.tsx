@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { ArrowDown, ArrowUp, ChevronsUpDown, Pencil, Search, RefreshCw, X, Inbox } from 'lucide-react';
 import { nextSort, sortRows } from '@/lib/utils/sortRows';
 import type { SortDirection, SortState } from '@/lib/utils/sortRows';
+import { CursorPagination } from './CursorPagination';
 import styles from './DataTable.module.css';
 
 export interface Column<T> {
@@ -37,6 +38,12 @@ interface DataTableProps<T> {
    */
   sort?: SortState | null;
   onSortChange?: (sort: SortState) => void;
+  /**
+   * Filas por página cuando la tabla tiene todos sus datos en el navegador (25 por defecto). El paginador solo
+   * aparece si hay más filas que eso. 0 lo apaga: úsalo cuando la página ya pagina por fuera. Las tablas que
+   * ordena el servidor (`onSortChange`) nunca paginan aquí.
+   */
+  pageSize?: number;
 }
 
 const SKELETON_ROWS = 5;
@@ -64,8 +71,15 @@ export function DataTable<T extends Record<string, unknown>>({
   defaultSort = null,
   sort,
   onSortChange,
+  pageSize = 25,
 }: DataTableProps<T>) {
-  const [query, setQuery] = useState('');
+  const [query, setQueryState] = useState('');
+  const [page, setPage] = useState(1);
+  // Buscar u ordenar cambia qué filas hay: se vuelve a la primera página.
+  const setQuery = (value: string) => {
+    setQueryState(value);
+    setPage(1);
+  };
   const [localSort, setLocalSort] = useState<SortState | null>(defaultSort);
   const controlled = onSortChange !== undefined;
   const activeSort = controlled ? (sort ?? null) : localSort;
@@ -103,7 +117,14 @@ export function DataTable<T extends Record<string, unknown>>({
     const next = nextSort(activeSort, col.key, col.firstSort);
     if (controlled) onSortChange(next);
     else setLocalSort(next);
+    setPage(1);
   };
+
+  const paginar = !controlled && pageSize > 0;
+  const totalPages = paginar ? Math.max(1, Math.ceil(visible.length / pageSize)) : 1;
+  // Si los datos se achican (otro filtro, una fila borrada) la página actual puede quedar fuera de rango.
+  const currentPage = Math.min(page, totalPages);
+  const pageRows = paginar ? visible.slice((currentPage - 1) * pageSize, currentPage * pageSize) : visible;
 
   const isFiltering = query.trim().length > 0;
   const hasData = !loading && !error;
@@ -272,7 +293,7 @@ export function DataTable<T extends Record<string, unknown>>({
 
             {/* Data rows */}
             {hasData &&
-              visible.map((row, index) => (
+              pageRows.map((row, index) => (
                 <tr
                   key={`${getRowKey(row)}-${index}`}
                   onClick={() => onRowClick?.(row)}
@@ -304,6 +325,18 @@ export function DataTable<T extends Record<string, unknown>>({
           </tbody>
         </table>
       </div>
+
+      {hasData && totalPages > 1 && (
+        <div className={styles.paginationRow}>
+          <CursorPagination
+            page={currentPage}
+            totalPages={totalPages}
+            hasNext={currentPage < totalPages}
+            onPrevious={() => setPage(currentPage - 1)}
+            onNext={() => setPage(currentPage + 1)}
+          />
+        </div>
+      )}
     </div>
   );
 }

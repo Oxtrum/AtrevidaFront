@@ -158,3 +158,72 @@ export interface GetPlanillasParams {
   estado?: EstadoPlanilla;
   tipo?: TipoPlanilla;
 }
+
+// ── Reportes de personal (atenciones) ──
+
+export type PeriodoReporte = 'semanal' | 'quincenal' | 'mensual';
+
+export interface PersonalAtenciones {
+  posicion: number;
+  /** null = se escribió un nombre que no está en Empleados. */
+  empleado_id: number | null;
+  nombre: string;
+  cargo?: string | null;
+  /** Locales donde atendió en el periodo, separados por coma. */
+  locales: string;
+  atenciones: number;
+  participacion_pct: number;
+  atenciones_anterior: number;
+  /** null = no atendió en el periodo anterior. */
+  variacion_pct: number | null;
+  dias_trabajados: number;
+  promedio_por_dia: number;
+  clientes_distintos: number;
+  /** Solo suma las atenciones con hora de inicio y fin. */
+  minutos_atendidos: number;
+  duracion_promedio_min: number;
+  servicio_top: string;
+  servicio_top_cantidad: number;
+  ultima_atencion: string;
+}
+
+export interface ResumenAtencionesRRHH {
+  atenciones: number;
+  atenciones_anterior: number;
+  variacion_pct: number | null;
+  personal: number;
+  dias_con_atencion: number;
+  promedio_diario: number;
+  promedio_por_persona: number;
+  clientes_distintos: number;
+  minutos_atendidos: number;
+  duracion_promedio_min: number;
+  sin_horario: number;
+}
+
+export interface RegistradorAtenciones {
+  usuario: string;
+  registros: number;
+  participacion_pct: number;
+}
+
+/** Métricas de un ámbito: todos los locales (general) o uno solo. */
+export interface ReporteAtencionesBloque {
+  local_id: number | null;
+  local_nombre: string;
+  resumen: ResumenAtencionesRRHH;
+  ranking: PersonalAtenciones[];
+  /** Solo trae los días con atenciones. */
+  serie: { fecha: string; atenciones: number }[];
+  registradores: RegistradorAtenciones[];
+}
+
+export interface ReporteAtencionesRRHH {
+  periodo: PeriodoReporte;
+  desde: string;
+  hasta: string;
+  desde_anterior: string;
+  hasta_anterior: string;
+  general: ReporteAtencionesBloque;
+  locales: ReporteAtencionesBloque[];
+}

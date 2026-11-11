@@ -359,6 +359,7 @@ function MovimientosPanel() {
             onRefresh={recargarTodo}
             getRowKey={(r) => r.clave}
             hideSearch
+            pageSize={0}
             emptyMessage="No hay movimientos con estos filtros"
           />
           {totalPaginas > 1 && (

@@ -99,7 +99,15 @@ const NAV_ITEMS: NavItem[] = [
       { label: 'Historial de pagos', path: `${BASE}/pagos`, access: 'payments', icon: CreditCard, detail: 'Auditoría de pagos' },
     ],
   },
-  { label: 'Recursos Humanos', detail: 'Empleados y planillas', path: `${BASE}/rrhh`, access: 'financial', icon: UsersRound },
+  {
+    label: 'Recursos Humanos',
+    detail: 'Personal y reportes',
+    icon: UsersRound,
+    children: [
+      { label: 'Empleados y planillas', path: `${BASE}/rrhh`, exact: true, access: 'financial' },
+      { label: 'Reportes de recursos humanos', path: `${BASE}/rrhh/reportes`, access: 'financial' },
+    ],
+  },
   {
     label: 'Configuración',
     detail: 'Locales y servicios',

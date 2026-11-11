@@ -530,3 +530,8 @@
     font-size: 0.75rem;
   }
 }
+
+/* Paginador de las tablas que tienen todas sus filas en el navegador. */
+.paginationRow {
+  padding: 0 1rem 1rem;
+}

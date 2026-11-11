@@ -10,3 +10,4 @@ export { PlanillaEditModal } from './PlanillaEditModal';
 export { PlanillasPanel } from './PlanillasPanel';
 export { TipoBonoFormModal } from './TipoBonoFormModal';
 export { TiposBonoPanel } from './TiposBonoPanel';
+export { ReportePersonalPanel } from './ReportePersonalPanel';

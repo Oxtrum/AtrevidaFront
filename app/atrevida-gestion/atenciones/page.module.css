@@ -1,7 +1,8 @@
 .refresh{display:inline-flex;align-items:center;gap:.45rem;padding:.6rem .85rem;border:1px solid var(--admin-border);border-radius:10px;background:var(--admin-surface);color:var(--admin-text);cursor:pointer}.refresh:disabled{opacity:.55;cursor:wait}
 .reservaLink{padding:0;border:0;background:none;color:var(--admin-accent-primary);font:inherit;font-weight:700;cursor:pointer;text-decoration:underline;text-decoration-color:transparent;text-underline-offset:3px}.reservaLink:hover{text-decoration-color:currentColor}.reservaLink:focus-visible{outline:2px solid var(--admin-accent-primary);outline-offset:3px;border-radius:3px}
 .pagination{display:flex;justify-content:flex-end;align-items:center;gap:.6rem;padding:.8rem 1rem;color:var(--admin-text-secondary);font-size:.82rem}
-.filters{display:flex;align-items:flex-end;margin:0 0 1rem}
+.filters{display:flex;flex-wrap:wrap;align-items:flex-end;gap:.9rem;margin:0 0 1rem}
+.headerActions{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem}
 .filters>div{width:min(100%,340px)}
 .localField{position:relative}
 .localField>svg{position:absolute;left:.75rem;top:50%;transform:translateY(-50%);color:var(--admin-text-secondary);pointer-events:none}
