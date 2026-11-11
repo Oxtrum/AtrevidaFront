@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CalendarDays, ClipboardCheck, ListChecks, PackageOpen, Users } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 import { AdminPageShell, PageHeader, Tabs } from '@/components/AdminConfig';
 import { HistorialAtencionesTab } from '@/components/AdminAtenciones/HistorialAtencionesTab';
 import { JornadaTab } from '@/components/AdminAtenciones/JornadaTab';
@@ -11,9 +12,7 @@ import { SeguimientoTab } from '@/components/AdminAtenciones/SeguimientoTab';
 
 type TabKey = 'jornada' | 'personal' | 'consumo' | 'seguimiento' | 'historial';
 
-function readVista(): TabKey {
-  if (typeof window === 'undefined') return 'jornada';
-  const vista = new URLSearchParams(window.location.search).get('vista');
+function tabDesdeVista(vista: string | null): TabKey {
   if (vista === 'historial') return 'historial';
   if (vista === 'personal') return 'personal';
   if (vista === 'consumo') return 'consumo';
@@ -22,7 +21,16 @@ function readVista(): TabKey {
 }
 
 export default function AtencionesPage() {
-  const [tab, setTab] = useState<TabKey>(readVista);
+  const searchParams = useSearchParams();
+  const vista = searchParams.get('vista');
+  const [tab, setTab] = useState<TabKey>(() => tabDesdeVista(vista));
+
+  // Los enlaces del menú lateral reutilizan la misma ruta y cambian solo
+  // `vista`; al navegar con Next la página no se desmonta, por eso el estado
+  // local debe sincronizarse explícitamente con ese parámetro.
+  useEffect(() => {
+    setTab(tabDesdeVista(vista));
+  }, [vista]);
 
   const cambiarTab = (next: TabKey) => {
     setTab(next);

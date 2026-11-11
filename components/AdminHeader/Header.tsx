@@ -75,7 +75,18 @@ const NAV_ITEMS: NavItem[] = [
     param: ['vista', 'pendientes'],
     icon: ShieldCheck,
   },
-  { label: 'Atenciones', detail: 'Servicios realizados', path: `${BASE}/atenciones`, icon: ClipboardCheck },
+  {
+    label: 'Atenciones',
+    detail: 'Servicios realizados',
+    icon: ClipboardCheck,
+    children: [
+      { label: 'Jornada', path: `${BASE}/atenciones`, defaultParam: 'vista' },
+      { label: 'Personal', path: `${BASE}/atenciones`, param: ['vista', 'personal'] },
+      { label: 'Insumos', path: `${BASE}/atenciones`, param: ['vista', 'consumo'] },
+      { label: 'Seguimiento', path: `${BASE}/atenciones`, param: ['vista', 'seguimiento'] },
+      { label: 'Historial', path: `${BASE}/atenciones`, param: ['vista', 'historial'] },
+    ],
+  },
   { label: 'Cobros', detail: 'Registrar una venta', path: `${BASE}/caja`, icon: Banknote },
   {
     label: 'Clientes',
