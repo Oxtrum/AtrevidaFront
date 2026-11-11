@@ -6,6 +6,7 @@ const ESTADO_TONE: Record<string, ReservaEstadoPillTone> = {
   AGENDADO: 'info',
   COMPLETADO: 'success',
   RECHAZADO: 'danger',
+  CANCELADO: 'danger',
   PENDIENTE: 'pendiente',
 };
 

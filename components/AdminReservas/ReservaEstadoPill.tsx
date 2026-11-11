@@ -9,6 +9,7 @@ export const RESERVA_ESTADO_HINT: Record<string, string> = {
   AGENDADO: 'La cita está agendada en el calendario.',
   COMPLETADO: 'El servicio ya se realizó.',
   RECHAZADO: 'La solicitud fue rechazada y la causa quedó registrada.',
+  CANCELADO: 'La reserva ya agendada fue cancelada y conserva su motivo.',
 };
 
 interface ReservaEstadoPillProps {
