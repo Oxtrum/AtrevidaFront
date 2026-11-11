@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { CalendarDays, ClipboardCheck, ListChecks, PackageOpen, Users } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { AdminPageShell, PageHeader, Tabs } from '@/components/AdminConfig';
@@ -20,7 +20,7 @@ function tabDesdeVista(vista: string | null): TabKey {
   return 'jornada';
 }
 
-export default function AtencionesPage() {
+function AtencionesContent() {
   const searchParams = useSearchParams();
   const vista = searchParams.get('vista');
   const [tab, setTab] = useState<TabKey>(() => tabDesdeVista(vista));
@@ -68,5 +68,13 @@ export default function AtencionesPage() {
       {tab === 'seguimiento' && <SeguimientoTab />}
       {tab === 'historial' && <HistorialAtencionesTab />}
     </AdminPageShell>
+  );
+}
+
+export default function AtencionesPage() {
+  return (
+    <Suspense fallback={null}>
+      <AtencionesContent />
+    </Suspense>
   );
 }
