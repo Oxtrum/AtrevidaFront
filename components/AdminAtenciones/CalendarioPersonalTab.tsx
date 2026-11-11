@@ -1,9 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { CalendarDays, ChevronLeft, ChevronRight, List, MapPin } from 'lucide-react';
+import { AlertTriangle, CalendarDays, ChevronLeft, ChevronRight, ClipboardList, Eye, List, MapPin, Pencil, UsersRound } from 'lucide-react';
 import {
   AdminPanel,
+  AdminButton,
   AlertBanner,
   CursorPagination,
   FilterBar,
@@ -11,6 +12,8 @@ import {
   StatusBadge,
 } from '@/components/AdminConfig';
 import { AtencionDetalleModal } from '@/components/AdminAtenciones/AtencionDetalleModal';
+import { AtencionFormModal } from '@/components/AdminAtenciones/AtencionFormModal';
+import { ReservaDetailModal } from '@/components/AdminReservas/ReservaDetailModal';
 import {
   getAtencion,
   getCalendarioPersonal,
@@ -49,6 +52,11 @@ function sumarDias(iso: string, dias: number): string {
 function etiquetaDia(iso: string, index: number): string {
   const date = new Date(`${iso}T00:00:00`);
   return `${DIAS[index]} ${date.getDate()} ${date.toLocaleDateString('es-BO', { month: 'short' }).replace('.', '')}`;
+}
+
+function fechaLista(iso: string): string {
+  const date = new Date(`${iso}T00:00:00`);
+  return date.toLocaleDateString('es-BO', { weekday: 'short', day: 'numeric', month: 'short' }).replaceAll('.', '');
 }
 
 function hoyISO(): string {
@@ -173,11 +181,32 @@ export function CalendarioPersonalTab() {
   }, [dias, eventos]);
 
   const [detalle, setDetalle] = useState<DetalleAtencion | null>(null);
+  const [reservaAbierta, setReservaAbierta] = useState<ReservaBD | null>(null);
+  const [edicion, setEdicion] = useState<DetalleAtencion | null>(null);
   const abrirAtencion = async (evento: CalendarioPersonalEvento) => {
     try {
       const [atencion, reservaResponse] = await Promise.all([getAtencion(evento.atencion_id), getReservaByID(evento.reserva_id)]);
       if (!reservaResponse.data?.reserva) throw new Error('No se encontró la reserva vinculada.');
       setDetalle({ atencion, reserva: reservaResponse.data.reserva });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'No se pudo cargar la atención.');
+    }
+  };
+  const verReserva = async (evento: CalendarioPersonalEvento) => {
+    try {
+      const response = await getReservaByID(evento.reserva_id);
+      if (!response.data?.reserva) throw new Error('No se encontró la reserva vinculada.');
+      setReservaAbierta(response.data.reserva);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'No se pudo cargar la reserva.');
+    }
+  };
+  const editarAtencion = async (evento: CalendarioPersonalEvento) => {
+    if (evento.insumos_pendientes <= 0) return;
+    try {
+      const [atencion, reservaResponse] = await Promise.all([getAtencion(evento.atencion_id), getReservaByID(evento.reserva_id)]);
+      if (!reservaResponse.data?.reserva) throw new Error('No se encontró la reserva vinculada.');
+      setEdicion({ atencion, reserva: reservaResponse.data.reserva });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'No se pudo cargar la atención.');
     }
@@ -234,11 +263,13 @@ export function CalendarioPersonalTab() {
                   <div className={styles.events}>
                     {eventosDia.length === 0 ? <p className={styles.emptyDay}>Sin atenciones</p> : visibles.map((evento) => (
                       <button key={evento.atencion_id} type="button" className={styles.event} onClick={() => void abrirAtencion(evento)}>
-                        <span className={styles.eventTime}>{evento.hora_inicio?.slice(0, 5) || 'Sin hora'}</span>
-                        <strong>{evento.empleado_nombre || 'Sin personal registrado'}</strong>
-                        <span>{evento.cliente || 'Sin cliente'}</span>
-                        <span className={styles.service}>{evento.servicio || 'Sin servicio'}</span>
-                        <span className={styles.meta}><MapPin size={11} /> {evento.local_nombre || 'Sin local'}</span>
+                        <span className={styles.eventTime}>{evento.hora_inicio?.slice(0, 5) || 'Sin hora'} – {evento.hora_fin?.slice(0, 5) || '—'}</span>
+                        <span className={styles.personal}><UsersRound size={13} aria-hidden="true" /><strong>{evento.empleado_nombre || 'Sin personal registrado'}</strong></span>
+                        <span className={styles.reservaInfo}>
+                          <strong>{evento.cliente || 'Sin cliente'}</strong>
+                          <span className={styles.service}>{evento.servicio || 'Sin servicio'}</span>
+                          <span className={styles.meta}><MapPin size={11} /> {evento.lugar || evento.local_nombre || 'Sin lugar'}</span>
+                        </span>
                         {evento.insumos_pendientes > 0 && <StatusBadge tone="danger">Stock pendiente</StatusBadge>}
                       </button>
                     ))}
@@ -261,25 +292,39 @@ export function CalendarioPersonalTab() {
           </div>
           <div className={listStyles.list}>
             {eventos.map((evento) => (
-              <button key={evento.atencion_id} type="button" className={listStyles.row} onClick={() => void abrirAtencion(evento)}>
-                <span className={listStyles.time}>{evento.hora_inicio?.slice(0, 5) || 'Sin hora'}</span>
-                <span className={listStyles.main}>
-                  <strong className={listStyles.title}>{evento.empleado_nombre || 'Sin personal registrado'}</strong>
-                  <span className={listStyles.detail}>{evento.cliente || 'Sin cliente'} · {evento.servicio || 'Sin servicio'}</span>
-                </span>
-                <span className={listStyles.secondary}>
-                  <span className={listStyles.meta}>{evento.local_nombre || evento.lugar || 'Sin local'} · Reserva #{evento.reserva_id}</span>
-                </span>
-                <span className={listStyles.side}>
-                  {evento.insumos_pendientes > 0 && <StatusBadge tone="danger">Stock pendiente</StatusBadge>}
-                </span>
-              </button>
+              <article key={evento.atencion_id} className={listStyles.row}>
+                <div className={listStyles.time}>
+                  <span className={listStyles.date}>{fechaLista(evento.fecha)}</span>
+                  <strong>{evento.hora_inicio?.slice(0, 5) || 'Sin hora'}</strong>
+                  <span>{evento.hora_fin?.slice(0, 5) || '—'}</span>
+                </div>
+                <div className={listStyles.main}>
+                  <span className={listStyles.cliente}>{evento.cliente || 'Sin cliente'}</span>
+                  <p className={listStyles.servicio}>{evento.servicio || 'Sin servicio'}</p>
+                  <div className={listStyles.meta}>
+                    <span>{evento.empleado_nombre || 'Sin personal registrado'}</span>
+                    <span>{evento.local_nombre || evento.lugar || 'Sin local'}</span>
+                    {evento.insumos_pendientes > 0 ? <span className={listStyles.pending}><AlertTriangle size={12} />{evento.insumos_pendientes} pendiente(s)</span> : <span>Sin problemas de stock</span>}
+                    <span>Reserva #{evento.reserva_id}</span>
+                  </div>
+                </div>
+                <div className={listStyles.side}>
+                  <StatusBadge tone={evento.insumos_pendientes > 0 ? 'danger' : 'success'}>{evento.insumos_pendientes > 0 ? 'Deducción pendiente' : 'Atendida'}</StatusBadge>
+                  <div className={listStyles.actions}>
+                    <AdminButton variant="secondary" size="xs" icon={<ClipboardList size={13} />} onClick={() => void abrirAtencion(evento)}>Ver atención</AdminButton>
+                    {evento.insumos_pendientes > 0 && <AdminButton variant="secondary" size="xs" icon={<Pencil size={13} />} onClick={() => void editarAtencion(evento)}>Editar atención</AdminButton>}
+                    <AdminButton variant="secondary" size="xs" icon={<Eye size={13} />} onClick={() => void verReserva(evento)}>Ver reserva</AdminButton>
+                  </div>
+                </div>
+              </article>
             ))}
             {eventos.length === 0 && <p className={styles.state}>No hay atenciones para los filtros seleccionados.</p>}
           </div>
         </AdminPanel>
       )}
       <CursorPagination page={pagination.page} totalPages={pagination.totalPages} hasNext={pagination.hasNext} loading={loading} onPrevious={pagination.previous} onNext={pagination.next} />
+      <ReservaDetailModal reserva={reservaAbierta} onClose={() => setReservaAbierta(null)} onEdit={() => undefined} onDelete={() => undefined} readOnly />
+      <AtencionFormModal reserva={edicion?.reserva ?? null} atencion={edicion?.atencion ?? null} onClose={() => setEdicion(null)} onSaved={() => { setEdicion(null); void load(); }} />
       <AtencionDetalleModal reserva={detalle?.reserva ?? null} atencion={detalle?.atencion ?? null} onClose={() => setDetalle(null)} />
     </>
   );

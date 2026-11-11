@@ -19,7 +19,7 @@
 .event:hover{border-color:var(--admin-accent-primary);background:var(--admin-surface-1)}
 .event:focus-visible,.more:focus-visible{outline:2px solid var(--admin-accent-primary);outline-offset:2px}
 .eventTime{font-variant-numeric:tabular-nums;color:var(--admin-accent-primary);font-size:.76rem;font-weight:700}
-.event strong{font-size:.84rem;line-height:1.2}.event>span:not(.eventTime):not(.meta){font-size:.78rem}.service{color:var(--admin-text-muted)}
+.event strong{font-size:.84rem;line-height:1.2}.personal{display:flex;align-items:center;gap:.3rem;color:var(--admin-foreground)}.personal svg{color:var(--admin-accent-secondary);flex:0 0 auto}.reservaInfo{display:grid;gap:.16rem;padding:.42rem .48rem;border:1px solid var(--admin-border);border-radius:var(--admin-radius-sm);background:color-mix(in srgb,var(--admin-surface-1) 78%,transparent)}.reservaInfo>strong{font-size:.78rem}.service{color:var(--admin-text-muted);font-size:.74rem}
 .meta{display:inline-flex;align-items:center;gap:.2rem;color:var(--admin-text-muted);font-size:.7rem}
 .emptyDay,.state{margin:0;padding:2rem .5rem;text-align:center;color:var(--admin-text-muted);font-size:.82rem}.state{padding:3rem 1rem}
 .more{padding:.35rem;border:0;background:transparent;color:var(--admin-accent-primary);font:inherit;font-size:.78rem;font-weight:700;text-align:left;cursor:pointer}
