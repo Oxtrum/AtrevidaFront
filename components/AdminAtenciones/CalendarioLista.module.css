@@ -1,0 +1,104 @@
+.panel {
+  margin-top: 1rem;
+  padding: 0;
+  overflow: hidden;
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  min-height: 3.25rem;
+  padding: .75rem 1rem;
+  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, .1));
+}
+
+.heading strong { color: var(--text-primary, #f7f7fb); }
+
+.heading span {
+  margin-left: auto;
+  color: var(--text-secondary, #a3a3ae);
+  font-size: .8125rem;
+}
+
+.list {
+  display: grid;
+  gap: .5rem;
+  padding: .75rem;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr) minmax(10rem, .8fr) auto;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: .85rem 1rem;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, .1));
+  border-radius: .625rem;
+  background: var(--surface-raised, rgba(255, 255, 255, .025));
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color .16s ease, background .16s ease;
+}
+
+.row:hover {
+  border-color: var(--primary-color, #e50092);
+  background: rgba(229, 0, 146, .06);
+}
+
+.time {
+  color: var(--text-primary, #f7f7fb);
+  font-size: .9rem;
+  font-weight: 700;
+}
+
+.main, .secondary { min-width: 0; }
+
+.title {
+  display: block;
+  overflow: hidden;
+  color: var(--text-primary, #f7f7fb);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detail, .meta {
+  display: block;
+  overflow: hidden;
+  margin-top: .2rem;
+  color: var(--text-secondary, #a3a3ae);
+  font-size: .8125rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.supplies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .3rem .45rem;
+  margin-top: .35rem;
+}
+
+.supply {
+  color: var(--text-secondary, #a3a3ae);
+  font-size: .75rem;
+}
+
+.supply strong { color: var(--text-primary, #f7f7fb); }
+
+.side {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .5rem;
+  min-width: max-content;
+}
+
+@media (max-width: 780px) {
+  .row { grid-template-columns: 4rem minmax(0, 1fr); gap: .6rem; }
+  .secondary { grid-column: 2; }
+  .side { grid-column: 1 / -1; justify-content: flex-start; }
+}

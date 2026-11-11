@@ -2,9 +2,10 @@
 
 import { FormModal } from '@/components/AdminConfig';
 import { StatusBadge } from '@/components/AdminConfig';
+import { CalendarDays, ClipboardCheck, Package } from 'lucide-react';
 import type { Atencion } from '@/lib/api/atenciones';
 import type { ReservaBD } from '@/types/reserva';
-import styles from './AtencionFormModal.module.css';
+import styles from './AtencionDetalleModal.module.css';
 
 interface AtencionDetalleModalProps {
   reserva: ReservaBD | null;
@@ -21,12 +22,12 @@ export function AtencionDetalleModal({ reserva, atencion, onClose }: AtencionDet
   return (
     <FormModal isOpen={isOpen} onClose={onClose} title={`Atención · Reserva #${reserva?.id ?? ''}`} size="lg" hideFooter>
       {reserva && (
-        <section className={styles.detailSection}>
-          <h3>Reserva</h3>
+        <section className={`${styles.detailSection} ${styles.reservaSection}`}>
+          <div className={styles.sectionHeader}><CalendarDays size={16} aria-hidden="true" /><h3>Reserva</h3><span>Datos agendados</span></div>
           <div className={styles.detailGrid}>
             <Dato label="Cliente">{reserva.cliente}</Dato>
             <Dato label="Teléfono">{reserva.numero_telefono}</Dato>
-            <Dato label="Estado">{reserva.estado}</Dato>
+            <Dato label="Estado"><StatusBadge tone="success">{reserva.estado}</StatusBadge></Dato>
             <Dato label="Local">{reserva.local}</Dato>
             <Dato label="Tipo">{reserva.tipo}</Dato>
             <Dato label="Fecha">{reserva.fecha}</Dato>
@@ -40,8 +41,8 @@ export function AtencionDetalleModal({ reserva, atencion, onClose }: AtencionDet
         </section>
       )}
       {atencion && (
-        <section className={styles.detailSection}>
-          <h3>Atención</h3>
+        <section className={`${styles.detailSection} ${styles.atencionSection}`}>
+          <div className={styles.sectionHeader}><ClipboardCheck size={16} aria-hidden="true" /><h3>Atención</h3><span>Servicio registrado</span></div>
           <div className={styles.detailGrid}>
             <Dato label="Quien lo atendió">{atencion.empleado_nombre}</Dato>
             <Dato label="Fecha">{atencion.fecha_atencion.slice(0, 10)}</Dato>
@@ -50,15 +51,14 @@ export function AtencionDetalleModal({ reserva, atencion, onClose }: AtencionDet
             <Dato label="Observaciones">{atencion.observaciones}</Dato>
           </div>
           <div className={styles.detailSupplies}>
-            <strong>Insumos utilizados</strong>
-            {atencion.insumos.length === 0 ? <p>No se usaron servicios en esta atención</p> : (
+            <div className={styles.suppliesTitle}><Package size={15} aria-hidden="true" /><strong>Insumos utilizados</strong><span>{atencion.insumos.length} {atencion.insumos.length === 1 ? 'insumo' : 'insumos'}</span></div>
+            {atencion.insumos.length === 0 ? <p>No se usaron insumos en esta atención.</p> : (
               <ul>
                 {atencion.insumos.map((item) => (
                   <li key={item.id}>
-                    <span>{item.item_nombre}</span>
-                    <span>{item.cantidad_usada} {item.unidad_medida}</span>
-                    {item.estado_descuento === 'PENDIENTE_STOCK' && <StatusBadge tone="danger">Deducción pendiente</StatusBadge>}
-                    {item.estado_descuento !== 'PENDIENTE_STOCK' && <small>Descontado: {item.cantidad_descontada} {item.unidad_medida}</small>}
+                    <strong>{item.item_nombre}</strong>
+                    <span className={styles.supplyQuantity}>{item.cantidad_usada} {item.unidad_medida}</span>
+                    {item.estado_descuento === 'PENDIENTE_STOCK' ? <StatusBadge tone="danger">Deducción pendiente</StatusBadge> : <small>Descontado: {item.cantidad_descontada} {item.unidad_medida}</small>}
                   </li>
                 ))}
               </ul>
