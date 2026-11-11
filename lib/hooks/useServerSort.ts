@@ -11,8 +11,8 @@ import type { SortState } from '@/lib/utils/sortRows';
  * no se envia. `params` lleva el orden pedido por el usuario y `key` se suma a la clave de filtros de
  * `useCursorPagination` para que cambiar el orden vuelva a la primera pagina.
  */
-export function useServerSort(vista: SortState | null = null) {
-  const [sort, setSort] = useState<SortState | null>(null);
+export function useServerSort(vista: SortState | null = null, initial: SortState | null = null) {
+  const [sort, setSort] = useState<SortState | null>(initial);
   return useMemo(
     () => ({
       sort: sort ?? vista,

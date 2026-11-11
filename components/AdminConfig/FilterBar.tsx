@@ -5,9 +5,9 @@ export function FilterBar({ children }: { children: React.ReactNode }) {
   return <div className={styles.bar}>{children}</div>;
 }
 
-function Item({ label, children, grow }: { label: string; children: React.ReactNode; grow?: boolean }) {
+function Item({ label, children, grow, className = '' }: { label: string; children: React.ReactNode; grow?: boolean; className?: string }) {
   return (
-    <div className={`${styles.item} ${grow ? styles.grow : ''}`}>
+    <div className={`${styles.item} ${grow ? styles.grow : ''} ${className}`}>
       <span className={styles.label}>{label}</span>
       {children}
     </div>

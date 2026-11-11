@@ -296,8 +296,16 @@ export function DataTable<T extends Record<string, unknown>>({
               pageRows.map((row, index) => (
                 <tr
                   key={`${getRowKey(row)}-${index}`}
-                  onClick={() => onRowClick?.(row)}
-                  style={onRowClick ? { cursor: 'pointer' } : undefined}
+                  className={onRowClick ? styles.clickableRow : undefined}
+                  onClick={onRowClick ? () => onRowClick(row) : undefined}
+                  onKeyDown={onRowClick ? (event) => {
+                    if (event.target !== event.currentTarget) return;
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      onRowClick(row);
+                    }
+                  } : undefined}
+                  tabIndex={onRowClick ? 0 : undefined}
                 >
                   {columns.map((col) => (
                     <td key={`${col.key}-${index}`}>

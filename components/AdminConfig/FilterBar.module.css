@@ -47,7 +47,9 @@
 
 .item input[type='date'],
 .item input[type='month'],
-.item input[type='text'] {
+.item input[type='text'],
+/* Los <input> sin atributo type son de texto, pero no coinciden con [type='text']. */
+.item input:not([type]) {
   min-height: 42px;
   padding: 0.65rem 0.85rem;
   border: 1px solid var(--admin-border-subtle);

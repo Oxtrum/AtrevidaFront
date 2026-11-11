@@ -325,7 +325,7 @@ export function AtencionFormModal({ reserva, atencion, onClose, onSaved }: Atenc
                       <span>STOCK</span>
                     </div>
                     {opciones.map((item) => (
-                      <button type="button" role="option" className={styles.searchResultRow} key={item.id} onClick={() => agregarInsumo(item)}>
+                      <button type="button" role="option" aria-selected={false} className={styles.searchResultRow} key={item.id} onClick={() => agregarInsumo(item)}>
                         <span>{item.nombre}</span>
                         <strong>{cantidadLabel(item.stock_actual)} {item.unidad_medida}</strong>
                       </button>

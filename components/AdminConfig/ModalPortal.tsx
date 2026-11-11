@@ -1,7 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
+
+function subscribe() {
+  return () => {};
+}
+
+function getTarget() {
+  return document.querySelector<HTMLElement>('[data-admin="true"]') ?? document.body;
+}
+
+function getServerTarget() {
+  return null;
+}
 
 /**
  * Saca el modal del árbol de la página (que puede crear un stacking context y
@@ -9,11 +21,7 @@ import { createPortal } from 'react-dom';
  * viven las variables de tema.
  */
 export function ModalPortal({ children }: { children: React.ReactNode }) {
-  const [target, setTarget] = useState<HTMLElement | null>(null);
-
-  useEffect(() => {
-    setTarget(document.querySelector<HTMLElement>('[data-admin="true"]') ?? document.body);
-  }, []);
+  const target = useSyncExternalStore(subscribe, getTarget, getServerTarget);
 
   return target ? createPortal(children, target) : null;
 }

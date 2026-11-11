@@ -7,6 +7,10 @@ import type {
   AjusteInventarioInput,
   AlertasInventario,
   CategoriaInventario,
+  ConsumoEmpleadoResumen,
+  ConsumoEvento,
+  ConsumoResumen,
+  GetConsumosParams,
   GetInventarioItemsParams,
   GetMovimientosParams,
   InventarioItem,
@@ -106,6 +110,51 @@ export async function getMovimientosInventario(params: GetMovimientosParams = {}
     signal,
   });
   return { movimientos: res.data?.movimientos ?? [], paginacion: res.data?.paginacion };
+}
+
+// ── Consumos declarados en atenciones ──
+
+export interface ConsumosPage {
+  consumos: ConsumoEvento[];
+  paginacion?: PaginationMetadata;
+  total_registros?: number;
+}
+
+/** Eventos de consumo por fecha de atención. Sin `limit`/`cursor` devuelve hasta 500. */
+export async function getConsumosInventario(params: GetConsumosParams = {}, signal?: AbortSignal): Promise<ConsumosPage> {
+  const scoped = withLocalIdScope(params);
+  const res = await apiClient.get<ApiResponse<ConsumosPage>>('/bd/inventario/consumos', {
+    params: { ...scoped, include_total: scoped.include_total ? 'true' : undefined },
+    signal,
+  });
+  return {
+    consumos: res.data?.consumos ?? [],
+    paginacion: res.data?.paginacion,
+    total_registros: res.data?.total_registros,
+  };
+}
+
+/** Totales por insumo y unidad para el rango y filtros indicados. */
+export async function getConsumosResumenInventario(params: GetConsumosParams = {}, signal?: AbortSignal): Promise<ConsumoResumen[]> {
+  const scoped = withLocalIdScope(params);
+  const res = await apiClient.get<ApiResponse<{ items: ConsumoResumen[] }>>('/bd/inventario/consumos/resumen', {
+    params: { ...scoped },
+    signal,
+  });
+  return res.data?.items ?? [];
+}
+
+/** Totales operativos por empleado para el rango y filtros indicados. */
+export async function getConsumosEmpleadosInventario(
+  params: GetConsumosParams = {},
+  signal?: AbortSignal,
+): Promise<ConsumoEmpleadoResumen[]> {
+  const scoped = withLocalIdScope(params);
+  const res = await apiClient.get<ApiResponse<{ items: ConsumoEmpleadoResumen[] }>>('/bd/inventario/consumos/empleados', {
+    params: { ...scoped },
+    signal,
+  });
+  return res.data?.items ?? [];
 }
 
 export async function ajustarInventario(data: AjusteInventarioInput): Promise<void> {

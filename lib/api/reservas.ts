@@ -178,6 +178,8 @@ export interface ActualizarEstadoReservaDBData {
   id: number;
   estado: EstadoReserva;
   causa?: string;
+  motivo_cancelacion_tipo?: 'INASISTENCIA' | 'REPROGRAMACION' | 'SOLICITUD_CLIENTE' | 'OPERATIVO_LOCAL' | 'OTRO';
+  motivo_cancelacion_detalle?: string;
   servicio_confirmado?: string | null;
   precio?: number;
   tipo?: ReservaTipoBody;
@@ -323,6 +325,8 @@ export async function actualizarEstadoReservaDB(data: ActualizarEstadoReservaDBD
     id: data.id,
     estado: data.estado,
     causa: data.causa ?? '',
+    ...(data.motivo_cancelacion_tipo && { motivo_cancelacion_tipo: data.motivo_cancelacion_tipo }),
+    ...(data.motivo_cancelacion_detalle !== undefined && { motivo_cancelacion_detalle: data.motivo_cancelacion_detalle }),
     ...(data.servicio_confirmado !== undefined && { servicio_confirmado: data.servicio_confirmado }),
     ...(data.precio !== undefined && { precio: data.precio }),
     ...(data.tipo !== undefined && { tipo: data.tipo }),

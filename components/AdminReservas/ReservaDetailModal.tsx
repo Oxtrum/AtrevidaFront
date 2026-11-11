@@ -24,6 +24,7 @@ const ESTADO_CLASS: Record<string, string> = {
   PENDIENTE: styles.estadoPendiente,
   COMPLETADO: styles.estadoCompletado,
   RECHAZADO: styles.estadoRechazado,
+  CANCELADO: styles.estadoRechazado,
 };
 
 function formatTimestamp(ts?: string) {
@@ -58,13 +59,16 @@ export function ReservaDetailModal({
   );
 
   useEffect(() => {
+    if (!reserva) return;
+
+    const previousOverflow = document.body.style.overflow;
     document.addEventListener('keydown', handleKeyDown);
     document.body.style.overflow = 'hidden';
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = '';
+      document.body.style.overflow = previousOverflow;
     };
-  }, [handleKeyDown]);
+  }, [handleKeyDown, reserva]);
 
   if (!reserva) return null;
 
@@ -176,6 +180,18 @@ export function ReservaDetailModal({
               <div className={`${styles.field} ${styles.fieldFull}`}>
                 <span className={styles.fieldLabel}>Notas</span>
                 <span className={styles.fieldValue}>{reserva.notas}</span>
+              </div>
+            )}
+
+            {estado === 'CANCELADO' && (
+              <div className={`${styles.field} ${styles.fieldFull}`}>
+                <span className={styles.fieldLabel}>Cancelación</span>
+                <span className={styles.fieldValue}>
+                  {reserva.motivo_cancelacion_tipo || 'Sin motivo registrado'}
+                  {reserva.motivo_cancelacion_detalle ? ` · ${reserva.motivo_cancelacion_detalle}` : ''}
+                  {reserva.cancelado_por ? ` · Registrada por ${reserva.cancelado_por}` : ''}
+                  {reserva.cancelado_en ? ` · ${formatTimestamp(reserva.cancelado_en)}` : ''}
+                </span>
               </div>
             )}
 
