@@ -45,6 +45,7 @@ export interface SeguimientoItem {
   reserva_id: number;
   fecha: string;
   hora_inicio?: string | null;
+  hora_fin?: string | null;
   cliente: string;
   servicio: string;
   local_id?: number | null;

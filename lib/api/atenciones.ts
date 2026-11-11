@@ -209,6 +209,7 @@ export interface SeguimientoItem {
   reserva_id: number;
   fecha: string;
   hora_inicio?: string;
+  hora_fin?: string;
   cliente: string;
   servicio: string;
   local_id?: number;
