@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { BarChart2, Calendar } from 'lucide-react';
 import { AdminPageShell, AdminPanel, AlertBanner, PageHeader, StatCard, StatGrid } from '@/components/AdminConfig';
 import { DashboardTrastienda } from '@/components/AdminInventario/DashboardTrastienda';
@@ -8,17 +8,24 @@ import { SiguientesReservas } from '@/components/AdminReservas';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { getReservasResumenDB, type ReservasResumenData } from '@/lib/api/reservas';
 import { getClientesDB } from '@/lib/api/clientes';
+import { getStoredAdminTokenClaims, getStoredAdminUser } from '@/lib/auth/adminSession';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { formatMoney } from '@/lib/utils/format';
+import { tituloSaludo } from '@/lib/utils/saludo';
 import styles from './page.module.css';
 
 const EMPTY_RESUMEN: ReservasResumenData = {
   reservas_agendadas_dia: 0,
   servicios_completados_dia: 0,
-  ingresos_hoy: 0,
   cancelaciones_hoy: 0,
   semana: { total_reservas: 0, lunes: 0, martes: 0, miercoles: 0, jueves: 0, viernes: 0 },
+};
+
+const leerUsuario = () => getStoredAdminUser()?.username ?? getStoredAdminTokenClaims()?.username ?? '';
+const suscribirseAlUsuario = (alCambiar: () => void) => {
+  window.addEventListener('storage', alCambiar);
+  return () => window.removeEventListener('storage', alCambiar);
 };
 
 const GENERAL_LOCAL = '';
@@ -41,7 +48,7 @@ const getWeekBars = (resumen: ReservasResumenData) => {
   return values.map((bar) => ({ ...bar, height: `${Math.max(6, Math.round((bar.value / max) * 100))}%` }));
 };
 
-/** Resumen del dia: cinco cifras, la semana y las alertas de trastienda. */
+/** Resumen del dia: cuatro cifras (cinco con Ingresos, solo admin_sys), la semana y las alertas de trastienda. */
 export default function AdminDashboardPage() {
   const [greeting] = useState(() => {
     const hour = new Date().getHours();
@@ -49,6 +56,9 @@ export default function AdminDashboardPage() {
     if (hour < 18) return 'Buenas tardes';
     return 'Buenas noches';
   });
+  // El usuario vive en localStorage; en el servidor no hay nombre (snapshot vacio) para no desajustar el HTML.
+  const username = useSyncExternalStore(suscribirseAlUsuario, leerUsuario, () => '');
+  const titulo = tituloSaludo(greeting, username);
   const [dateString] = useState(() => {
     const raw = new Date().toLocaleDateString('es-BO', { weekday: 'long', day: 'numeric', month: 'long' });
     return raw.charAt(0).toUpperCase() + raw.slice(1);
@@ -101,8 +111,8 @@ export default function AdminDashboardPage() {
   return (
     <AdminPageShell>
       <PageHeader
-        title={`${greeting}, Admin`}
-        accentWord="Admin"
+        title={titulo.title}
+        accentWord={titulo.accentWord}
         subtitle="Resumen de hoy."
         actions={
           <div className={styles.meta}>
@@ -134,7 +144,10 @@ export default function AdminDashboardPage() {
         <StatCard label="Reservas hoy" value={resumen.reservas_agendadas_dia} sublabel="Agendadas" accentColor="#EC008C" loading={loading} />
         <StatCard label="Completados" value={resumen.servicios_completados_dia} sublabel="Hoy" accentColor="#14AEEF" loading={loading} />
         <StatCard label="Cancelaciones" value={resumen.cancelaciones_hoy} sublabel="Hoy" accentColor="#FFE600" loading={loading} />
-        <StatCard label="Ingresos" value={formatMoney(resumen.ingresos_hoy)} sublabel="Hoy" accentColor="#92278F" loading={loading} />
+        {/* El backend manda los ingresos solo a admin_sys: sin el dato no hay tarjeta. */}
+        {resumen.ingresos_hoy !== undefined && (
+          <StatCard label="Ingresos" value={formatMoney(resumen.ingresos_hoy)} sublabel="Hoy" accentColor="#92278F" loading={loading} />
+        )}
         <StatCard label="Clientes" value={clientesTotal ?? '—'} sublabel="En el directorio" accentColor="#14AEEF" loading={loading} />
       </StatGrid>
 

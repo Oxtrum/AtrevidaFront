@@ -82,7 +82,8 @@ export interface ReservasResumenIngresos {
 export interface ReservasResumenData {
   reservas_agendadas_dia: number;
   servicios_completados_dia: number;
-  ingresos_hoy: number;
+  /** Los tres campos de ingresos solo los recibe admin_sys; para el resto no vienen. */
+  ingresos_hoy?: number;
   cancelaciones_hoy: number;
   ingresos_semana?: number;
   semana: ReservasResumenSemana;
