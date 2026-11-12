@@ -14,12 +14,15 @@ import {
   getUsuarios,
   registrarUsuario,
   cambiarPassword,
+  restablecerPasswordUsuario,
   toggleUsuarioActivo,
 } from '@/lib/api/auth';
 import type { UsuarioResumen } from '@/lib/api/auth';
 import type { RolCodigo } from '@/lib/api/auth';
 import { getLocalesDB, type LocalRow } from '@/lib/api/servicios';
 import { isAdminSys } from '@/lib/auth/adminSession';
+import { etiquetaRol } from '@/lib/auth/roles';
+import { validarRestablecerPassword, type ErroresRestablecerPassword } from '@/lib/utils/restablecerPassword';
 import styles from './page.module.css';
 
 interface UsuarioRow extends Record<string, unknown> {
@@ -66,6 +69,13 @@ interface ChangeLocalState {
   error?: string;
 }
 
+interface RestablecerState {
+  user: UsuarioRow;
+  nueva: string;
+  confirmar: string;
+  errores: ErroresRestablecerPassword & { submit?: string };
+}
+
 interface ConfirmState {
   message: string;
   onConfirm: () => void;
@@ -85,8 +95,8 @@ const DEFAULT_NEW_USER_FORM: NewUserForm = {
 };
 
 const ROLE_OPTIONS = [
-  { value: 'gerencia', label: 'Recepción' },
-  { value: 'admin_sys', label: 'Administrador de sistema' },
+  { value: 'gerencia', label: etiquetaRol('gerencia') },
+  { value: 'admin_sys', label: etiquetaRol('admin_sys') },
 ];
 
 const getUserLocalLabel = (row: UsuarioRow) => {
@@ -115,6 +125,9 @@ export default function UsuariosPage() {
   const [pwForm, setPwForm] = useState<PwForm>(EMPTY_PW_FORM);
   const [pwErrors, setPwErrors] = useState<PwErrors>({});
   const [pwSaving, setPwSaving] = useState(false);
+
+  const [restablecer, setRestablecer] = useState<RestablecerState | null>(null);
+  const [restablecerSaving, setRestablecerSaving] = useState(false);
 
   const [changeLocalState, setChangeLocalState] = useState<ChangeLocalState | null>(null);
   const [localChangeSaving, setLocalChangeSaving] = useState(false);
@@ -343,6 +356,31 @@ export default function UsuariosPage() {
     }
   };
 
+  // ─── Restablecer la contraseña de otro usuario ────────────────────────────
+
+  const updateRestablecer = (campo: 'nueva' | 'confirmar', valor: string) => {
+    setRestablecer((actual) => (actual ? { ...actual, [campo]: valor, errores: {} } : actual));
+  };
+
+  const handleRestablecer = async () => {
+    if (!restablecer) return;
+    const errores = validarRestablecerPassword(restablecer.nueva, restablecer.confirmar);
+    if (Object.keys(errores).length > 0) {
+      setRestablecer({ ...restablecer, errores });
+      return;
+    }
+    setRestablecerSaving(true);
+    try {
+      await restablecerPasswordUsuario(restablecer.user.username, restablecer.nueva);
+      toast.success(`Contraseña de ${restablecer.user.username} actualizada`);
+      setRestablecer(null);
+    } catch (err) {
+      setRestablecer({ ...restablecer, errores: { submit: err instanceof Error ? err.message : 'No se pudo cambiar la contraseña' } });
+    } finally {
+      setRestablecerSaving(false);
+    }
+  };
+
   // ─── Toggle activo ────────────────────────────────────────────────────────
 
   const handleToggle = (row: UsuarioRow) => {
@@ -385,6 +423,14 @@ export default function UsuariosPage() {
       });
     }
 
+    if (row.activo) {
+      actions.push({
+        label: 'Restablecer contraseña',
+        icon: <KeyRound size={12} strokeWidth={2} />,
+        onClick: () => setRestablecer({ user: row, nueva: '', confirmar: '', errores: {} }),
+      });
+    }
+
     actions.push(row.activo
       ? { label: 'Desactivar', icon: <UserX size={12} strokeWidth={2} />, onClick: () => handleToggle(row), variant: 'danger' }
       : { label: 'Reactivar', icon: <UserCheck size={12} strokeWidth={2} />, onClick: () => handleToggle(row) });
@@ -397,9 +443,9 @@ export default function UsuariosPage() {
     {
       key: 'rol_nombre',
       label: 'Rol',
-      render: (value, row) => (
+      render: (_value, row) => (
         <span className={styles.roleCell}>
-          {String(value || row.rol_codigo)}
+          {etiquetaRol(row.rol_codigo)}
         </span>
       ),
     },
@@ -548,7 +594,7 @@ export default function UsuariosPage() {
               hasError={!!newUserErrors.rolCodigo}
             />
             <span className={styles.fieldHint}>
-              Gerencia no puede administrar usuarios ni consultar reportes financieros.
+              Recepción no puede administrar usuarios ni consultar reportes financieros.
             </span>
             {newUserErrors.rolCodigo && <span className={styles.fieldError}>{newUserErrors.rolCodigo}</span>}
           </div>
@@ -627,6 +673,59 @@ export default function UsuariosPage() {
               </span>
               {changeLocalState.error && <span className={styles.fieldError}>{changeLocalState.error}</span>}
             </div>
+          </div>
+        )}
+      </FormModal>
+
+      {/* Modal: Restablecer la contraseña de otro usuario */}
+      <FormModal
+        isOpen={restablecer !== null}
+        onClose={() => setRestablecer(null)}
+        title="Restablecer contraseña"
+        onSubmit={handleRestablecer}
+        loading={restablecerSaving}
+        submitLabel="Guardar contraseña"
+      >
+        {restablecer && (
+          <div className={styles.formStack}>
+            <div className={styles.localMoveUser}>
+              <span>Usuario</span>
+              <strong>{restablecer.user.username}</strong>
+            </div>
+
+            <div className={styles.field}>
+              <label htmlFor="rst-nueva">Nueva contraseña</label>
+              <input
+                id="rst-nueva"
+                type="password"
+                value={restablecer.nueva}
+                onChange={(e) => updateRestablecer('nueva', e.target.value)}
+                placeholder="Nueva contraseña"
+                autoFocus
+                autoComplete="new-password"
+                aria-invalid={!!restablecer.errores.nueva}
+                className={restablecer.errores.nueva ? styles.inputError : ''}
+              />
+              {restablecer.errores.nueva && <span className={styles.fieldError}>{restablecer.errores.nueva}</span>}
+            </div>
+
+            <div className={styles.field}>
+              <label htmlFor="rst-confirmar">Confirmar contraseña</label>
+              <input
+                id="rst-confirmar"
+                type="password"
+                value={restablecer.confirmar}
+                onChange={(e) => updateRestablecer('confirmar', e.target.value)}
+                placeholder="Repite la contraseña"
+                autoComplete="new-password"
+                aria-invalid={!!restablecer.errores.confirmar}
+                className={restablecer.errores.confirmar ? styles.inputError : ''}
+              />
+              {restablecer.errores.confirmar && <span className={styles.fieldError}>{restablecer.errores.confirmar}</span>}
+              <span className={styles.fieldHint}>Díselo al usuario y que la cambie al entrar.</span>
+            </div>
+
+            {restablecer.errores.submit && <div className={styles.submitError}>{restablecer.errores.submit}</div>}
           </div>
         )}
       </FormModal>
