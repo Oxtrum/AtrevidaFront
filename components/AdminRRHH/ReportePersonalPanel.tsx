@@ -15,13 +15,13 @@ import styles from './ReportePersonalPanel.module.css';
 type PersonalRow = PersonalAtenciones & Record<string, unknown>;
 type RegistradorRow = RegistradorAtenciones & Record<string, unknown>;
 
-const PERIODOS: ChoiceOption<PeriodoReporte>[] = [
+export const PERIODOS: ChoiceOption<PeriodoReporte>[] = [
   { value: 'semanal', label: 'Semanal' },
   { value: 'quincenal', label: 'Quincenal' },
   { value: 'mensual', label: 'Mensual' },
 ];
 
-const NOMBRE_PERIODO: Record<PeriodoReporte, string> = {
+export const NOMBRE_PERIODO: Record<PeriodoReporte, string> = {
   semanal: 'la semana anterior',
   quincenal: 'la quincena anterior',
   mensual: 'el mes anterior',
@@ -40,14 +40,14 @@ const BLOQUE_VACIO: ReporteAtencionesBloque = {
 };
 
 /** Suma días a una fecha ISO sin pasar por UTC (evita el desfase de zona horaria). */
-function moverDias(iso: string, dias: number): string {
+export function moverDias(iso: string, dias: number): string {
   const [y, m, d] = iso.split('-').map(Number);
   const f = new Date(y, m - 1, d + dias);
   return `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, '0')}-${String(f.getDate()).padStart(2, '0')}`;
 }
 
 /** "Noviembre 2026" para el mes; "9 nov – 15 nov 2026" para semana y quincena. */
-function etiquetaPeriodo(periodo: PeriodoReporte, desde: string, hasta: string): string {
+export function etiquetaPeriodo(periodo: PeriodoReporte, desde: string, hasta: string): string {
   if (periodo === 'mensual') return formatMes(desde.slice(0, 7));
   return `${formatDia(desde)} – ${formatDia(hasta)} ${hasta.slice(0, 4)}`;
 }
@@ -63,7 +63,7 @@ function formatDuracion(minutos: number): string {
 
 const atencionesTexto = (n: number) => `${n} ${n === 1 ? 'atención' : 'atenciones'}`;
 
-function Variacion({ pct, actual }: { pct: number | null; actual: number }) {
+export function Variacion({ pct, actual }: { pct: number | null; actual: number }) {
   if (pct === null) return <span className={panel.muted}>{actual > 0 ? 'Nuevo' : '—'}</span>;
   if (pct === 0) return <span className={panel.muted}>Igual</span>;
   const sube = pct > 0;

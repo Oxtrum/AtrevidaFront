@@ -16,8 +16,8 @@ const ORIGEN_LABEL: Record<FlujoOrigen, string> = {
   OTRO_INGRESO: 'Otro ingreso',
 };
 
-const MONEY = '#,##0.00;[Red]-#,##0.00';
-const INT = '#,##0';
+export const MONEY = '#,##0.00;[Red]-#,##0.00';
+export const INT = '#,##0';
 const PCT = '0.0%';
 const HEADER_FILL = 'FFEC008C';
 // El endpoint de flujo entrega como maximo este numero de movimientos por consulta.
@@ -73,7 +73,7 @@ function anchos(ws: Worksheet, valores: number[]) {
 }
 
 /** Hoja con titulo, encabezado, filas y (opcional) fila de totales con formulas SUM. */
-function hojaTabla(
+export function hojaTabla(
   wb: Workbook,
   nombre: string,
   tab: string,

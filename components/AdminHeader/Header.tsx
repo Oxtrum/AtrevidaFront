@@ -96,6 +96,7 @@ const NAV_ITEMS: NavItem[] = [
       { label: 'Directorio', path: `${BASE}/clientes`, defaultParam: 'vista' },
       { label: 'Con deuda', path: `${BASE}/clientes`, param: ['vista', 'deuda'] },
       { label: 'Paquetes activos', path: `${BASE}/clientes`, param: ['vista', 'paquetes'] },
+      { label: 'Reportes de clientes', path: `${BASE}/reportes/clientes`, access: 'financial' },
     ],
   },
   { label: 'Inventario', detail: 'Stock y compras', path: `${BASE}/inventario`, icon: Boxes },
