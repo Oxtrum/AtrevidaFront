@@ -43,6 +43,7 @@ import { useConfiguracion } from '@/lib/hooks/useConfiguracion';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { formatDateISO, formatMoney, monthRange, todayISO } from '@/lib/utils/format';
 import { horaDeMovimiento } from '@/lib/utils/horaMovimiento';
+import { etiquetaTipoPago } from '@/lib/utils/tipoPago';
 import type {
   CategoriaFinanciera,
   EstadoMovimiento,
@@ -192,6 +193,12 @@ function MovimientosPanel() {
       ),
     },
     { key: 'local_nombre', label: 'Local', render: (v) => (v as string) || <span className={styles.muted}>General</span> },
+    {
+      key: 'metodo_pago',
+      label: 'Método',
+      searchable: false,
+      render: (v) => (v ? etiquetaTipoPago(v as string) : <span className={styles.muted}>—</span>),
+    },
     {
       key: 'entrada',
       label: 'Entrada',

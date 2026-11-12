@@ -21,6 +21,8 @@ export function etiquetaTipoPago(valor: string | null | undefined): string {
   if (!limpio) return 'No definido';
   if (esTipoPago(limpio)) return ETIQUETAS[limpio];
   if (limpio === 'sin_tipo') return 'Sin tipo';
+  // Solo existe en egresos (gastos fijos): no es un metodo de cobro, por eso no esta en TIPOS_PAGO.
+  if (limpio === 'debito_automatico') return 'Débito automático';
   return limpio.charAt(0).toUpperCase() + limpio.slice(1);
 }
 

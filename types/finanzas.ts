@@ -157,6 +157,8 @@ export interface FlujoMovimiento {
   local_id?: number | null;
   local_nombre?: string | null;
   monto: number;
+  /** Como se pagó o cobró; ausente si el movimiento no lo indicó. */
+  metodo_pago?: string | null;
   estado: EstadoMovimiento;
   /** Saldo acumulado del rango filtrado (solo cuentan los PAGADO). */
   saldo: number;
