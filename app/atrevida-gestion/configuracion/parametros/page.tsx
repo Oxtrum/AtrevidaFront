@@ -2,25 +2,23 @@
 
 import { useEffect, useState } from 'react';
 import { Banknote, Boxes, Landmark, SlidersHorizontal, UsersRound } from 'lucide-react';
-import { AdminButton, AdminPageShell, AdminPanel, AlertBanner, FormField, FormSubmitError, PageHeader } from '@/components/AdminConfig';
+import { AdminButton, AdminPageShell, AdminPanel, FormField, FormSubmitError, PageHeader } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
-import { getStoredAdminRole } from '@/lib/auth/adminSession';
 import { useConfiguracion } from '@/lib/hooks/useConfiguracion';
 import type { ConfiguracionSistema } from '@/types/finanzas';
 import styles from './page.module.css';
 
 const TIMEZONES = ['America/La_Paz', 'America/Lima', 'America/Bogota', 'America/Argentina/Buenos_Aires', 'America/Santiago', 'America/Sao_Paulo'];
 
-// Gerencia puede leer; solo admin_sys edita (§7).
-const ROLES = ['admin_sys', 'gerencia'];
+// Reglas del negocio: solo las ve y edita admin_sys (Recepción no entra).
+const ROLES = ['admin_sys'];
 
 export default function ParametrosPage() {
   const { config, loading, update } = useConfiguracion();
   const [form, setForm] = useState<ConfiguracionSistema>(config);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const canEdit = typeof window !== 'undefined' && getStoredAdminRole() === 'admin_sys';
 
   useEffect(() => {
     setForm(config);  
@@ -95,9 +93,7 @@ export default function ParametrosPage() {
         subtitle="Reglas de stock en reservas y de generación de gastos fijos"
         backHref="/atrevida-gestion/configuracion"
       />
-      {!canEdit && <AlertBanner tone="info">Modo lectura: solo el administrador del sistema puede modificar estos parámetros. Tu rol actual puede consultarlos.</AlertBanner>}
-
-      <fieldset className={styles.fieldset} disabled={!canEdit || saving}>
+      <fieldset className={styles.fieldset} disabled={saving}>
         <AdminPanel card title="Inventario" description="Qué pasa con el stock cuando se agenda o completa una reserva." icon={<Boxes size={18} strokeWidth={1.75} />}>
           <div className={styles.grid}>
             <FormField label="Si no hay stock al reservar" labelId="p-pol-lbl" hint="Advertir: la reserva se guarda con aviso. Bloquear: el panel interno rechaza la reserva (el formulario público siempre registra).">
@@ -219,7 +215,7 @@ export default function ParametrosPage() {
       </fieldset>
       <FormSubmitError message={error} />
 
-      {canEdit && dirty && (
+      {dirty && (
         <div className={styles.saveBar} role="region" aria-label="Cambios sin guardar">
           <span className={styles.saveMsg}><span className={styles.dot} aria-hidden />Cambios sin guardar</span>
           <div className={styles.saveActions}>

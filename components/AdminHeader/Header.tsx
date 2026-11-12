@@ -133,7 +133,7 @@ const NAV_ITEMS: NavItem[] = [
       { label: 'Gastos fijos', path: `${BASE}/configuracion/gastos-fijos`, access: 'adminSys' },
       { label: 'Categorías financieras', path: `${BASE}/configuracion/categorias-financieras`, access: 'adminSys' },
       { label: 'Categorías de inventario', path: `${BASE}/configuracion/categorias-inventario`, access: 'adminSys' },
-      { label: 'Inventario y finanzas', path: `${BASE}/configuracion/parametros` },
+      { label: 'Inventario y finanzas', path: `${BASE}/configuracion/parametros`, access: 'adminSys' },
     ],
   },
 ];

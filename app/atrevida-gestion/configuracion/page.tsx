@@ -125,6 +125,7 @@ const OPTIONS = [
     href: '/atrevida-gestion/configuracion/parametros',
     color: '#F97316',
     colorRgb: '249, 115, 22',
+    adminSysOnly: true,
   },
 ];
 
