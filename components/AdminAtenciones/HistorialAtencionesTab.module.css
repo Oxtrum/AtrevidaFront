@@ -9,11 +9,11 @@
 .historyTable :global(th:nth-child(1)),.historyTable :global(td:nth-child(1)){width:10%}
 .historyTable :global(th:nth-child(2)),.historyTable :global(td:nth-child(2)){width:13%}
 .historyTable :global(th:nth-child(3)),.historyTable :global(td:nth-child(3)){width:11%}
-.historyTable :global(th:nth-child(4)),.historyTable :global(td:nth-child(4)){width:16%}
-.historyTable :global(th:nth-child(5)),.historyTable :global(td:nth-child(5)){width:19%}
-.historyTable :global(th:nth-child(6)),.historyTable :global(td:nth-child(6)){width:15%}
+.historyTable :global(th:nth-child(4)),.historyTable :global(td:nth-child(4)){width:15%}
+.historyTable :global(th:nth-child(5)),.historyTable :global(td:nth-child(5)){width:16%}
+.historyTable :global(th:nth-child(6)),.historyTable :global(td:nth-child(6)){width:14%}
 .historyTable :global(th:nth-child(7)),.historyTable :global(td:nth-child(7)){width:11%}
-.historyTable :global(th:nth-child(8)),.historyTable :global(td:nth-child(8)){width:5%;white-space:nowrap}
+.historyTable :global(th:nth-child(8)),.historyTable :global(td:nth-child(8)){width:10%;white-space:nowrap}
 .reservaLink{padding:0;border:0;background:none;color:var(--admin-accent-primary);font:inherit;font-weight:700;cursor:pointer;text-decoration:underline;text-decoration-color:transparent;text-underline-offset:3px}
 .reservaLink:hover{text-decoration-color:currentColor}
 .reservaLink:focus-visible{outline:2px solid var(--admin-accent-primary);outline-offset:3px;border-radius:3px}
@@ -23,5 +23,5 @@
 .deactivateMessage input{accent-color:var(--admin-accent-primary)}
 .deactivateMessage small{color:var(--admin-text-muted);font-size:.78rem}
 .muted{color:var(--admin-text-muted);font-size:.82rem;text-align:center;margin:.25rem 0 0}
-@media (max-width:900px){.historyTable :global(th:nth-child(6)),.historyTable :global(td:nth-child(6)),.historyTable :global(th:nth-child(7)),.historyTable :global(td:nth-child(7)){display:none}.historyTable :global(th:nth-child(1)),.historyTable :global(td:nth-child(1)){width:14%}.historyTable :global(th:nth-child(2)),.historyTable :global(td:nth-child(2)){width:18%}.historyTable :global(th:nth-child(3)),.historyTable :global(td:nth-child(3)){width:13%}.historyTable :global(th:nth-child(4)),.historyTable :global(td:nth-child(4)){width:23%}.historyTable :global(th:nth-child(5)),.historyTable :global(td:nth-child(5)){width:25%}.historyTable :global(th:nth-child(8)),.historyTable :global(td:nth-child(8)){width:7%}}
-@media (max-width:620px){.historyTable :global(th),.historyTable :global(td){padding:.7rem .5rem;font-size:.78rem}.historyTable :global(th:nth-child(2)),.historyTable :global(td:nth-child(2)){display:none}.historyTable :global(th:nth-child(1)),.historyTable :global(td:nth-child(1)){width:19%}.historyTable :global(th:nth-child(3)),.historyTable :global(td:nth-child(3)){width:17%}.historyTable :global(th:nth-child(4)),.historyTable :global(td:nth-child(4)){width:29%}.historyTable :global(th:nth-child(5)),.historyTable :global(td:nth-child(5)){width:27%}.historyTable :global(th:nth-child(8)),.historyTable :global(td:nth-child(8)){width:8%}.truncate{max-width:100%}}
+@media (max-width:900px){.historyTable :global(th:nth-child(6)),.historyTable :global(td:nth-child(6)),.historyTable :global(th:nth-child(7)),.historyTable :global(td:nth-child(7)){display:none}.historyTable :global(th:nth-child(1)),.historyTable :global(td:nth-child(1)){width:13%}.historyTable :global(th:nth-child(2)),.historyTable :global(td:nth-child(2)){width:17%}.historyTable :global(th:nth-child(3)),.historyTable :global(td:nth-child(3)){width:12%}.historyTable :global(th:nth-child(4)),.historyTable :global(td:nth-child(4)){width:23%}.historyTable :global(th:nth-child(5)),.historyTable :global(td:nth-child(5)){width:23%}.historyTable :global(th:nth-child(8)),.historyTable :global(td:nth-child(8)){width:12%}}
+@media (max-width:620px){.historyTable :global(th),.historyTable :global(td){padding:.7rem .5rem;font-size:.78rem}.historyTable :global(th:nth-child(2)),.historyTable :global(td:nth-child(2)){display:none}.historyTable :global(th:nth-child(1)),.historyTable :global(td:nth-child(1)){width:18%}.historyTable :global(th:nth-child(3)),.historyTable :global(td:nth-child(3)){width:15%}.historyTable :global(th:nth-child(4)),.historyTable :global(td:nth-child(4)){width:27%}.historyTable :global(th:nth-child(5)),.historyTable :global(td:nth-child(5)){width:28%}.historyTable :global(th:nth-child(8)),.historyTable :global(td:nth-child(8)){width:12%}.truncate{max-width:100%}}
