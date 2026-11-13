@@ -33,6 +33,17 @@ const cantidadLabel = (valor: number) => new Intl.NumberFormat('es-BO', { maximu
 const idInsumo = (item: InventarioItem | InsumoSugerido) => 'id' in item ? item.id : item.item_id;
 const nombreInsumo = (item: InventarioItem | InsumoSugerido) => 'nombre' in item ? item.nombre : item.item_nombre;
 const stockInsumo = (item: InventarioItem | InsumoSugerido) => 'stock_actual' in item ? item.stock_actual : item.disponible;
+const personalSinDuplicados = (items: PersonalSugerido[]) => {
+  const vistos = new Set<string>();
+  return items.filter((item) => {
+    const nombreNormalizado = item.nombre.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLocaleLowerCase();
+    const cargoNormalizado = item.cargo?.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLocaleLowerCase() ?? '';
+    const clave = `${nombreNormalizado}|${cargoNormalizado}|${item.local_id ?? ''}`;
+    if (vistos.has(clave)) return false;
+    vistos.add(clave);
+    return true;
+  });
+};
 
 interface AtencionFormModalProps {
   reserva: ReservaBD | null;
@@ -132,7 +143,7 @@ export function AtencionFormModal({ reserva, atencion, onClose, onSaved }: Atenc
   }, [reservaId, reserva, atencion]);
 
   useEffect(() => {
-    if (!reserva || nombre.trim().length < 2) {
+    if (!reserva || empleadoId || nombre.trim().length < 2) {
       setSugerencias([]);
       return;
     }
@@ -151,9 +162,10 @@ export function AtencionFormModal({ reserva, atencion, onClose, onSaved }: Atenc
           if (controller.signal.aborted) return;
           // La API limita por local asignado al usuario. Para usuarios con acceso a varios
           // locales, acotamos las sugerencias al local de esta reserva desde el formulario.
-          setSugerencias(localId
+          const visibles = localId
             ? personal.filter((item) => item.local_id == null || item.local_id === localId)
-            : personal);
+            : personal;
+          setSugerencias(personalSinDuplicados(visibles));
         } catch {
           if (!controller.signal.aborted) setSugerencias([]);
         }
@@ -161,7 +173,7 @@ export function AtencionFormModal({ reserva, atencion, onClose, onSaved }: Atenc
     }, 250);
 
     return () => { window.clearTimeout(timeout); controller.abort(); };
-  }, [nombre, reserva]);
+  }, [nombre, empleadoId, reserva]);
 
   const agregados = useMemo(() => new Set(insumos.map((linea) => idInsumo(linea.item))), [insumos]);
   const opciones = useMemo(() => {
@@ -214,7 +226,7 @@ export function AtencionFormModal({ reserva, atencion, onClose, onSaved }: Atenc
       const resultado = atencion
         ? await actualizarAtencion(atencion.id, datosAtencion)
         : await registrarAtencion(reserva.id, datosAtencion);
-      const pendientes = resultado.insumos.filter((item) => item.estado_descuento === 'PENDIENTE_STOCK').length;
+      const pendientes = (resultado.insumos ?? []).filter((item) => item.estado_descuento === 'PENDIENTE_STOCK').length;
       toast.success(pendientes > 0
         ? `${atencion ? 'Atención actualizada' : 'Atención registrada'}; ${pendientes} insumo(s) quedaron pendientes de descuento. Revisa el stock registrado.`
         : atencion ? 'Atención actualizada.' : 'Atención registrada y reserva completada.');

@@ -19,6 +19,7 @@ function Dato({ label, children }: { label: string; children: React.ReactNode })
 
 export function AtencionDetalleModal({ reserva, atencion, onClose }: AtencionDetalleModalProps) {
   const isOpen = Boolean(reserva && atencion);
+  const insumos = atencion?.insumos ?? [];
   return (
     <FormModal isOpen={isOpen} onClose={onClose} title={`Atención · Reserva #${reserva?.id ?? ''}`} size="lg" hideFooter>
       {reserva && (
@@ -51,10 +52,10 @@ export function AtencionDetalleModal({ reserva, atencion, onClose }: AtencionDet
             <Dato label="Observaciones">{atencion.observaciones}</Dato>
           </div>
           <div className={styles.detailSupplies}>
-            <div className={styles.suppliesTitle}><Package size={15} aria-hidden="true" /><strong>Insumos utilizados</strong><span>{atencion.insumos.length} {atencion.insumos.length === 1 ? 'insumo' : 'insumos'}</span></div>
-            {atencion.insumos.length === 0 ? <p>No se usaron insumos en esta atención.</p> : (
+            <div className={styles.suppliesTitle}><Package size={15} aria-hidden="true" /><strong>Insumos utilizados</strong><span>{insumos.length} {insumos.length === 1 ? 'insumo' : 'insumos'}</span></div>
+            {insumos.length === 0 ? <p>No se usaron insumos en esta atención.</p> : (
               <ul>
-                {atencion.insumos.map((item) => (
+                {insumos.map((item) => (
                   <li key={item.id}>
                     <strong>{item.item_nombre}</strong>
                     <span className={styles.supplyQuantity}>{item.cantidad_usada} {item.unidad_medida}</span>
