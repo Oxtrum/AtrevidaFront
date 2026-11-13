@@ -3,12 +3,13 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ClipboardCheck, Pencil, Trash2, XCircle } from 'lucide-react';
-import { ConfirmDialog, FormField, FormModal, ReasonDialog, RowActionsMenu } from '@/components/AdminConfig';
+import { ConfirmDialog, ReasonDialog, RowActionsMenu } from '@/components/AdminConfig';
 import type { RowAction } from '@/components/AdminConfig';
 import { WhatsappIcon } from '@/components/icons/WhatsappIcon';
 import { toast } from '@/components/Shared/Toast';
 import { actualizarEstadoReservaDB, eliminarReservaDB } from '@/lib/api/reservas';
 import { AtencionFormModal } from '@/components/AdminAtenciones/AtencionFormModal';
+import { CancelarReservaModal } from './CancelarReservaModal';
 import { buildClientWhatsappUrl } from '@/lib/utils/whatsapp';
 import type { ReservaBD } from '@/types/reserva';
 import styles from './ReservaAcciones.module.css';
@@ -74,9 +75,6 @@ export function ReservaAcciones({ reserva, onCambio }: ReservaAccionesProps) {
   const router = useRouter();
   const [rechazando, setRechazando] = useState(false);
   const [cancelando, setCancelando] = useState(false);
-  const [motivoCancelacion, setMotivoCancelacion] = useState<'INASISTENCIA' | 'REPROGRAMACION' | 'SOLICITUD_CLIENTE' | 'OPERATIVO_LOCAL' | 'OTRO'>('INASISTENCIA');
-  const [detalleCancelacion, setDetalleCancelacion] = useState('');
-  const [errorCancelacion, setErrorCancelacion] = useState('');
   const [atendiendo, setAtendiendo] = useState(false);
   const [eliminando, setEliminando] = useState(false);
   const [ocupada, setOcupada] = useState(false);
@@ -110,7 +108,7 @@ export function ReservaAcciones({ reserva, onCambio }: ReservaAccionesProps) {
       label: 'Cancelar reserva',
       icon: <XCircle size={14} strokeWidth={1.8} />,
       variant: 'danger' as const,
-      onClick: () => { setErrorCancelacion(''); setDetalleCancelacion(''); setMotivoCancelacion('INASISTENCIA'); setCancelando(true); },
+      onClick: () => setCancelando(true),
     }] : []),
     {
       label: 'Eliminar reserva',
@@ -146,29 +144,6 @@ export function ReservaAcciones({ reserva, onCambio }: ReservaAccionesProps) {
     }
   };
 
-  const cancelar = async () => {
-    if (motivoCancelacion === 'OTRO' && !detalleCancelacion.trim()) {
-      setErrorCancelacion('Describe el motivo de la cancelación.');
-      return;
-    }
-    setOcupada(true);
-    try {
-      await actualizarEstadoReservaDB({
-        id: reserva.id,
-        estado: 'CANCELADO',
-        motivo_cancelacion_tipo: motivoCancelacion,
-        motivo_cancelacion_detalle: detalleCancelacion.trim() || undefined,
-      });
-      setCancelando(false);
-      toast.success('Reserva cancelada correctamente.');
-      onCambio();
-    } catch (err) {
-      setErrorCancelacion(err instanceof Error ? err.message : 'No se pudo cancelar la reserva.');
-    } finally {
-      setOcupada(false);
-    }
-  };
-
   return (
     <>
       <RowActionsMenu ariaLabel={`Acciones de reserva ${reserva.id}`} disabled={ocupada} actions={acciones} />
@@ -182,28 +157,11 @@ export function ReservaAcciones({ reserva, onCambio }: ReservaAccionesProps) {
         onClose={() => setRechazando(false)}
       />
 
-      <FormModal
-        isOpen={cancelando}
-        onClose={() => { if (!ocupada) setCancelando(false); }}
-        title="Cancelar reserva"
-        onSubmit={cancelar}
-        loading={ocupada}
-        submitLabel="Cancelar reserva"
-      >
-        <p className={styles.cancelMessage}>La cancelación libera el horario y, si corresponde, revierte el stock o sesión comprometida.</p>
-        <FormField label="Motivo" htmlFor={`motivo-cancelacion-${reserva.id}`} required>
-          <select id={`motivo-cancelacion-${reserva.id}`} value={motivoCancelacion} onChange={(event) => { setMotivoCancelacion(event.target.value as typeof motivoCancelacion); setErrorCancelacion(''); }}>
-            <option value="INASISTENCIA">Inasistencia</option>
-            <option value="REPROGRAMACION">Reprogramación</option>
-            <option value="SOLICITUD_CLIENTE">Solicitud del cliente</option>
-            <option value="OPERATIVO_LOCAL">Operativo del local</option>
-            <option value="OTRO">Otro</option>
-          </select>
-        </FormField>
-        <FormField label={motivoCancelacion === 'OTRO' ? 'Detalle' : 'Detalle (opcional)'} htmlFor={`detalle-cancelacion-${reserva.id}`} required={motivoCancelacion === 'OTRO'} error={errorCancelacion}>
-          <textarea id={`detalle-cancelacion-${reserva.id}`} value={detalleCancelacion} onChange={(event) => { setDetalleCancelacion(event.target.value); setErrorCancelacion(''); }} />
-        </FormField>
-      </FormModal>
+      <CancelarReservaModal
+        reserva={cancelando ? reserva : null}
+        onClose={() => setCancelando(false)}
+        onCancelled={onCambio}
+      />
 
       <AtencionFormModal reserva={atendiendo ? reserva : null} onClose={() => setAtendiendo(false)} onSaved={onCambio} />
 

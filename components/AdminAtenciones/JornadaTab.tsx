@@ -9,6 +9,7 @@ import {
   Eye,
   Pencil,
   Play,
+  XCircle,
 } from 'lucide-react';
 import {
   AdminPanel,
@@ -26,6 +27,7 @@ import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { AtencionDetalleModal } from '@/components/AdminAtenciones/AtencionDetalleModal';
 import { AtencionFormModal } from '@/components/AdminAtenciones/AtencionFormModal';
 import { ReservaDetailModal } from '@/components/AdminReservas/ReservaDetailModal';
+import { CancelarReservaModal } from '@/components/AdminReservas/CancelarReservaModal';
 import {
   getAtencion,
   getJornada,
@@ -200,6 +202,7 @@ export function JornadaTab() {
   }, [fecha, localId, estado, qAplicado]);
 
   const [reservaAbierta, setReservaAbierta] = useState<ReservaBD | null>(null);
+  const [reservaCancelacion, setReservaCancelacion] = useState<ReservaBD | null>(null);
   const [detalle, setDetalle] = useState<DetalleAtencion | null>(null);
   const [formulario, setFormulario] = useState<FormularioAtencion | null>(null);
 
@@ -220,6 +223,14 @@ export function JornadaTab() {
   const atender = async (row: JornadaAtencion) => {
     try {
       setFormulario({ reserva: await cargarReserva(row.reserva_id) });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'No se pudo cargar la reserva.');
+    }
+  };
+
+  const solicitarCancelacion = async (reservaID: number) => {
+    try {
+      setReservaCancelacion(await cargarReserva(reservaID));
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'No se pudo cargar la reserva.');
     }
@@ -403,6 +414,11 @@ export function JornadaTab() {
                         Atender
                       </AdminButton>
                     )}
+                    {row.estado_reserva === 'AGENDADO' && !row.atencion_id && (
+                      <AdminButton variant="danger" size="xs" icon={<XCircle size={13} />} onClick={() => void solicitarCancelacion(row.reserva_id)}>
+                        Cancelar reserva
+                      </AdminButton>
+                    )}
                     {row.puede_ver_atencion && (
                       <AdminButton variant="secondary" size="xs" icon={<ClipboardList size={13} />} onClick={() => void verAtencion(row)}>
                         Ver atención
@@ -455,6 +471,11 @@ export function JornadaTab() {
           void load();
           void loadResumen();
         }}
+      />
+      <CancelarReservaModal
+        reserva={reservaCancelacion}
+        onClose={() => setReservaCancelacion(null)}
+        onCancelled={() => { void load(); void loadResumen(); }}
       />
     </>
   );
