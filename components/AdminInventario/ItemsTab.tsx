@@ -20,6 +20,7 @@ import { useInventarioItems } from '@/lib/hooks/useInventarioItems';
 import { formatMoney, formatQty } from '@/lib/utils/format';
 import type { InventarioItem } from '@/types/inventario';
 import { AjusteModal } from './AjusteModal';
+import { ItemDetalleModal } from './ItemDetalleModal';
 import { ItemFormModal } from './ItemFormModal';
 import { StockBadge } from './StockBadge';
 import styles from './AdminInventario.module.css';
@@ -61,6 +62,7 @@ export function ItemsTab({ canManage, canAdjust, moneda, initialQ = '', initialL
   const [formOpen, setFormOpen] = useState(false);
   const [ajusteItem, setAjusteItem] = useState<InventarioItem | null>(null);
   const [toDeactivate, setToDeactivate] = useState<InventarioItem | null>(null);
+  const [detalleItem, setDetalleItem] = useState<InventarioItem | null>(null);
   const [deactivating, setDeactivating] = useState(false);
 
   const openForm = (item: InventarioItem | null) => {
@@ -150,7 +152,12 @@ export function ItemsTab({ canManage, canAdjust, moneda, initialQ = '', initialL
           ...(canManage && !row.activo ? [{ label: 'Activar', icon: <Power size={12} strokeWidth={2} />, onClick: () => void handleActivate(row) }] : []),
           ...(canManage && row.activo ? [{ label: 'Desactivar', icon: <PackageMinus size={12} strokeWidth={2} />, onClick: () => setToDeactivate(row), variant: 'danger' as const }] : []),
         ];
-        return actions.length ? <RowActionsMenu actions={actions} /> : null;
+        // La fila abre la ficha al hacer clic: el menú de acciones no debe dispararla.
+        return actions.length ? (
+          <span onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+            <RowActionsMenu actions={actions} />
+          </span>
+        ) : null;
       },
     },
   ];
@@ -207,10 +214,12 @@ export function ItemsTab({ canManage, canAdjust, moneda, initialQ = '', initialL
         error={error}
         onRefresh={reload}
         getRowKey={(i) => `${i.id}-${i.local_id ?? 0}`}
+        onRowClick={setDetalleItem}
         hideSearch
         emptyMessage={estado === 'bajo' ? 'Ningún ítem está bajo su stock mínimo' : 'No hay ítems de inventario'}
       />
 
+      <ItemDetalleModal item={detalleItem} moneda={moneda} onClose={() => setDetalleItem(null)} />
       <ItemFormModal
         isOpen={formOpen}
         item={formItem}
