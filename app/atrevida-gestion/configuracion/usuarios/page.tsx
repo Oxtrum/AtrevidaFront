@@ -21,7 +21,7 @@ import type { UsuarioResumen } from '@/lib/api/auth';
 import type { RolCodigo } from '@/lib/api/auth';
 import { getLocalesDB, type LocalRow } from '@/lib/api/servicios';
 import { isAdminSys } from '@/lib/auth/adminSession';
-import { etiquetaRol } from '@/lib/auth/roles';
+import { esRolGlobal, etiquetaRol } from '@/lib/auth/roles';
 import { validarRestablecerPassword, type ErroresRestablecerPassword } from '@/lib/utils/restablecerPassword';
 import styles from './page.module.css';
 
@@ -96,11 +96,12 @@ const DEFAULT_NEW_USER_FORM: NewUserForm = {
 
 const ROLE_OPTIONS = [
   { value: 'gerencia', label: etiquetaRol('gerencia') },
+  { value: 'coordinacion', label: etiquetaRol('coordinacion') },
   { value: 'admin_sys', label: etiquetaRol('admin_sys') },
 ];
 
 const getUserLocalLabel = (row: UsuarioRow) => {
-  if (row.rol_codigo === 'admin_sys') return 'Todos los locales';
+  if (esRolGlobal(row.rol_codigo)) return 'Todos los locales';
   return row.nombre_local || 'Sin local asignado';
 };
 
@@ -192,7 +193,7 @@ export default function UsuariosPage() {
 
   const validateNewUser = (): boolean => {
     const errors: NewUserErrors = {};
-    const requiresLocal = newUserForm.rolCodigo !== 'admin_sys';
+    const requiresLocal = !esRolGlobal(newUserForm.rolCodigo);
     if (!newUserForm.username.trim()) errors.username = 'El usuario es obligatorio';
     if (!newUserForm.password.trim()) errors.password = 'La contraseña es obligatoria';
     if (!newUserForm.rolCodigo) errors.rolCodigo = 'Selecciona un rol';
@@ -206,7 +207,7 @@ export default function UsuariosPage() {
     setSaving(true);
     setNewUserErrors({});
     try {
-      const localId = newUserForm.rolCodigo === 'admin_sys'
+      const localId = esRolGlobal(newUserForm.rolCodigo)
         ? undefined
         : Number(newUserForm.localId);
 
@@ -259,9 +260,9 @@ export default function UsuariosPage() {
     const selectedLocalId = Number(localId);
     const currentLocalId = user.local_id == null ? '' : String(user.local_id);
 
-    if (user.rol_codigo === 'admin_sys') {
+    if (esRolGlobal(user.rol_codigo)) {
       setChangeLocalState((current) => current
-        ? { ...current, error: 'No se puede cambiar el local de un administrador del sistema.' }
+        ? { ...current, error: 'Este rol trabaja en todos los locales: no lleva local asignado.' }
         : current);
       return;
     }
@@ -406,7 +407,7 @@ export default function UsuariosPage() {
 
   // ─── Columns ─────────────────────────────────────────────────────────────
 
-  const newUserRequiresLocal = newUserForm.rolCodigo !== 'admin_sys';
+  const newUserRequiresLocal = !esRolGlobal(newUserForm.rolCodigo);
   const localOptions = locales.map((local) => ({ value: String(local.id), label: local.nombre }));
   const selectedChangeLocal = changeLocalState
     ? locales.find((local) => String(local.id) === changeLocalState.localId)
@@ -415,7 +416,7 @@ export default function UsuariosPage() {
   const getUserActions = (row: UsuarioRow): RowAction[] => {
     const actions: RowAction[] = [];
 
-    if (canManageUserLocales && row.rol_codigo !== 'admin_sys') {
+    if (canManageUserLocales && !esRolGlobal(row.rol_codigo)) {
       actions.push({
         label: 'Cambiar de local',
         icon: <MapPin size={12} strokeWidth={2} />,
@@ -454,7 +455,7 @@ export default function UsuariosPage() {
       label: 'Local',
       render: (value, row) => (
         <span className={styles.roleCell}>
-          {String(value || (row.rol_codigo === 'admin_sys' ? 'Todos los locales' : 'Sin local'))}
+          {String(value || (esRolGlobal(row.rol_codigo) ? 'Todos los locales' : 'Sin local'))}
         </span>
       ),
     },
@@ -580,13 +581,13 @@ export default function UsuariosPage() {
                 setNewUserForm((current) => ({
                   ...current,
                   rolCodigo,
-                  localId: rolCodigo === 'admin_sys' ? '' : current.localId,
+                  localId: esRolGlobal(rolCodigo) ? '' : current.localId,
                 }));
                 if (newUserErrors.rolCodigo || newUserErrors.localId) {
                   setNewUserErrors((current) => ({
                     ...current,
                     rolCodigo: undefined,
-                    localId: rolCodigo === 'admin_sys' ? undefined : current.localId,
+                    localId: esRolGlobal(rolCodigo) ? undefined : current.localId,
                   }));
                 }
               }}

@@ -10,14 +10,14 @@ import { ConsumosTab } from '@/components/AdminInventario/ConsumosTab';
 import { ItemsTab } from '@/components/AdminInventario/ItemsTab';
 import { MovimientosTab } from '@/components/AdminInventario/MovimientosTab';
 import { getAlertasInventario } from '@/lib/api/inventario';
-import { getStoredAdminRole } from '@/lib/auth/adminSession';
+import { canManageCatalog } from '@/lib/auth/adminSession';
 import { useAsyncData } from '@/lib/hooks/useAsyncData';
 import { useConfiguracion } from '@/lib/hooks/useConfiguracion';
 
 type TabKey = 'items' | 'consumos' | 'movimientos' | 'compras' | 'alertas';
 
-// Gerencia opera su local (ajustes, compras); crear/editar ítems y anular compras es de admin_sys (§7).
-const ROLES = ['admin_sys', 'gerencia'];
+// Gerencia opera su local (ajustes, compras); crear/editar ítems y anular compras es de admin_sys y coordinacion (§7).
+const ROLES = ['admin_sys', 'coordinacion', 'gerencia'];
 
 const TAB_KEYS: TabKey[] = ['items', 'consumos', 'movimientos', 'compras', 'alertas'];
 
@@ -39,7 +39,7 @@ export default function InventarioPage() {
   const { moneda } = useConfiguracion();
   const { data: alertas } = useAsyncData(getAlertasInventario, 'alertas-count');
   // Rol leído en render: la página solo se monta tras el guard de AdminPageShell.
-  const isAdminSys = typeof window !== 'undefined' && getStoredAdminRole() === 'admin_sys';
+  const canManage = typeof window !== 'undefined' && canManageCatalog();
 
   const tabs: TabItem<TabKey>[] = [
     { key: 'items', label: 'Ítems', icon: <Package size={15} /> },
@@ -64,10 +64,10 @@ export default function InventarioPage() {
         subtitle="Productos e insumos por local, consumos, movimientos de stock y compras"
       />
       <Tabs tabs={tabs} active={tab} onChange={setTab} ariaLabel="Secciones de inventario" />
-      {tab === 'items' && <ItemsTab canManage={isAdminSys} canAdjust moneda={moneda} initialQ={link.q} initialLocalId={link.localId} />}
+      {tab === 'items' && <ItemsTab canManage={canManage} canAdjust moneda={moneda} initialQ={link.q} initialLocalId={link.localId} />}
       {tab === 'consumos' && <ConsumosTab />}
       {tab === 'movimientos' && <MovimientosTab />}
-      {tab === 'compras' && <ComprasTab canAnular={isAdminSys} moneda={moneda} />}
+      {tab === 'compras' && <ComprasTab canAnular={canManage} moneda={moneda} />}
       {tab === 'alertas' && <AlertasTab />}
     </AdminPageShell>
   );

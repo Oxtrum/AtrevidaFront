@@ -2,8 +2,15 @@
 const ETIQUETAS: Record<string, string> = {
   admin_sys: 'Administrador de sistema',
   admin: 'Administrador',
+  coordinacion: 'Coordinadora',
   gerencia: 'Recepción',
 };
+
+/** Roles que trabajan sobre todos los locales y por eso no llevan local asignado. */
+export function esRolGlobal(codigo: string | null | undefined): boolean {
+  const limpio = (codigo ?? '').trim().toLowerCase();
+  return limpio === 'admin_sys' || limpio === 'coordinacion';
+}
 
 export function etiquetaRol(codigo: string | null | undefined): string {
   const limpio = (codigo ?? '').trim();

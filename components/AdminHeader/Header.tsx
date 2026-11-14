@@ -27,11 +27,11 @@ import {
 import styles from './Header.module.css';
 import { AdminThemeToggle } from '@/components/AdminThemeToggle/AdminThemeToggle';
 import { NotificationBell } from './NotificationBell';
-import { canViewAdminPayments, canViewFinancialReports, clearStoredAdminSession, isAdminSys } from '@/lib/auth/adminSession';
+import { canManageCatalog, canViewAdminPayments, canViewFinancialReports, clearStoredAdminSession, isAdminSys } from '@/lib/auth/adminSession';
 
 const BASE = '/atrevida-gestion';
 
-type NavAccess = 'financial' | 'payments' | 'adminSys';
+type NavAccess = 'financial' | 'payments' | 'adminSys' | 'catalog';
 
 /** Destino del menú. Si varias entradas comparten `path`, `param` dice qué pestaña (?clave=valor) abre cada una. */
 interface NavTarget {
@@ -133,7 +133,7 @@ const NAV_ITEMS: NavItem[] = [
       { label: 'Usuarios', path: `${BASE}/configuracion/usuarios`, access: 'adminSys' },
       { label: 'Gastos fijos', path: `${BASE}/configuracion/gastos-fijos`, access: 'adminSys' },
       { label: 'Categorías financieras', path: `${BASE}/configuracion/categorias-financieras`, access: 'adminSys' },
-      { label: 'Categorías de inventario', path: `${BASE}/configuracion/categorias-inventario`, access: 'adminSys' },
+      { label: 'Categorías de inventario', path: `${BASE}/configuracion/categorias-inventario`, access: 'catalog' },
       { label: 'Inventario y finanzas', path: `${BASE}/configuracion/parametros`, access: 'adminSys' },
     ],
   },
@@ -285,12 +285,14 @@ export default function Header() {
   const [showAdminPayments, setShowAdminPayments] = useState(false);
   const [showFinancialReports, setShowFinancialReports] = useState(false);
   const [showAdminSys, setShowAdminSys] = useState(false);
+  const [showCatalog, setShowCatalog] = useState(false);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setShowAdminPayments(canViewAdminPayments());
       setShowFinancialReports(canViewFinancialReports());
       setShowAdminSys(isAdminSys());
+      setShowCatalog(canManageCatalog());
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
@@ -412,7 +414,7 @@ export default function Header() {
           <Suspense fallback={null}>
             <NavList
               pathname={pathname}
-              permissions={{ financial: showFinancialReports, payments: showAdminPayments, adminSys: showAdminSys }}
+              permissions={{ financial: showFinancialReports, payments: showAdminPayments, adminSys: showAdminSys, catalog: showCatalog }}
               onNavigate={() => setMobileOpen(false)}
               navRef={navRef}
             />
