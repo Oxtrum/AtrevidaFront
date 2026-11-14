@@ -4,12 +4,13 @@ import { useMemo, useState } from 'react';
 import { AlertBanner, CursorPagination, FilterBar, SelectorFecha, VistaToggle } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { getCalendarioConsumo } from '@/lib/api/atenciones';
-import { localInicial } from '@/lib/api/localScope';
+import { getAdminLocalScope, localInicial } from '@/lib/api/localScope';
 import { useCursorList } from '@/lib/hooks/useCursorList';
 import { useDebouncedValue } from '@/lib/hooks/useDebouncedValue';
 import { useInventarioItems } from '@/lib/hooks/useInventarioItems';
 import { leerVistaCliente, useVistaUrl } from '@/lib/hooks/useVistaUrl';
 import { ATENCION_ESTADO, estadoDeAtencion } from '@/lib/utils/atencionEstado';
+import { hayFiltrosActivos } from '@/lib/utils/filtros';
 import { cantidadTexto } from '@/lib/utils/cantidadTexto';
 import { todayISO } from '@/lib/utils/format';
 import { diasDeSemana } from '@/lib/utils/semana';
@@ -54,6 +55,13 @@ export function CalendarioConsumoTab() {
   );
   const ctrl = useAtencionModales(() => void load());
   const eventos = data?.eventos ?? [];
+  // La semana es navegación, no un filtro: Limpiar no la mueve.
+  const limpiar = () => {
+    setItemId('');
+    setEstado('');
+    setQ('');
+    if (!getAdminLocalScope()) setLocalId('');
+  };
   const cabecera = (
     <CabeceraVista titulo={loading ? 'Cargando…' : cantidadTexto(eventos.length, 'consumo registrado', 'consumos registrados', pagination.page)}>
       <VistaToggle value={modo} onChange={setModo} />
@@ -62,15 +70,24 @@ export function CalendarioConsumoTab() {
 
   return (
     <>
-      <FilterBar unaLinea>
+      <FilterBar
+        unaLinea
+        onLimpiar={limpiar}
+        hayFiltros={hayFiltrosActivos([itemId, estado, q, !getAdminLocalScope() && localId])}
+        avanzadosAbiertos={Boolean(link.item_id || link.estado_descuento)}
+        avanzados={(
+          <>
+              <FilterBar.Item label="Insumo">
+                <CustomSelect value={itemId} onChange={setItemId} options={items.filter((i) => i.activo).map((i) => ({ value: String(i.id), label: `${i.nombre} (${i.unidad_medida})` }))} placeholder="Todos" allowClear />
+              </FilterBar.Item>
+              <FilterBar.Item label="Inventario">
+                <CustomSelect value={estado} onChange={setEstado} options={STOCK_OPTIONS} placeholder="Todos" allowClear searchable={false} />
+              </FilterBar.Item>
+          </>
+        )}
+      >
         <FilterBar.Item label="Semana" full><SelectorFecha conHoy value={fechaBase} onChange={setFechaBase} /></FilterBar.Item>
         <FilterBar.Local value={localId} onChange={setLocalId} />
-        <FilterBar.Item label="Insumo">
-          <CustomSelect value={itemId} onChange={setItemId} options={items.filter((i) => i.activo).map((i) => ({ value: String(i.id), label: `${i.nombre} (${i.unidad_medida})` }))} placeholder="Todos" allowClear />
-        </FilterBar.Item>
-        <FilterBar.Item label="Inventario">
-          <CustomSelect value={estado} onChange={setEstado} options={STOCK_OPTIONS} placeholder="Todos" allowClear searchable={false} />
-        </FilterBar.Item>
         <FilterBar.Search value={q} onChange={setQ} placeholder="Cliente o servicio" />
       </FilterBar>
 

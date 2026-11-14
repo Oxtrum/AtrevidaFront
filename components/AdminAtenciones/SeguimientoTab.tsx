@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import { AlertBanner, CursorPagination, FilterBar, StatCard, StatGrid } from '@/components/AdminConfig';
 import { getSeguimiento, getSeguimientoResumen, type TipoSeguimiento } from '@/lib/api/atenciones';
-import { localInicial } from '@/lib/api/localScope';
+import { getAdminLocalScope, localInicial } from '@/lib/api/localScope';
 import { useAsyncData } from '@/lib/hooks/useAsyncData';
 import { useCursorList } from '@/lib/hooks/useCursorList';
 import { useDebouncedValue } from '@/lib/hooks/useDebouncedValue';
 import { leerVistaCliente, useVistaUrl } from '@/lib/hooks/useVistaUrl';
 import { ATENCION_ESTADO, estadoDeSeguimiento } from '@/lib/utils/atencionEstado';
+import { hayFiltrosActivos } from '@/lib/utils/filtros';
 import { AtencionFila } from './AtencionFila';
 import { AtencionLista } from './AtencionLista';
 import { AtencionModales, useAtencionModales } from './AtencionModales';
@@ -42,10 +43,17 @@ export function SeguimientoTab() {
     <StatCard value={valor ?? 0} label={label} tone={tone} loading={resumen.loading} onClick={() => filtrarPor(clave)} active={tipo === clave} />
   );
   const items = data?.items ?? [];
+  const limpiar = () => {
+    setDesde('');
+    setHasta('');
+    setTipo('');
+    setQ('');
+    if (!getAdminLocalScope()) setLocalId('');
+  };
 
   return (
     <>
-      <FilterBar unaLinea>
+      <FilterBar unaLinea onLimpiar={limpiar} hayFiltros={hayFiltrosActivos([desde, hasta, tipo, q, !getAdminLocalScope() && localId])}>
         <FilterBar.Fechas desde={desde} hasta={hasta} onChange={(d, h) => { setDesde(d); setHasta(h); }} />
         <FilterBar.Local value={localId} onChange={setLocalId} />
         <FilterBar.Search value={q} onChange={setQ} />

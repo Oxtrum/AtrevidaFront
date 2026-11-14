@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import { AlertBanner, CursorPagination, FilterBar, SelectorFecha, StatCard, StatGrid } from '@/components/AdminConfig';
 import { getJornada, getJornadaResumen, type EstadoOperativoJornada } from '@/lib/api/atenciones';
-import { localInicial } from '@/lib/api/localScope';
+import { getAdminLocalScope, localInicial } from '@/lib/api/localScope';
 import { useAsyncData } from '@/lib/hooks/useAsyncData';
 import { useCursorList } from '@/lib/hooks/useCursorList';
 import { useDebouncedValue } from '@/lib/hooks/useDebouncedValue';
 import { leerVistaCliente, useVistaUrl } from '@/lib/hooks/useVistaUrl';
 import { ATENCION_ESTADO, estadoDeJornada } from '@/lib/utils/atencionEstado';
+import { hayFiltrosActivos } from '@/lib/utils/filtros';
 import { agruparPorFranja, proximaReservaId } from '@/lib/utils/jornada';
 import { AtencionFila } from './AtencionFila';
 import { AtencionGrupo, AtencionLista } from './AtencionLista';
@@ -46,6 +47,12 @@ export function JornadaTab() {
     <StatCard value={valor ?? 0} label={label} tone={tone} loading={resumen.loading} onClick={() => filtrarPor(clave)} active={estado === clave} />
   );
   const rows = data?.items ?? [];
+  const limpiar = () => {
+    setFecha('');
+    setEstado('');
+    setQ('');
+    if (!getAdminLocalScope()) setLocalId('');
+  };
   const fechaMostrada = fecha || hoy || data?.fecha || '';
   // "Siguiente" solo tiene sentido mirando el día de hoy.
   const ahora = new Date().toTimeString().slice(0, 5);
@@ -54,7 +61,7 @@ export function JornadaTab() {
 
   return (
     <>
-      <FilterBar unaLinea>
+      <FilterBar unaLinea onLimpiar={limpiar} hayFiltros={hayFiltrosActivos([fecha, estado, q, !getAdminLocalScope() && localId])}>
         <FilterBar.Item label="Fecha" full>
           <SelectorFecha unidad="dia" conHoy value={fechaMostrada} today={hoy} onChange={setFecha} />
         </FilterBar.Item>

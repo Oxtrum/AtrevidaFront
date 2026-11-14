@@ -3,11 +3,12 @@
 import { useMemo, useState } from 'react';
 import { AlertBanner, CursorPagination, FilterBar, SelectorFecha, VistaToggle } from '@/components/AdminConfig';
 import { getCalendarioPersonal } from '@/lib/api/atenciones';
-import { localInicial } from '@/lib/api/localScope';
+import { getAdminLocalScope, localInicial } from '@/lib/api/localScope';
 import { useCursorList } from '@/lib/hooks/useCursorList';
 import { useDebouncedValue } from '@/lib/hooks/useDebouncedValue';
 import { leerVistaCliente, useVistaUrl } from '@/lib/hooks/useVistaUrl';
 import { ATENCION_ESTADO, estadoDeAtencion } from '@/lib/utils/atencionEstado';
+import { hayFiltrosActivos } from '@/lib/utils/filtros';
 import { cantidadTexto } from '@/lib/utils/cantidadTexto';
 import { todayISO } from '@/lib/utils/format';
 import { diasDeSemana } from '@/lib/utils/semana';
@@ -51,6 +52,12 @@ export function CalendarioPersonalTab() {
   );
   const ctrl = useAtencionModales(() => void load());
   const eventos = data?.eventos ?? [];
+  // La semana es navegación, no un filtro: Limpiar no la mueve.
+  const limpiar = () => {
+    setEmpleado('');
+    setQ('');
+    if (!getAdminLocalScope()) setLocalId('');
+  };
   const cabecera = (
     <CabeceraVista titulo={loading ? 'Cargando…' : cantidadTexto(eventos.length, 'atención', 'atenciones', pagination.page)}>
       <VistaToggle value={modo} onChange={setModo} />
@@ -59,7 +66,7 @@ export function CalendarioPersonalTab() {
 
   return (
     <>
-      <FilterBar unaLinea>
+      <FilterBar unaLinea onLimpiar={limpiar} hayFiltros={hayFiltrosActivos([empleado, q, !getAdminLocalScope() && localId])}>
         <FilterBar.Item label="Semana" full><SelectorFecha conHoy value={fechaBase} onChange={setFechaBase} /></FilterBar.Item>
         <FilterBar.Local value={localId} onChange={setLocalId} />
         <FilterBar.Item label="Personal"><input value={empleado} onChange={(e) => setEmpleado(e.target.value)} placeholder="Nombre" /></FilterBar.Item>

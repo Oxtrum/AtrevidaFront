@@ -1,14 +1,53 @@
+'use client';
+
+import { useState } from 'react';
+import { SlidersHorizontal, X } from 'lucide-react';
 import { getAdminLocalScope } from '@/lib/api/localScope';
+import { AdminButton } from './AdminButton';
 import { LocalSelect } from './LocalSelect';
 import { RangoFechasFiltro } from './RangoFechasFiltro';
 import styles from './FilterBar.module.css';
 
+interface FilterBarProps {
+  children: React.ReactNode;
+  /** Todos los filtros en una sola fila en pantallas anchas; en angostas se reparten en varias. */
+  unaLinea?: boolean;
+  /** Filtros secundarios. Quedan ocultos tras "Más filtros" y se abren dentro de la misma caja. */
+  avanzados?: React.ReactNode;
+  /** Abre los filtros secundarios desde el inicio (por ejemplo, cuando la URL ya trae alguno). */
+  avanzadosAbiertos?: boolean;
+  /** Muestra el botón Limpiar, que vuelve todos los filtros a su valor inicial. */
+  onLimpiar?: () => void;
+  /** Si es false, Limpiar queda deshabilitado porque no hay nada que limpiar. */
+  hayFiltros?: boolean;
+}
+
 /**
- * Contenedor de filtros sobre una tabla. Hijos: <FilterBar.Item label="…">control</FilterBar.Item>.
- * `unaLinea`: todos los filtros en una sola fila en pantallas anchas; en angostas se reparten en varias.
+ * Contenedor de filtros sobre una tabla o lista. Hijos: <FilterBar.Item label="…">control</FilterBar.Item>.
+ * Es el único lugar que sabe de "Más filtros" y "Limpiar": todas las vistas se comportan igual.
  */
-export function FilterBar({ children, unaLinea = false }: { children: React.ReactNode; unaLinea?: boolean }) {
-  return <div className={`${styles.bar} ${unaLinea ? styles.unaLinea : ''}`}>{children}</div>;
+export function FilterBar({ children, unaLinea = false, avanzados, avanzadosAbiertos = false, onLimpiar, hayFiltros = true }: FilterBarProps) {
+  const [abierto, setAbierto] = useState(avanzadosAbiertos);
+  return (
+    <div className={`${styles.bar} ${unaLinea ? styles.unaLinea : ''}`}>
+      {children}
+      {avanzados && (
+        <Action>
+          <AdminButton variant="secondary" size="sm" icon={<SlidersHorizontal size={14} />} onClick={() => setAbierto((actual) => !actual)} aria-expanded={abierto}>
+            {abierto ? 'Menos filtros' : 'Más filtros'}
+          </AdminButton>
+        </Action>
+      )}
+      {onLimpiar && (
+        <Action>
+          <AdminButton variant="secondary" size="sm" icon={<X size={14} />} onClick={onLimpiar} disabled={!hayFiltros}>
+            Limpiar
+          </AdminButton>
+        </Action>
+      )}
+      {avanzados && abierto && <div className={styles.avanzados}>{avanzados}</div>}
+    </div>
+  );
 }
 
 function Item({ label, children, grow, full, className = '' }: { label: string; children: React.ReactNode; grow?: boolean; /** Ocupa toda la fila (en `unaLinea`, tres columnas): selector de semana. */ full?: boolean; className?: string }) {

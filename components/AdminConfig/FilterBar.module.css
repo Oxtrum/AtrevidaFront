@@ -50,8 +50,9 @@
 }
 
 .unaLinea .action {
-  flex: 0 1 140px;
+  flex: 0 0 auto;
   align-self: flex-end;
+  white-space: nowrap;
 }
 
 .action {
@@ -116,4 +117,20 @@
 :global([data-admin-theme='light']) .item input[type='date'],
 :global([data-admin-theme='light']) .item input[type='month'] {
   color-scheme: light;
+}
+
+/* Filtros secundarios: una segunda fila dentro de la misma caja, separada por una línea fina. */
+.avanzados {
+  grid-column: 1 / -1;
+  flex: 1 1 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.875rem 0.75rem;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--admin-border-subtle);
+}
+
+.avanzados .item {
+  flex: 1 1 160px;
 }

@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { SlidersHorizontal, X } from 'lucide-react';
-import { AdminButton, ConfirmDialog, CursorPagination, DataTable, FilterBar, StatusBadge } from '@/components/AdminConfig';
+import { ConfirmDialog, CursorPagination, DataTable, FilterBar, StatusBadge } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { desactivarAtencion, getAtenciones, type Atencion } from '@/lib/api/atenciones';
 import { getAdminLocalScope, localInicial } from '@/lib/api/localScope';
+import { hayFiltrosActivos } from '@/lib/utils/filtros';
 import { useCursorList } from '@/lib/hooks/useCursorList';
 import { useDebouncedValue } from '@/lib/hooks/useDebouncedValue';
 import { useInventarioItems } from '@/lib/hooks/useInventarioItems';
@@ -50,7 +50,6 @@ export function HistorialAtencionesTab() {
   const [itemId, setItemId] = useState(link.item_id);
   const [pendientesStock, setPendientesStock] = useState(link.pendientes_stock === 'true' || link.pendientes_stock === 'false' ? link.pendientes_stock : '');
   const [resultado, setResultado] = useState(RESULTADOS.includes(link.resultado as Resultado) ? link.resultado : '');
-  const [avanzados, setAvanzados] = useState(() => Boolean(link.cliente || link.servicio || link.empleado || link.item_id || link.pendientes_stock));
   const { items } = useInventarioItems({ activo: true });
 
   const texto = {
@@ -158,43 +157,39 @@ export function HistorialAtencionesTab() {
 
   return (
     <>
-      <FilterBar unaLinea>
+      <FilterBar
+        unaLinea
+        onLimpiar={limpiar}
+        hayFiltros={hayFiltrosActivos([q, desde, hasta, resultado, cliente, servicio, empleado, itemId, pendientesStock, !getAdminLocalScope() && localId])}
+        avanzadosAbiertos={Boolean(link.cliente || link.servicio || link.empleado || link.item_id || link.pendientes_stock)}
+        avanzados={(
+          <>
+            <FilterBar.Item label="Cliente"><input type="text" value={cliente} onChange={(e) => setCliente(e.target.value)} placeholder="Nombre del cliente" /></FilterBar.Item>
+            <FilterBar.Item label="Servicio"><input type="text" value={servicio} onChange={(e) => setServicio(e.target.value)} placeholder="Servicio realizado" /></FilterBar.Item>
+            <FilterBar.Item label="Personal"><input type="text" value={empleado} onChange={(e) => setEmpleado(e.target.value)} placeholder="Nombre del personal" /></FilterBar.Item>
+            <FilterBar.Item label="Insumo">
+              <CustomSelect value={itemId} onChange={setItemId} options={items.filter((item) => item.activo).map((item) => ({ value: String(item.id), label: item.nombre }))} placeholder="Todos" allowClear />
+            </FilterBar.Item>
+            <FilterBar.Item label="Inventario">
+              <CustomSelect
+                value={pendientesStock}
+                onChange={setPendientesStock}
+                options={[{ value: 'true', label: 'Descuento pendiente' }, { value: 'false', label: 'Descuento aplicado' }]}
+                placeholder="Todos"
+                allowClear
+                searchable={false}
+              />
+            </FilterBar.Item>
+          </>
+        )}
+      >
         <FilterBar.Search value={q} onChange={setQ} />
         <FilterBar.Local value={localId} onChange={setLocalId} />
         <FilterBar.Item label="Resultado">
           <CustomSelect value={resultado} onChange={setResultado} options={RESULTADO_OPTIONS} placeholder="Todos" allowClear searchable={false} />
         </FilterBar.Item>
         <FilterBar.Fechas desde={desde} hasta={hasta} onChange={(d, h) => { setDesde(d); setHasta(h); }} />
-        <FilterBar.Action>
-          <AdminButton variant="secondary" size="sm" icon={<SlidersHorizontal size={14} />} onClick={() => setAvanzados((actual) => !actual)} aria-expanded={avanzados}>
-            {avanzados ? 'Menos filtros' : 'Más filtros'}
-          </AdminButton>
-        </FilterBar.Action>
-        <FilterBar.Action>
-          <AdminButton variant="secondary" size="sm" icon={<X size={14} />} onClick={limpiar}>Limpiar</AdminButton>
-        </FilterBar.Action>
       </FilterBar>
-
-      {avanzados && (
-        <FilterBar>
-          <FilterBar.Item label="Cliente"><input type="text" value={cliente} onChange={(e) => setCliente(e.target.value)} placeholder="Nombre del cliente" /></FilterBar.Item>
-          <FilterBar.Item label="Servicio"><input type="text" value={servicio} onChange={(e) => setServicio(e.target.value)} placeholder="Servicio realizado" /></FilterBar.Item>
-          <FilterBar.Item label="Personal"><input type="text" value={empleado} onChange={(e) => setEmpleado(e.target.value)} placeholder="Nombre del personal" /></FilterBar.Item>
-          <FilterBar.Item label="Insumo">
-            <CustomSelect value={itemId} onChange={setItemId} options={items.filter((item) => item.activo).map((item) => ({ value: String(item.id), label: item.nombre }))} placeholder="Todos" allowClear />
-          </FilterBar.Item>
-          <FilterBar.Item label="Inventario">
-            <CustomSelect
-              value={pendientesStock}
-              onChange={setPendientesStock}
-              options={[{ value: 'true', label: 'Descuento pendiente' }, { value: 'false', label: 'Descuento aplicado' }]}
-              placeholder="Todos"
-              allowClear
-              searchable={false}
-            />
-          </FilterBar.Item>
-        </FilterBar>
-      )}
 
       <div className={styles.historyTable}>
         <DataTable<AtencionRow>
