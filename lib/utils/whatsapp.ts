@@ -90,6 +90,19 @@ export const buildReminderWhatsappHref = (reserva: ReservaBD): string | null => 
 };
 
 /**
+ * Mensaje del botón Contactar por WhatsApp de una reserva. Si la reserva ya tiene servicio, escribe sobre esa
+ * reserva (servicio, día, hora y sucursal) sin preguntar nada que ya se sabe. Solo cuando todavía no hay servicio
+ * (una solicitud sin definir) pregunta qué tratamiento quiere. Devuelve null si no hay teléfono utilizable.
+ */
+export const buildContactoWhatsappHref = (reserva: ReservaBD): string | null => {
+  const servicio = (reserva.servicio_confirmado || reserva.servicio_solicitado || reserva.servicio || '').trim();
+  const message = servicio
+    ? `Hola 🌸 Te escribimos por tu reserva de ${servicio}: ${getDayLabel(reserva.fecha).toLowerCase()} a las ${formatHora12(reserva.hora_desde)}, sucursal ${formatLocal(reserva.local)}.`
+    : 'Hola 🌸 Recibimos tu reserva. ¿Qué tratamiento deseas realizar?';
+  return buildClientWhatsappUrl(reserva.telefono_e164, reserva.numero_telefono, message);
+};
+
+/**
  * Mensaje al cliente cuando el panel detecta que tiene más de una reserva el mismo día
  * (puede ser una confusión al registrar). `fecha` es YYYY-MM-DD y es opcional.
  * Devuelve null si no hay teléfono utilizable.

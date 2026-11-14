@@ -10,7 +10,7 @@ import { toast } from '@/components/Shared/Toast';
 import { actualizarEstadoReservaDB, eliminarReservaDB } from '@/lib/api/reservas';
 import { AtencionFormModal } from '@/components/AdminAtenciones/AtencionFormModal';
 import { CancelarReservaModal } from './CancelarReservaModal';
-import { buildClientWhatsappUrl } from '@/lib/utils/whatsapp';
+import { buildContactoWhatsappHref } from '@/lib/utils/whatsapp';
 import type { ReservaBD } from '@/types/reserva';
 import styles from './ReservaAcciones.module.css';
 
@@ -80,7 +80,7 @@ export function ReservaAcciones({ reserva, onCambio }: ReservaAccionesProps) {
   const [ocupada, setOcupada] = useState(false);
 
   const estado = reserva.estado;
-  const whatsappHref = buildClientWhatsappUrl(reserva.telefono_e164, reserva.numero_telefono, 'Hola 🌸 Recibimos tu reserva. ¿Qué tratamiento deseas realizar?');
+  const whatsappHref = buildContactoWhatsappHref(reserva);
 
   const acciones: RowAction[] = [
     ...(whatsappHref ? [{
