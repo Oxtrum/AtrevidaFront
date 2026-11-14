@@ -113,7 +113,7 @@
   margin: 0.1rem 0 0;
   font-size: 0.82rem;
   font-weight: 600;
-  color: var(--admin-accent-primary);
+  color: var(--admin-text-lilac);
   text-transform: capitalize;
 }
 
@@ -184,9 +184,8 @@
   color: var(--admin-text-dim);
 }
 
-.noteWarn { color: #fbbf24; }
+.noteWarn { color: var(--admin-warning-text); }
 
-:global([data-admin-theme='light']) .noteWarn { color: #b45309; }
 
 .stock {
   display: inline-flex;
@@ -196,7 +195,7 @@
   color: var(--admin-text-dim);
 }
 
-.stock svg { color: #fbbf24; }
+.stock svg { color: var(--admin-warning-text); }
 
 /* Acciones */
 .actions {

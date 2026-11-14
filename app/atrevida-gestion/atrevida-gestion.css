@@ -6,7 +6,7 @@
   --admin-bg-tertiary: #171722;
   --admin-foreground: #fafafa;
   --admin-text-muted: rgba(250, 250, 250, 0.68);
-  --admin-text-dim: rgba(250, 250, 250, 0.42);
+  --admin-text-dim: rgba(250, 250, 250, 0.56);
   --admin-text-light: rgba(250, 250, 250, 0.82);
 
   --admin-accent-primary: #ec008c;
@@ -133,7 +133,7 @@
   --admin-bg-tertiary: #eef1f6;
   --admin-foreground: #1a1420;
   --admin-text-muted: rgba(26, 20, 32, 0.72);
-  --admin-text-dim: rgba(26, 20, 32, 0.50);
+  --admin-text-dim: rgba(26, 20, 32, 0.62);
   --admin-text-light: rgba(26, 20, 32, 0.88);
   --admin-warning-text: #92400e;
   --admin-success-text: #065f46;

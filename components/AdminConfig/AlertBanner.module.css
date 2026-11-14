@@ -35,7 +35,7 @@
 .warning {
   background: rgba(245, 158, 11, 0.1);
   border-color: rgba(245, 158, 11, 0.32);
-  color: #fbbf24;
+  color: var(--admin-warning-text);
 }
 
 .info {
@@ -50,6 +50,5 @@
   color: var(--admin-accent-danger);
 }
 
-:global([data-admin-theme='light']) .warning { color: #b45309; }
 :global([data-admin-theme='light']) .info { color: #0369a1; }
 :global([data-admin-theme='light']) .danger { color: #b91c1c; }

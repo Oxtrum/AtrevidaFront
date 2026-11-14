@@ -19,13 +19,13 @@
 
 .success {
   background: rgba(16, 185, 129, 0.12);
-  color: #34d399;
+  color: var(--admin-success-text);
   border-color: rgba(16, 185, 129, 0.3);
 }
 
 .warning {
   background: rgba(245, 158, 11, 0.12);
-  color: #fbbf24;
+  color: var(--admin-warning-text);
   border-color: rgba(245, 158, 11, 0.32);
 }
 
@@ -41,7 +41,5 @@
   border-color: rgba(20, 174, 239, 0.3);
 }
 
-:global([data-admin-theme='light']) .success { color: #047857; }
-:global([data-admin-theme='light']) .warning { color: #b45309; }
 :global([data-admin-theme='light']) .danger { color: #b91c1c; }
 :global([data-admin-theme='light']) .info { color: #0369a1; }

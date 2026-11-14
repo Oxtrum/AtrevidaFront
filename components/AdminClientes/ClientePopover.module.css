@@ -42,7 +42,7 @@
 
 /* Reserva sin cliente registrado: el icono avisa en ambar. */
 .nombreSinVincular .icono {
-  color: #fbbf24;
+  color: var(--admin-warning-text);
 }
 
 :global([data-admin-theme='light']) .nombreSinVincular .icono {
@@ -121,7 +121,7 @@
 .aviso svg {
   flex: none;
   margin-top: 0.08rem;
-  color: #fbbf24;
+  color: var(--admin-warning-text);
 }
 
 :global([data-admin-theme='light']) .aviso {
