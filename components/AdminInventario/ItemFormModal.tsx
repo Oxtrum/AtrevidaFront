@@ -18,10 +18,12 @@ import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
 import {
   actualizarInventarioItem,
+  ajustarInventario,
   crearInventarioItem,
   eliminarImagenInventario,
   subirImagenInventario,
 } from '@/lib/api/inventario';
+import { useLocales } from '@/lib/hooks/useLocales';
 import { UNIDADES_MEDIDA } from '@/types/inventario';
 import type { CategoriaInventario, InventarioItem, UnidadMedida } from '@/types/inventario';
 
@@ -44,6 +46,10 @@ interface FormState {
   costo_referencia: string;
   precio_venta: string;
   stock_minimo: string;
+  /** Solo al crear: cantidad con la que nace el ítem. Vacío = sin stock inicial. */
+  stock_inicial: string;
+  /** Solo al crear: local que recibe el stock inicial. '' = todos los locales. */
+  local_inicial: string;
 }
 
 const EMPTY: FormState = {
@@ -54,6 +60,8 @@ const EMPTY: FormState = {
   costo_referencia: '',
   precio_venta: '',
   stock_minimo: '0',
+  stock_inicial: '',
+  local_inicial: '',
 };
 
 /** Sufijo corto que acompaña al stock mínimo según la unidad elegida. */
@@ -71,7 +79,69 @@ const SUFIJO_UNIDAD: Record<UnidadMedida, string> = {
 
 const toNumber = (v: string) => Number(v.replace(',', '.'));
 
+const MOTIVO_STOCK_INICIAL = 'Inventario inicial';
+
 const SIN_CAMBIO_IMAGEN: ImagenSeleccion = { blob: null, quitar: false };
+
+type LocalOpcion = { id: number; nombre: string };
+
+interface StockInicialFieldsProps {
+  cantidad: string;
+  localId: string;
+  sufijo: string;
+  error?: string;
+  onChange: (p: Pick<Partial<FormState>, 'stock_inicial' | 'local_inicial'>) => void;
+  /** Entrega al formulario los locales disponibles, para repartir el stock cuando se elige "Todos". */
+  onLocales: (locales: LocalOpcion[]) => void;
+}
+
+/** Stock con el que nace el ítem y a qué local va. Por defecto, todos los locales. */
+function StockInicialFields({ cantidad, localId, sufijo, error, onChange, onLocales }: StockInicialFieldsProps) {
+  const { locales } = useLocales();
+
+  useEffect(() => {
+    onLocales(locales);
+  }, [locales, onLocales]);
+
+  return (
+    <FormRow>
+      <FormField
+        label="Stock inicial"
+        htmlFor="inv-stock-inicial"
+        error={error}
+        hint="Opcional. Lo que hay hoy; después cambia con compras, ajustes y atenciones."
+      >
+        <InputAffix end={sufijo}>
+          <input
+            id="inv-stock-inicial"
+            type="text"
+            inputMode="decimal"
+            value={cantidad}
+            onChange={(e) => onChange({ stock_inicial: e.target.value })}
+            placeholder="0"
+          />
+        </InputAffix>
+      </FormField>
+
+      <FormField
+        label="Local del stock inicial"
+        labelId="inv-local-inicial-lbl"
+        hint={localId ? 'Solo este local recibe el stock inicial.' : 'Cada local recibe esa cantidad.'}
+      >
+        <CustomSelect
+          value={localId}
+          onChange={(v) => onChange({ local_inicial: v })}
+          options={[
+            { value: '', label: 'Todos los locales' },
+            ...locales.map((l) => ({ value: String(l.id), label: l.nombre })),
+          ]}
+          searchable={false}
+          ariaLabelledBy="inv-local-inicial-lbl"
+        />
+      </FormField>
+    </FormRow>
+  );
+}
 
 export function ItemFormModal({ isOpen, item, categorias, moneda, onClose, onSaved }: ItemFormModalProps) {
   const [form, setForm] = useState<FormState>(EMPTY);
@@ -79,6 +149,8 @@ export function ItemFormModal({ isOpen, item, categorias, moneda, onClose, onSav
   const [saving, setSaving] = useState(false);
   const [imagen, setImagen] = useState<ImagenSeleccion>(SIN_CAMBIO_IMAGEN);
   const [convirtiendo, setConvirtiendo] = useState(false);
+  // Los carga StockInicialFields, que solo existe al crear y con el modal abierto: editar no los pide.
+  const [locales, setLocales] = useState<LocalOpcion[]>([]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -93,6 +165,8 @@ export function ItemFormModal({ isOpen, item, categorias, moneda, onClose, onSav
             costo_referencia: item.costo_referencia != null ? String(item.costo_referencia) : '',
             precio_venta: item.precio_venta != null ? String(item.precio_venta) : '',
             stock_minimo: String(item.stock_minimo),
+            stock_inicial: '',
+            local_inicial: '',
           }
         : EMPTY,
     );
@@ -111,6 +185,7 @@ export function ItemFormModal({ isOpen, item, categorias, moneda, onClose, onSav
     if (!Number.isFinite(min) || min < 0) e.stock_minimo = 'Debe ser 0 o mayor';
     if (form.costo_referencia && !(toNumber(form.costo_referencia) >= 0)) e.costo_referencia = 'Costo inválido';
     if (form.precio_venta && !(toNumber(form.precio_venta) >= 0)) e.precio_venta = 'Precio inválido';
+    if (!item && form.stock_inicial.trim() && !(toNumber(form.stock_inicial) >= 0)) e.stock_inicial = 'Cantidad inválida';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -149,7 +224,33 @@ export function ItemFormModal({ isOpen, item, categorias, moneda, onClose, onSav
         imagenError = err instanceof Error ? err.message : 'error desconocido';
       }
 
-      if (imagenError) toast.error(`Ítem guardado, pero la imagen no se pudo guardar: ${imagenError}`);
+      // El stock inicial es un ajuste positivo por local (queda en el kardex). Igual que la imagen: si falla,
+      // el ítem ya existe y se avisa en qué locales faltó para cargarlo con "Ajustar stock".
+      const sinStock: string[] = [];
+      const stockInicial = item ? 0 : toNumber(form.stock_inicial || '0');
+      if (stockInicial > 0) {
+        const destinos = form.local_inicial ? locales.filter((l) => String(l.id) === form.local_inicial) : locales;
+        for (const local of destinos) {
+          try {
+            await ajustarInventario({
+              item_id: itemId,
+              local_id: local.id,
+              tipo: 'AJUSTE_POSITIVO',
+              cantidad: stockInicial,
+              motivo: MOTIVO_STOCK_INICIAL,
+            });
+          } catch {
+            sinStock.push(local.nombre);
+          }
+        }
+        if (destinos.length === 0) sinStock.push('ningún local disponible');
+      }
+
+      const avisos = [
+        ...(imagenError ? [`la imagen no se pudo guardar: ${imagenError}`] : []),
+        ...(sinStock.length ? [`el stock inicial no se registró en ${sinStock.join(', ')}; cárgalo con "Ajustar stock"`] : []),
+      ];
+      if (avisos.length) toast.error(`Ítem guardado, pero ${avisos.join('; ')}`);
       else toast.success(item ? 'Ítem actualizado' : 'Ítem creado');
       onSaved();
       onClose();
@@ -230,6 +331,16 @@ export function ItemFormModal({ isOpen, item, categorias, moneda, onClose, onSav
         </FormSplit>
 
         <FormSection title="Stock y costos" icon={<Wallet size={13} strokeWidth={2} />}>
+          {!item && (
+            <StockInicialFields
+              cantidad={form.stock_inicial}
+              localId={form.local_inicial}
+              sufijo={sufijoUnidad}
+              error={errors.stock_inicial}
+              onChange={patch}
+              onLocales={setLocales}
+            />
+          )}
           <FormRow>
             <FormField
               label="Stock mínimo"
