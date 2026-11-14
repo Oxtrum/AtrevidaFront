@@ -103,9 +103,10 @@ export const buildDuplicadaWhatsappHref = (
   },
 ): string | null => {
   const dia = params.fecha ? getDayLabel(params.fecha).toLowerCase() : 'ese día';
-  const lista = params.reservas.map(
-    r => `• ${formatHora12(r.hora_desde)} · Sucursal ${formatLocal(r.local)}`,
-  );
+  const lista = params.reservas.map(r => {
+    const partes = [formatHora12(r.hora_desde), r.servicio?.trim(), `Sucursal ${formatLocal(r.local)}`];
+    return `• ${partes.filter(Boolean).join(' · ')}`;
+  });
   const message = [
     getSaludo(),
     `Revisando la agenda vemos que ${dia} tienes más de una cita:`,
@@ -114,4 +115,36 @@ export const buildDuplicadaWhatsappHref = (
   ].join('\n');
 
   return buildClientWhatsappUrl(params.telefonoE164, params.numeroTelefono, message);
+};
+
+const comidaPrevia = (horaDesde: string) => {
+  const hora = Number((horaDesde.split(':')[0] ?? '0'));
+  return Number.isFinite(hora) && hora < 12 ? 'desayuno' : 'almuerzo';
+};
+
+const diaCorto = (fecha: string) => {
+  const [anio, mes, dia] = fecha.split('-').map(Number);
+  if (!anio || !mes || !dia) return fecha;
+  return new Date(anio, mes - 1, dia).toLocaleDateString('es-BO', { weekday: 'short', day: 'numeric', month: 'short' });
+};
+
+/**
+ * Mensaje con el que se le confirma una cita agendada al cliente. Devuelve null si no hay telefono utilizable.
+ */
+export const buildConfirmacionWhatsappHref = (reserva: ReservaBD): string | null => {
+  const tratamiento = reserva.servicio_confirmado || reserva.servicio_solicitado || reserva.servicio || 'Tratamiento confirmado';
+  const message = [
+    '*Tu cita ha sido confirmada en Atrevida Fit* 🌸',
+    '',
+    `*Fecha:* ${diaCorto(reserva.fecha)} (${reserva.fecha})`,
+    `*Horario:* ${reserva.hora_desde} - ${reserva.hora_hasta}`,
+    `*Tratamiento:* ${tratamiento}`,
+    `*Sucursal:* ${reserva.local}`,
+    '',
+    `Ven con el estómago lleno (${comidaPrevia(reserva.hora_desde)}) y 1 litro de agua.`,
+    '',
+    'Te esperamos.',
+  ].join('\n');
+
+  return buildClientWhatsappUrl(reserva.telefono_e164, reserva.numero_telefono, message);
 };

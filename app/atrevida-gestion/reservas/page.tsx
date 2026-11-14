@@ -1,51 +1,36 @@
 'use client';
 
-import { useRef, useEffect, useState, useMemo } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { Suspense, useRef, useEffect, useState, useMemo } from 'react';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import gsap from 'gsap';
-import { CalendarRange, Pencil, Trash2 } from 'lucide-react';
-import { DiaSemana, EstadoReserva, ReservaBD, ReservaDetalle, generarSemanas, getFechasDeSemana } from '@/types/reserva';
+import { CalendarDays, CalendarRange, List } from 'lucide-react';
+import { DiaSemana, ReservaBD, ReservaDetalle, generarSemanas, getFechasDeSemana } from '@/types/reserva';
 import { SLOTS_POR_HORA, calcularHoraFin } from '@/lib/constants/reservationForm';
 import { CalendarAdmin } from '@/components/Calendar';
 import { useLocales } from '@/lib/hooks/useLocales';
-import { useReservasFiltradas } from '@/lib/hooks/useReservasFiltradas';
-import type { ReservaTipoBackend } from '@/lib/api/reservas';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
-import { DataTable, Column, RowActionsMenu, PageHeader, AdminPanel, ConfirmDialog, CursorPagination } from '@/components/AdminConfig';
-import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
-import { Input } from '@/components/Shared';
-import Header from '@/components/AdminHeader/Header';
+import { PageHeader, ConfirmDialog, Tabs } from '@/components/AdminConfig';
+import type { TabItem } from '@/components/AdminConfig';
 import { eliminarReservaDB } from '@/lib/api/reservas';
 import { toast } from '@/components/Shared/Toast';
-import { ReservaDetailModal, ReservasToolbar } from '@/components/AdminReservas';
+import { BandejaReservas, ReservaDetailModal, ReservasToolbar } from '@/components/AdminReservas';
 import styles from './page.module.css';
-import { PAGE_LIMIT } from '@/lib/api/pagination';
-import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
 
-interface ReservaRow extends Record<string, unknown> {
-  id: number;
-  local: string;
-  tipo: string;
-  fecha: string;
-  hora_desde: string;
-  hora_hasta: string;
-  cliente: string;
-  numero_telefono?: string;
-  servicio: string;
-  servicio_solicitado?: string | null;
-  servicio_confirmado?: string | null;
-  precio?: number;
-  notas?: string;
-  estado?: EstadoReserva;
-}
+type Vista = 'calendario' | 'lista';
+
+const VISTAS: TabItem<Vista>[] = [
+  { key: 'calendario', label: 'Calendario', icon: <CalendarDays size={14} strokeWidth={2} /> },
+  { key: 'lista', label: 'Lista', icon: <List size={14} strokeWidth={2} /> },
+];
 
 const DEFAULT_LOCAL = 'SAN MARTIN';
 const LOCAL_SCOPE_PENDING = '__LOCAL_SCOPE_PENDING__';
 
 /**
- * AdminReservasPage - Página de gestión de reservas para administrador
+ * AdminReservasPage - Página de gestión de reservas para administrador.
+ * Calendario para ver la semana; Lista para aprobar, confirmar, completar y cobrar.
  */
-export default function AdminReservasPage() {
+function AdminReservasContent() {
   const router = useRouter();
   const pathname = usePathname();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -53,48 +38,17 @@ export default function AdminReservasPage() {
   const calendarRef = useRef<HTMLDivElement>(null);
   const [sucursalActiva, setSucursalActiva] = useState(DEFAULT_LOCAL);
   const [semanaActiva, setSemanaActiva] = useState('0');
-
-  // Estado para filtros de lista de reservas
-  const [vistaActiva, setVistaActiva] = useState<'calendario' | 'lista'>('calendario');
-  const [filtroLocal, setFiltroLocal] = useState(DEFAULT_LOCAL);
-  const [filtroTipo, setFiltroTipo] = useState<ReservaTipoBackend | ''>('');
-  const [filtroEstado, setFiltroEstado] = useState<EstadoReserva | ''>('');
-  const [busqueda, setBusqueda] = useState('');
-  const [busquedaDebounced, setBusquedaDebounced] = useState('');
+  const [vistaActiva, setVistaActiva] = useState<Vista>('calendario');
+  const [calendarRevision, setCalendarRevision] = useState(0);
 
   const { locales } = useLocales();
-  const { reservas, loading, error, pagination: serverPagination, fetch: fetchReservas } = useReservasFiltradas();
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [selectedReserva, setSelectedReserva] = useState<ReservaBD | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<ReservaBD | null>(null);
   const adminLocalScope = useAdminLocalScopeState();
   const scopedLocalName = adminLocalScope.workplace?.nombre_local ?? '';
   const effectiveSucursalActiva = scopedLocalName || (adminLocalScope.ready ? sucursalActiva : '');
-  const effectiveFiltroLocal = scopedLocalName || (adminLocalScope.ready ? filtroLocal : '');
 
-  // Inicializar fechas por defecto
-  const getInitialFechaDesde = () => {
-    const hoy = new Date();
-    return hoy.toISOString().split('T')[0];
-  };
-  const getInitialFechaHasta = () => {
-    const hoy = new Date();
-    const proximoSabado = new Date(hoy);
-    proximoSabado.setDate(hoy.getDate() + (13 - hoy.getDay()));
-    return proximoSabado.toISOString().split('T')[0];
-  };
-
-  const [filtroFechaDesde, setFiltroFechaDesde] = useState(getInitialFechaDesde);
-  const [filtroFechaHasta, setFiltroFechaHasta] = useState(getInitialFechaHasta);
-	const pagination = useCursorPagination(`${effectiveFiltroLocal}|${filtroFechaDesde}|${filtroFechaHasta}|${filtroTipo}|${filtroEstado}|${busquedaDebounced}`);
-	const { cursor: paginationCursor, requestRevision, shouldIncludeTotal, setMetadata: setPaginationMetadata } = pagination;
-
-	useEffect(() => setPaginationMetadata(serverPagination), [setPaginationMetadata, serverPagination]);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => setBusquedaDebounced(busqueda.trim()), 300);
-    return () => window.clearTimeout(timer);
-  }, [busqueda]);
 
   // Fechas de la semana que muestra el calendario. Se derivan igual que en
   // CalendarAdmin (generarSemanas() + getFechasDeSemana), y `semanaActiva` se
@@ -107,23 +61,6 @@ export default function AdminReservasPage() {
     return semana ? getFechasDeSemana(semana.fechaInicio) : null;
   }, [semanaActiva]);
 
-  // Fetch reservas filtradas cuando cambian los filtros
-  useEffect(() => {
-    if (effectiveFiltroLocal && filtroFechaDesde && filtroFechaHasta) {
-      fetchReservas({
-        local: effectiveFiltroLocal,
-        fecha_desde: filtroFechaDesde,
-        fecha_hasta: filtroFechaHasta,
-        tipo: (filtroTipo as 'mesa' | 'bicicleta' | '') || undefined,
-        estado: filtroEstado || undefined,
-		busqueda: busquedaDebounced || undefined,
-		limit: PAGE_LIMIT,
-		cursor: paginationCursor,
-		include_total: shouldIncludeTotal(),
-      });
-    }
-  }, [effectiveFiltroLocal, filtroFechaDesde, filtroFechaHasta, filtroTipo, filtroEstado, busquedaDebounced, fetchReservas, paginationCursor, requestRevision, shouldIncludeTotal]);
-
   // Verificar autenticación admin
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -131,6 +68,18 @@ export default function AdminReservasPage() {
       router.push('/atrevida-gestion/login');
     }
   }, [router]);
+
+  // Aprobaciones del menu y la ruta vieja llegan con ?vista=pendientes; se reacciona al cambio de URL
+  // porque pasar de Reservas a Aprobaciones no remonta la pagina.
+  const vistaParam = useSearchParams().get('vista');
+  useEffect(() => {
+    if (vistaParam === 'pendientes' || vistaParam === 'lista') setVistaActiva('lista');
+  }, [vistaParam]);
+
+  const cambiarVista = (vista: Vista) => {
+    setVistaActiva(vista);
+    window.history.replaceState(null, '', window.location.pathname);
+  };
 
   // Animaciones GSAP
   useEffect(() => {
@@ -187,7 +136,7 @@ export default function AdminReservasPage() {
     try {
       await eliminarReservaDB(reserva.id);
       toast.success('Reserva eliminada');
-      pagination.resetAfterMutation();
+      setCalendarRevision((n) => n + 1);
     } catch (err) {
       if (err instanceof Error) console.error('eliminarReservaDB', err);
       toast.error('No se pudo eliminar la reserva');
@@ -264,141 +213,17 @@ export default function AdminReservasPage() {
     });
     if (idx < 0) return;
     setSemanaActiva(String(idx));
-    // En la lista, la fecha elegida acota el rango a ese día.
-    if (vistaActiva === 'lista') {
-      setFiltroFechaDesde(iso);
-      setFiltroFechaHasta(iso);
-    }
-  };
-
-  const tipoOptions: Array<{ value: ReservaTipoBackend | ''; label: string }> = [
-    { value: '', label: 'Todos' },
-    { value: 'mesa', label: 'Mesa' },
-    { value: 'bicicleta', label: 'Bicicleta' },
-  ];
-
-  const estadoOptions: Array<{ value: EstadoReserva | ''; label: string }> = [
-    { value: '', label: 'Todos' },
-    { value: 'PENDIENTE', label: 'Pendiente' },
-    { value: 'AGENDADO', label: 'Agendado' },
-    { value: 'RECHAZADO', label: 'Rechazado' },
-    { value: 'COMPLETADO', label: 'Completado' },
-  ];
-
-  const ESTADO_COLORS: Record<string, { bg: string; color: string }> = {
-    AGENDADO: { bg: 'rgba(20,174,239,0.12)', color: '#14AEEF' },
-    COMPLETADO: { bg: 'rgba(34,197,94,0.12)', color: '#22C55E' },
-    RECHAZADO: { bg: 'rgba(239,68,68,0.12)', color: '#EF4444' },
-    PENDIENTE: { bg: 'rgba(250,204,21,0.12)', color: '#FACC15' },
-  };
-
-  const TIPO_COLORS: Record<string, { bg: string; color: string }> = {
-    mesa: { bg: 'rgba(236,0,140,0.12)', color: '#EC008C' },
-    bicicleta: { bg: 'rgba(146,39,143,0.12)', color: '#92278F' },
-  };
-
-  const columns: Column<ReservaRow>[] = [
-    {
-      key: 'fecha',
-      label: 'Fecha',
-      render: (_v, row) => <span style={{ fontVariantNumeric: 'tabular-nums' }}>{row.fecha as string}</span>,
-    },
-    {
-      key: 'hora_desde',
-      label: 'Hora',
-      searchable: false,
-      render: (_v, row) => (
-        <span style={{ fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
-          {row.hora_desde as string} – {row.hora_hasta as string}
-        </span>
-      ),
-    },
-    {
-      key: 'cliente',
-      label: 'Cliente',
-      render: (_v, row) => <span>{(row.cliente as string) || '—'}</span>,
-    },
-    {
-      key: 'tipo',
-      label: 'Tipo',
-      render: (_v, row) => {
-        const t = ((row.tipo as string) || '').toLowerCase();
-        const key = t === 'm' ? 'mesa' : t === 'b' ? 'bicicleta' : t;
-        const c = TIPO_COLORS[key] ?? { bg: 'rgba(255,255,255,0.08)', color: 'inherit' };
-        const label = key === 'mesa' ? 'Mesa' : key === 'bicicleta' ? 'Bicicleta' : key || '—';
-        return (
-          <span style={{ background: c.bg, color: c.color, borderRadius: 6, padding: '2px 8px', fontSize: '0.73rem', fontWeight: 600, whiteSpace: 'nowrap' }}>
-            {label}
-          </span>
-        );
-      },
-    },
-    {
-      key: 'servicio',
-      label: 'Servicio',
-      render: (_v, row) => (
-        <span style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>
-          {(row.servicio_confirmado as string) || (row.servicio as string) || (row.servicio_solicitado as string) || 'Por definir'}
-        </span>
-      ),
-    },
-    {
-      key: 'estado',
-      label: 'Estado',
-      searchable: false,
-      render: (_v, row) => {
-        const e = (row.estado as string) || 'PENDIENTE';
-        const c = ESTADO_COLORS[e] ?? { bg: 'rgba(255,255,255,0.08)', color: 'inherit' };
-        return (
-          <span style={{ background: c.bg, color: c.color, borderRadius: 6, padding: '2px 8px', fontSize: '0.73rem', fontWeight: 600, whiteSpace: 'nowrap' }}>
-            {e}
-          </span>
-        );
-      },
-    },
-    {
-      key: 'local',
-      label: 'Local',
-      render: (_v, row) => (
-        <span style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 6, padding: '2px 8px', fontSize: '0.73rem', whiteSpace: 'nowrap' }}>
-          {row.local as string}
-        </span>
-      ),
-    },
-    {
-      key: 'acciones',
-      label: '',
-      searchable: false,
-      render: (_v, row) => (
-        <div onClick={e => e.stopPropagation()}>
-          <RowActionsMenu actions={[
-            ...(row.estado !== 'COMPLETADO'
-              ? [{ label: 'Editar', icon: <Pencil size={12} strokeWidth={2} />, onClick: () => router.push(`/atrevida-gestion/reservas/editar/${row.id}`) }]
-              : []),
-            { label: 'Eliminar', icon: <Trash2 size={12} strokeWidth={2} />, onClick: () => requestDeleteReserva(row as unknown as ReservaBD), variant: 'danger', disabled: deletingId === (row.id as number) },
-          ]} />
-        </div>
-      ),
-    },
-  ];
-
-  const handleTipoFiltroChange = (value: string) => {
-    setFiltroTipo(value === 'mesa' || value === 'bicicleta' ? value : '');
   };
 
   return (
-    <div ref={containerRef} className={styles.pageContainer}>
-      <div className="admin-mesh" />
-      <Header />
-      <main className={styles.main}>
-        <div className={styles.container}>
+    <div ref={containerRef} className="admin-stack">
           <div ref={headerRef}>
             <PageHeader
               kicker="Operación diaria"
               kickerIcon={<CalendarRange size={14} strokeWidth={2} />}
               title="Gestión de Reservas"
               accentWord="Reservas"
-              subtitle="Vista detallada de reservas. Filtra por local, fecha, estado y tipo."
+              subtitle="Agenda de la semana y lista de reservas por atender."
               actions={
                 <button
                   className={styles.createButton}
@@ -417,84 +242,37 @@ export default function AdminReservasPage() {
             />
           </div>
 
-          <ReservasToolbar
-            vista={vistaActiva}
-            onVistaChange={setVistaActiva}
-            localValue={effectiveSucursalActiva}
-            localOptions={localesOptions}
-            onLocalChange={(value) => {
-              handleSucursalChange(value);
-              setFiltroLocal(scopedLocalName || value);
-            }}
-            localLocked={!!scopedLocalName}
-            semanaIndex={Number(semanaActiva)}
-            semanaOptions={semanaOptions}
-            onSemanaChange={handleSemanaChange}
-            fechaISO={semanaFechaISO}
-            minISO={rangoFechas.min}
-            maxISO={rangoFechas.max}
-            onFechaSelect={handleFechaSelect}
-            filtros={
-              <>
-                <div className={styles.filtroGroup}>
-                  <label>Buscar</label>
-                  <Input
-                    type="search"
-                    value={busqueda}
-                    onChange={(e) => setBusqueda(e.target.value)}
-                    placeholder="Cliente, servicio, teléfono..."
-                  />
-                </div>
-                <div className={styles.filtroGroup}>
-                  <label>Fecha desde</label>
-                  <Input
-                    type="date"
-                    value={filtroFechaDesde}
-                    onChange={(e) => setFiltroFechaDesde(e.target.value)}
-                  />
-                </div>
-                <div className={styles.filtroGroup}>
-                  <label>Fecha hasta</label>
-                  <Input
-                    type="date"
-                    value={filtroFechaHasta}
-                    onChange={(e) => setFiltroFechaHasta(e.target.value)}
-                  />
-                </div>
-                <div className={styles.filtroGroup}>
-                  <label>Tipo</label>
-                  <CustomSelect
-                    value={filtroTipo}
-                    onChange={handleTipoFiltroChange}
-                    options={tipoOptions}
-                  />
-                </div>
-                <div className={styles.filtroGroup}>
-                  <label>Estado</label>
-                  <CustomSelect
-                    value={filtroEstado}
-                    onChange={(v) => setFiltroEstado(v as EstadoReserva | '')}
-                    options={estadoOptions}
-                  />
-                </div>
-              </>
-            }
-          />
+          <Tabs tabs={VISTAS} active={vistaActiva} onChange={cambiarVista} ariaLabel="Vistas de reservas" />
 
-          {vistaActiva === 'lista' && (
-            <AdminPanel>
-              <DataTable<ReservaRow>
-                columns={columns}
-                data={reservas as unknown as ReservaRow[]}
-                loading={loading}
-                error={error}
-                getRowKey={(r) => r.id as number}
-                hideSearch
-                emptyMessage="No se encontraron reservas"
-                onRowClick={(row) => setSelectedReserva(row as unknown as ReservaBD)}
+          {vistaActiva === 'lista' && <BandejaReservas />}
+
+          {vistaActiva === 'calendario' && (
+            <>
+              <ReservasToolbar
+                localValue={effectiveSucursalActiva}
+                localOptions={localesOptions}
+                onLocalChange={handleSucursalChange}
+                localLocked={!!scopedLocalName}
+                semanaIndex={Number(semanaActiva)}
+                semanaOptions={semanaOptions}
+                onSemanaChange={handleSemanaChange}
+                fechaISO={semanaFechaISO}
+                minISO={rangoFechas.min}
+                maxISO={rangoFechas.max}
+                onFechaSelect={handleFechaSelect}
               />
-			  <CursorPagination page={pagination.page} totalPages={pagination.totalPages} hasNext={pagination.hasNext} loading={loading} onPrevious={pagination.previous} onNext={pagination.next} />
-            </AdminPanel>
+
+              <CalendarAdmin
+                key={`${pathname}-${calendarRevision}`}
+                hideControls
+                sucursal={effectiveSucursalActiva}
+                semanaIndex={Number(semanaActiva)}
+                onSlotClick={handleSlotClick}
+                onReservaClick={abrirDetalleDesdeCalendario}
+                onSucursalChange={handleSucursalChange}
+                onSemanaChange={handleSemanaChange}
+              />
+            </>
           )}
 
           {selectedReserva && (
@@ -516,7 +294,7 @@ export default function AdminReservasPage() {
           <ConfirmDialog
             isOpen={confirmDelete !== null}
             title="Eliminar reserva"
-            message={`¿Eliminar la reserva de ${confirmDelete?.cliente || `#${confirmDelete?.id}`}? Si usa un paquete, la sesión se devuelve. Es un borrado lógico, reversible desde el backend.`}
+            message={`¿Eliminar la reserva de ${confirmDelete?.cliente || `#${confirmDelete?.id}`}? Si usa un paquete, la sesión se devuelve. Si ya se había descontado stock de insumos, también se devuelve.`}
             confirmLabel="Eliminar"
             danger
             loading={deletingId != null}
@@ -527,22 +305,14 @@ export default function AdminReservasPage() {
             }}
             onClose={() => setConfirmDelete(null)}
           />
-
-          {vistaActiva === 'calendario' && (
-
-            <CalendarAdmin
-              key={pathname}
-              hideControls
-              sucursal={effectiveSucursalActiva}
-              semanaIndex={Number(semanaActiva)}
-              onSlotClick={handleSlotClick}
-              onReservaClick={abrirDetalleDesdeCalendario}
-              onSucursalChange={handleSucursalChange}
-              onSemanaChange={handleSemanaChange}
-            />
-          )}
-        </div>
-      </main>
     </div>
+  );
+}
+
+export default function AdminReservasPage() {
+  return (
+    <Suspense fallback={null}>
+      <AdminReservasContent />
+    </Suspense>
   );
 }

@@ -1,3 +1,24 @@
 export { ReservasTable } from './ReservasTable';
 export { ReservaDetailModal } from './ReservaDetailModal';
 export { ReservasToolbar } from './ReservasToolbar';
+export { ReservasLista } from './ReservasLista';
+export { BandejaReservas } from './BandejaReservas';
+export {
+  ReservaRow,
+  ReservaMetaItem,
+  ReservaContacto,
+  ReservaStatusLine,
+  ReservaNote,
+  ReservaStockHint,
+  RESERVA_ESTADO_LABEL,
+  getReservaTone,
+  formatDuracion,
+  formatDiaCorto,
+  formatFalta,
+} from './ReservaRow';
+
+export { AprobacionReservasTable } from './AprobacionReservasTable';
+export { ReservaEstadoPill, RESERVA_ESTADO_HINT } from './ReservaEstadoPill';
+export { ReservaEstadoCelda } from './ReservaEstadoCelda';
+export { SiguientesReservas } from './SiguientesReservas';
+export { ReservaAcciones } from './ReservaAcciones';

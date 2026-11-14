@@ -1,25 +1,3 @@
-.pageContainer {
-  min-height: 100vh;
-  color: var(--admin-foreground);
-  font-family: var(--admin-font-family);
-  position: relative;
-  overflow-x: hidden;
-}
-
-.main {
-  position: relative;
-  z-index: 1;
-  min-height: 100vh;
-  padding: 2rem 1.5rem 4rem;
-}
-
-.container {
-  position: relative;
-  z-index: 1;
-  max-width: 1440px;
-  margin: 0 auto;
-}
-
 .headerActions {
   display: flex;
   align-items: center;
@@ -57,49 +35,6 @@
 .createButton:active {
   transform: translateY(1px) scale(0.99);
 }
-
-.filtroGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.filtroGroup label {
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--admin-text-muted);
-  font-weight: 800;
-}
-
-.filtroGroup :global(.inputWrapper) input,
-.filtroGroup input {
-  min-height: 42px !important;
-  background: var(--admin-input-bg) !important;
-  color: var(--admin-foreground) !important;
-  border: 1px solid var(--admin-border-subtle) !important;
-  border-radius: var(--admin-radius-md) !important;
-  padding: 0.7rem 0.9rem !important;
-  font-size: 0.875rem !important;
-  transition:
-    border-color var(--admin-t-normal) var(--admin-ease),
-    box-shadow var(--admin-t-normal) var(--admin-ease),
-    background var(--admin-t-normal) var(--admin-ease) !important;
-  color-scheme: var(--admin-color-scheme);
-}
-
-.filtroGroup :global(.inputWrapper) input:focus,
-.filtroGroup input:focus {
-  outline: none !important;
-  border-color: var(--admin-border-focus) !important;
-  box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.16) !important;
-  background: var(--admin-input-bg-focus) !important;
-}
-
-.filtroGroup :global(.inputWrapper) input::placeholder {
-  color: var(--admin-text-dim) !important;
-}
-
 
 @media (max-width: 768px) {
   .main {

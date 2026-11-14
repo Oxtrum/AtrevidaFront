@@ -10,6 +10,7 @@ import { useReservationForm, type ReservationFormInitialData } from './useReserv
 import { PhoneInput } from '@/components/PhoneInput';
 import styles from './ReservationForm.module.css';
 import { TurnstileWidget } from './TurnstileWidget';
+import { TURNSTILE_DISABLED } from '@/lib/constants/turnstile';
 
 interface ReservationFormProps {
   initialData?: ReservationFormInitialData;
@@ -254,7 +255,7 @@ export default function ReservationForm({ initialData, onSuccess, onCancel }: Re
             />
           </div>
 
-          {!initialData?.isAdmin && (
+          {!initialData?.isAdmin && !TURNSTILE_DISABLED && (
             <div className={`${styles.turnstile} ${styles.fullWidth}`}>
               <TurnstileWidget onToken={setTurnstileToken} resetKey={turnstileResetKey} />
             </div>

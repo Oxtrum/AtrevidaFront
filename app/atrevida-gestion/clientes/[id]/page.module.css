@@ -1,0 +1,74 @@
+.volver {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 0.35rem;
+  border-radius: var(--admin-radius-sm);
+  color: var(--admin-text-muted);
+  font-size: var(--admin-fs-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.volver:hover {
+  color: var(--admin-foreground);
+}
+
+/* Quien es, cuanto tiene y que se puede hacer: una sola fila que se parte solo si no cabe. */
+.ficha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 2rem;
+  padding: 0.9rem 1.15rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-xl);
+  background: var(--admin-panel-bg);
+  box-shadow: var(--admin-shadow-sm);
+}
+
+.quien {
+  display: flex;
+  flex: 1 1 18rem;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.nombre {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.datos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 1.1rem;
+  margin: 0;
+  color: var(--admin-text-muted);
+  font-size: var(--admin-fs-sm);
+}
+
+.cargando {
+  color: var(--admin-text-dim);
+  font-size: var(--admin-fs-sm);
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pestanas > div {
+  margin-bottom: 0;
+}
+
+.numero {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

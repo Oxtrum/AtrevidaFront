@@ -105,6 +105,8 @@
   --admin-font-family: var(--font-geist), "Manrope", ui-sans-serif, system-ui, sans-serif;
   --admin-font-mono: var(--font-geist-mono), "JetBrains Mono", ui-monospace, monospace;
   --admin-sidebar-width: 284px;
+  /* Espacio entre las secciones de una pagina: lo aplica .admin-stack, el contenedor de AdminShell. */
+  --admin-page-gap: clamp(0.9rem, 2vh, 1.5rem);
 
   --color-background: var(--admin-bg) !important;
   --color-foreground: var(--admin-foreground) !important;
@@ -557,4 +559,28 @@
   [data-admin="true"] .admin-table td {
     padding: var(--admin-spacing-sm) var(--admin-spacing-md);
   }
+}
+
+/* Colores de graficos: ingresos azul y egresos magenta en toda la app. Validados (CVD y contraste) por tema. */
+[data-admin="true"] {
+  --admin-chart-ingreso: #0e9bd6;
+  --admin-chart-egreso: #ec008c;
+  --admin-chart-neutral: rgba(250, 250, 250, 0.34);
+  --admin-chart-grid: rgba(255, 255, 255, 0.08);
+  --admin-chart-surface: #14141c;
+}
+
+[data-admin="true"][data-admin-theme="light"] {
+  --admin-chart-ingreso: #0a7fb0;
+  --admin-chart-egreso: #c4007a;
+  --admin-chart-neutral: rgba(20, 16, 28, 0.32);
+  --admin-chart-grid: rgba(20, 16, 28, 0.09);
+  --admin-chart-surface: #ffffff;
+}
+
+/* Pila vertical con el espacio estandar entre secciones. Cada pagina del panel la recibe del layout. */
+[data-admin="true"] .admin-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--admin-page-gap);
 }

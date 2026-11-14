@@ -531,99 +531,6 @@
   }
 }
 
-.clientAutocomplete {
-  position: relative;
-}
-
-.clientDropdown {
-  position: absolute;
-  top: calc(100% - 0.1rem);
-  left: 0;
-  right: 0;
-  z-index: 20;
-  max-height: 224px;
-  overflow: hidden auto;
-  border: 1px solid var(--admin-border);
-  border-radius: var(--admin-radius-xl);
-  background: var(--admin-surface-solid-1);
-  box-shadow: var(--admin-shadow-lg);
-  backdrop-filter: blur(18px);
-  animation: clientDropdownIn 0.18s ease;
-}
-
-@keyframes clientDropdownIn {
-  from {
-    opacity: 0;
-    transform: translateY(-4px) scale(0.98);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-.clientDropdown::-webkit-scrollbar {
-  width: 6px;
-}
-
-.clientDropdown::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.clientDropdown::-webkit-scrollbar-thumb {
-  background: var(--admin-scroll-thumb);
-  border-radius: var(--admin-radius-full);
-}
-
-.clientOption {
-  display: flex;
-  flex-direction: column;
-  gap: 0.22rem;
-  width: 100%;
-  padding: 0.75rem 0.9rem;
-  border: none;
-  border-bottom: 1px solid var(--admin-border-subtle);
-  background: transparent;
-  color: var(--admin-foreground);
-  font-family: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition:
-    background var(--admin-t-fast) var(--admin-ease),
-    color var(--admin-t-fast) var(--admin-ease),
-    transform var(--admin-t-fast) var(--admin-ease);
-}
-
-.clientOption:last-child {
-  border-bottom: none;
-}
-
-.clientOption:hover {
-  background: rgba(236, 0, 140, 0.09);
-}
-
-.clientOption:active {
-  transform: translateY(1px);
-}
-
-.clientOption strong {
-  overflow-wrap: anywhere;
-  font-size: 0.86rem;
-  line-height: 1.2;
-}
-
-.clientOption span,
-.clientDropdownStatus {
-  color: var(--admin-text-dim);
-  font-size: 0.76rem;
-  line-height: 1.35;
-}
-
-.clientDropdownStatus {
-  padding: 0.8rem 0.9rem;
-}
-
 /* ─── Rango por bloques: fin del rango y ayuda ────────────────── */
 
 /* Último bloque incluido en la reserva */
@@ -653,60 +560,6 @@
   font-size: 0.74rem;
   line-height: 1.45;
   color: var(--admin-text-dim);
-}
-
-/* ────────────────────────────────────────────────────────────────
-   LABEL ROW + ACCION INLINE
-   ──────────────────────────────────────────────────────────────── */
-
-.labelRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.inlineAction {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.28rem 0.6rem;
-  border-radius: var(--admin-radius-sm);
-  border: 1px solid var(--admin-border-subtle);
-  background: transparent;
-  color: var(--admin-accent-primary);
-  font-size: 0.74rem;
-  font-weight: 700;
-  font-family: inherit;
-  cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease;
-}
-
-.inlineAction:hover {
-  background: rgba(236, 0, 140, 0.1);
-  border-color: var(--admin-accent-primary);
-}
-
-.clientRegisterOption {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0.7rem 0.9rem;
-  border: none;
-  border-top: 1px solid var(--admin-border-subtle);
-  background: transparent;
-  color: var(--admin-accent-primary);
-  font-size: 0.82rem;
-  font-weight: 600;
-  font-family: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.clientRegisterOption:hover {
-  background: rgba(236, 0, 140, 0.1);
 }
 
 /* ─── Week stepper ( ‹ select › ) ─────────────────────────────── */
@@ -860,6 +713,12 @@
   background: linear-gradient(135deg, rgba(146, 39, 143, 0.7), rgba(236, 0, 140, 0.6));
   border-color: rgba(236, 0, 140, 0.8);
   font-weight: 800;
+}
+
+/* Dias intermedios de un rango elegido. */
+.calendarDayRango {
+  background: rgba(236, 0, 140, 0.16);
+  border-radius: 4px;
 }
 
 .calendarDay:focus-visible,

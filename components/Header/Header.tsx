@@ -1,14 +1,15 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import gsap from 'gsap';
 import AdminAccessButton from '@/components/AdminAccessButton/AdminAccessButton';
+import { useSeccionPaquetes } from '@/lib/hooks/useSeccionPaquetes';
 import styles from './Header.module.css';
 
-const NAV_LINKS = [
+const TODOS_LOS_LINKS = [
   { label: 'Inicio', href: '/', section: 'inicio' },
   { label: 'Servicios', href: '/#servicios', section: 'servicios' },
   { label: 'Paquetes', href: '/#paquetes', section: 'paquetes' },
@@ -18,6 +19,12 @@ const NAV_LINKS = [
 ];
 
 export default function Header() {
+  const seccionPaquetes = useSeccionPaquetes();
+  // Sin la sección de paquetes, el enlace del menú llevaría a la nada.
+  const NAV_LINKS = useMemo(
+    () => TODOS_LOS_LINKS.filter((link) => link.section !== 'paquetes' || seccionPaquetes !== false),
+    [seccionPaquetes],
+  );
   const pathname = usePathname();
   const headerRef = useRef<HTMLElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
@@ -101,7 +108,7 @@ export default function Header() {
       window.removeEventListener('scroll', updateActiveSection);
       window.removeEventListener('resize', updateActiveSection);
     };
-  }, [pathname]);
+  }, [pathname, NAV_LINKS]);
 
   // Lock body scroll when mobile menu is open
   useEffect(() => {

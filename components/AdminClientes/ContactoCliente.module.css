@@ -1,0 +1,56 @@
+.contacto {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.6rem;
+}
+
+.telefono {
+  border-radius: var(--admin-radius-sm);
+  color: inherit;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.telefono:hover {
+  color: var(--admin-foreground);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.whatsapp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.12rem 0.55rem;
+  border: 1px solid rgba(52, 211, 153, 0.35);
+  border-radius: var(--admin-radius-full);
+  background: rgba(52, 211, 153, 0.1);
+  color: #34d399;
+  font-size: var(--admin-fs-xs);
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+
+.whatsapp:hover {
+  background: rgba(52, 211, 153, 0.2);
+}
+
+:global([data-admin-theme='light']) .whatsapp {
+  border-color: rgba(4, 120, 87, 0.35);
+  background: rgba(4, 120, 87, 0.08);
+  color: #047857;
+}
+
+.telefono:focus-visible,
+.whatsapp:focus-visible {
+  outline: 2px solid var(--admin-accent-primary);
+  outline-offset: 2px;
+}
+
+.vacio {
+  color: var(--admin-text-dim);
+}

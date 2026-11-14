@@ -1,6 +1,7 @@
 'use client';
 
 import { X } from 'lucide-react';
+import { ModalPortal } from './ModalPortal';
 import styles from './FormModal.module.css';
 
 interface FormModalProps {
@@ -10,6 +11,8 @@ interface FormModalProps {
   onSubmit?: () => void;
   submitLabel?: string;
   loading?: boolean;
+  /** Deshabilita el botón principal sin mostrar el estado de carga. */
+  submitDisabled?: boolean;
   size?: 'md' | 'lg' | 'xl';
   hideFooter?: boolean;
   children: React.ReactNode;
@@ -22,6 +25,7 @@ export function FormModal({
   onSubmit,
   submitLabel = 'Guardar',
   loading = false,
+  submitDisabled = false,
   size = 'md',
   hideFooter = false,
   children,
@@ -29,6 +33,7 @@ export function FormModal({
   if (!isOpen) return null;
 
   return (
+    <ModalPortal>
     <div className={styles.overlay} onClick={onClose}>
       <div
         className={`${styles.modal} ${size === 'lg' ? styles.modalLg : ''} ${size === 'xl' ? styles.modalXl : ''}`}
@@ -46,12 +51,13 @@ export function FormModal({
             <button type="button" className={styles.cancelButton} onClick={onClose} disabled={loading}>
               Cancelar
             </button>
-            <button type="button" className={styles.submitButton} onClick={onSubmit} disabled={loading}>
+            <button type="button" className={styles.submitButton} onClick={onSubmit} disabled={loading || submitDisabled}>
               {loading ? 'Guardando...' : submitLabel}
             </button>
           </div>
         )}
       </div>
     </div>
+    </ModalPortal>
   );
 }

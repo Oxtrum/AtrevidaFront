@@ -145,3 +145,31 @@ export function formatearDuracion(minutos: number): string {
 export function slotsEnRango(horaDesde: string, horaHasta: string): number {
     return Math.round(duracionRango(horaDesde, horaHasta) / SLOT_MIN);
 }
+
+export interface DesajusteDuracion {
+    horaDesde: string;
+    horaHasta: string;
+    duracionServicio: string;
+    duracionElegida: string;
+    esMasLargo: boolean;
+    bloquesDiferencia: number;
+}
+
+/**
+ * Datos del aviso cuando el rango elegido no dura lo que el servicio. Es `null` si dura lo mismo (el caso normal, que
+ * no interrumpe) o si falta algún dato. Se compara en bloques de 30 min porque la rejilla no permite otra cosa
+ * (un servicio de 50 min ocupa 2 bloques y no cuenta como desajuste).
+ */
+export function desajusteDuracion(slotsServicio: number, horaDesde: string, horaHasta: string): DesajusteDuracion | null {
+    if (!horaDesde || !horaHasta) return null;
+    const slotsElegidos = slotsEnRango(horaDesde, horaHasta);
+    if (slotsElegidos <= 0 || slotsElegidos === slotsServicio) return null;
+    return {
+        horaDesde,
+        horaHasta,
+        duracionServicio: formatearDuracion(slotsServicio * SLOT_MIN),
+        duracionElegida: formatearDuracion(slotsElegidos * SLOT_MIN),
+        esMasLargo: slotsElegidos > slotsServicio,
+        bloquesDiferencia: Math.abs(slotsElegidos - slotsServicio),
+    };
+}

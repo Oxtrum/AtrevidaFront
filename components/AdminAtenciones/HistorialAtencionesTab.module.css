@@ -1,0 +1,27 @@
+.filterGap{margin-bottom:.65rem}
+.advancedFilters{margin-bottom:1rem;padding:.65rem;border:1px solid var(--admin-border-subtle);border-radius:var(--admin-radius-md);background:var(--admin-surface-1)}
+.filterAction,.clearFilters{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;min-height:2.25rem;padding:0 .75rem;border:1px solid var(--admin-border);border-radius:var(--admin-radius-sm);background:var(--admin-surface-2);color:var(--admin-foreground);font:inherit;font-size:.83rem;font-weight:600;cursor:pointer}
+.filterAction:hover,.clearFilters:hover{border-color:var(--admin-accent-primary);color:var(--admin-accent-primary)}
+.filterAction:focus-visible,.clearFilters:focus-visible{outline:2px solid var(--admin-accent-primary);outline-offset:2px}
+.truncate{display:block;max-width:15rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.historyTable :global(table){table-layout:fixed}
+.historyTable :global(th),.historyTable :global(td){padding-left:.75rem;padding-right:.75rem;overflow:hidden;text-overflow:ellipsis}
+.historyTable :global(th:nth-child(1)),.historyTable :global(td:nth-child(1)){width:10%}
+.historyTable :global(th:nth-child(2)),.historyTable :global(td:nth-child(2)){width:13%}
+.historyTable :global(th:nth-child(3)),.historyTable :global(td:nth-child(3)){width:11%}
+.historyTable :global(th:nth-child(4)),.historyTable :global(td:nth-child(4)){width:15%}
+.historyTable :global(th:nth-child(5)),.historyTable :global(td:nth-child(5)){width:16%}
+.historyTable :global(th:nth-child(6)),.historyTable :global(td:nth-child(6)){width:14%}
+.historyTable :global(th:nth-child(7)),.historyTable :global(td:nth-child(7)){width:11%}
+.historyTable :global(th:nth-child(8)),.historyTable :global(td:nth-child(8)){width:10%;white-space:nowrap}
+.reservaLink{padding:0;border:0;background:none;color:var(--admin-accent-primary);font:inherit;font-weight:700;cursor:pointer;text-decoration:underline;text-decoration-color:transparent;text-underline-offset:3px}
+.reservaLink:hover{text-decoration-color:currentColor}
+.reservaLink:focus-visible{outline:2px solid var(--admin-accent-primary);outline-offset:3px;border-radius:3px}
+.deactivateMessage{display:grid;gap:.8rem}
+.deactivateMessage p{margin:0}
+.deactivateMessage label{display:flex;align-items:center;gap:.55rem;padding:.7rem;border:1px solid var(--admin-border);border-radius:var(--admin-radius-md);background:var(--admin-surface-2);cursor:pointer}
+.deactivateMessage input{accent-color:var(--admin-accent-primary)}
+.deactivateMessage small{color:var(--admin-text-muted);font-size:.78rem}
+.muted{color:var(--admin-text-muted);font-size:.82rem;text-align:center;margin:.25rem 0 0}
+@media (max-width:900px){.historyTable :global(th:nth-child(6)),.historyTable :global(td:nth-child(6)),.historyTable :global(th:nth-child(7)),.historyTable :global(td:nth-child(7)){display:none}.historyTable :global(th:nth-child(1)),.historyTable :global(td:nth-child(1)){width:13%}.historyTable :global(th:nth-child(2)),.historyTable :global(td:nth-child(2)){width:17%}.historyTable :global(th:nth-child(3)),.historyTable :global(td:nth-child(3)){width:12%}.historyTable :global(th:nth-child(4)),.historyTable :global(td:nth-child(4)){width:23%}.historyTable :global(th:nth-child(5)),.historyTable :global(td:nth-child(5)){width:23%}.historyTable :global(th:nth-child(8)),.historyTable :global(td:nth-child(8)){width:12%}}
+@media (max-width:620px){.historyTable :global(th),.historyTable :global(td){padding:.7rem .5rem;font-size:.78rem}.historyTable :global(th:nth-child(2)),.historyTable :global(td:nth-child(2)){display:none}.historyTable :global(th:nth-child(1)),.historyTable :global(td:nth-child(1)){width:18%}.historyTable :global(th:nth-child(3)),.historyTable :global(td:nth-child(3)){width:15%}.historyTable :global(th:nth-child(4)),.historyTable :global(td:nth-child(4)){width:27%}.historyTable :global(th:nth-child(5)),.historyTable :global(td:nth-child(5)){width:28%}.historyTable :global(th:nth-child(8)),.historyTable :global(td:nth-child(8)){width:12%}.truncate{max-width:100%}}

@@ -1,0 +1,153 @@
+/* Nombre del cliente: boton que se lee como texto, con un icono de persona a su izquierda. */
+.nombre {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  max-width: 100%;
+  padding: 0.1rem 0;
+  border: 0;
+  border-radius: var(--admin-radius-sm);
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.icono {
+  flex: none;
+  color: var(--admin-text-dim);
+  transition: color 0.15s ease;
+}
+
+.texto {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: underline dotted;
+  text-decoration-color: var(--admin-text-dim);
+  text-underline-offset: 4px;
+}
+
+.nombre:hover .icono,
+.nombre[aria-expanded='true'] .icono {
+  color: var(--admin-accent-primary);
+}
+
+.nombre:hover .texto,
+.nombre[aria-expanded='true'] .texto {
+  text-decoration-color: var(--admin-accent-primary);
+}
+
+/* Reserva sin cliente registrado: el icono avisa en ambar. */
+.nombreSinVincular .icono {
+  color: #fbbf24;
+}
+
+:global([data-admin-theme='light']) .nombreSinVincular .icono {
+  color: #b45309;
+}
+
+.nombre:focus-visible {
+  outline: 2px solid var(--admin-accent-primary);
+  outline-offset: 2px;
+}
+
+/* Tarjeta */
+.tarjeta {
+  position: fixed;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  width: 19.5rem;
+  max-width: calc(100vw - 1.5rem);
+  padding: 0.95rem;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-2xl);
+  /* La superficie del tema es translucida: sobre una tabla se leeria el texto de atras. */
+  background-color: var(--admin-bg);
+  background-image: linear-gradient(var(--admin-surface-3), var(--admin-surface-3));
+  box-shadow: var(--admin-shadow-xl);
+  color: var(--admin-foreground);
+  animation: aparecer 0.14s ease-out;
+}
+
+.cabecera {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.titulo {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+}
+
+.contacto {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  color: var(--admin-text-muted);
+  font-size: var(--admin-fs-sm);
+  white-space: nowrap;
+}
+
+.separador {
+  color: var(--admin-text-dim);
+}
+
+.aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid rgba(251, 191, 36, 0.32);
+  border-radius: var(--admin-radius-xl);
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--admin-text-light);
+  font-size: var(--admin-fs-sm);
+  line-height: 1.45;
+}
+
+.aviso svg {
+  flex: none;
+  margin-top: 0.08rem;
+  color: #fbbf24;
+}
+
+:global([data-admin-theme='light']) .aviso {
+  border-color: rgba(180, 83, 9, 0.3);
+  background: rgba(180, 83, 9, 0.1);
+}
+
+:global([data-admin-theme='light']) .aviso svg {
+  color: #b45309;
+}
+
+.acciones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.acciones > :only-child {
+  grid-column: 1 / -1;
+}
+
+@keyframes aparecer {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tarjeta { animation: none; }
+}

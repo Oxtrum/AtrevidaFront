@@ -6,36 +6,37 @@ import gsap from 'gsap';
 import {
   Banknote,
   Building2,
+  History,
   CheckCircle2,
-  CreditCard,
   Minus,
   Plus,
   ReceiptText,
   Search,
   Trash2,
-  WalletCards,
+  Clock,
+  UserPlus,
+  Wallet,
 } from 'lucide-react';
-import Header from '@/components/AdminHeader/Header';
-import { PageHeader, DataTable, FormModal, CursorPagination } from '@/components/AdminConfig';
-import type { Column } from '@/components/AdminConfig';
+import { AdminButton, PageHeader, FormModal, TipoPagoSelector } from '@/components/AdminConfig';
 import { toast } from '@/components/Shared/Toast';
 import { crearClienteDB, getClientesDB } from '@/lib/api/clientes';
 import type { ClientePG } from '@/lib/api/clientes';
 import { PhoneInput } from '@/components/PhoneInput';
-import { PagoDetalleCodeButton, PagoDetalleModal, PagoProductosCell } from '@/components/Pagos/PagoDetalleModal';
-import { crearPagoDB, getPagosDB } from '@/lib/api/pagos';
-import type { CrearPagoData, Pago } from '@/lib/api/pagos';
+import { ClienteFormModal } from '@/components/AdminClientes';
+import { crearPagoDB } from '@/lib/api/pagos';
+import type { CrearPagoData, DetalleServicio } from '@/lib/api/pagos';
+import { cobrarCliente, crearCargosLote, getCuentaCliente, type CuentaCliente } from '@/lib/api/cuenta';
+import { metodoValido, resumenTicket, type MetodoCaja } from '@/lib/utils/ticketCuenta';
+import { cargosDesdeDetalle } from '@/lib/utils/cuentaCaja';
 import { prepararDetallePago, parsePrecioPago, subtotalDetallePago, type DetallePagoDraft } from '@/lib/utils/paymentDraft';
 import { formatCostoServicio } from '@/lib/utils/serviceCost';
+import { CAJA_LOCAL_STORAGE_KEY } from '@/lib/utils/localCaja';
 import { getLocalesDB, getServiciosDB, getCombosDB } from '@/lib/api/servicios';
-import { crearPlan, cobrarPlan, getPlanesDB } from '@/lib/api/planes';
-import type { PlanItem } from '@/lib/api/planes';
-import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
+import { cambiarEstadoPlan, crearPlan } from '@/lib/api/planes';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
-import { formatDateTime } from '@/lib/utils/formatDateTime';
 import styles from './page.module.css';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
-import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
+import type { TipoPago } from '@/lib/utils/tipoPago';
 
 interface LocalOption {
   id: number;
@@ -54,7 +55,7 @@ interface ServicioOption {
 
 interface ClienteOption extends ClientePG, Record<string, unknown> {}
 
-interface PagoRow extends Pago, Record<string, unknown> {}
+
 
 interface FormErrors {
   local?: string;
@@ -78,17 +79,7 @@ interface NewClientErrors {
   submit?: string;
 }
 
-const CAJA_LOCAL_STORAGE_KEY = 'atrevidaCajaLocal';
 
-const ESTADO_OPTIONS = ['PAGADO', 'PENDIENTE', 'BORRADOR'];
-const ESTADO_LABELS: Record<string, string> = {
-  BORRADOR: 'POR CONFIRMAR',
-};
-
-const filtroTextoActivo = (value: string) => {
-  const normalized = value.trim();
-  return normalized.length >= 2 ? normalized : '';
-};
 
 const formatMoney = (value: number | string | null | undefined) => `Bs. ${Number(value ?? 0).toLocaleString('es-BO', {
   minimumFractionDigits: 2,
@@ -162,29 +153,12 @@ export default function CajaPage() {
   const [loadingCombos, setLoadingCombos] = useState(false);
   // Paquetes agregados al pago; el plan se crea al registrar el pago. Clave = nombre de la línea.
   const [combosVenta, setCombosVenta] = useState<Record<string, { combo_id: number; precio: number }>>({});
-  const [catalogoTab, setCatalogoTab] = useState<'servicios' | 'paquetes' | 'personalizado'>('servicios');
+  const [catalogoTab, setCatalogoTab] = useState<'servicios' | 'paquetes' | 'otro'>('servicios');
   const [serviceQuery, setServiceQuery] = useState('');
+  // Linea libre ("Otro"): concepto escrito a mano y su monto.
+  const [otroConcepto, setOtroConcepto] = useState('');
+  const [otroMonto, setOtroMonto] = useState('');
 
-  const [pagos, setPagos] = useState<PagoRow[]>([]);
-  const [detallePagoCodigo, setDetallePagoCodigo] = useState<string | null>(null);
-  const [loadingPagos, setLoadingPagos] = useState(false);
-  const [pagosError, setPagosError] = useState<string | null>(null);
-  const [pagosCliente, setPagosCliente] = useState('');
-  const [pagosClienteDebounced, setPagosClienteDebounced] = useState('');
-  const [pagosNit, setPagosNit] = useState('');
-  const [pagosNitDebounced, setPagosNitDebounced] = useState('');
-  const [pagosProducto, setPagosProducto] = useState('');
-  const [pagosProductoDebounced, setPagosProductoDebounced] = useState('');
-  const [pagosEstado, setPagosEstado] = useState('PAGADO');
-  const pagosClienteActivo = filtroTextoActivo(pagosClienteDebounced);
-  const pagosNitActivo = filtroTextoActivo(pagosNitDebounced);
-  const pagosProductoActivo = filtroTextoActivo(pagosProductoDebounced);
-	const pagosPagination = useCursorPagination(
-    `${selectedLocal?.id ?? ''}|${pagosClienteActivo}|${pagosNitActivo}|${pagosProductoActivo}|${pagosEstado}`,
-  );
-	const { cursor: pagosCursor, requestRevision: pagosRequestRevision, shouldIncludeTotal: shouldIncludePagosTotal, setMetadata: setPagosMetadata } = pagosPagination;
-	const pagosRequestRef = useRef(0);
-	const pagosControllerRef = useRef<AbortController | null>(null);
 
   const [clienteNit, setClienteNit] = useState('');
   const [nitPropuesto, setNitPropuesto] = useState(false);
@@ -194,10 +168,8 @@ export default function CajaPage() {
   const [loadingClientes, setLoadingClientes] = useState(false);
   const [clienteDropdownOpen, setClienteDropdownOpen] = useState(false);
   const [descuento, setDescuento] = useState(0);
-  const [tipoPago, setTipoPago] = useState<'qr' | 'efectivo'>('qr');
+  const [tipoPago, setTipoPago] = useState<TipoPago>('qr');
   const [detalle, setDetalle] = useState<DetallePagoDraft[]>([]);
-  const [customServicio, setCustomServicio] = useState('');
-  const [customPrecio, setCustomPrecio] = useState('');
   const [saving, setSaving] = useState(false);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [newClientModalOpen, setNewClientModalOpen] = useState(false);
@@ -209,12 +181,16 @@ export default function CajaPage() {
   });
   const [newClientErrors, setNewClientErrors] = useState<NewClientErrors>({});
   const [savingNewClient, setSavingNewClient] = useState(false);
-  // Modo "cobrar reserva": en vez de agregar elementos a un pago nuevo, se elige un plan
-  // RESERVADO existente y el pago lo activa (no crea un plan nuevo).
-  const [modo, setModo] = useState<'venta' | 'cobrarReserva'>('venta');
-  const [planesReservados, setPlanesReservados] = useState<PlanItem[]>([]);
-  const [loadingPlanesReservados, setLoadingPlanesReservados] = useState(false);
-  const [planReservado, setPlanReservado] = useState<PlanItem | null>(null);
+  // Sube al registrar un cobro para que la cuenta del cliente se lea de nuevo.
+  const [recargaReservas, setRecargaReservas] = useState(0);
+  // Cuenta del cliente elegido: su saldo disponible.
+  const [cuentaLeida, setCuentaLeida] = useState<{ clienteId: number; cuenta: CuentaCliente } | null>(null);
+  // saldo / a_cuenta cuando no paga con uno de los cuatro metodos; null = paga con el metodo de tipoPago.
+  const [nuevoClienteAbierto, setNuevoClienteAbierto] = useState(false);
+  const [modoCuenta, setModoCuenta] = useState<'saldo' | null>(null);
+  // Paquetes ya creados al dejar el ticket a cuenta, por nombre de linea: si el lote de cargos falla y se reintenta,
+  // no se crean dos veces.
+  const planesACuentaRef = useRef<Record<string, number>>({});
   const adminLocalScope = useAdminLocalScopeState();
   const scopedWorkplace = adminLocalScope.workplace;
   const hasScopedLocal = !!scopedWorkplace;
@@ -274,58 +250,15 @@ export default function CajaPage() {
     }
   }, []);
 
-  const fetchPagos = useCallback(async (local = selectedLocal) => {
-    void pagosRequestRevision;
-    if (!local) return;
-	pagosControllerRef.current?.abort();
-	const controller = new AbortController();
-	pagosControllerRef.current = controller;
-    setLoadingPagos(true);
-    setPagosError(null);
-	const requestId = ++pagosRequestRef.current;
-    try {
-      const res = await getPagosDB({
-        local_nombre: local.nombre,
-        cliente_nombre: pagosClienteActivo || undefined,
-        cliente_nit: pagosNitActivo || undefined,
-        producto: pagosProductoActivo || undefined,
-        estado: pagosEstado || undefined,
-        activo: true,
-		limit: PAGE_LIMIT,
-		cursor: pagosCursor,
-		include_total: shouldIncludePagosTotal(),
-      }, controller.signal);
-	  if (requestId !== pagosRequestRef.current) return;
-      setPagos((res.data?.pagos ?? []) as PagoRow[]);
-	  setPagosMetadata(res.data?.paginacion);
-    } catch (err) {
-	  if (controller.signal.aborted) return;
-	  if (requestId !== pagosRequestRef.current) return;
-      setPagosError(err instanceof Error ? err.message : 'Error al cargar pagos');
-    } finally {
-	  if (requestId === pagosRequestRef.current) setLoadingPagos(false);
-    }
-  }, [selectedLocal, pagosClienteActivo, pagosNitActivo, pagosProductoActivo, pagosEstado, pagosCursor, pagosRequestRevision, shouldIncludePagosTotal, setPagosMetadata]);
-
-	useEffect(() => () => {
-		pagosRequestRef.current += 1;
-		pagosControllerRef.current?.abort();
-	}, []);
-
-	useEffect(() => {
-		const timer = window.setTimeout(() => setPagosClienteDebounced(pagosCliente), 350);
-		return () => window.clearTimeout(timer);
-	}, [pagosCliente]);
-
-	useEffect(() => {
-		const timer = window.setTimeout(() => setPagosNitDebounced(pagosNit), 350);
-		return () => window.clearTimeout(timer);
-	}, [pagosNit]);
-
-	useEffect(() => {
-		const timer = window.setTimeout(() => setPagosProductoDebounced(pagosProducto), 350);
-		return () => window.clearTimeout(timer);
-	}, [pagosProducto]);
+  useEffect(() => {
+    if (!selectedClienteId) return;
+    const clienteId = selectedClienteId;
+    const controller = new AbortController();
+    getCuentaCliente(clienteId, false, controller.signal)
+      .then((cuenta) => { if (!controller.signal.aborted) setCuentaLeida({ clienteId, cuenta }); })
+      .catch(() => { if (!controller.signal.aborted) setCuentaLeida(null); });
+    return () => controller.abort();
+  }, [selectedClienteId, recargaReservas]);
 
   useEffect(() => {
     if (!adminLocalScope.ready) return;
@@ -342,8 +275,7 @@ export default function CajaPage() {
     if (!selectedLocal) return;
     void fetchServicios(selectedLocal);
     void fetchCombos(selectedLocal);
-    void fetchPagos(selectedLocal);
-  }, [selectedLocal, fetchServicios, fetchCombos, fetchPagos]);
+  }, [selectedLocal, fetchServicios, fetchCombos]);
 
   useEffect(() => {
     const query = clienteNombre.trim();
@@ -375,34 +307,6 @@ export default function CajaPage() {
   }, [clienteNombre, selectedClienteId]);
 
   useEffect(() => {
-    if (modo !== 'cobrarReserva' || !selectedLocal) return;
-    const nombre = clienteNombre.trim();
-    if (nombre.length < 2) {
-      setPlanesReservados([]);
-      return;
-    }
-
-    let cancelled = false;
-    const timer = window.setTimeout(async () => {
-      setLoadingPlanesReservados(true);
-      try {
-		const res = await getPlanesDB({ cliente: nombre, estado: 'RESERVADO', local: selectedLocal.nombre, limit: PAGE_LIMIT });
-        if (cancelled) return;
-        setPlanesReservados(res.data?.planes ?? []);
-      } catch {
-        if (!cancelled) setPlanesReservados([]);
-      } finally {
-        if (!cancelled) setLoadingPlanesReservados(false);
-      }
-    }, 280);
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-    };
-  }, [modo, clienteNombre, selectedLocal]);
-
-  useEffect(() => {
     const ctx = gsap.context(() => {
       gsap.fromTo(
         contentRef.current,
@@ -431,10 +335,36 @@ export default function CajaPage() {
   );
   const totalFinal = Math.max(0, subtotal - descuento);
   const tienePreciosPendientes = detalle.some((item) => item.subtotal === null);
-  const totalLocal = useMemo(
-    () => pagos.reduce((sum, pago) => sum + Number(pago.total_final ?? 0), 0),
-    [pagos],
-  );
+
+  const cuenta = selectedClienteId && cuentaLeida?.clienteId === selectedClienteId ? cuentaLeida.cuenta : null;
+  const disponible = cuenta?.saldo.disponible ?? 0;
+  const hayCliente = !!selectedClienteId;
+  // La caja ya no paga deudas anteriores ni recarga saldo: el ticket solo trae las ventas nuevas.
+  const contextoMetodo = { hayCliente, disponible, total: roundMoney(totalFinal), cargosAnteriores: 0, recarga: 0 };
+  // Si el metodo elegido deja de valer, se vuelve al metodo normal.
+  const metodoActual: MetodoCaja = modoCuenta && metodoValido(modoCuenta, contextoMetodo) ? modoCuenta : tipoPago;
+  const resumen = resumenTicket({ ventas: totalFinal, cargosAnteriores: 0, recarga: 0, disponible, metodo: metodoActual });
+  // Saldo siempre se ve; se puede elegir solo si el saldo del cliente cubre todo el ticket.
+  const saldoValido = metodoValido('saldo', contextoMetodo);
+  const extrasMetodo = [{
+    value: 'saldo' as const,
+    label: 'Saldo',
+    icon: <Wallet size={16} strokeWidth={1.8} />,
+    disabled: !saldoValido,
+    title: !hayCliente
+      ? 'Elige un cliente para pagar con su saldo'
+      : saldoValido ? undefined : `Saldo insuficiente: tiene ${formatMoney(disponible)}`,
+  }];
+  const cambiarMetodo = (valor: MetodoCaja) => {
+    if (valor === 'saldo') {
+      setModoCuenta('saldo');
+    } else if (valor !== 'a_cuenta') {
+      setModoCuenta(null);
+      setTipoPago(valor);
+    }
+  };
+  // A cuenta es un boton aparte: siempre se ve, se habilita con cliente y ventas.
+  const puedeDejarACuenta = detalle.length > 0 && metodoValido('a_cuenta', contextoMetodo);
 
   const serviciosFiltrados = useMemo(() => {
     const query = serviceQuery.trim().toLowerCase();
@@ -479,25 +409,20 @@ export default function CajaPage() {
     clearFieldError('detalle');
   };
 
-  const addCustomDetalle = () => {
-    const nombre = customServicio.trim();
-    const precio = normalizeServicePrice(customPrecio);
-    if (!nombre || precio <= 0) {
-      setFormErrors((prev) => ({ ...prev, detalle: 'Agrega un nombre y precio válido para el servicio personalizado' }));
+  const agregarOtro = () => {
+    const concepto = otroConcepto.trim();
+    const precio = parsePrecioPago(otroMonto);
+    if (!concepto) {
+      toast.error('Escribe el concepto del cobro');
       return;
     }
-    setDetalle((prev) => [
-      ...prev,
-      {
-        servicio_id: null,
-        servicio: nombre,
-        precio_unitario: precio,
-        cantidad: 1,
-        subtotal: precio,
-      },
-    ]);
-    setCustomServicio('');
-    setCustomPrecio('');
+    if (precio === null || precio <= 0) {
+      toast.error('Ingresa un monto mayor a 0');
+      return;
+    }
+    setDetalle((prev) => [...prev, { servicio_id: null, servicio: concepto, precio_unitario: precio, cantidad: 1, subtotal: precio }]);
+    setOtroConcepto('');
+    setOtroMonto('');
     clearFieldError('detalle');
   };
 
@@ -510,7 +435,6 @@ export default function CajaPage() {
     );
     setCombosVenta((prev) => ({ ...prev, [nombreLinea]: { combo_id: combo.id, precio: combo.precio_total } }));
     clearFieldError('detalle');
-    toast.success(`Paquete "${combo.nombre}" agregado al pago`);
   };
 
   const updateCantidad = (index: number, cantidad: number) => {
@@ -536,6 +460,8 @@ export default function CajaPage() {
   };
 
   const resetSale = () => {
+    planesACuentaRef.current = {};
+    setModoCuenta(null);
     setClienteNit('');
     setNitPropuesto(false);
     setClienteNombre('');
@@ -546,41 +472,7 @@ export default function CajaPage() {
     setTipoPago('qr');
     setDetalle([]);
     setCombosVenta({});
-    setCustomServicio('');
-    setCustomPrecio('');
     setFormErrors({});
-    setPlanReservado(null);
-    setPlanesReservados([]);
-  };
-
-  const handleModoChange = (nextModo: 'venta' | 'cobrarReserva') => {
-    if (nextModo === modo) return;
-    setModo(nextModo);
-    setDetalle([]);
-    setCombosVenta({});
-    setPlanReservado(null);
-    setPlanesReservados([]);
-    setFormErrors({});
-  };
-
-  const handleSelectPlanReservado = (value: string) => {
-    const plan = planesReservados.find((p) => String(p.id) === value) ?? null;
-    setPlanReservado(plan);
-    if (plan) {
-      setClienteNombre(plan.cliente);
-      setSelectedClienteId(plan.cliente_id ?? null);
-      setClienteDropdownOpen(false);
-      setDetalle([{
-        servicio_id: null,
-        servicio: plan.combo_nombre_texto ?? 'Paquete',
-        precio_unitario: plan.precio_total,
-        cantidad: 1,
-        subtotal: plan.precio_total,
-      }]);
-    } else {
-      setDetalle([]);
-    }
-    clearFieldError('detalle');
   };
 
   const resetNewClientModal = () => {
@@ -628,11 +520,7 @@ export default function CajaPage() {
     const errors: FormErrors = {};
     if (!selectedLocal) errors.local = 'Selecciona un local para abrir caja';
     if (!clienteNombre.trim()) errors.cliente_nombre = 'El nombre del cliente es obligatorio';
-    if (detalle.length === 0) {
-      errors.detalle = modo === 'cobrarReserva'
-        ? 'Selecciona un paquete reservado para cobrar'
-        : 'Agrega al menos un servicio';
-    }
+    if (detalle.length === 0) errors.detalle = 'Agrega al menos un servicio, paquete u otro concepto';
     const { errorIndex } = prepararDetallePago(detalle);
     if (errorIndex !== null) {
       const item = detalle[errorIndex];
@@ -666,12 +554,8 @@ export default function CajaPage() {
     if (!selectedLocal || !validate()) return;
     const detallePreparado = prepararDetallePago(detalle);
     if (detallePreparado.errorIndex !== null) return;
-    if (modo === 'cobrarReserva' && !planReservado) {
-      toast.error('Selecciona un paquete reservado para cobrar.');
-      return;
-    }
     // Un paquete nuevo es una membresía: necesita un cliente registrado como dueño.
-    const tienePaquete = modo === 'venta' && detalle.some((i) => combosVenta[i.servicio]);
+    const tienePaquete = detalle.some((i) => combosVenta[i.servicio]);
     if (tienePaquete && !clienteId) {
       toast.error('Un paquete necesita un cliente registrado. Selecciona o crea el cliente.');
       return;
@@ -689,42 +573,30 @@ export default function CajaPage() {
         estado: 'PAGADO',
         tipo_pago: tipoPago,
         activo: true,
+
         detalle: detallePreparado.detalle,
       };
       const pagoRes = await crearPagoDB(payload);
       const codigoPago = pagoRes.data?.codigo_pago;
 
-      if (modo === 'cobrarReserva' && planReservado) {
-        // La reserva ya existe como plan RESERVADO: solo se le adjunta el pago
-        // recién creado, lo que la activa (no se crea un plan nuevo).
-        if (codigoPago) {
-          try {
-            await cobrarPlan(planReservado.id, codigoPago);
-          } catch (err) {
-            if (err instanceof Error) console.error('cobrar reserva tras pago', err);
-            toast.error('El pago se registró, pero la reserva no se activó. Actívala en Paquetes.');
-          }
-        }
-      } else {
-        // Crear el paquete (ya ACTIVO) de cada línea de paquete que quedó en el detalle del pago.
-        // Nace ACTIVO porque ya está pagado: el cliente puede usar sus sesiones de inmediato.
-        // Se pasa el código del pago para aplicarlo a la cuota (queda PAGADO).
-        const paquetes = detalle.filter((i) => i.servicio_id === null && combosVenta[i.servicio]);
-        if (paquetes.length > 0 && clienteId) {
-          try {
-            await Promise.all(
-              paquetes.map((i) => crearPlan({ combo_id: combosVenta[i.servicio].combo_id, cliente_id: clienteId, local_id: selectedLocal.id, tipo_pago: 'UNICO', pago_codigo: codigoPago })),
-            );
-          } catch (err) {
-            if (err instanceof Error) console.error('crear paquete tras pago', err);
-            toast.error('El pago se registró, pero un paquete no se creó. Créalo en Paquetes.');
-          }
+      // Crear el paquete (ya ACTIVO) de cada línea de paquete que quedó en el detalle del pago.
+      // Nace ACTIVO porque ya está pagado: el cliente puede usar sus sesiones de inmediato.
+      // Se pasa el código del pago para aplicarlo a la cuota (queda PAGADO).
+      const paquetes = detalle.filter((i) => i.servicio_id === null && combosVenta[i.servicio]);
+      if (paquetes.length > 0 && clienteId) {
+        try {
+          await Promise.all(
+            paquetes.map((i) => crearPlan({ combo_id: combosVenta[i.servicio].combo_id, cliente_id: clienteId, local_id: selectedLocal.id, tipo_pago: 'UNICO', pago_codigo: codigoPago })),
+          );
+        } catch (err) {
+          if (err instanceof Error) console.error('crear paquete tras pago', err);
+          toast.error('El pago se registró, pero un paquete no se creó. Créalo en Paquetes.');
         }
       }
 
-      toast.success(modo === 'cobrarReserva' ? 'Paquete cobrado y activado' : 'Pago registrado en caja');
+      toast.success('Pago registrado en caja');
       resetSale();
-      pagosPagination.resetAfterMutation();
+      setRecargaReservas((n) => n + 1);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al registrar pago';
       setFormErrors({ submit: message });
@@ -734,10 +606,81 @@ export default function CajaPage() {
     }
   };
 
+  /** Crea los cargos de las ventas del ticket, activa los paquetes y devuelve los ids. */
+  const crearCargosDelTicket = async (local: LocalOption, clienteId: number, lineas: DetalleServicio[]): Promise<number[]> => {
+    // Un paquete nace activo: el cliente ya puede usar sus sesiones y el cargo queda ligado a su plan.
+    for (const linea of lineas) {
+      const combo = combosVenta[linea.servicio];
+      if (!combo || planesACuentaRef.current[linea.servicio]) continue;
+      const plan = await crearPlan({ combo_id: combo.combo_id, cliente_id: clienteId, local_id: local.id, tipo_pago: 'UNICO' });
+      await cambiarEstadoPlan(plan.data.id, 'ACTIVO');
+      planesACuentaRef.current[linea.servicio] = plan.data.id;
+    }
+
+    return crearCargosLote(clienteId, cargosDesdeDetalle(lineas, {
+      descuento,
+      localId: local.id,
+
+      esPaquete: (linea) => !!combosVenta[linea.servicio],
+      planPorLinea: planesACuentaRef.current,
+    }));
+  };
+
+  /** Deja el ticket listo para el siguiente cliente despues de pasar por la cuenta. */
+  const terminarTicketDeCuenta = (mensaje: string) => {
+    toast.success(mensaje);
+    resetSale();
+    setRecargaReservas((n) => n + 1);
+  };
+
+  /**
+   * Registra el ticket por la cuenta del cliente: las ventas se vuelven cargos y despues se cobra todo junto con saldo
+   * y/o un metodo, o se deja a cuenta sin mover dinero. Si algo falla antes de crear los cargos, no queda ninguno.
+   */
+  const registrarPorCuenta = async (aCuenta = false) => {
+    if (!selectedLocal || !selectedClienteId) return;
+    const detallePreparado = prepararDetallePago(detalle);
+    if (detallePreparado.errorIndex !== null) return;
+    const local = selectedLocal;
+    const clienteId = selectedClienteId;
+    setSaving(true);
+    setFormErrors({});
+    try {
+      const nuevos = detallePreparado.detalle.length > 0 ? await crearCargosDelTicket(local, clienteId, detallePreparado.detalle) : [];
+      if (aCuenta) {
+        terminarTicketDeCuenta(`Dejado a cuenta de ${clienteNombre.trim()}`);
+        return;
+      }
+      try {
+        await cobrarCliente(clienteId, {
+          local_id: local.id,
+          local_nombre: local.nombre,
+          cargo_ids: nuevos,
+          usar_saldo: metodoActual === 'saldo',
+          tipo_pago: resumen.aPagarAhora > 0 ? tipoPago : undefined,
+        });
+      } catch (err) {
+        if (nuevos.length === 0) throw err;
+        // Los cargos ya existen: quedaron a cuenta y se pueden cobrar desde la ficha del cliente.
+        const motivo = err instanceof Error ? err.message : 'error desconocido';
+        toast.error(`Quedó a cuenta, pero el cobro falló: ${motivo}. Cóbralo desde la ficha del cliente.`);
+        terminarTicketDeCuenta(`Dejado a cuenta de ${clienteNombre.trim()}`);
+        return;
+      }
+      terminarTicketDeCuenta('Cobro registrado');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'No se pudo registrar el cobro';
+      setFormErrors({ submit: message });
+      toast.error(message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!validate() || !selectedLocal) return;
-    if (modo === 'cobrarReserva') {
-      await registerPayment(planReservado?.cliente_id ?? selectedClienteId ?? null);
+    if (selectedClienteId && resumen.usaCuenta) {
+      await registrarPorCuenta();
       return;
     }
     if (!selectedClienteId) {
@@ -789,70 +732,19 @@ export default function CajaPage() {
     }
   };
 
-  const columns: Column<PagoRow>[] = [
-    {
-      key: 'codigo_pago',
-      label: 'Código',
-      searchable: false,
-      render: (value) => <PagoDetalleCodeButton codigoPago={String(value)} onOpen={setDetallePagoCodigo} />,
-    },
-    { key: 'cliente_nombre', label: 'Cliente' },
-    { key: 'cliente_nit', label: 'NIT', searchable: false },
-    {
-      key: 'primer_producto',
-      label: 'Servicios / productos',
-      searchable: false,
-      render: (value, row) => (
-        <PagoProductosCell
-          codigoPago={row.codigo_pago}
-          primerProducto={String(value ?? '')}
-          cantidadProductos={Number(row.cantidad_productos ?? 0)}
-          onOpen={setDetallePagoCodigo}
-        />
-      ),
-    },
-    {
-      key: 'tipo_pago',
-      label: 'Tipo',
-      searchable: false,
-      render: (value) => String(value || 'No definido').toUpperCase(),
-    },
-    {
-      key: 'total_final',
-      label: 'Total',
-      searchable: false,
-      render: (value) => formatMoney(Number(value ?? 0)),
-    },
-    {
-      key: 'fecha_creacion',
-      label: 'Fecha y hora',
-      searchable: false,
-      render: (value) => formatDateTime(value as string),
-    },
-    {
-      key: 'estado',
-      label: 'Estado',
-      searchable: false,
-      render: (value) => (
-        <span className={value === 'PAGADO' ? 'admin-status-active' : 'admin-status-pending'}>
-          {String(value)}
-        </span>
-      ),
-    },
-  ];
-
   return (
-    <div ref={containerRef} className={styles.pageContainer}>
-      <div className="admin-mesh" />
-      <Header />
-      <main className={styles.main}>
-        <div className={styles.container}>
+    <div ref={containerRef} className="admin-stack">
           <PageHeader
             kicker="Operación diaria"
             kickerIcon={<Banknote size={14} strokeWidth={2} />}
             title="Cobros"
             accentWord="Cobros"
-            subtitle={selectedLocal ? `Registrando pagos en ${selectedLocal.nombre}` : 'Selecciona el local para iniciar el registro de pagos'}
+            subtitle={selectedLocal ? `Registrando cobros de ventas en ${selectedLocal.nombre}.` : 'Selecciona el local para registrar el cobro de una venta.'}
+            actions={
+              <AdminButton variant="secondary" href="/atrevida-gestion/pagos" icon={<History size={16} strokeWidth={1.8} />}>
+                Historial de pagos
+              </AdminButton>
+            }
           />
 
           <div ref={contentRef} className={styles.contentStack}>
@@ -903,76 +795,18 @@ export default function CajaPage() {
                     <span>Fecha</span>
                     <strong>{getTodayStamp()}</strong>
                   </div>
-                  <div className={styles.summaryItem}>
-                    <span>Pagos del local</span>
-                    <strong>{pagos.length}</strong>
-                  </div>
-                  <div className={styles.summaryItem}>
-                    <span>Total listado</span>
-                    <strong>{formatMoney(totalLocal)}</strong>
-                  </div>
                 </section>
-
-                <div className={styles.paymentToggle} role="group" aria-label="Modo de cobro">
-                  <button
-                    type="button"
-                    className={modo === 'venta' ? styles.paymentActive : ''}
-                    onClick={() => handleModoChange('venta')}
-                  >
-                    <ReceiptText size={16} strokeWidth={1.8} />
-                    Venta nueva
-                  </button>
-                  <button
-                    type="button"
-                    className={modo === 'cobrarReserva' ? styles.paymentActive : ''}
-                    onClick={() => handleModoChange('cobrarReserva')}
-                  >
-                    <CheckCircle2 size={16} strokeWidth={1.8} />
-                    Cobrar paquete reservado
-                  </button>
-                </div>
 
                 <section className={styles.saleShell}>
                   <div className={styles.catalogPanel}>
                     <div className={styles.panelHeader}>
                       <div>
-                        <span className={styles.kicker}>{modo === 'venta' ? 'Catálogo' : 'Cobrar paquete reservado'}</span>
-                        <h2>{modo === 'venta' ? 'Agregar al pago' : 'Paquete seleccionado'}</h2>
+                        <span className={styles.kicker}>Catálogo</span>
+                        <h2>Agregar al pago</h2>
                       </div>
-                      {modo === 'venta'
-                        ? (loadingServicios || loadingCombos) && <span className="admin-badge">Cargando</span>
-                        : loadingPlanesReservados && <span className="admin-badge">Buscando</span>}
+                      {(loadingServicios || loadingCombos) && <span className="admin-badge">Cargando</span>}
                     </div>
 
-                    {modo === 'cobrarReserva' ? (
-                      <div className={styles.catalogBody}>
-                        {planReservado ? (
-                          <div className={styles.summaryCard}>
-                            <div className={styles.summaryRow}>
-                              <span>Cliente</span>
-                              <strong>{planReservado.cliente}</strong>
-                            </div>
-                            <div className={styles.summaryRow}>
-                              <span>Paquete</span>
-                              <strong>{planReservado.combo_nombre_texto ?? '—'}</strong>
-                            </div>
-                            <div className={styles.summaryRow}>
-                              <span>Sesiones</span>
-                              <strong>{planReservado.sesiones_totales}</strong>
-                            </div>
-                            <div className={styles.summaryRow}>
-                              <span>Precio</span>
-                              <strong>{formatMoney(planReservado.precio_total)}</strong>
-                            </div>
-                          </div>
-                        ) : (
-                          <p className={styles.mutedText}>
-                            Escribe el nombre del cliente en el panel derecho y elige su paquete reservado para agregarlo al pago.
-                          </p>
-                        )}
-                      </div>
-                    ) : (
-                    <>
                     <div className={styles.catalogTabs} role="tablist">
                       <button
                         type="button"
@@ -996,15 +830,15 @@ export default function CajaPage() {
                       <button
                         type="button"
                         role="tab"
-                        aria-selected={catalogoTab === 'personalizado'}
-                        className={`${styles.catalogTab} ${catalogoTab === 'personalizado' ? styles.catalogTabActive : ''}`}
-                        onClick={() => setCatalogoTab('personalizado')}
+                        aria-selected={catalogoTab === 'otro'}
+                        className={`${styles.catalogTab} ${catalogoTab === 'otro' ? styles.catalogTabActive : ''}`}
+                        onClick={() => setCatalogoTab('otro')}
                       >
                         Otro
                       </button>
                     </div>
 
-                    {catalogoTab !== 'personalizado' && (
+                    {catalogoTab !== 'otro' && (
                       <div className={styles.searchBox}>
                         <Search size={15} strokeWidth={1.8} />
                         <input
@@ -1067,40 +901,53 @@ export default function CajaPage() {
                         </div>
                       )}
 
-                      {catalogoTab === 'personalizado' && (
-                        <div className={styles.customService}>
-                          <input
-                            type="text"
-                            value={customServicio}
-                            onChange={(e) => setCustomServicio(e.target.value)}
-                            placeholder="Nombre del servicio"
-                          />
-                          <div className={styles.inlineFields}>
+                      {catalogoTab === 'otro' && (
+                        <form
+                          className={styles.otroForm}
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            agregarOtro();
+                          }}
+                        >
+                          <p className={styles.mutedText}>Para cobrar algo que no está en servicios ni paquetes.</p>
+                          <label>
+                            <span>Concepto</span>
+                            <input
+                              type="text"
+                              value={otroConcepto}
+                              onChange={(e) => setOtroConcepto(e.target.value)}
+                              placeholder="Ej. Recargo, producto, ajuste"
+                              maxLength={120}
+                              autoComplete="off"
+                            />
+                          </label>
+                          <label>
+                            <span>Monto (Bs.)</span>
                             <input
                               type="number"
                               min={0}
-                              value={customPrecio}
-                              onChange={(e) => setCustomPrecio(e.target.value)}
-                              placeholder="Precio"
+                              max={99999999.99}
+                              step="0.01"
+                              inputMode="decimal"
+                              value={otroMonto}
+                              onChange={(e) => setOtroMonto(e.target.value)}
+                              placeholder="0.00"
                             />
-                            <button type="button" className="admin-button admin-button-secondary" onClick={addCustomDetalle}>
-                              <Plus size={16} strokeWidth={2} />
-                              Agregar
-                            </button>
-                          </div>
-                          <p className={styles.mutedText}>Cobro puntual que no está en el catálogo.</p>
-                        </div>
+                          </label>
+                          <button type="submit" className="admin-button admin-button-secondary">
+                            <Plus size={16} strokeWidth={2} />
+                            Agregar al pago
+                          </button>
+                        </form>
                       )}
                     </div>
-                    </>
-                    )}
                   </div>
 
                   <div className={styles.ticketPanel}>
                     <div className={styles.panelHeader}>
                       <div>
-                        <span className={styles.kicker}>{modo === 'venta' ? 'Nuevo pago' : 'Cobrar paquete reservado'}</span>
-                        <h2>{modo === 'venta' ? 'Detalle de caja' : 'Paquete a cobrar'}</h2>
+                        <span className={styles.kicker}>Nuevo pago</span>
+                        <h2>Detalle de caja</h2>
                       </div>
                       <ReceiptText size={22} strokeWidth={1.7} />
                     </div>
@@ -1169,51 +1016,22 @@ export default function CajaPage() {
                           </div>
                         )}
                         {formErrors.cliente_nombre && <small className={styles.fieldError}>{formErrors.cliente_nombre}</small>}
+                        <button type="button" className={styles.nuevoCliente} onClick={() => setNuevoClienteAbierto(true)}>
+                          <UserPlus size={13} strokeWidth={2} />
+                          Nuevo
+                        </button>
                       </label>
                     </div>
 
-                    {modo === 'cobrarReserva' && (
-                      <div className={styles.modalField}>
-                        <span>Paquete reservado</span>
-                        {loadingPlanesReservados ? (
-                          <p className={styles.mutedText}>Buscando paquetes...</p>
-                        ) : clienteNombre.trim().length < 2 ? (
-                          <p className={styles.mutedText}>Escribe el nombre del cliente para buscar sus paquetes reservados.</p>
-                        ) : planesReservados.length === 0 ? (
-                          <p className={styles.mutedText}>Este cliente no tiene paquetes reservados pendientes de cobro.</p>
-                        ) : (
-                          <CustomSelect
-                            id="plan-reservado-select"
-                            value={planReservado ? String(planReservado.id) : ''}
-                            onChange={handleSelectPlanReservado}
-                            placeholder="Selecciona el paquete"
-                            hasError={!!formErrors.detalle}
-                            options={planesReservados.map((p) => ({
-                              value: String(p.id),
-                              label: `${p.combo_nombre_texto ?? 'Paquete'} — ${p.sesiones_totales} sesiones — ${formatMoney(p.precio_total)}`,
-                            }))}
-                          />
-                        )}
-                      </div>
+                    {cuenta && (
+                      <p className={styles.saldoLinea}>
+                        Saldo disponible {formatMoney(disponible)}
+                        {cuenta.saldo.por_pagar > 0 && <> · Por pagar {formatMoney(cuenta.saldo.por_pagar)}</>}
+                      </p>
                     )}
 
-                    <div className={styles.paymentToggle} role="group" aria-label="Tipo de pago">
-                      <button
-                        type="button"
-                        className={tipoPago === 'qr' ? styles.paymentActive : ''}
-                        onClick={() => setTipoPago('qr')}
-                      >
-                        <CreditCard size={16} strokeWidth={1.8} />
-                        QR
-                      </button>
-                      <button
-                        type="button"
-                        className={tipoPago === 'efectivo' ? styles.paymentActive : ''}
-                        onClick={() => setTipoPago('efectivo')}
-                      >
-                        <WalletCards size={16} strokeWidth={1.8} />
-                        Efectivo
-                      </button>
+                    <div className={styles.paymentToggle}>
+                      <TipoPagoSelector value={metodoActual} onChange={cambiarMetodo} label="Cómo paga" extras={extrasMetodo} />
                     </div>
 
                     <div className={styles.ticketColumns}>
@@ -1235,7 +1053,7 @@ export default function CajaPage() {
                             <div>
                               <strong>{item.servicio}</strong>
                             </div>
-                            {modo === 'venta' && item.servicio_id !== null ? (
+                            {!combosVenta[item.servicio] ? (
                               <label className={styles.unitPriceField}>
                                 <span className={styles.currencyPrefix}>Bs.</span>
                                 <input
@@ -1283,22 +1101,31 @@ export default function CajaPage() {
                     {formErrors.detalle && <small className={styles.fieldError}>{formErrors.detalle}</small>}
 
                     <div className={styles.totalsPanel}>
-                      <div>
+                      <div className={styles.totalsRow}>
                         <span>Subtotal</span>
-                        <strong>{tienePreciosPendientes ? '—' : formatMoney(subtotal)}</strong>
+                        <span className={styles.totalsValue}>{tienePreciosPendientes ? '—' : formatMoney(subtotal)}</span>
                       </div>
-                      <label>
+                      <label className={styles.totalsRow}>
                         <span>Descuento</span>
-                        <input
-                          type="number"
-                          min={0}
-                          value={descuento}
-                          onChange={(e) => setDescuento(Math.max(0, Number(e.target.value) || 0))}
-                        />
+                        <span className={styles.discountField}>
+                          <span>Bs.</span>
+                          <input
+                            type="number"
+                            min={0}
+                            value={descuento}
+                            onChange={(e) => setDescuento(Math.max(0, Number(e.target.value) || 0))}
+                          />
+                        </span>
                       </label>
+                      {resumen.usaSaldo > 0 && (
+                        <div className={`${styles.totalsRow} ${styles.totalsSaldo}`}>
+                          <span>Saldo aplicado</span>
+                          <span className={styles.totalsValue}>− {formatMoney(resumen.usaSaldo)}</span>
+                        </div>
+                      )}
                       <div className={styles.totalFinal}>
-                        <span>Total a cobrar</span>
-                        <strong>{tienePreciosPendientes ? '—' : formatMoney(totalFinal)}</strong>
+                        <span>{resumen.usaCuenta ? 'Paga ahora' : 'Total a cobrar'}</span>
+                        <strong>{tienePreciosPendientes ? '—' : formatMoney(resumen.aPagarAhora)}</strong>
                       </div>
                     </div>
 
@@ -1308,89 +1135,37 @@ export default function CajaPage() {
                       <button type="button" className="admin-button admin-button-secondary" onClick={resetSale} disabled={saving}>
                         Limpiar
                       </button>
-                      <button type="button" className="admin-button admin-button-primary" onClick={handleSubmit} disabled={saving}>
+                      <button
+                        type="button"
+                        className="admin-button admin-button-secondary"
+                        onClick={() => { if (validate()) void registrarPorCuenta(true); }}
+                        disabled={saving || !puedeDejarACuenta}
+                        title={!hayCliente ? 'Elige un cliente para dejar el ticket a su cuenta' : 'La deuda se cobra después, desde caja o desde la ficha'}
+                      >
+                        <Clock size={16} strokeWidth={2} />
+                        A cuenta
+                      </button>
+                      <button type="button" className="admin-button admin-button-primary" onClick={handleSubmit} disabled={saving || (metodoActual === 'saldo' && !saldoValido)}>
                         <CheckCircle2 size={17} strokeWidth={2} />
-                        {saving ? 'Registrando...' : modo === 'cobrarReserva' ? 'Cobrar paquete' : 'Registrar pago'}
+                        {saving ? 'Registrando...' : resumen.usaCuenta ? 'Registrar cobro' : 'Registrar pago'}
                       </button>
                     </div>
                   </div>
                 </section>
 
-                <section className={styles.historyPanel}>
-                  <div className={`${styles.historyHeaderCard} ${styles.panelHeader}`}>
-                    <div>
-                      <span className={styles.kicker}>Historial local</span>
-                      <h2>Pagos registrados en {selectedLocal.nombre}</h2>
-                    </div>
-                    <div className={styles.historyFilters}>
-                      <label className={styles.historyFilter}>
-                        <Search size={15} aria-hidden="true" />
-                        <input
-                          type="search"
-                          value={pagosCliente}
-                          onChange={(event) => setPagosCliente(event.target.value)}
-                          placeholder="Buscar por cliente..."
-                          aria-label="Buscar pagos por cliente"
-                        />
-                      </label>
-                      <label className={`${styles.historyFilter} ${styles.historyFilterNit}`}>
-                        <Search size={15} aria-hidden="true" />
-                        <input
-                          type="search"
-                          value={pagosNit}
-                          onChange={(event) => setPagosNit(event.target.value)}
-                          placeholder="Buscar por NIT..."
-                          aria-label="Buscar pagos por NIT"
-                        />
-                      </label>
-                      <label className={`${styles.historyFilter} ${styles.historyFilterProduct}`}>
-                        <Search size={15} aria-hidden="true" />
-                        <input
-                          type="search"
-                          value={pagosProducto}
-                          onChange={(event) => setPagosProducto(event.target.value)}
-                          placeholder="Buscar por servicio/producto..."
-                          aria-label="Buscar pagos por servicio o producto"
-                        />
-                      </label>
-                      <div className={styles.historyStatusFilter}>
-                        <CustomSelect
-                          id="caja-pagos-estado"
-                          value={pagosEstado}
-                          onChange={setPagosEstado}
-                          options={ESTADO_OPTIONS.map((estado) => ({ value: estado, label: ESTADO_LABELS[estado] ?? estado }))}
-                          placeholder="Todos los estados"
-                          allowClear
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <DataTable<PagoRow>
-                    columns={columns}
-                    data={pagos}
-                    loading={loadingPagos}
-                    error={pagosError}
-                    onRefresh={() => fetchPagos(selectedLocal)}
-                    getRowKey={(p) => p.codigo_pago}
-                    hideSearch
-                    emptyMessage="Todavía no hay pagos en este local"
-                  />
-				  <CursorPagination page={pagosPagination.page} totalPages={pagosPagination.totalPages} hasNext={pagosPagination.hasNext} loading={loadingPagos} onPrevious={pagosPagination.previous} onNext={pagosPagination.next} />
-                </section>
               </>
             )}
           </div>
-        </div>
-      </main>
 
-      {detallePagoCodigo && (
-        <PagoDetalleModal
-          key={detallePagoCodigo}
-          codigoPago={detallePagoCodigo}
-          onClose={() => setDetallePagoCodigo(null)}
-        />
-      )}
+      <ClienteFormModal
+        isOpen={nuevoClienteAbierto}
+        onClose={() => setNuevoClienteAbierto(false)}
+        initialNombre={clienteNombre}
+        onSaved={(cliente) => {
+          selectCliente(cliente as ClienteOption);
+          toast.success('Cliente creado');
+        }}
+      />
 
       <FormModal
         isOpen={newClientModalOpen}

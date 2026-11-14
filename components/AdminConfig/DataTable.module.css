@@ -220,6 +220,58 @@
   white-space: nowrap;
 }
 
+/* ── Header ordenable ──
+   El botón hereda la tipografía del th. El padding negativo agranda el área de click sin mover el texto. */
+.sortButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: -0.5rem -0.6rem;
+  padding: 0.5rem 0.6rem;
+  border: none;
+  border-radius: var(--admin-radius-md);
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  cursor: pointer;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.sortButton:hover:not(:disabled) {
+  color: var(--admin-foreground);
+  background: rgba(236, 0, 140, 0.06);
+}
+
+.sortButton:focus-visible {
+  outline: 2px solid #EC008C;
+  outline-offset: 1px;
+}
+
+.sortButton:disabled {
+  cursor: default;
+}
+
+.sortActive {
+  color: var(--admin-foreground);
+}
+
+.sortIcon {
+  flex-shrink: 0;
+  opacity: 0.4;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.sortButton:hover:not(:disabled) .sortIcon {
+  opacity: 0.85;
+}
+
+.sortActive .sortIcon {
+  color: #EC008C;
+  opacity: 1;
+}
+
 /* Primer th con línea izquierda rosada */
 .table th:first-child {
   border-left: 2px solid transparent;
@@ -237,6 +289,15 @@
 .table tbody tr {
   transition: background-color 0.15s ease;
   position: relative;
+}
+
+.clickableRow {
+  cursor: pointer;
+}
+
+.clickableRow:focus-visible {
+  outline: 2px solid var(--admin-accent-primary);
+  outline-offset: -2px;
 }
 
 .table tbody tr:hover:not(.skeletonRow) {
@@ -477,4 +538,9 @@
     padding: 0.42rem 0.75rem;
     font-size: 0.75rem;
   }
+}
+
+/* Paginador de las tablas que tienen todas sus filas en el navegador. */
+.paginationRow {
+  padding: 0 1rem 1rem;
 }

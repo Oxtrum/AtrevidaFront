@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertTriangle, CalendarPlus, UserPlus } from 'lucide-react';
+import { AlertTriangle, CalendarCheck, CalendarPlus, Save } from 'lucide-react';
+import { useState } from 'react';
 import { CustomSelect } from '../Custom/CustomSelectAdmin';
 import { TimeSlotPicker } from './TimeSlotPicker';
 import { horarioHabilitado } from '@/lib/utils/diaSeleccion';
@@ -11,45 +11,32 @@ import { WeekStepper } from './WeekStepper';
 import PlanSelector from './PlanSelector';
 import { ServiceSelect } from './ServiceSelect';
 import { useReservationForm, type ReservationFormInitialData } from './useReservationForm';
-import { getClientesDB, type ClientePG } from '@/lib/api/clientes';
-import { ClienteFormModal } from '@/components/AdminClientes';
+import type { ClientePG } from '@/lib/api/clientes';
+import { ClienteSelect } from '@/components/AdminClientes';
 import { ConfirmDialog } from '@/components/AdminConfig/ConfirmDialog';
 import { ReservaDuplicadaDialog } from '@/components/AdminReservas/ReservaDuplicadaDialog';
-import modalStyles from '@/components/AdminConfig/FormModal.module.css';
+import { AvisoDuracion } from './AvisoDuracion';
 import { PhoneInput } from '@/components/PhoneInput';
-import { phoneValueFrom, type PhoneValue } from '@/lib/utils/phone';
+import { formatPhoneForDisplay, phoneValueFrom, type PhoneValue } from '@/lib/utils/phone';
+import { telefonosDistintos } from '@/lib/utils/telefonoCliente';
 import styles from './ReservationForm.module.css';
-import { PAGE_LIMIT } from '@/lib/api/pagination';
 
 interface ReservationFormProps {
   initialData?: ReservationFormInitialData;
   onSuccess?: () => void;
 }
 
-const MIN_CLIENT_SEARCH_LENGTH = 2;
-const MAX_CLIENT_SUGGESTIONS = 7;
-// Mismo umbral que validateReservationForm: fijos de 7 dígitos son válidos.
-const MIN_PHONE_DIGITS = 7;
-
-const getClienteNombreCompleto = (cliente: ClientePG) => `${cliente.nombre} ${cliente.apellido}`.trim();
-
-const normalizeSearch = (value: string) => value.trim().toLowerCase();
-
-const normalizeClientPhone = (value: string, e164?: string) => phoneValueFrom(e164 || value).nationalNumber;
-
 export default function AdminReservationForm({ initialData, onSuccess }: ReservationFormProps) {
   const router = useRouter();
-  const [clientesDirectorio, setClientesDirectorio] = useState<ClientePG[]>([]);
-  const [clientesLoading, setClientesLoading] = useState(false);
-  const [clientesError, setClientesError] = useState<string | null>(null);
-  const [clienteDropdownOpen, setClienteDropdownOpen] = useState(false);
-  const [clienteModalOpen, setClienteModalOpen] = useState(false);
+  // Cliente elegido en el buscador (no el que ya traia la reserva): de el sale la opcion de reemplazar su telefono.
+  const [clienteElegido, setClienteElegido] = useState<ClientePG | null>(null);
   const {
     sucursal, setSucursal,
     semanaIndex,
     dia,
     horaDesde, horaHasta,
     cliente, setCliente,
+    setClienteId,
     numeroTelefono, setNumeroTelefono,
     telefonoE164, setTelefonoE164,
     notas, setNotas,
@@ -80,92 +67,28 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
     reservasDuplicadas,
     confirmarDuplicada,
     cancelarDuplicada,
+    editando,
+    aprobando,
+    actualizarTelefonoCliente, setActualizarTelefonoCliente,
   } = useReservationForm(initialData, onSuccess);
 
-  const clienteQuery = normalizeSearch(cliente);
-
-  useEffect(() => {
-    if (!initialData?.isAdmin || clienteQuery.length < MIN_CLIENT_SEARCH_LENGTH) {
-      return;
-    }
-    const controller = new AbortController();
-    const timer = window.setTimeout(() => {
-      setClientesLoading(true);
-      setClientesError(null);
-      getClientesDB({ busqueda: clienteQuery, limit: PAGE_LIMIT }, controller.signal)
-        .then((res) => {
-          if (controller.signal.aborted) return;
-          setClientesDirectorio(res.data?.clientes ?? []);
-        })
-        .catch((err) => {
-          if (controller.signal.aborted) return;
-          setClientesDirectorio([]);
-          setClientesError(err instanceof Error ? err.message : 'No se pudo cargar el directorio de clientes');
-        })
-        .finally(() => {
-          if (!controller.signal.aborted) setClientesLoading(false);
-        });
-    }, 300);
-
-    return () => {
-      window.clearTimeout(timer);
-      controller.abort();
-    };
-  }, [clienteQuery, initialData?.isAdmin]);
-
-  const clientesSugeridos = useMemo(() => {
-    if (!initialData?.isAdmin || clienteQuery.length < MIN_CLIENT_SEARCH_LENGTH) return [];
-
-    return clientesDirectorio
-      .filter((clienteItem) => {
-        const nombre = normalizeSearch(clienteItem.nombre);
-        const apellido = normalizeSearch(clienteItem.apellido);
-        const nombreCompleto = normalizeSearch(getClienteNombreCompleto(clienteItem));
-
-        return nombre.includes(clienteQuery)
-          || apellido.includes(clienteQuery)
-          || nombreCompleto.includes(clienteQuery);
-      })
-      .slice(0, MAX_CLIENT_SUGGESTIONS);
-  }, [clienteQuery, clientesDirectorio, initialData?.isAdmin]);
-
-  const showClienteDropdown = initialData?.isAdmin
-    && clienteDropdownOpen
-    && clienteQuery.length >= MIN_CLIENT_SEARCH_LENGTH;
-
-  // El teléfono identifica al cliente sólo mientras el nombre esté vacío. Se
-  // resuelve al teclear y no en un efecto: si reaccionara a que "Cliente" quedó
-  // vacío, borrar un nombre elegido por error lo volvería a escribir solo.
+  // El cliente se elige en el buscador. El teléfono ya no lo adivina: no es confiable.
   const handleTelefonoChange = (phone: PhoneValue) => {
-    const telefono = phone.nationalNumber;
-    setNumeroTelefono(telefono);
+    setNumeroTelefono(phone.nationalNumber);
     setTelefonoE164(phone.e164);
-
-    if (!initialData?.isAdmin || cliente.trim() || telefono.length < MIN_PHONE_DIGITS) return;
-
-    const match = clientesDirectorio.find(
-      (clienteItem) => normalizeClientPhone(clienteItem.numero_telefono, clienteItem.telefono_e164) === telefono,
-    );
-    if (match) setCliente(getClienteNombreCompleto(match));
   };
 
-  const selectClienteSugerido = (clienteItem: ClientePG) => {
-    setCliente(getClienteNombreCompleto(clienteItem));
+  // Elegido de la lista o recien creado: el nombre y el telefono del cliente pasan a la reserva.
+  const handleClienteElegido = (clienteItem: ClientePG) => {
+    setCliente(`${clienteItem.nombre} ${clienteItem.apellido}`.trim());
+    setClienteId(clienteItem.id);
+    setClienteElegido(clienteItem);
+    setActualizarTelefonoCliente(false);
+    // Al editar, el telefono de la reserva se respeta: si difiere del del cliente se ofrece reemplazar el del cliente.
+    if (editando) return;
     const phone = phoneValueFrom(clienteItem.telefono_e164 || clienteItem.numero_telefono);
     setNumeroTelefono(phone.nationalNumber);
     setTelefonoE164(phone.e164);
-    setClienteDropdownOpen(false);
-  };
-
-  const handleClienteCreado = (nuevo: ClientePG) => {
-    setCliente(getClienteNombreCompleto(nuevo));
-    const phone = phoneValueFrom(nuevo.telefono_e164 || nuevo.numero_telefono);
-    setNumeroTelefono(phone.nationalNumber);
-    setTelefonoE164(phone.e164);
-    // El directorio se carga una sola vez al montar. Sin este push, el cliente
-    // recien creado no aparece al volver a buscarlo en la misma sesion.
-    setClientesDirectorio((prev) => [nuevo, ...prev]);
-    setClienteDropdownOpen(false);
   };
 
   return (
@@ -178,9 +101,13 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
             <span className={styles.eyebrowDot} />
             AtrevidaFit
           </div>
-          <h2 className={styles.formTitle}>Nueva Reserva</h2>
+          <h2 className={styles.formTitle}>{aprobando ? `Aprobar Reserva #${initialData?.reserva?.id}` : editando ? `Editar Reserva #${initialData?.reserva?.id}` : 'Nueva Reserva'}</h2>
           <p className={styles.formSubtitle}>
-            Selecciona el horario disponible y completa los datos del cliente
+            {aprobando
+              ? `Solicitó: ${initialData?.reserva?.servicio_solicitado || initialData?.reserva?.servicio || 'por definir'}. Confirma o corrige los datos y agéndala.`
+              : editando
+                ? 'Cambia lo que haga falta. Aprobar, rechazar y completar se hacen desde la lista.'
+                : 'Selecciona el horario disponible y completa los datos del cliente'}
           </p>
         </div>
 
@@ -274,76 +201,36 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
           <div className={styles.formDivider} />
 
           {/* Cliente */}
-          <div className={`${styles.formGroup} ${styles.fullWidth} ${styles.clientAutocomplete}`}>
-            <div className={styles.labelRow}>
-              <label htmlFor="reserva-cliente">Cliente</label>
-              {initialData?.isAdmin && (
-                <button
-                  type="button"
-                  className={styles.inlineAction}
-                  onClick={() => setClienteModalOpen(true)}
-                >
-                  <UserPlus size={13} strokeWidth={2} />
-                  Nuevo
-                </button>
-              )}
-            </div>
-            <input
-              id="reserva-cliente"
-              type="text"
-              value={cliente}
-              onChange={(e) => {
-                setCliente(e.target.value);
-                setClienteDropdownOpen(true);
-              }}
-              onFocus={() => setClienteDropdownOpen(true)}
-              onBlur={() => window.setTimeout(() => setClienteDropdownOpen(false), 120)}
-              placeholder="Nombre del cliente"
-              className={errors.cliente ? styles.inputError : ''}
-              autoComplete="off"
-            />
-            {showClienteDropdown && (
-              <div className={styles.clientDropdown} role="listbox" aria-label="Clientes registrados">
-                {clientesLoading ? (
-                  <div className={styles.clientDropdownStatus}>Cargando directorio...</div>
-                ) : clientesError ? (
-                  <div className={styles.clientDropdownStatus}>{clientesError}</div>
-                ) : clientesSugeridos.length > 0 ? (
-                  clientesSugeridos.map((clienteItem) => (
-                    <button
-                      key={clienteItem.id}
-                      type="button"
-                      className={styles.clientOption}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        selectClienteSugerido(clienteItem);
-                      }}
-                      role="option"
-                      aria-selected={false}
-                    >
-                      <strong>{getClienteNombreCompleto(clienteItem)}</strong>
-                      <span>{clienteItem.numero_telefono || 'Sin telefono registrado'}</span>
-                    </button>
-                  ))
-                ) : (
-                  <>
-                    <div className={styles.clientDropdownStatus}>Sin coincidencias registradas</div>
-                    <button
-                      type="button"
-                      className={styles.clientRegisterOption}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        setClienteModalOpen(true);
-                      }}
-                    >
-                      <UserPlus size={14} strokeWidth={2} />
-                      Registrar «{cliente.trim()}» como cliente nuevo
-                    </button>
-                  </>
-                )}
-              </div>
+          <div className={`${styles.formGroup} ${styles.fullWidth}`}>
+            {initialData?.isAdmin ? (
+              <ClienteSelect
+                id="reserva-cliente"
+                value={cliente}
+                onValueChange={(texto) => {
+                  setCliente(texto);
+                  // Escribir de nuevo suelta al cliente elegido: hay que volver a elegir uno de la lista.
+                  setClienteId(null);
+                }}
+                onSelect={handleClienteElegido}
+                initialNombre={initialData?.reserva?.cliente}
+                initialTelefono={numeroTelefono}
+                error={errors.cliente}
+              />
+            ) : (
+              <>
+                <label htmlFor="reserva-cliente">Cliente</label>
+                <input
+                  id="reserva-cliente"
+                  type="text"
+                  value={cliente}
+                  onChange={(e) => setCliente(e.target.value)}
+                  placeholder="Nombre del cliente"
+                  className={errors.cliente ? styles.inputError : ''}
+                  autoComplete="off"
+                />
+                {errors.cliente && <span className={styles.errorText}>{errors.cliente}</span>}
+              </>
             )}
-            {errors.cliente && <span className={styles.errorText}>{errors.cliente}</span>}
           </div>
 
           <div className={`${styles.formGroup} ${styles.fullWidth}`}>
@@ -357,6 +244,27 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
             />
             {errors.numeroTelefono && <span className={styles.errorText}>{errors.numeroTelefono}</span>}
           </div>
+
+          {editando && clienteElegido && telefonosDistintos(clienteElegido, { telefono_e164: telefonoE164, numero_telefono: numeroTelefono }) && (
+            <label className={styles.directToggle}>
+              <input
+                type="checkbox"
+                className={styles.directToggleInput}
+                checked={actualizarTelefonoCliente}
+                onChange={(e) => setActualizarTelefonoCliente(e.target.checked)}
+              />
+              <span className={styles.directToggleSwitch} aria-hidden="true">
+                <span className={styles.directToggleThumb} />
+              </span>
+              <span className={styles.directToggleText}>
+                <span className={styles.directToggleTitle}>Actualizar el teléfono del cliente</span>
+                <span className={styles.directToggleHint}>
+                  La reserva tiene {formatPhoneForDisplay(telefonoE164, numeroTelefono)} y {`${clienteElegido.nombre} ${clienteElegido.apellido}`.trim()} tiene{' '}
+                  {formatPhoneForDisplay(clienteElegido.telefono_e164, clienteElegido.numero_telefono) || 'ninguno'}. Si lo activas, se reemplaza el del cliente.
+                </span>
+              </span>
+            </label>
+          )}
 
           {initialData?.isAdmin && (
             <PlanSelector
@@ -377,6 +285,7 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
             />
           </div>
 
+          {!editando && (
           <div className={`${styles.formGroup} ${styles.fullWidth}`}>
             <label className={styles.directToggle}>
               <input
@@ -396,6 +305,7 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
               </span>
             </label>
           </div>
+          )}
 
         </div>
 
@@ -414,7 +324,17 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
           </button>
           <button type="submit" className={styles.submitButton} disabled={loading}>
             <span className={styles.submitButtonText}>
-              {loading ? 'Creando...' : (
+              {loading ? (aprobando ? 'Agendando...' : editando ? 'Guardando...' : 'Creando...') : aprobando ? (
+                <>
+                  <CalendarCheck size={17} strokeWidth={1.8} />
+                  Aprobar y agendar
+                </>
+              ) : editando ? (
+                <>
+                  <Save size={17} strokeWidth={1.8} />
+                  Guardar cambios
+                </>
+              ) : (
                 <>
                   <CalendarPlus size={17} strokeWidth={1.8} />
                   Reservar
@@ -426,40 +346,22 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
 
       </div>
 
-      <ClienteFormModal
-        isOpen={clienteModalOpen}
-        onClose={() => setClienteModalOpen(false)}
-        initialNombre={cliente}
-        initialTelefono={numeroTelefono}
-        onSaved={handleClienteCreado}
-      />
-
       {/* El rango elegido no dura lo que el servicio: confirmar antes de
           ocupar ambientes de más (o de menos) sin querer. */}
       <ConfirmDialog
         isOpen={confirmandoDuracion && !!desajusteDuracion}
         title="La duración no coincide con el servicio"
-        confirmLabel="Reservar así"
+        confirmLabel={editando ? 'Guardar así' : 'Reservar así'}
         cancelLabel="Ajustar horario"
         loading={loading}
         onConfirm={confirmarDuracion}
         onClose={cancelarConfirmacionDuracion}
         message={desajusteDuracion && (
-          <>
-            <p style={{ margin: 0 }}>
-              <strong>{servicio}</strong> dura <strong>{desajusteDuracion.duracionServicio}</strong>,
-              pero reservaste de <strong>{desajusteDuracion.horaDesde}</strong> a{' '}
-              <strong>{desajusteDuracion.horaHasta}</strong> ({desajusteDuracion.duracionElegida}).
-            </p>
-            <p className={modalStyles.notice}>
-              {desajusteDuracion.esMasLargo
-                ? `El ambiente queda ocupado toda esa franja: ${desajusteDuracion.bloquesDiferencia} bloque(s) de 30 min extra no podrán usarse para otras reservas ese día.`
-                : `El servicio podría no alcanzar a completarse: faltan ${desajusteDuracion.bloquesDiferencia} bloque(s) de 30 min respecto de su duración habitual.`}
-            </p>
-            <p className={modalStyles.noticeHint}>
-              Si fue un error, elige <strong>Ajustar horario</strong> y vuelve a marcar el rango en la rejilla.
-            </p>
-          </>
+          <AvisoDuracion
+            servicio={servicio}
+            desajuste={desajusteDuracion}
+            ayuda="Si fue un error, elige Ajustar horario y vuelve a marcar el rango en la rejilla."
+          />
         )}
       />
 
@@ -470,7 +372,7 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
         telefonoE164={telefonoE164}
         numeroTelefono={numeroTelefono}
         fecha={fechaSeleccionadaISO}
-        confirmLabel="Sí, reservar igual"
+        confirmLabel={editando ? 'Sí, guardar igual' : 'Sí, reservar igual'}
         loading={loading}
         onConfirm={confirmarDuplicada}
         onClose={cancelarDuplicada}

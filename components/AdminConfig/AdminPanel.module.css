@@ -10,3 +10,49 @@
   height: 3px;
   background: var(--admin-grad-primary);
 }
+
+/* Variante card: misma superficie que FilterBar / DataTable. */
+.card {
+  --panel-accent: var(--admin-accent-primary);
+  padding: 1.25rem 1.5rem 1.5rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-lg);
+  background: var(--admin-surface-1);
+}
+
+.toneInfo { --panel-accent: var(--admin-accent-info); }
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--admin-border-subtle);
+}
+
+.icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--admin-radius-md);
+  color: var(--panel-accent, var(--admin-accent-primary));
+  background: color-mix(in srgb, var(--panel-accent, var(--admin-accent-primary)) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--panel-accent, var(--admin-accent-primary)) 30%, transparent);
+}
+
+.title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--admin-foreground);
+}
+
+.desc {
+  margin: 0.15rem 0 0;
+  font-size: var(--admin-fs-sm, 0.8125rem);
+  color: var(--admin-text-dim);
+  text-wrap: pretty;
+}

@@ -3,7 +3,7 @@ export type DiaSemana = 'LUNES' | 'MARTES' | 'MIÉRCOLES' | 'JUEVES' | 'VIERNES'
 import type { PaginationMetadata } from '@/lib/api/pagination';
 
 export type TipoReserva = 'm' | 'b' | 'M' | 'B' | 'feriado';
-export type EstadoReserva = 'PENDIENTE' | 'AGENDADO' | 'RECHAZADO' | 'COMPLETADO';
+export type EstadoReserva = 'PENDIENTE' | 'AGENDADO' | 'RECHAZADO' | 'CANCELADO' | 'COMPLETADO';
 
 export interface FechaDia {
   dia: number;
@@ -397,6 +397,8 @@ export interface ReservaBD {
   hora_desde: string; // "8:00"
   hora_hasta: string; // "9:30"
   cliente: string;
+  /** Cliente registrado dueño de la reserva; ausente si esta por vincular. */
+  cliente_id?: number | null;
   numero_telefono?: string;
   telefono_e164?: string;
   servicio: string;
@@ -408,6 +410,12 @@ export interface ReservaBD {
   notas?: string;
   estado?: EstadoReserva;
   notificado?: boolean;
+  /** true si, al agendar, faltaba stock de insumos para el servicio (trastienda, RN-12). */
+  alerta_inventario?: boolean;
+  motivo_cancelacion_tipo?: 'INASISTENCIA' | 'REPROGRAMACION' | 'SOLICITUD_CLIENTE' | 'OPERATIVO_LOCAL' | 'OTRO' | null;
+  motivo_cancelacion_detalle?: string | null;
+  cancelado_en?: string | null;
+  cancelado_por?: string | null;
   creado_en?: string;
   actualizado_en?: string;
 }

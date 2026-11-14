@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
 import { Pencil, Plus, Tags, Trash2 } from 'lucide-react';
-import Header from '@/components/AdminHeader/Header';
 import { PageHeader, DataTable, FormModal, RowActionsMenu } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
@@ -220,11 +219,7 @@ export default function CategoriasPage() {
   ];
 
   return (
-    <div ref={containerRef} className={styles.pageContainer}>
-      <div className="admin-mesh" />
-      <Header />
-      <main className={styles.main}>
-        <div className={styles.container}>
+    <div ref={containerRef} className="admin-stack">
           <PageHeader
           kicker="Configuración"
           kickerIcon={<Tags size={14} strokeWidth={2} />}
@@ -256,8 +251,6 @@ export default function CategoriasPage() {
             emptyMessage="No hay categorías registradas"
           />
         </div>
-        </div>
-      </main>
 
       <FormModal
         isOpen={modalOpen}
@@ -298,10 +291,8 @@ export default function CategoriasPage() {
                 setLocalId(v);
                 if (formErrors.local) setFormErrors((p) => ({ ...p, local: undefined }));
               }}
-              options={[
-                { value: '', label: 'Seleccionar local…' },
-                ...locales.map((l) => ({ value: String(l.id), label: l.nombre })),
-              ]}
+              options={locales.map((l) => ({ value: String(l.id), label: l.nombre }))}
+              placeholder="Seleccionar local…"
               hasError={!!formErrors.local}
             />
             {formErrors.local && (

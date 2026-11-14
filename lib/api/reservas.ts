@@ -7,6 +7,7 @@ import { ApiError, apiClient } from './client';
 import { withNombreLocalScope } from './localScope';
 import type { ApiResponse, EstadoReserva, ReservaBD, ReservaFormData, ReservasBDApiResponse } from '@/types/reserva';
 import type { PaginationParams } from './pagination';
+import type { AdvertenciaInventario } from '@/types/inventario';
 
 // ─── Parámetros (Sheets - DEPRECATED) ──────────────────────────────────────
 
@@ -34,6 +35,8 @@ export interface GetReservasDBParams extends PaginationParams {
   fecha_hasta?: string;
   tipo?: ReservaTipoBackend;
   cliente?: string;
+  /** Solo las reservas de este cliente registrado. */
+  cliente_id?: number;
   estado?: EstadoReserva;
   numero_telefono?: string;
   servicio_solicitado?: string;
@@ -79,7 +82,8 @@ export interface ReservasResumenIngresos {
 export interface ReservasResumenData {
   reservas_agendadas_dia: number;
   servicios_completados_dia: number;
-  ingresos_hoy: number;
+  /** Los tres campos de ingresos solo los recibe admin_sys; para el resto no vienen. */
+  ingresos_hoy?: number;
   cancelaciones_hoy: number;
   ingresos_semana?: number;
   semana: ReservasResumenSemana;
@@ -98,6 +102,8 @@ export interface CrearReservaDBData {
   hora_hasta: string;
   tipo: ReservaTipoBody;
   cliente: string;
+  /** Cliente registrado dueño de la reserva. Obligatorio en el panel; el formulario público no lo manda. */
+  cliente_id?: number;
   numero_telefono: string;
   telefono_e164?: string;
   servicio: string;
@@ -173,6 +179,8 @@ export interface ActualizarEstadoReservaDBData {
   id: number;
   estado: EstadoReserva;
   causa?: string;
+  motivo_cancelacion_tipo?: 'INASISTENCIA' | 'REPROGRAMACION' | 'SOLICITUD_CLIENTE' | 'OPERATIVO_LOCAL' | 'OTRO';
+  motivo_cancelacion_detalle?: string;
   servicio_confirmado?: string | null;
   precio?: number;
   tipo?: ReservaTipoBody;
@@ -186,6 +194,9 @@ export interface ActualizarReservaNotificadoDBData {
 export interface CrearReservaResult {
   id: string;
   mensaje: string;
+  /** Solo en el panel interno: la reserva se guardó pero falta stock de insumos (RN-12). */
+  alerta_inventario?: boolean;
+  advertencias_inventario?: AdvertenciaInventario[];
 }
 
 // ─── Queries (Sheets - DEPRECATED) ──────────────────────────────────────────
@@ -218,6 +229,7 @@ export async function getReservasDB(params: GetReservasDBParams, signal?: AbortS
       fecha_hasta: scopedParams.fecha_hasta,
       tipo: scopedParams.tipo,
       cliente: scopedParams.cliente,
+      cliente_id: scopedParams.cliente_id,
       estado: scopedParams.estado,
       numero_telefono: scopedParams.numero_telefono,
       servicio_solicitado: scopedParams.servicio_solicitado,
@@ -231,6 +243,8 @@ export async function getReservasDB(params: GetReservasDBParams, signal?: AbortS
 	  limit: scopedParams.limit,
 	  cursor: scopedParams.cursor,
 	  include_total: scopedParams.include_total,
+      ordenar_por: scopedParams.ordenar_por,
+      sentido: scopedParams.sentido,
     },
 	signal,
   });
@@ -285,9 +299,15 @@ export async function crearReservaDB(data: CrearReservaDBData): Promise<CrearRes
     if (!response.ok) {
       throw new ApiError(result?.message || `HTTP ${response.status}`, response.status, result);
     }
-    return result as CrearReservaResult;
+    return unwrapCrearReserva(result);
   }
-  return apiClient.post<CrearReservaResult>('/bd/reservas', data);
+  return unwrapCrearReserva(await apiClient.post<unknown>('/bd/reservas', data));
+}
+
+/** El backend envuelve el resultado en `{ code, data: { id, mensaje, advertencias_inventario… } }`. */
+function unwrapCrearReserva(body: unknown): CrearReservaResult {
+  const envelope = body as { data?: CrearReservaResult } & Partial<CrearReservaResult>;
+  return (envelope.data ?? envelope) as CrearReservaResult;
 }
 
 /** Actualiza una reserva existente en la base de datos. */
@@ -306,6 +326,8 @@ export async function actualizarEstadoReservaDB(data: ActualizarEstadoReservaDBD
     id: data.id,
     estado: data.estado,
     causa: data.causa ?? '',
+    ...(data.motivo_cancelacion_tipo && { motivo_cancelacion_tipo: data.motivo_cancelacion_tipo }),
+    ...(data.motivo_cancelacion_detalle !== undefined && { motivo_cancelacion_detalle: data.motivo_cancelacion_detalle }),
     ...(data.servicio_confirmado !== undefined && { servicio_confirmado: data.servicio_confirmado }),
     ...(data.precio !== undefined && { precio: data.precio }),
     ...(data.tipo !== undefined && { tipo: data.tipo }),

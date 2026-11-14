@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
 import { Building2, Plus } from 'lucide-react';
-import Header from '@/components/AdminHeader/Header';
 import { PageHeader, DataTable, FormModal } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import { toast } from '@/components/Shared/Toast';
@@ -216,11 +215,7 @@ export default function LocalesPage() {
   ];
 
   return (
-    <div ref={containerRef} className={styles.pageContainer}>
-      <div className="admin-mesh" />
-      <Header />
-      <main className={styles.main}>
-        <div className={styles.container}>
+    <div ref={containerRef} className="admin-stack">
           <PageHeader
           kicker="Configuración"
           kickerIcon={<Building2 size={14} strokeWidth={2} />}
@@ -253,8 +248,6 @@ export default function LocalesPage() {
             emptyMessage="No hay locales registrados"
           />
         </div>
-        </div>
-      </main>
 
       <FormModal
         isOpen={modalOpen}

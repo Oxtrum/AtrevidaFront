@@ -2,13 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Filter, Layers, MapPin, Package2, Plus, Pencil, Trash2 } from 'lucide-react';
-import Header from '@/components/AdminHeader/Header';
-import { PageHeader, FormModal, RowActionsMenu, CursorPagination } from '@/components/AdminConfig';
+import { Eye, EyeOff, Filter, Layers, MapPin, Package2, Plus, Pencil, Trash2 } from 'lucide-react';
+import { PageHeader, FormModal, RowActionsMenu, CursorPagination, Tooltip, VisibilityToggle, AlertBanner } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { toast } from '@/components/Shared/Toast';
 import { getLocalesDB } from '@/lib/api/servicios';
-import { getPaquetesDB, eliminarPaquete, type PaqueteDetalle } from '@/lib/api/paquetes';
+import { getPaquetesDB, eliminarPaquete, cambiarVisibilidadPaquete, type PaqueteDetalle } from '@/lib/api/paquetes';
+import { textosVisibilidadPaquete } from '@/lib/utils/visibilidadPublica';
+import { useConfiguracion } from '@/lib/hooks/useConfiguracion';
+import { getStoredAdminRole } from '@/lib/auth/adminSession';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import PaqueteFormModal, { type EditablePaquete } from './PaqueteFormModal';
 import styles from './page.module.css';
@@ -72,6 +74,27 @@ export default function PaquetesPage() {
   const [editingPaquete, setEditingPaquete] = useState<EditablePaquete | null>(null);
 
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
+
+  // Interruptor de la sección completa en la página principal (parámetro del sistema).
+  const { config, update: updateConfig } = useConfiguracion();
+  const seccionVisible = config['publico.mostrar_paquetes'];
+  const [guardandoSeccion, setGuardandoSeccion] = useState(false);
+  const [esAdminSys, setEsAdminSys] = useState(false);
+  useEffect(() => {
+    setEsAdminSys(getStoredAdminRole() === 'admin_sys');
+  }, []);
+
+  const cambiarSeccion = async (estado: 'visible' | 'oculto') => {
+    setGuardandoSeccion(true);
+    try {
+      await updateConfig({ 'publico.mostrar_paquetes': estado === 'visible' });
+      toast.success(estado === 'visible' ? 'La sección de paquetes vuelve a verse en la página principal' : 'Sección de paquetes oculta en la página principal');
+    } catch {
+      toast.error('No se pudo cambiar la visibilidad de la sección.');
+    } finally {
+      setGuardandoSeccion(false);
+    }
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => setFiltroNombreDebounced(filtroNombre), 350);
@@ -161,17 +184,36 @@ export default function PaquetesPage() {
     });
   };
 
+  const handleToggleVisibilidad = (p: PaqueteDetalle) => {
+    const mostrar = p.paquete.visible_publico === false;
+    setConfirmState({
+      message: mostrar
+        ? `¿Mostrar "${p.paquete.nombre}" en la página principal?`
+        : `¿Ocultar "${p.paquete.nombre}" de la página principal? Seguirá activo en administración, reservas y caja.`,
+      onConfirm: async () => {
+        try {
+          await cambiarVisibilidadPaquete(p.paquete.id, mostrar);
+          toast.success(mostrar ? 'Paquete visible en la página principal' : 'Paquete oculto de la página principal');
+          pagination.resetAfterMutation();
+        } catch {
+          toast.error('No se pudo cambiar la visibilidad del paquete.');
+        }
+      },
+    });
+  };
+
   const cardActions = (p: PaqueteDetalle) => [
     { label: 'Editar', icon: <Pencil size={12} strokeWidth={2} />, onClick: () => openEditar(p) },
+    {
+      label: textosVisibilidadPaquete(p.paquete.visible_publico).accion,
+      icon: p.paquete.visible_publico === false ? <Eye size={12} strokeWidth={2} /> : <EyeOff size={12} strokeWidth={2} />,
+      onClick: () => handleToggleVisibilidad(p),
+    },
     { label: 'Eliminar', icon: <Trash2 size={12} strokeWidth={2} />, onClick: () => handleDelete(p), variant: 'danger' as const },
   ];
 
   return (
-    <div ref={containerRef} className={styles.pageContainer}>
-      <div className="admin-mesh" />
-      <Header />
-      <main className={styles.main}>
-        <div className={styles.container}>
+    <div ref={containerRef} className="admin-stack">
           <PageHeader
             kicker="Configuración"
             kickerIcon={<Package2 size={14} strokeWidth={2} />}
@@ -180,20 +222,34 @@ export default function PaquetesPage() {
             subtitle="Crea y edita paquetes, y gestiona sus tiers de sesiones"
             backHref="/atrevida-gestion/configuracion"
             actions={
-              <button type="button" className={styles.btnPrimary} onClick={openCrear}>
-                <Plus size={14} strokeWidth={2.2} />
-                Nuevo paquete
-              </button>
+              <>
+                <VisibilityToggle
+                  label="Sección en la web"
+                  visible={seccionVisible}
+                  onChange={(visible) => cambiarSeccion(visible ? 'visible' : 'oculto')}
+                  helpVisible="La página web pública muestra la sección de paquetes y la opción Paquetes de su menú de navegación; solo se listan los paquetes marcados como visibles. Si la oculta, los paquetes siguen activos en administración, reservas y caja."
+                  helpHidden="La página web pública no muestra la sección de paquetes ni la opción Paquetes de su menú de navegación. Los paquetes siguen activos en administración, reservas y caja. Actívela para volver a mostrarla."
+                  disabled={!esAdminSys || guardandoSeccion}
+                  disabledReason={esAdminSys ? undefined : 'Solo el administrador del sistema puede mostrar u ocultar la sección.'}
+                />
+                <button type="button" className={styles.btnPrimary} onClick={openCrear}>
+                  <Plus size={14} strokeWidth={2.2} />
+                  Nuevo paquete
+                </button>
+              </>
             }
           />
 
           <div ref={contentRef} className={styles.contentStack}>
+            {!seccionVisible && (
+              <AlertBanner tone="warning">
+                La sección de paquetes está oculta en la web: el público no ve ninguno, aunque esté marcado como visible.
+              </AlertBanner>
+            )}
+
             <div className={styles.filterCard}>
               <div className={styles.filterCardInner}>
-                <div className={styles.filterSectionLabel}>
-                  <Filter size={12} />
-                  Filtros de búsqueda
-                </div>
+               
                 <div className={styles.filterBar}>
                   <div className={styles.filterGroup}>
                     <label id="lbl-filtro-local" htmlFor="filtro-local" className={styles.filterLabel}>Local</label>
@@ -296,6 +352,25 @@ export default function PaquetesPage() {
                               {localesText}
                             </span>
                           )}
+                          {(() => {
+                            const visible = p.paquete.visible_publico !== false;
+                            const textos = textosVisibilidadPaquete(p.paquete.visible_publico);
+                            return (
+                              <div className={styles.visRow} onClick={(e) => e.stopPropagation()}>
+                                <Tooltip title={textos.chip} content={textos.ayuda}>
+                                  <button
+                                    type="button"
+                                    className={visible ? styles.visChipOn : styles.visChipOff}
+                                    onClick={() => handleToggleVisibilidad(p)}
+                                    aria-label={textos.accion}
+                                  >
+                                    {visible ? <Eye size={12} strokeWidth={2.2} /> : <EyeOff size={12} strokeWidth={2.2} />}
+                                    {textos.chip}
+                                  </button>
+                                </Tooltip>
+                              </div>
+                            );
+                          })()}
                         </div>
                       </article>
                     );
@@ -305,8 +380,6 @@ export default function PaquetesPage() {
               </>
             )}
           </div>
-        </div>
-      </main>
 
       <PaqueteFormModal
         open={paqueteModalOpen}

@@ -7,6 +7,7 @@ import type { ReservaBD } from '@/types/reserva';
 import { WhatsappIcon } from '@/components/icons/WhatsappIcon';
 import { buildReminderWhatsappHref } from '@/lib/utils/whatsapp';
 import { formatCostoReserva } from '@/lib/utils/serviceCost';
+import { InventarioAlertBadge } from '@/components/AdminInventario/InventarioWarnings';
 import styles from './ReservaDetailModal.module.css';
 
 interface ReservaDetailModalProps {
@@ -15,6 +16,7 @@ interface ReservaDetailModalProps {
   onEdit: (reserva: ReservaBD) => void;
   onDelete: (reserva: ReservaBD) => void;
   deleting?: boolean;
+  readOnly?: boolean;
 }
 
 const ESTADO_CLASS: Record<string, string> = {
@@ -22,6 +24,7 @@ const ESTADO_CLASS: Record<string, string> = {
   PENDIENTE: styles.estadoPendiente,
   COMPLETADO: styles.estadoCompletado,
   RECHAZADO: styles.estadoRechazado,
+  CANCELADO: styles.estadoRechazado,
 };
 
 function formatTimestamp(ts?: string) {
@@ -46,6 +49,7 @@ export function ReservaDetailModal({
   onEdit,
   onDelete,
   deleting = false,
+  readOnly = false,
 }: ReservaDetailModalProps) {
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -55,13 +59,16 @@ export function ReservaDetailModal({
   );
 
   useEffect(() => {
+    if (!reserva) return;
+
+    const previousOverflow = document.body.style.overflow;
     document.addEventListener('keydown', handleKeyDown);
     document.body.style.overflow = 'hidden';
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = '';
+      document.body.style.overflow = previousOverflow;
     };
-  }, [handleKeyDown]);
+  }, [handleKeyDown, reserva]);
 
   if (!reserva) return null;
 
@@ -108,6 +115,7 @@ export function ReservaDetailModal({
               <span className={styles.fieldLabel}>Estado</span>
               <span className={styles.fieldValue}>
                 <span className={`${styles.badge} ${estadoClass}`}>{estado}</span>
+                {reserva.alerta_inventario && estado !== 'COMPLETADO' && <InventarioAlertBadge />}
               </span>
             </div>
 
@@ -175,6 +183,18 @@ export function ReservaDetailModal({
               </div>
             )}
 
+            {estado === 'CANCELADO' && (
+              <div className={`${styles.field} ${styles.fieldFull}`}>
+                <span className={styles.fieldLabel}>Cancelación</span>
+                <span className={styles.fieldValue}>
+                  {reserva.motivo_cancelacion_tipo || 'Sin motivo registrado'}
+                  {reserva.motivo_cancelacion_detalle ? ` · ${reserva.motivo_cancelacion_detalle}` : ''}
+                  {reserva.cancelado_por ? ` · Registrada por ${reserva.cancelado_por}` : ''}
+                  {reserva.cancelado_en ? ` · ${formatTimestamp(reserva.cancelado_en)}` : ''}
+                </span>
+              </div>
+            )}
+
             {(reserva.creado_en || reserva.actualizado_en) && (
               <div className={styles.timestamps}>
                 {reserva.creado_en && (
@@ -196,7 +216,7 @@ export function ReservaDetailModal({
           </div>
         </div>
 
-        <div className={styles.footer}>
+        {!readOnly && <div className={styles.footer}>
           {reminderHref ? (
             <a
               className={styles.reminderButton}
@@ -232,7 +252,7 @@ export function ReservaDetailModal({
               Editar
             </button>
           )}
-        </div>
+        </div>}
       </div>
     </div>
   );

@@ -1,148 +1,139 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import gsap from 'gsap';
-import { CreditCard, LockKeyhole, Search } from 'lucide-react';
-import Header from '@/components/AdminHeader/Header';
-import { PageHeader, DataTable, CursorPagination } from '@/components/AdminConfig';
+import { CreditCard } from 'lucide-react';
+import { CursorPagination, DataTable, FilterBar, PageHeader, StatCard, StatGrid } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { PagoDetalleCodeButton, PagoDetalleModal, PagoProductosCell } from '@/components/Pagos/PagoDetalleModal';
 import { getPagosDB } from '@/lib/api/pagos';
 import type { Pago } from '@/lib/api/pagos';
-import { canViewAdminPayments } from '@/lib/auth/adminSession';
-import { formatDateTime } from '@/lib/utils/formatDateTime';
-import styles from './page.module.css';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
+import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
+import { useLocales } from '@/lib/hooks/useLocales';
+import { useServerSort } from '@/lib/hooks/useServerSort';
+import { formatDateTime } from '@/lib/utils/formatDateTime';
+import type { SortState } from '@/lib/utils/sortRows';
 
 interface PagoRow extends Pago, Record<string, unknown> {}
 
+/** Orden que el servidor aplica sin ordenar_por; solo se usa para marcar el header de fecha. */
+const ORDEN_POR_DEFECTO: SortState = { key: 'fecha_creacion', dir: 'desc' };
+
 const ESTADO_OPTIONS = ['PAGADO', 'PENDIENTE', 'BORRADOR'];
-const ESTADO_LABELS: Record<string, string> = {
-  BORRADOR: 'POR CONFIRMAR',
-};
+const ESTADO_LABELS: Record<string, string> = { BORRADOR: 'POR CONFIRMAR' };
+const TODAS = '';
 
 const formatMoney = (value: unknown) => `Bs. ${Number(value ?? 0).toLocaleString('es-BO', {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 })}`;
 
+/** Un filtro de texto solo se aplica con dos letras o mas: una sola devuelve casi todo. */
 const filtroTextoActivo = (value: string) => {
   const normalized = value.trim();
   return normalized.length >= 2 ? normalized : '';
 };
 
-export default function PagosPage() {
-  const router = useRouter();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
+/**
+ * Historial de pagos: lo ya cobrado, por sucursal, cliente, NIT, servicio y estado. Se llega desde el boton de
+ * Cobros. Cada usuario ve lo que su sucursal le permite; el administrador puede ver todas.
+ */
+export default function HistorialDePagosPage() {
+  const adminLocalScope = useAdminLocalScopeState();
+  const scopedLocal = adminLocalScope.workplace?.nombre_local ?? '';
+  const { locales } = useLocales();
 
-  const [authorized, setAuthorized] = useState(false);
-  const [checkedAccess, setCheckedAccess] = useState(false);
   const [pagos, setPagos] = useState<PagoRow[]>([]);
   const [detallePagoCodigo, setDetallePagoCodigo] = useState<string | null>(null);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [searchCliente, setSearchCliente] = useState('');
-  const [searchClienteDebounced, setSearchClienteDebounced] = useState('');
-  const [searchNit, setSearchNit] = useState('');
-  const [searchNitDebounced, setSearchNitDebounced] = useState('');
-  const [searchProducto, setSearchProducto] = useState('');
-  const [searchProductoDebounced, setSearchProductoDebounced] = useState('');
-  const [filterEstado, setFilterEstado] = useState('PAGADO');
-	const clienteActivo = filtroTextoActivo(searchClienteDebounced);
-	const nitActivo = filtroTextoActivo(searchNitDebounced);
-	const productoActivo = filtroTextoActivo(searchProductoDebounced);
-	const filterKey = `${clienteActivo}|${nitActivo}|${productoActivo}|${filterEstado}`;
-	const pagination = useCursorPagination(filterKey);
-	const { cursor: paginationCursor, requestRevision, shouldIncludeTotal, setMetadata: setPaginationMetadata } = pagination;
-	const requestRef = useRef(0);
-	const requestControllerRef = useRef<AbortController | null>(null);
+  const [cliente, setCliente] = useState('');
+  const [clienteDebounced, setClienteDebounced] = useState('');
+  const [nit, setNit] = useState('');
+  const [nitDebounced, setNitDebounced] = useState('');
+  const [producto, setProducto] = useState('');
+  const [productoDebounced, setProductoDebounced] = useState('');
+  const [estado, setEstado] = useState('PAGADO');
+  const [local, setLocal] = useState(TODAS);
+
+  const localEfectivo = scopedLocal || local;
+  const clienteActivo = filtroTextoActivo(clienteDebounced);
+  const nitActivo = filtroTextoActivo(nitDebounced);
+  const productoActivo = filtroTextoActivo(productoDebounced);
+  const serverSort = useServerSort(ORDEN_POR_DEFECTO);
+  const { params: sortParams } = serverSort;
+  const pagination = useCursorPagination(`${localEfectivo}|${clienteActivo}|${nitActivo}|${productoActivo}|${estado}|${serverSort.key}`);
+  const { cursor: paginationCursor, requestRevision, shouldIncludeTotal, setMetadata: setPaginationMetadata } = pagination;
+  const requestRef = useRef(0);
+  const controllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => setSearchClienteDebounced(searchCliente), 350);
+    const timer = setTimeout(() => setClienteDebounced(cliente), 350);
     return () => clearTimeout(timer);
-  }, [searchCliente]);
-
+  }, [cliente]);
   useEffect(() => {
-    const timer = setTimeout(() => setSearchNitDebounced(searchNit), 350);
+    const timer = setTimeout(() => setNitDebounced(nit), 350);
     return () => clearTimeout(timer);
-  }, [searchNit]);
-
+  }, [nit]);
   useEffect(() => {
-    const timer = setTimeout(() => setSearchProductoDebounced(searchProducto), 350);
+    const timer = setTimeout(() => setProductoDebounced(producto), 350);
     return () => clearTimeout(timer);
-  }, [searchProducto]);
+  }, [producto]);
 
   const fetchData = useCallback(async () => {
     void requestRevision;
-	requestControllerRef.current?.abort();
-	const controller = new AbortController();
-	requestControllerRef.current = controller;
-	const requestId = ++requestRef.current;
+    if (!adminLocalScope.ready) return;
+    controllerRef.current?.abort();
+    const controller = new AbortController();
+    controllerRef.current = controller;
+    const requestId = ++requestRef.current;
     setLoading(true);
     setError(null);
     try {
       const res = await getPagosDB({
+        local_nombre: localEfectivo || undefined,
         cliente_nombre: clienteActivo || undefined,
         cliente_nit: nitActivo || undefined,
         producto: productoActivo || undefined,
-        estado: filterEstado || undefined,
+        estado: estado || undefined,
         activo: true,
-		limit: PAGE_LIMIT,
-		cursor: paginationCursor,
-		include_total: shouldIncludeTotal(),
+        limit: PAGE_LIMIT,
+        cursor: paginationCursor,
+        include_total: shouldIncludeTotal(),
+        ...sortParams,
       }, controller.signal);
-	  if (requestId !== requestRef.current) return;
+      if (requestId !== requestRef.current) return;
       setPagos((res.data?.pagos ?? []) as PagoRow[]);
       setTotal(res.data?.total ?? 0);
-	  setPaginationMetadata(res.data?.paginacion);
+      setPaginationMetadata(res.data?.paginacion);
     } catch (err) {
-	  if (controller.signal.aborted) return;
-	  if (requestId !== requestRef.current) return;
+      if (controller.signal.aborted || requestId !== requestRef.current) return;
       setError(err instanceof Error ? err.message : 'Error al cargar pagos');
     } finally {
-	  if (requestId === requestRef.current) setLoading(false);
+      if (requestId === requestRef.current) setLoading(false);
     }
-  }, [clienteActivo, nitActivo, productoActivo, filterEstado, paginationCursor, requestRevision, shouldIncludeTotal, setPaginationMetadata]);
+  }, [adminLocalScope.ready, localEfectivo, clienteActivo, nitActivo, productoActivo, estado, sortParams, paginationCursor, requestRevision, shouldIncludeTotal, setPaginationMetadata]);
 
-	useEffect(() => () => {
-		requestRef.current += 1;
-		requestControllerRef.current?.abort();
-	}, []);
-
-  useEffect(() => {
-    const token = localStorage.getItem('adminToken');
-    if (!token) {
-      router.push('/atrevida-gestion/login');
-      return;
-    }
-
-    const allowed = canViewAdminPayments();
-    setAuthorized(allowed);
-    setCheckedAccess(true);
-    if (allowed) void fetchData();
-    else setLoading(false);
-  }, [router, fetchData]);
-
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        contentRef.current,
-        { y: 20, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out' },
-      );
-    }, containerRef);
-    return () => ctx.revert();
+  useEffect(() => () => {
+    requestRef.current += 1;
+    controllerRef.current?.abort();
   }, []);
 
-  const totalBs = useMemo(
-    () => pagos.reduce((sum, pago) => sum + Number(pago.total_final ?? 0), 0),
-    [pagos],
+  useEffect(() => {
+    void fetchData();
+  }, [fetchData]);
+
+  const totalBs = useMemo(() => pagos.reduce((sum, pago) => sum + Number(pago.total_final ?? 0), 0), [pagos]);
+
+  const opcionesLocal = useMemo(
+    () => scopedLocal
+      ? [{ value: scopedLocal, label: scopedLocal }]
+      : [{ value: TODAS, label: 'Todas' }, ...locales.map((l) => ({ value: l.nombre, label: l.nombre }))],
+    [locales, scopedLocal],
   );
 
   const columns: Column<PagoRow>[] = [
@@ -152,7 +143,7 @@ export default function PagosPage() {
       searchable: false,
       render: (value) => <PagoDetalleCodeButton codigoPago={String(value)} onOpen={setDetallePagoCodigo} />,
     },
-    { key: 'local_nombre', label: 'Local' },
+    ...(!localEfectivo ? [{ key: 'local_nombre', label: 'Local' } as Column<PagoRow>] : []),
     { key: 'cliente_nombre', label: 'Cliente' },
     { key: 'cliente_nit', label: 'NIT', searchable: false },
     {
@@ -164,26 +155,18 @@ export default function PagosPage() {
           codigoPago={row.codigo_pago}
           primerProducto={String(value ?? '')}
           cantidadProductos={Number(row.cantidad_productos ?? 0)}
+          esAbono={row.es_abono === true}
           onOpen={setDetallePagoCodigo}
         />
       ),
     },
-    {
-      key: 'tipo_pago',
-      label: 'Tipo',
-      searchable: false,
-      render: (val) => String(val || 'No definido').toUpperCase(),
-    },
-    {
-      key: 'total_final',
-      label: 'Total',
-      searchable: false,
-      render: formatMoney,
-    },
+    { key: 'tipo_pago', label: 'Tipo', searchable: false, render: (val) => String(val || 'No definido').toUpperCase() },
+    { key: 'total_final', label: 'Total', searchable: false, render: formatMoney },
     {
       key: 'fecha_creacion',
       label: 'Fecha y hora',
       searchable: false,
+      firstSort: 'desc',
       render: (val) => formatDateTime(val as string),
     },
     {
@@ -199,108 +182,61 @@ export default function PagosPage() {
   ];
 
   return (
-    <div ref={containerRef} className={styles.pageContainer}>
-      <div className="admin-mesh" />
-      <Header />
-      <main className={styles.main}>
-        <div className={styles.container}>
-          <PageHeader
-            kicker="Auditoría"
-            kickerIcon={<CreditCard size={14} strokeWidth={2} />}
-            title="Historial de Pagos"
-            accentWord="Pagos"
-            subtitle="Consulta administrativa de pagos, locales y clientes"
+    <div className="admin-stack">
+      <PageHeader
+        kicker="Cobros"
+        kickerIcon={<CreditCard size={14} strokeWidth={2} />}
+        title="Historial de Pagos"
+        accentWord="Pagos"
+        subtitle="Lo ya cobrado. Para registrar un cobro nuevo vuelve a Cobros."
+        backHref="/atrevida-gestion/caja"
+      />
+
+      <StatGrid>
+        <StatCard value={loading ? '—' : total} label="Pagos encontrados" loading={loading} />
+        <StatCard value={loading ? '—' : formatMoney(totalBs)} label="Total visible" loading={loading} />
+      </StatGrid>
+
+      <FilterBar>
+        <FilterBar.Item label="Cliente" grow>
+          <input type="text" value={cliente} onChange={(e) => setCliente(e.target.value)} placeholder="Nombre del cliente" aria-label="Buscar pagos por cliente" />
+        </FilterBar.Item>
+        <FilterBar.Item label="NIT">
+          <input type="text" value={nit} onChange={(e) => setNit(e.target.value)} placeholder="NIT" aria-label="Buscar pagos por NIT" />
+        </FilterBar.Item>
+        <FilterBar.Item label="Servicio o producto">
+          <input type="text" value={producto} onChange={(e) => setProducto(e.target.value)} placeholder="Servicio o producto" aria-label="Buscar pagos por servicio o producto" />
+        </FilterBar.Item>
+        <FilterBar.Item label="Sucursal">
+          <CustomSelect value={localEfectivo} onChange={(v) => { if (!scopedLocal) setLocal(v); }} options={opcionesLocal} searchable={false} allowClear={false} />
+        </FilterBar.Item>
+        <FilterBar.Item label="Estado">
+          <CustomSelect
+            value={estado}
+            onChange={setEstado}
+            options={[{ value: '', label: 'Todos' }, ...ESTADO_OPTIONS.map((e) => ({ value: e, label: ESTADO_LABELS[e] ?? e }))]}
+            searchable={false}
+            allowClear={false}
           />
+        </FilterBar.Item>
+      </FilterBar>
 
-          <div ref={contentRef} className={styles.contentStack}>
-            {checkedAccess && !authorized ? (
-              <section className={styles.accessPanel}>
-                <div className={styles.accessIcon}>
-                  <LockKeyhole size={22} strokeWidth={1.8} />
-                </div>
-                <div>
-                  <h2>Acceso reservado</h2>
-                  <p>La consulta global de pagos está disponible solo para usuarios administradores.</p>
-                </div>
-              </section>
-            ) : (
-              <>
-                <div className={styles.summaryGrid}>
-                  <div className={styles.metricBlock}>
-                    <span>Pagos encontrados</span>
-                    <strong>{total}</strong>
-                  </div>
-                  <div className={styles.metricBlock}>
-                    <span>Total visible</span>
-                    <strong>{formatMoney(totalBs)}</strong>
-                  </div>
-                </div>
+      <DataTable<PagoRow>
+        sort={serverSort.sort}
+        onSortChange={serverSort.onSortChange}
+        columns={columns}
+        data={pagos}
+        loading={loading}
+        error={error}
+        onRefresh={fetchData}
+        getRowKey={(p) => p.codigo_pago}
+        hideSearch
+        emptyMessage="No se encontraron pagos"
+      />
+      <CursorPagination page={pagination.page} totalPages={pagination.totalPages} hasNext={pagination.hasNext} loading={loading} onPrevious={pagination.previous} onNext={pagination.next} />
 
-                <div className={styles.searchRow}>
-                  <div className={styles.searchBar}>
-                    <Search size={16} strokeWidth={1.8} className={styles.searchIcon} />
-                    <input
-                      type="text"
-                      placeholder="Buscar por cliente..."
-                      value={searchCliente}
-                      onChange={(e) => setSearchCliente(e.target.value)}
-                    />
-                  </div>
-
-                  <div className={`${styles.searchBar} ${styles.nitSearch}`}>
-                    <Search size={16} strokeWidth={1.8} className={styles.searchIcon} />
-                    <input
-                      type="text"
-                      placeholder="Buscar por NIT..."
-                      value={searchNit}
-                      onChange={(e) => setSearchNit(e.target.value)}
-                    />
-                  </div>
-
-                  <div className={`${styles.searchBar} ${styles.productSearch}`}>
-                    <Search size={16} strokeWidth={1.8} className={styles.searchIcon} />
-                    <input
-                      type="text"
-                      placeholder="Buscar por servicio/producto..."
-                      value={searchProducto}
-                      onChange={(e) => setSearchProducto(e.target.value)}
-                    />
-                  </div>
-
-                  <div className={styles.statusFilter}>
-                    <CustomSelect
-                      id="pagos-estado"
-                      value={filterEstado}
-                      onChange={setFilterEstado}
-                      options={ESTADO_OPTIONS.map((estado) => ({ value: estado, label: ESTADO_LABELS[estado] ?? estado }))}
-                      placeholder="Todos los estados"
-                      allowClear
-                    />
-                  </div>
-                </div>
-
-                <DataTable<PagoRow>
-                  columns={columns}
-                  data={pagos}
-                  loading={loading}
-                  error={error}
-                  onRefresh={fetchData}
-                  getRowKey={(p) => p.codigo_pago}
-                  hideSearch
-                  emptyMessage="No se encontraron pagos"
-                />
-				<CursorPagination page={pagination.page} totalPages={pagination.totalPages} hasNext={pagination.hasNext} loading={loading} onPrevious={pagination.previous} onNext={pagination.next} />
-              </>
-            )}
-          </div>
-        </div>
-      </main>
       {detallePagoCodigo && (
-        <PagoDetalleModal
-          key={detallePagoCodigo}
-          codigoPago={detallePagoCodigo}
-          onClose={() => setDetallePagoCodigo(null)}
-        />
+        <PagoDetalleModal key={detallePagoCodigo} codigoPago={detallePagoCodigo} onClose={() => setDetallePagoCodigo(null)} />
       )}
     </div>
   );

@@ -1,219 +1,7 @@
-.pageContainer {
-  min-height: 100vh;
-  background: var(--admin-grad-subtle), var(--admin-bg);
-  color: var(--admin-foreground);
-  font-family: var(--admin-font-family);
-  position: relative;
-  overflow-x: hidden;
-}
-
-.main {
-  position: relative;
-  z-index: 1;
-  min-height: 100vh;
-  padding: 2rem;
-}
-
 .content {
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.backLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--admin-text-muted);
-  text-decoration: none;
-  font-size: 0.875rem;
-  font-weight: 500;
-  margin-bottom: 1.5rem;
-  padding: 0.5rem 1rem;
-  border-radius: var(--admin-radius-md);
-  transition: all 0.2s ease;
-}
-
-.backLink:hover {
-  color: var(--admin-accent-primary);
-  background: rgba(236, 0, 140, 0.08);
-}
-
-.backIcon {
-  font-size: 1.25rem;
-  transition: transform 0.2s ease;
-}
-
-.backLink:hover .backIcon {
-  transform: translateX(-4px);
-}
-
-.reservaInfo {
-  background: var(--admin-panel-bg);
-  border-radius: var(--admin-radius-lg);
-  padding: 2rem;
-  margin-bottom: 2rem;
-  border: 1px solid var(--admin-border-subtle);
-  box-shadow: var(--admin-shadow-sm);
-}
-
-.reservaInfo h2 {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 1.5rem;
-  color: var(--admin-foreground);
-  border-bottom: 1px solid var(--admin-border-subtle);
-  padding-bottom: 1rem;
-}
-
-.infoRow {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.infoLabel {
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--admin-text-muted);
-  font-weight: 600;
-}
-
-.infoValue {
-  font-size: 1rem;
-  color: var(--admin-foreground);
-  font-weight: 600;
-}
-
-.editForm {
-  background: var(--admin-panel-bg);
-  border-radius: var(--admin-radius-lg);
-  padding: 2.5rem;
-  border: 1px solid var(--admin-border-subtle);
-  box-shadow: var(--admin-shadow-md);
-}
-
-.formGrid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem 2rem;
-  margin-bottom: 2rem;
-}
-
-.formGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.fullWidth {
-  grid-column: 1 / -1;
-}
-
-.formGroup label {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--admin-text-muted);
-  font-weight: 600;
-}
-
-.inputField {
-  padding: 0.75rem 1rem;
-  background: var(--admin-input-bg);
-  border: 1px solid var(--admin-border);
-  border-radius: var(--admin-radius-md);
-  color: var(--admin-foreground);
-  font-size: 0.9rem;
   width: 100%;
-  box-sizing: border-box;
-  transition: all 0.2s ease;
-}
-
-.inputField:focus {
-  outline: none;
-  border-color: var(--admin-accent-primary);
-  box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.16);
-}
-
-.fieldHint {
-  margin: 0.5rem 0 0;
-  font-size: 0.8rem;
-  line-height: 1.45;
-  color: var(--admin-accent-warning);
-}
-
-.phoneWrapper {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.phonePrefix {
-  opacity: 0.5;
-  font-size: 0.85rem;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.message {
-  padding: 1rem;
-  border-radius: var(--admin-radius-md);
-  margin-bottom: 1.5rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.success {
-  background: rgba(20, 174, 239, 0.10);
-  border: 1px solid rgba(20, 174, 239, 0.22);
-  color: var(--admin-accent-success);
-}
-
-.error {
-  background: rgba(255, 77, 109, 0.10);
-  border: 1px solid rgba(255, 77, 109, 0.22);
-  color: var(--admin-accent-danger);
-}
-
-.formActions {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-end;
-  margin-top: 1rem;
-}
-
-.cancelButton {
-  padding: 0.75rem 1.75rem;
-  border-radius: var(--admin-radius-md);
-  border: 1px solid var(--admin-border);
-  background: var(--admin-surface-3);
-  color: var(--admin-foreground);
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.submitButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem 2rem;
-  border-radius: var(--admin-radius-md);
-  border: none;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: white;
-  background: var(--admin-grad-primary);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: var(--admin-shadow-sm);
-}
-
-.submitButton:hover:not(:disabled) {
-  filter: saturate(1.08);
-  box-shadow: var(--admin-shadow-md);
-  transform: translateY(-1px);
+  max-width: 850px;
+  margin: 0 auto;
 }
 
 .loading {
@@ -235,31 +23,29 @@
 }
 
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
-@media (max-width: 768px) {
-  .main {
-    padding: 1rem;
-  }
-
-  .formGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .formActions {
-    flex-direction: column-reverse;
-  }
-
-  .cancelButton,
-  .submitButton {
-    width: 100%;
-  }
+/* Reserva que no se puede editar (completada) o que no existe. */
+.aviso {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 1.5rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-xl);
+  background: var(--admin-surface-1);
 }
-.costHint {
-  color: var(--admin-text-dim);
-  font-size: 0.75rem;
-  line-height: 1.4;
+
+.aviso h2 {
+  margin: 0;
+  color: var(--admin-foreground);
+  font-size: 1.15rem;
+}
+
+.aviso p {
+  margin: 0 0 0.6rem;
+  color: var(--admin-text-muted);
+  line-height: 1.5;
 }

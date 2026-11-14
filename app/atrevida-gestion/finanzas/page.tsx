@@ -1,0 +1,456 @@
+'use client';
+
+import { Suspense, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { ArrowLeftRight, Ban, Banknote, CheckCircle2, Download, Pencil, Plus, RefreshCw, TrendingUp } from 'lucide-react';
+import {
+  AdminButton,
+  AdminPageShell,
+  AlertBanner,
+  CursorPagination,
+  DataTable,
+  FilterBar,
+  LocalSelect,
+  MonthPicker,
+  PageHeader,
+  ReasonDialog,
+  RowActionsMenu,
+  SectionLabel,
+  StatCard,
+  StatGrid,
+  StatusBadge,
+  Tabs,
+} from '@/components/AdminConfig';
+import type { BadgeTone, Column, TabItem } from '@/components/AdminConfig';
+import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
+import { AnularEgresoFijoDialog } from '@/components/AdminFinanzas/AnularEgresoFijoDialog';
+import { EstadoMovimientoBadge } from '@/components/AdminFinanzas/EstadoMovimientoBadge';
+import { MovimientoFormModal } from '@/components/AdminFinanzas/MovimientoFormModal';
+import { ReporteFinancieroPanel } from '@/components/AdminFinanzas/ReporteFinancieroPanel';
+import { ReporteVentasPanel } from '@/components/AdminFinanzas/ReporteVentasPanel';
+import { toast } from '@/components/Shared/Toast';
+import {
+  cambiarEstadoMovimientoFinanciero,
+  getCategoriasFinancieras,
+  getFlujoFinanciero,
+  getGastosFijos,
+  getMovimientosFinancieros,
+} from '@/lib/api/finanzas';
+import { PAGE_LIMIT } from '@/lib/api/pagination';
+import { descargarLibroFinanciero } from '@/lib/export/libroFinanciero';
+import { useAsyncData } from '@/lib/hooks/useAsyncData';
+import { useConfiguracion } from '@/lib/hooks/useConfiguracion';
+import { useLocales } from '@/lib/hooks/useLocales';
+import { formatDateISO, formatMoney, monthRange, todayISO } from '@/lib/utils/format';
+import { horaDeMovimiento } from '@/lib/utils/horaMovimiento';
+import { etiquetaTipoPago } from '@/lib/utils/tipoPago';
+import type {
+  CategoriaFinanciera,
+  EstadoMovimiento,
+  FlujoLocal,
+  FlujoMovimiento,
+  FlujoOrigen,
+  MovimientoFinanciero,
+  NaturalezaFinanciera,
+} from '@/types/finanzas';
+import styles from './page.module.css';
+
+type Row = FlujoMovimiento & Record<string, unknown>;
+type LocalRow = FlujoLocal & Record<string, unknown>;
+type EstadoTab = '' | 'PAGADO' | 'PENDIENTE' | 'ANULADO';
+
+// Libro financiero completo y registro de egresos: solo admin_sys.
+const ROLES = ['admin_sys'];
+
+const ORIGEN_LABEL: Record<FlujoOrigen, string> = {
+  VENTA: 'Venta',
+  COMPRA: 'Compra de inventario',
+  GASTO_FIJO: 'Egreso fijo',
+  GASTO_VARIABLE: 'Gasto variable',
+  OTRO_INGRESO: 'Otro ingreso',
+};
+const ORIGEN_TONE: Record<FlujoOrigen, BadgeTone> = {
+  VENTA: 'success',
+  OTRO_INGRESO: 'success',
+  COMPRA: 'warning',
+  GASTO_FIJO: 'info',
+  GASTO_VARIABLE: 'neutral',
+};
+const EMPTY: FlujoMovimiento[] = [];
+const EMPTY_LOCALES: FlujoLocal[] = [];
+const EMPTY_MOVS: MovimientoFinanciero[] = [];
+const EMPTY_CATS: CategoriaFinanciera[] = [];
+
+/** Libro de movimientos del mes: ingresos y egresos con saldo, y el registro manual de egresos e ingresos. */
+function MovimientosPanel() {
+  const { moneda } = useConfiguracion();
+  const { locales } = useLocales();
+  const [month, setMonth] = useState(todayISO().slice(0, 7));
+  const [localId, setLocalId] = useState('');
+  const [origen, setOrigen] = useState('');
+  const [estadoTab, setEstadoTab] = useState<EstadoTab>('');
+  const [q, setQ] = useState('');
+
+  const { desde, hasta } = monthRange(month);
+  const params = useMemo(() => ({
+    fecha_desde: desde,
+    fecha_hasta: hasta,
+    local_id: localId ? Number(localId) : undefined,
+    origen: (origen || undefined) as FlujoOrigen | undefined,
+    estado: estadoTab || undefined,
+    q: q.trim() || undefined,
+    limit: 500,
+  }), [desde, hasta, localId, origen, estadoTab, q]);
+
+  const paramsKey = JSON.stringify(params);
+  const { data, loading, error, reload } = useAsyncData(() => getFlujoFinanciero(params), paramsKey);
+  const todosLosMovimientos = data?.movimientos ?? EMPTY;
+  // Paginado en el cliente sobre lo ya cargado (el saldo acumulado viene calculado); al cambiar un filtro vuelve a la página 1.
+  const [pagina, setPagina] = useState({ key: paramsKey, page: 1 });
+  const totalPaginas = Math.max(1, Math.ceil(todosLosMovimientos.length / PAGE_LIMIT));
+  const paginaActual = Math.min(pagina.key === paramsKey ? pagina.page : 1, totalPaginas);
+  const irAPagina = (page: number) => setPagina({ key: paramsKey, page });
+  const movimientos = useMemo(
+    () => todosLosMovimientos.slice((paginaActual - 1) * PAGE_LIMIT, paginaActual * PAGE_LIMIT),
+    [todosLosMovimientos, paginaActual],
+  );
+  const porLocal = data?.por_local ?? EMPTY_LOCALES;
+  const totales = data?.totales;
+  const money = (v: number) => formatMoney(v, moneda);
+
+  // Los movimientos manuales se editan con su registro completo; el libro solo trae lo necesario para mostrarlos.
+  const { data: movsData, reload: recargarMovs } = useAsyncData(
+    () => getMovimientosFinancieros({ fecha_desde: desde, fecha_hasta: hasta, local_id: localId ? Number(localId) : undefined }),
+    `movs|${month}|${localId}`,
+  );
+  const movsPorId = useMemo(() => new Map((movsData ?? EMPTY_MOVS).map((m) => [m.id, m])), [movsData]);
+  const { data: cats } = useAsyncData(getCategoriasFinancieras, 'cats-fin');
+  const categorias = cats ?? EMPTY_CATS;
+
+  // Misma fuente y mismo criterio que la lista de gastos fijos: solo los activos, con su contador de atrasados.
+  const { data: gastosFijosData, reload: recargarFijos } = useAsyncData(getGastosFijos, 'gf-atrasados');
+  const totalFijosAtrasados = (gastosFijosData ?? []).reduce((suma, g) => suma + (g.activo ? g.atrasados : 0), 0);
+
+  const [formOpen, setFormOpen] = useState(false);
+  const [formNat, setFormNat] = useState<NaturalezaFinanciera>('EGRESO');
+  const [editing, setEditing] = useState<MovimientoFinanciero | null>(null);
+  const [anulando, setAnulando] = useState<MovimientoFinanciero | null>(null);
+  // Los egresos nacidos de un gasto fijo se anulan con otro diálogo (deshacer, saltar mes o dejar de pagarlo).
+  const [anulandoFijo, setAnulandoFijo] = useState<MovimientoFinanciero | null>(null);
+
+  const recargarTodo = async () => {
+    await Promise.all([reload(), recargarMovs(), recargarFijos()]);
+  };
+
+  const openForm = (nat: NaturalezaFinanciera, mov: MovimientoFinanciero | null) => {
+    setFormNat(nat);
+    setEditing(mov);
+    setFormOpen(true);
+  };
+
+  const marcarPagado = async (mov: MovimientoFinanciero) => {
+    try {
+      await cambiarEstadoMovimientoFinanciero(mov.id, 'PAGADO');
+      toast.success(`${mov.codigo} marcado como ${mov.naturaleza === 'EGRESO' ? 'pagado' : 'cobrado'}`);
+      await recargarTodo();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'No se pudo actualizar el estado');
+    }
+  };
+
+  const tabs: TabItem<EstadoTab>[] = [
+    { key: '', label: 'Todos' },
+    { key: 'PAGADO', label: 'Cobrados y pagados' },
+    { key: 'PENDIENTE', label: 'Pendientes' },
+    { key: 'ANULADO', label: 'Anulados' },
+  ];
+
+  const columns: Column<Row>[] = [
+    {
+      key: 'fecha',
+      label: 'Fecha y hora',
+      searchable: false,
+      render: (v, r) => {
+        const hora = horaDeMovimiento(r.origen, r.ts);
+        return hora ? <>{formatDateISO(v as string)} <span style={{ color: 'var(--admin-text-dim)' }}>{hora}</span></> : formatDateISO(v as string);
+      },
+    },
+    {
+      key: 'origen',
+      label: 'Origen',
+      searchable: false,
+      render: (v) => <StatusBadge tone={ORIGEN_TONE[v as FlujoOrigen]}>{ORIGEN_LABEL[v as FlujoOrigen]}</StatusBadge>,
+    },
+    { key: 'codigo', label: 'Código' },
+    {
+      key: 'detalle',
+      label: 'Detalle',
+      render: (_v, r) => (
+        <span className={styles.detalle}>
+          {r.detalle || '—'}
+          <small className={styles.sub}>{r.categoria}</small>
+        </span>
+      ),
+    },
+    { key: 'local_nombre', label: 'Local', render: (v) => (v as string) || <span className={styles.muted}>General</span> },
+    {
+      key: 'metodo_pago',
+      label: 'Método',
+      searchable: false,
+      render: (v) => (v ? etiquetaTipoPago(v as string) : <span className={styles.muted}>—</span>),
+    },
+    {
+      key: 'entrada',
+      label: 'Entrada',
+      searchable: false,
+      render: (_v, r) => (r.naturaleza === 'INGRESO' ? <span className={`${styles.num} ${styles.entrada} ${r.estado !== 'PAGADO' ? styles.inactivo : ''}`}>{money(r.monto)}</span> : ''),
+    },
+    {
+      key: 'salida',
+      label: 'Salida',
+      searchable: false,
+      render: (_v, r) => (r.naturaleza === 'EGRESO' ? <span className={`${styles.num} ${styles.salida} ${r.estado !== 'PAGADO' ? styles.inactivo : ''}`}>{money(r.monto)}</span> : ''),
+    },
+    {
+      key: 'estado',
+      label: 'Estado',
+      searchable: false,
+      render: (v, r) => <EstadoMovimientoBadge estado={v as EstadoMovimiento} fecha={r.fecha} naturaleza={r.naturaleza} />,
+    },
+    {
+      key: 'saldo',
+      label: 'Saldo',
+      searchable: false,
+      render: (v) => <span className={`${styles.num} ${(v as number) < 0 ? styles.salida : ''}`}>{money(v as number)}</span>,
+    },
+    {
+      key: 'acciones',
+      label: '',
+      searchable: false,
+      // Las ventas se gestionan en Cobros / Historial de Pagos; solo los movimientos manuales se editan aquí.
+      render: (_v, r) => {
+        if (r.origen === 'VENTA' || r.estado === 'ANULADO') return null;
+        const mov = movsPorId.get(Number(r.clave.replace('mov-', '')));
+        if (!mov) return null;
+        return (
+          <RowActionsMenu
+            actions={[
+              ...(mov.estado === 'PENDIENTE' ? [{ label: mov.naturaleza === 'EGRESO' ? 'Marcar pagado' : 'Marcar cobrado', icon: <CheckCircle2 size={12} strokeWidth={2} />, onClick: () => marcarPagado(mov) }] : []),
+              // El egreso de una planilla se corrige o anula desde Recursos Humanos.
+              ...(mov.planilla_id ? [] : [{ label: mov.clase === 'FIJO' ? 'Editar monto de este mes' : 'Editar', icon: <Pencil size={12} strokeWidth={2} />, onClick: () => openForm(mov.naturaleza, mov) }]),
+              // Un egreso fijo pendiente no se anula: se deja de pagar desactivando el gasto en Gastos Fijos. Solo se deshace un pago.
+              ...(mov.compra_id || mov.planilla_id || (mov.gasto_fijo_id && mov.estado !== 'PAGADO')
+                ? []
+                : [{ label: mov.gasto_fijo_id ? 'Deshacer pago' : 'Anular', icon: <Ban size={12} strokeWidth={2} />, onClick: () => (mov.gasto_fijo_id ? setAnulandoFijo(mov) : setAnulando(mov)), variant: 'danger' as const }]),
+            ]}
+          />
+        );
+      },
+    },
+  ];
+
+  const localColumns: Column<LocalRow>[] = [
+    { key: 'local', label: 'Sucursal' },
+    { key: 'ingresos', label: 'Ingresos cobrados', searchable: false, render: (v) => <span className={`${styles.num} ${styles.entrada}`}>{money(v as number)}</span> },
+    { key: 'egresos', label: 'Egresos pagados', searchable: false, render: (v) => <span className={`${styles.num} ${styles.salida}`}>{money(v as number)}</span> },
+    { key: 'balance', label: 'Balance', searchable: false, render: (v) => <span className={`${styles.num} ${(v as number) < 0 ? styles.salida : ''}`}>{money(v as number)}</span> },
+  ];
+
+  const nombreLocal = locales.find((l) => String(l.id) === localId)?.nombre;
+
+  const [exporting, setExporting] = useState(false);
+  // El Excel cubre el mes y la sucursal elegidos con todo el detalle (ventas por servicio, movimientos, sueldos), no solo la tabla visible.
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const { truncado } = await descargarLibroFinanciero({ month, localId: localId ? Number(localId) : null, localNombre: nombreLocal ?? '', moneda });
+      toast.success(truncado ? 'Excel generado, pero el mes tiene más movimientos que el límite: filtra por sucursal' : 'Excel generado');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'No se pudo generar el Excel');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  return (
+    <>
+      <div className={styles.stack}>
+        <div className={styles.toolbar}>
+          <AdminButton
+            variant="secondary"
+            href="/atrevida-gestion/configuracion/gastos-fijos"
+            icon={<Banknote size={16} strokeWidth={2} />}
+            title="Ver los gastos fijos, pagar los atrasados o adelantar pagos"
+          >
+            {totalFijosAtrasados > 0 ? `Gastos fijos (${totalFijosAtrasados} atrasado${totalFijosAtrasados === 1 ? '' : 's'})` : 'Gastos fijos'}
+          </AdminButton>
+          <AdminButton
+            variant="secondary"
+            onClick={handleExport}
+            disabled={exporting}
+            icon={exporting ? <RefreshCw size={16} strokeWidth={2} /> : <Download size={16} strokeWidth={2} />}
+            title="Descarga el mes y la sucursal elegidos: resumen, ventas por servicio, movimientos y sueldos"
+          >
+            {exporting ? 'Generando…' : 'Descargar Excel'}
+          </AdminButton>
+          <AdminButton variant="secondary" onClick={() => openForm('INGRESO', null)} icon={<TrendingUp size={16} strokeWidth={2} />}>
+            Otro ingreso
+          </AdminButton>
+          <AdminButton onClick={() => openForm('EGRESO', null)} icon={<Plus size={18} strokeWidth={2} />}>
+            Registrar egreso
+          </AdminButton>
+        </div>
+
+        <StatGrid>
+          <StatCard label="Ingresos cobrados" value={money(totales?.ingresos ?? 0)} sublabel="Ventas y otros ingresos" loading={loading} accentColor="#22c55e" />
+          <StatCard label="Egresos pagados" value={money(totales?.egresos ?? 0)} sublabel="Gastos fijos, variables y compras" loading={loading} accentColor="#ec008c" />
+          <StatCard label="Balance" value={money(totales?.balance ?? 0)} sublabel={nombreLocal ?? 'Todas las sucursales'} loading={loading} accentColor="#14aeef" />
+          <StatCard
+            label="Por pagar"
+            value={money(totales?.por_pagar ?? 0)}
+            sublabel={`Por cobrar ${money(totales?.por_cobrar ?? 0)} · no entran al balance`}
+            loading={loading}
+            accentColor="#f59e0b"
+          />
+        </StatGrid>
+
+        <FilterBar>
+          <FilterBar.Item label="Mes">
+            <MonthPicker value={month} onChange={setMonth} />
+          </FilterBar.Item>
+          <FilterBar.Item label="Sucursal">
+            <LocalSelect value={localId} onChange={setLocalId} emptyLabel="Todas" />
+          </FilterBar.Item>
+          <FilterBar.Item label="Origen">
+            <CustomSelect
+              value={origen}
+              onChange={setOrigen}
+              options={(Object.keys(ORIGEN_LABEL) as FlujoOrigen[]).map((o) => ({ value: o, label: ORIGEN_LABEL[o] }))}
+              placeholder="Todos"
+              allowClear
+              searchable={false}
+            />
+          </FilterBar.Item>
+          <FilterBar.Item label="Buscar" grow>
+            <input type="text" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Código, detalle, categoría o local…" />
+          </FilterBar.Item>
+        </FilterBar>
+
+        {porLocal.length > 1 && (
+          <section className={styles.block}>
+            <SectionLabel>Comparativa por sucursal</SectionLabel>
+            <DataTable<LocalRow>
+              columns={localColumns}
+              data={porLocal as LocalRow[]}
+              loading={loading}
+              getRowKey={(r) => r.local_id}
+              hideSearch
+              emptyMessage="Sin movimientos"
+            />
+          </section>
+        )}
+
+        <section className={styles.block}>
+          <SectionLabel>Movimientos</SectionLabel>
+          <Tabs tabs={tabs} active={estadoTab} onChange={setEstadoTab} ariaLabel="Estado de los movimientos" />
+          {data?.truncado && (
+            <AlertBanner tone="warning" title="Se muestran los 500 movimientos más recientes">
+              Acota el mes, la sucursal o el origen para ver el resto. Los totales de arriba sí incluyen todos.
+            </AlertBanner>
+          )}
+          <DataTable<Row>
+            columns={columns}
+            data={movimientos as Row[]}
+            loading={loading}
+            error={error}
+            onRefresh={recargarTodo}
+            getRowKey={(r) => r.clave}
+            hideSearch
+            pageSize={0}
+            emptyMessage="No hay movimientos con estos filtros"
+          />
+          {totalPaginas > 1 && (
+            <CursorPagination
+              page={paginaActual}
+              totalPages={totalPaginas}
+              hasNext={paginaActual < totalPaginas}
+              loading={loading}
+              onPrevious={() => irAPagina(paginaActual - 1)}
+              onNext={() => irAPagina(paginaActual + 1)}
+            />
+          )}
+          <p className={styles.note}>
+            El saldo acumula solo lo cobrado y pagado del periodo filtrado; los pendientes y anulados se muestran atenuados y no suman.
+            Las ventas vienen de Cobros (ver Historial de Pagos) y no se editan aquí; las compras de inventario ya aparecen como egreso.
+          </p>
+        </section>
+      </div>
+
+      <MovimientoFormModal isOpen={formOpen} naturaleza={formNat} movimiento={editing} categorias={categorias} onClose={() => setFormOpen(false)} onSaved={() => { void recargarTodo(); }} />
+
+      <AnularEgresoFijoDialog
+        isOpen={anulandoFijo !== null}
+        movimiento={anulandoFijo}
+        onClose={() => setAnulandoFijo(null)}
+        onDone={() => { void recargarTodo(); }}
+      />
+
+      <ReasonDialog
+        isOpen={anulando !== null}
+        title={`Anular ${anulando?.codigo ?? ''}`}
+        message="El movimiento deja de contar en reportes. No se borra: queda en el historial con el motivo."
+        confirmLabel="Anular"
+        onConfirm={async (motivo) => {
+          await cambiarEstadoMovimientoFinanciero(anulando!.id, 'ANULADO', motivo);
+          toast.success('Movimiento anulado');
+          await recargarTodo();
+        }}
+        onClose={() => setAnulando(null)}
+      />
+    </>
+  );
+}
+
+type FinanzasTab = 'movimientos' | 'resumen' | 'ventas';
+
+const FINANZAS_TABS: TabItem<FinanzasTab>[] = [
+  { key: 'movimientos', label: 'Movimientos' },
+  { key: 'resumen', label: 'Resumen ingresos vs egresos' },
+  { key: 'ventas', label: 'Ventas' },
+];
+
+const esTab = (v: string | null): v is FinanzasTab => v === 'movimientos' || v === 'resumen' || v === 'ventas';
+
+function FinanzasContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const param = searchParams.get('tab');
+  const tab: FinanzasTab = esTab(param) ? param : 'movimientos';
+
+  // La pestaña vive en la URL: el enlace viejo de Reportes y los marcadores siguen funcionando.
+  const cambiarTab = (next: FinanzasTab) => router.replace(`/atrevida-gestion/finanzas?tab=${next}`, { scroll: false });
+
+  return (
+    <AdminPageShell roles={ROLES}>
+      <PageHeader
+        kicker="Trastienda"
+        kickerIcon={<ArrowLeftRight size={14} strokeWidth={2} />}
+        title="Finanzas"
+        accentWord="Finanzas"
+        subtitle="Todo el dinero del negocio: movimientos con saldo, resumen de ingresos contra egresos y ventas por local, tipo de pago y servicio. El Excel del mes sale de Movimientos."
+      />
+      <Tabs tabs={FINANZAS_TABS} active={tab} onChange={cambiarTab} ariaLabel="Secciones de Finanzas" />
+      {tab === 'movimientos' && <MovimientosPanel />}
+      {tab === 'resumen' && <ReporteFinancieroPanel />}
+      {tab === 'ventas' && <ReporteVentasPanel />}
+    </AdminPageShell>
+  );
+}
+
+export default function FinanzasPage() {
+  return (
+    <Suspense fallback={null}>
+      <FinanzasContent />
+    </Suspense>
+  );
+}

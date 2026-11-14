@@ -1,19 +1,32 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import gsap from 'gsap';
-import { Pencil, Plus, Search, Trash2, Users } from 'lucide-react';
-import Header from '@/components/AdminHeader/Header';
-import { PageHeader, DataTable, FormModal, RowActionsMenu, CursorPagination } from '@/components/AdminConfig';
+import { Pencil, Plus, Trash2, Users, Wallet } from 'lucide-react';
+import { PageHeader, DataTable, FormModal, RowActionsMenu, CursorPagination, FilterBar, Tabs } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import { toast } from '@/components/Shared/Toast';
 import { getClientesDB, eliminarClienteDB } from '@/lib/api/clientes';
 import type { ClientePG } from '@/lib/api/clientes';
-import { ClienteFormModal } from '@/components/AdminClientes';
+import { ClienteFormModal, DeudoresTable } from '@/components/AdminClientes';
+import { PaquetesActivosTable } from '@/components/AdminPaquetes/PaquetesActivosTable';
 import styles from './page.module.css';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
 import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
+import { useServerSort } from '@/lib/hooks/useServerSort';
+import type { SortState } from '@/lib/utils/sortRows';
+
+/** Orden que el servidor aplica sin ordenar_por; solo se usa para marcar el header de apellidos. */
+const ORDEN_POR_DEFECTO: SortState = { key: 'apellido', dir: 'asc' };
+
+type Vista = 'todos' | 'deuda' | 'paquetes';
+
+const VISTAS: { key: Vista; label: string }[] = [
+  { key: 'todos', label: 'Todos' },
+  { key: 'deuda', label: 'Con deuda' },
+  { key: 'paquetes', label: 'Paquetes' },
+];
 
 interface ClienteRow extends Record<string, unknown> {
   id: number;
@@ -29,17 +42,20 @@ interface ConfirmState {
   onConfirm: () => void;
 }
 
-export default function ClientesPage() {
+function ClientesContent() {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
 
+  const [vista, setVista] = useState<Vista>('todos');
   const [clientes, setClientes] = useState<ClienteRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 	const [search, setSearch] = useState('');
 	const [debouncedSearch, setDebouncedSearch] = useState('');
-  const pagination = useCursorPagination(debouncedSearch);
+	const serverSort = useServerSort(ORDEN_POR_DEFECTO);
+	const { params: sortParams } = serverSort;
+  const pagination = useCursorPagination(`${debouncedSearch}|${serverSort.key}`);
 	const { cursor: paginationCursor, requestRevision, shouldIncludeTotal, setMetadata: setPaginationMetadata } = pagination;
 	const requestRef = useRef(0);
 	const requestControllerRef = useRef<AbortController | null>(null);
@@ -63,7 +79,7 @@ export default function ClientesPage() {
     setLoading(true);
     setError(null);
     try {
-	  const res = await getClientesDB({ busqueda: debouncedSearch || undefined, limit: PAGE_LIMIT, cursor: paginationCursor, include_total: shouldIncludeTotal() }, controller.signal);
+	  const res = await getClientesDB({ busqueda: debouncedSearch || undefined, limit: PAGE_LIMIT, cursor: paginationCursor, include_total: shouldIncludeTotal(), ...sortParams }, controller.signal);
 	  if (requestId !== requestRef.current) return;
       const data = (res as { data?: { clientes?: ClientePG[] } }).data;
       setClientes((data?.clientes ?? []) as ClienteRow[]);
@@ -75,7 +91,7 @@ export default function ClientesPage() {
     } finally {
 	  if (requestId === requestRef.current) setLoading(false);
     }
-  }, [debouncedSearch, paginationCursor, requestRevision, shouldIncludeTotal, setPaginationMetadata]);
+  }, [debouncedSearch, sortParams, paginationCursor, requestRevision, shouldIncludeTotal, setPaginationMetadata]);
 
 	useEffect(() => () => {
 		requestRef.current += 1;
@@ -85,8 +101,8 @@ export default function ClientesPage() {
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
     if (!token) { router.push('/atrevida-gestion/login'); return; }
-    fetchData();
-  }, [router, fetchData]);
+    if (vista === 'todos') fetchData();
+  }, [router, fetchData, vista]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -98,6 +114,20 @@ export default function ClientesPage() {
     }, containerRef);
     return () => ctx.revert();
   }, []);
+
+  // El menu (Con deuda, Paquetes activos) y las rutas viejas llegan con ?vista=; se reacciona al cambio
+  // de URL porque pasar entre entradas del menu no remonta la pagina.
+  const vistaParam = useSearchParams().get('vista');
+  useEffect(() => {
+    setVista(vistaParam === 'deuda' || vistaParam === 'paquetes' ? vistaParam : 'todos');
+  }, [vistaParam]);
+
+  const cambiarVista = (siguiente: Vista) => {
+    setVista(siguiente);
+    window.history.replaceState(null, '', siguiente === 'todos' ? window.location.pathname : `?vista=${siguiente}`);
+  };
+
+  const verCliente = (row: ClienteRow) => router.push(`/atrevida-gestion/clientes/${row.id}`);
 
   const openCreate = () => { setEditingCliente(undefined); setModalOpen(true); };
 
@@ -136,8 +166,10 @@ export default function ClientesPage() {
       key: 'acciones',
       label: '',
       searchable: false,
+      sortable: false,
       render: (_val, row) => (
         <RowActionsMenu actions={[
+          { label: 'Ver cliente', icon: <Wallet size={12} strokeWidth={2} />, onClick: () => verCliente(row) },
           { label: 'Editar', icon: <Pencil size={12} strokeWidth={2} />, onClick: () => openEdit(row) },
           { label: 'Eliminar', icon: <Trash2 size={12} strokeWidth={2} />, onClick: () => handleDelete(row), variant: 'danger' },
         ]} />
@@ -146,11 +178,7 @@ export default function ClientesPage() {
   ];
 
   return (
-    <div ref={containerRef} className={styles.pageContainer}>
-      <div className="admin-mesh" />
-      <Header />
-      <main className={styles.main}>
-        <div className={styles.container}>
+    <div ref={containerRef} className="admin-stack">
           <PageHeader
           kicker="Directorio"
           kickerIcon={<Users size={14} strokeWidth={2} />}
@@ -166,27 +194,39 @@ export default function ClientesPage() {
           }
         />
 
+        <Tabs tabs={VISTAS} active={vista} onChange={cambiarVista} ariaLabel="Vistas de clientes" />
+
         <div ref={contentRef} className={styles.contentStack}>
-         
-		  <div className={styles.searchBar}>
-			<Search size={16} className={styles.searchIcon} />
-			<input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar por nombre, apellido o telefono..." aria-label="Buscar clientes" />
-		  </div>
-          <DataTable<ClienteRow>
+          {/* Paquetes trae su propia barra de filtros: aqui solo Todos y Con deuda comparten el buscador. */}
+          {vista !== 'paquetes' && (
+            <FilterBar>
+              <FilterBar.Item label="Buscar" grow>
+                <input type="text" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Nombre, apellido o teléfono…" aria-label="Buscar clientes" />
+              </FilterBar.Item>
+            </FilterBar>
+          )}
+          {vista === 'paquetes' ? (
+            <PaquetesActivosTable />
+          ) : vista === 'deuda' ? (
+            <DeudoresTable busqueda={debouncedSearch} />
+          ) : (
+          <>
+          <DataTable<ClienteRow> sort={serverSort.sort} onSortChange={serverSort.onSortChange}
             columns={columns}
             data={clientes}
             loading={loading}
             error={error}
             onRefresh={fetchData}
             getRowKey={(c) => c.id}
+            onRowClick={verCliente}
             searchPlaceholder="Buscar por nombre..."
 			hideSearch
             emptyMessage="No se encontraron clientes"
           />
           <CursorPagination page={pagination.page} totalPages={pagination.totalPages} hasNext={pagination.hasNext} loading={loading} onPrevious={pagination.previous} onNext={pagination.next} />
+          </>
+          )}
         </div>
-        </div>
-      </main>
 
       {/* Modal crear / editar */}
       <ClienteFormModal
@@ -209,5 +249,13 @@ export default function ClientesPage() {
         </p>
       </FormModal>
     </div>
+  );
+}
+
+export default function ClientesPage() {
+  return (
+    <Suspense fallback={null}>
+      <ClientesContent />
+    </Suspense>
   );
 }

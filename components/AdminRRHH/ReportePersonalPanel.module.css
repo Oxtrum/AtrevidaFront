@@ -1,0 +1,101 @@
+/* Navegador de periodo: misma pieza que MonthPicker, con el rango de fechas como etiqueta. */
+.periodo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem;
+  min-height: 42px;
+  min-width: 15rem;
+  padding: 0.2rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-input-bg);
+}
+
+.periodoLabel {
+  flex: 1;
+  text-align: center;
+  color: var(--admin-foreground);
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: var(--admin-radius-sm);
+  background: transparent;
+  color: var(--admin-text-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.arrow:hover:not(:disabled) {
+  background: rgba(236, 0, 140, 0.1);
+  color: var(--admin-accent-primary);
+}
+
+.arrow:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.arrow:focus-visible {
+  outline: 2px solid var(--admin-accent-primary);
+  outline-offset: -2px;
+}
+
+.charts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 1000px) {
+  .charts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Puesto en el ranking: los tres primeros resaltan. */
+.puesto {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  height: 1.75rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: var(--admin-surface-3);
+  color: var(--admin-text-muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.podio {
+  background: rgba(236, 0, 140, 0.14);
+  color: var(--admin-accent-primary);
+}
+
+.sube {
+  color: var(--admin-accent-success);
+}
+
+.baja {
+  color: var(--admin-accent-danger);
+}
+
+.variacion {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

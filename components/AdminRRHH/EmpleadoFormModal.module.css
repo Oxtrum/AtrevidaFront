@@ -1,0 +1,31 @@
+/* Estado del empleado: tarjeta clicable con la casilla a la izquierda. */
+.estado {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-input-bg);
+  color: var(--admin-foreground);
+  font-size: var(--admin-fs-body, 0.875rem);
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.estado:hover {
+  border-color: var(--admin-border-hover);
+}
+
+.estado input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--admin-accent-primary);
+}
+
+.estadoSub {
+  display: block;
+  margin-top: 0.1rem;
+  font-size: var(--admin-fs-xs, 0.75rem);
+  color: var(--admin-text-dim);
+}

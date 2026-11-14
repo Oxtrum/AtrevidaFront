@@ -1,0 +1,47 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.28rem 0.6rem;
+  border-radius: var(--admin-radius-full);
+  border: 1px solid var(--admin-border-subtle);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.neutral {
+  background: var(--admin-pill-bg);
+  color: var(--admin-text-muted);
+}
+
+.success {
+  background: rgba(16, 185, 129, 0.12);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.warning {
+  background: rgba(245, 158, 11, 0.12);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.32);
+}
+
+.danger {
+  background: rgba(255, 77, 109, 0.12);
+  color: #ff7b93;
+  border-color: rgba(255, 77, 109, 0.3);
+}
+
+.info {
+  background: rgba(20, 174, 239, 0.12);
+  color: #38bdf8;
+  border-color: rgba(20, 174, 239, 0.3);
+}
+
+:global([data-admin-theme='light']) .success { color: #047857; }
+:global([data-admin-theme='light']) .warning { color: #b45309; }
+:global([data-admin-theme='light']) .danger { color: #b91c1c; }
+:global([data-admin-theme='light']) .info { color: #0369a1; }

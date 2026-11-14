@@ -1,0 +1,13 @@
+export { AdelantoFormModal } from './AdelantoFormModal';
+export { AdelantosPanel } from './AdelantosPanel';
+export { BonosEditor } from './BonosEditor';
+export { EmpleadoFormModal } from './EmpleadoFormModal';
+export { EmpleadosPanel } from './EmpleadosPanel';
+export { EmpleadoSelect } from './EmpleadoSelect';
+export { GenerarPlanillaModal } from './GenerarPlanillaModal';
+export { PlanillaDesglose } from './PlanillaDesglose';
+export { PlanillaEditModal } from './PlanillaEditModal';
+export { PlanillasPanel } from './PlanillasPanel';
+export { TipoBonoFormModal } from './TipoBonoFormModal';
+export { TiposBonoPanel } from './TiposBonoPanel';
+export { ReportePersonalPanel } from './ReportePersonalPanel';

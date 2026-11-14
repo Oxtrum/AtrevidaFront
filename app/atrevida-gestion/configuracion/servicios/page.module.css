@@ -4,28 +4,6 @@
    La filterBar vive en su propia card.
 ───────────────────────────────────────────────────────────────────────── */
 
-.pageContainer {
-  min-height: 100vh;
-  color: var(--admin-foreground);
-  font-family: var(--admin-font-family);
-  position: relative;
-  overflow-x: hidden;
-}
-
-.main {
-  position: relative;
-  z-index: 1;
-  min-height: 100vh;
-  padding: 2rem 1.5rem 4rem;
-}
-
-.container {
-  position: relative;
-  z-index: 1;
-  max-width: 1440px;
-  margin: 0 auto;
-}
-
 /* Stack vertical con gap uniforme */
 .contentStack {
   display: flex;
@@ -714,4 +692,9 @@
   .span6 {
     grid-column: 1;
   }
+}
+
+.helperText {
+  font-size: 0.8rem;
+  color: var(--admin-text-muted);
 }

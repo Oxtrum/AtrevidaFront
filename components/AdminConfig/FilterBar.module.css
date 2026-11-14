@@ -1,0 +1,86 @@
+.bar {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  grid-auto-flow: row dense;
+  align-items: end;
+  gap: 0.875rem 0.75rem;
+  padding: 1rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-lg);
+  background: var(--admin-surface-1);
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+/* El buscador ocupa dos columnas; en pantallas angostas, la fila completa. */
+.grow {
+  grid-column: span 2;
+}
+
+.action {
+  display: flex;
+  min-width: 0;
+}
+
+.actionFull {
+  grid-column: 1 / -1;
+}
+
+.action > * {
+  flex: 1;
+  justify-content: center;
+  min-height: 42px;
+}
+
+.label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--admin-text-dim);
+}
+
+.item input[type='date'],
+.item input[type='month'],
+.item input[type='text'],
+/* Los <input> sin atributo type son de texto, pero no coinciden con [type='text']. */
+.item input:not([type]) {
+  min-height: 42px;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-input-bg);
+  color: var(--admin-foreground);
+  font-family: inherit;
+  font-size: 0.875rem;
+}
+
+.item input:focus {
+  outline: none;
+  border-color: var(--admin-accent-primary);
+  box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.16);
+}
+
+@media (max-width: 520px) {
+  .bar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .grow {
+    grid-column: 1 / -1;
+  }
+}
+
+.item input[type='date'],
+.item input[type='month'] {
+  color-scheme: dark;
+}
+
+:global([data-admin-theme='light']) .item input[type='date'],
+:global([data-admin-theme='light']) .item input[type='month'] {
+  color-scheme: light;
+}

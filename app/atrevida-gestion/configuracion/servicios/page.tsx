@@ -4,10 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
 import { Filter, Pencil, Plus, Scissors, Search, Trash2, X } from 'lucide-react';
-import Header from '@/components/AdminHeader/Header';
 import { PageHeader, DataTable, FormModal, RowActionsMenu } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
+import { InsumosEditor } from '@/components/AdminInventario/InsumosEditor';
+import type { InsumosEditorHandle } from '@/components/AdminInventario/InsumosEditor';
 import { toast } from '@/components/Shared/Toast';
 import {
   getCategoriasDB,
@@ -148,7 +149,8 @@ export default function ServiciosPage() {
   const adminLocalScope = useAdminLocalScopeState();
   const scopedLocalName = adminLocalScope.workplace?.nombre_local ?? '';
   const effectiveFiltroLocal = scopedLocalName || filtroLocal;
-  const hasFilter = adminLocalScope.ready && !!(effectiveFiltroLocal || filtroCategoria);
+  // Sin filtros principales se listan los servicios de todos los locales.
+  const hasFilter = adminLocalScope.ready;
 
   // Contar filtros secundarios activos para mostrar indicador
   const activeSecondaryFilters = [
@@ -184,33 +186,30 @@ export default function ServiciosPage() {
     () => locales.map((l) => ({ value: l.nombre, label: l.nombre })),
     [locales],
   );
-  const categoriaOptions = useMemo(() => {
+  const localFiltroOptions = useMemo(
+    () => [{ value: '', label: 'Todos los locales' }, ...localOptions],
+    [localOptions],
+  );
+  // El texto de estado ("Elige un local primero", "Cargando…") va como placeholder, no como opción.
+  const { options: categoriaOptions, placeholder: categoriaPlaceholder } = useMemo(() => {
     const categoriasDisponibles = formCategorias.local === form.local ? formCategorias.categorias : [];
+    const sinOpciones = (placeholder: string) => ({ options: [] as { value: string; label: string }[], placeholder });
 
-    if (!form.local) {
-      return [{ value: '', label: 'Elige un local primero', disabled: true }];
-    }
+    if (!form.local) return sinOpciones('Elige un local primero');
+    if (formCategoriasLoading) return sinOpciones('Cargando categorías...');
+    if (formCategorias.error && formCategorias.local === form.local) return sinOpciones('No se cargaron categorías');
+    if (categoriasDisponibles.length === 0) return sinOpciones('Sin categorías para este local');
 
-    if (formCategoriasLoading) {
-      return [{ value: '', label: 'Cargando categorías...', disabled: true }];
-    }
-
-    if (formCategorias.error && formCategorias.local === form.local) {
-      return [{ value: '', label: 'No se cargaron categorías', disabled: true }];
-    }
-
-    if (categoriasDisponibles.length === 0) {
-      return [{ value: '', label: 'Sin categorías para este local', disabled: true }];
-    }
-
-    return [
-      { value: '', label: 'Seleccionar' },
-      ...categoriasDisponibles.map((c) => ({ value: c.nombre, label: c.nombre })),
-    ];
+    return {
+      options: categoriasDisponibles.map((c) => ({ value: c.nombre, label: c.nombre })),
+      placeholder: 'Seleccionar categoría',
+    };
   }, [form.local, formCategorias.categorias, formCategorias.error, formCategorias.local, formCategoriasLoading]);
 
   // ─── Confirm dialog ───────────────────────────────────────────────────────
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
+  // Insumos (trastienda): quien puede crear/editar el servicio define sus insumos. Al crear se guardan tras obtener el id.
+  const insumosRef = useRef<InsumosEditorHandle | null>(null);
 
   // ─── Debounced nombre filter ──────────────────────────────────────────────
   const [filtroNombreDebounced, setFiltroNombreDebounced] = useState('');
@@ -222,7 +221,7 @@ export default function ServiciosPage() {
   // ─── Data fetching ───────────────────────────────────────────────────────────
 
   const fetchServicios = useCallback(async () => {
-    if (!adminLocalScope.ready || (!effectiveFiltroLocal && !filtroCategoria)) return;
+    if (!adminLocalScope.ready) return;
     setLoading(true);
     setError(null);
     try {
@@ -376,6 +375,9 @@ export default function ServiciosPage() {
       errors.sesiones = 'Mínimo 1 sesión';
     }
 
+    const insumosError = insumosRef.current?.validate();
+    if (insumosError) errors.submit = insumosError;
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -401,13 +403,14 @@ export default function ServiciosPage() {
           tipo_espacio_requerido: form.tipo_espacio_requerido,
           requiere_evaluacion: form.requiere_evaluacion,
         });
+        await insumosRef.current?.save(editingId);
         const localForToggle = locales.find((l) => l.nombre === form.local);
         if (localForToggle) {
           await togglePacienteNuevo(editingId, localForToggle.id, form.visible_paciente_nuevo);
         }
         toast.success('Servicio actualizado correctamente');
       } else {
-        await crearServicioDB({
+        const created = (await crearServicioDB({
           nombre: form.nombre.trim(),
           categoria: form.categoria,
           tiempo,
@@ -417,8 +420,22 @@ export default function ServiciosPage() {
           tipo_espacio_requerido: form.tipo_espacio_requerido,
           local: scopedLocalName || form.local,
           requiere_evaluacion: form.requiere_evaluacion,
-        });
-        toast.success('Servicio creado correctamente');
+        })) as { data?: { id?: number } };
+        const newId = created?.data?.id;
+        let insumosFailed = false;
+        if (newId) {
+          try {
+            await insumosRef.current?.save(newId);
+          } catch (err) {
+            if (err instanceof Error) console.error('guardarInsumosServicio', err);
+            insumosFailed = true;
+          }
+        }
+        if (insumosFailed) {
+          toast.error('El servicio se creó, pero no se pudieron guardar los insumos. Edítalo para volver a intentarlo.');
+        } else {
+          toast.success('Servicio creado correctamente');
+        }
       }
       setModalOpen(false);
       resetModal();
@@ -599,11 +616,7 @@ export default function ServiciosPage() {
   // ─── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <div ref={containerRef} className={styles.pageContainer}>
-      <div className="admin-mesh" />
-      <Header />
-      <main className={styles.main}>
-        <div className={styles.container}>
+    <div ref={containerRef} className="admin-stack">
           <PageHeader
           kicker="Configuración"
           kickerIcon={<Scissors size={14} strokeWidth={2} />}
@@ -624,30 +637,10 @@ export default function ServiciosPage() {
           {/* ── Filter card ── */}
           <div className={styles.filterCard}>
             <div className={styles.filterCardInner}>
-              <div className={styles.filterSectionLabel}>
-                <Filter size={12} />
-                Filtros de búsqueda
-                {activeSecondaryFilters > 0 && (
-                  <span className={styles.filterActiveChip}>
-                    {activeSecondaryFilters} activo{activeSecondaryFilters !== 1 ? 's' : ''}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFiltroNombre('');
-                        setFiltroSesiones('');
-                        setFiltroEvaluacion('all');
-                        setFiltroEstado('activos');
-                      }}
-                      aria-label="Limpiar filtros secundarios"
-                    >
-                      <X size={9} strokeWidth={2.5} />
-                    </button>
-                  </span>
-                )}
-              </div>
+        
 
               <div className={styles.filterBar}>
-                {/* Local — requerido */}
+                {/* Local — por defecto, todos */}
                 <div className={styles.filterGroup}>
                   <label id="lbl-filtro-local" htmlFor="filtro-local" className={styles.filterLabel}>
                     Local
@@ -657,8 +650,8 @@ export default function ServiciosPage() {
                     ariaLabelledBy="lbl-filtro-local"
                     value={effectiveFiltroLocal}
                     onChange={(value) => setFiltroLocal(scopedLocalName || value)}
-                    options={localOptions}
-                    placeholder="Seleccionar local"
+                    options={localFiltroOptions}
+                    placeholder="Todos los locales"
                   />
                 </div>
 
@@ -691,7 +684,6 @@ export default function ServiciosPage() {
                     value={filtroNombre}
                     onChange={(e) => setFiltroNombre(e.target.value)}
                     placeholder="Buscar por nombre…"
-                    disabled={!hasFilter}
                   />
                 </div>
 
@@ -707,7 +699,6 @@ export default function ServiciosPage() {
                     value={filtroSesiones}
                     onChange={(e) => setFiltroSesiones(e.target.value)}
                     placeholder="Ej: 10"
-                    disabled={!hasFilter}
                   />
                 </div>
 
@@ -750,17 +741,6 @@ export default function ServiciosPage() {
             </div>
           </div>
 
-          {/* ── Hint ── */}
-          {!hasFilter && (
-            <div className={styles.hint}>
-              <div className={styles.hintIcon}>
-                <Filter size={20} strokeWidth={1.5} />
-              </div>
-              <p className={styles.hintText}>Selecciona un <strong>local</strong> o una <strong>categoría</strong></p>
-              <p className={styles.hintSub}>Los servicios aparecerán aquí una vez que apliques al menos un filtro principal.</p>
-            </div>
-          )}
-
           {/* ── Tabla ── */}
           {hasFilter && (
             <>
@@ -782,8 +762,6 @@ export default function ServiciosPage() {
             </>
           )}
         </div>
-        </div>
-      </main>
 
       {/* ── Modal: Crear / Editar ── */}
       <FormModal
@@ -864,6 +842,7 @@ export default function ServiciosPage() {
                 if (formErrors.categoria) setFormErrors((p) => ({ ...p, categoria: undefined }));
               }}
               options={categoriaOptions}
+              placeholder={categoriaPlaceholder}
               hasError={!!formErrors.categoria}
             />
             {!form.local && !isEdit && (
@@ -1014,6 +993,13 @@ export default function ServiciosPage() {
             </label>
           )}
 
+          <div className={styles.formDivider}>
+            <span className={styles.formDividerLabel}>Insumos por sesión</span>
+          </div>
+          <div className={styles.span6}>
+            <InsumosEditor servicioId={isEdit ? editingId : null} onReady={(handle) => { insumosRef.current = handle; }} />
+          </div>
+
         </div>
 
         {formErrors.submit && (
@@ -1076,12 +1062,10 @@ export default function ServiciosPage() {
                 ariaLabelledBy="lbl-act-local"
                 value={activarLocalValue}
                 onChange={setActivarLocalValue}
-                options={[
-                  { value: '', label: 'Seleccionar local' },
-                  ...locales
-                    .filter((l) => l.nombre !== activarLocalRow?.local)
-                    .map((l) => ({ value: l.nombre, label: l.nombre })),
-                ]}
+                options={locales
+                  .filter((l) => l.nombre !== activarLocalRow?.local)
+                  .map((l) => ({ value: l.nombre, label: l.nombre }))}
+                placeholder="Seleccionar local"
               />
               <p className={styles.helpText}>
                 El servicio quedará disponible también en el local seleccionado sin modificar el original.

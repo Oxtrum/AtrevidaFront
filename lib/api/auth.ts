@@ -81,6 +81,14 @@ export async function cambiarPassword(
   });
 }
 
+/** Solo admin_sys: fija una contraseña nueva a otro usuario (por si la olvidó). */
+export async function restablecerPasswordUsuario(
+  username: string,
+  password: string,
+): Promise<ApiResponse<{ mensaje: string }>> {
+  return apiClient.patch<ApiResponse<{ mensaje: string }>>('/auth/usuarios/password', { username, password });
+}
+
 export async function cambiarUsuarioLocal(
   payload: CambiarUsuarioLocalPayload,
 ): Promise<ApiResponse<{ mensaje: string }>> {

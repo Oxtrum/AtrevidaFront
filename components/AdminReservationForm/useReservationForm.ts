@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   DiaSemana, SUCURSALES,
@@ -12,17 +12,22 @@ import { useReservas } from '@/lib/hooks/useReservas';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { getServiciosDB } from '@/lib/api/servicios';
 import { useMontado } from '@/lib/hooks/useMontado';
+import { useConfiguracion } from '@/lib/hooks/useConfiguracion';
 import { filtrarErroresResueltos } from '@/lib/utils/erroresResueltos';
 import { errorDiaSemana, fechaDelDia } from '@/lib/utils/diaSeleccion';
 import { formatCostoServicio } from '@/lib/utils/serviceCost';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import { toast } from '../Shared/Toast';
+import { describirAdvertencias } from '@/lib/utils/format';
 import { getPlanByID } from '@/lib/api/planes';
-import { reservasDuplicadasDeError, type ReservaDuplicada } from '@/lib/api/reservas';
+import { actualizarReservaDB, reservasDuplicadasDeError, type ReservaDuplicada } from '@/lib/api/reservas';
+import { vincularReservaCliente } from '@/lib/api/vinculo';
+import { phoneValueFrom } from '@/lib/utils/phone';
+import { avisarReservaAgendada } from '@/lib/utils/avisoAgendada';
 import { validateReservationForm, } from '@/lib/utils/reservationValidation';
 import { type SlotStatus, capacidadDeLocal, estadoOcupaCapacidad, normalizarHoraSlot } from '@/lib/utils/hoursAvailability';
 import { HORAS, DIAS_SEMANA, SLOT_MIN, SLOTS_POR_HORA, calcularHoraFin, tiempoAMinutos, isSlotOutsideBusinessHours } from '@/lib/constants/reservationForm';
-import { iniciarSeleccion, modificarFin, puedeAjustarFin, slotsEnRango, formatearDuracion } from '@/lib/utils/slotRange';
+import { desajusteDuracion as calcularDesajusteDuracion, iniciarSeleccion, modificarFin, puedeAjustarFin } from '@/lib/utils/slotRange';
 
 export interface ReservationFormInitialData {
   local?: string;
@@ -32,6 +37,10 @@ export interface ReservationFormInitialData {
   hora_hasta?: string;
   servicio?: string;
   isAdmin?: boolean;
+  /** Modo edicion: la reserva que se modifica. Mismo formulario que Nueva reserva, sin precio ni estado. */
+  reserva?: ReservaBD;
+  /** Con `reserva`: aprobar una solicitud pendiente. Pide cliente, confirma el servicio y la agenda. */
+  aprobar?: boolean;
 }
 
 
@@ -40,6 +49,9 @@ export function useReservationForm(
   onSuccess?: () => void,
 ) {
   const router = useRouter();
+  const { config } = useConfiguracion();
+  const original = initialData?.reserva ?? null;
+  const aprobando = original !== null && initialData?.aprobar === true;
   const { loading, error: hookError, crearReserva } = useCrearReserva();
   const { data: reservasData, fetch: fetchReservas } = useReservas();
   const { locales, loading: loadingLocales } = useLocales();
@@ -49,6 +61,11 @@ export function useReservationForm(
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [slotWarning, setSlotWarning] = useState<string | null>(null);
+  const [guardandoEdicion, setGuardandoEdicion] = useState(false);
+  // Si el cliente ya se enlazo y el guardado se detuvo (reserva repetida), al confirmar no se vuelve a enlazar.
+  const enlazadaRef = useRef(false);
+  // Al cambiar el cliente de una reserva: reemplazar tambien el telefono del cliente por el de la reserva.
+  const [actualizarTelefonoCliente, setActualizarTelefonoCliente] = useState(false);
 
   // Inicializar sucursal con el primer valor disponible
   // Normalizar horas que vienen del URL
@@ -81,29 +98,31 @@ export function useReservationForm(
   };
   // Sin default silencioso: si no llega `local` explícito, queda vacío y la
   // validación obliga a elegir sucursal (evita escribir en la sucursal equivocada).
-  const [sucursal, setSucursal] = useState(initialData?.local || '');
+  const [sucursal, setSucursal] = useState(initialData?.local || original?.local || '');
   const effectiveSucursal = scopedLocalName || (adminLocalScope.ready ? sucursal : '');
   const [semanaIndex, setSemanaIndex] = useState(initialData?.semana ? parseInt(initialData.semana, 10) : 0);
   const [dia, setDia] = useState<DiaSemana | null>(initialData?.dia ?? null);
-  const [horaDesde, setHoraDesde] = useState(normalizarHora(initialData?.hora_desde || ''));
-  const [horaHasta, setHoraHasta] = useState(normalizarHora(initialData?.hora_hasta || ''));
+  const [horaDesde, setHoraDesde] = useState(normalizarHora(initialData?.hora_desde || original?.hora_desde || ''));
+  const [horaHasta, setHoraHasta] = useState(normalizarHora(initialData?.hora_hasta || original?.hora_hasta || ''));
   // Ciclo de 2 clicks en la rejilla: click de inicio (fija desde + duración
   // del servicio) → click de ajuste (recorta/estira el fin) → vuelve a inicio.
-  const [esperandoAjuste, setEsperandoAjuste] = useState(!!(initialData?.hora_desde && initialData?.hora_hasta));
+  const [esperandoAjuste, setEsperandoAjuste] = useState(!!((initialData?.hora_desde && initialData?.hora_hasta) || (original?.hora_desde && original?.hora_hasta)));
   // Confirmación previa cuando el rango elegido no dura lo que el servicio.
   const [confirmandoDuracion, setConfirmandoDuracion] = useState(false);
   // Reservas que el cliente ya tiene ese día: el backend avisa y espera confirmación.
   const [reservasDuplicadas, setReservasDuplicadas] = useState<ReservaDuplicada[] | null>(null);
-  const [cliente, setCliente] = useState('');
-  const [numeroTelefono, setNumeroTelefono] = useState('');
-  const [telefonoE164, setTelefonoE164] = useState<string | undefined>();
-  const [servicio, setServicio] = useState(initialData?.servicio || '');
-  const [notas, setNotas] = useState('');
-  const [planId, setPlanId] = useState<number | null>(null);
+  const [cliente, setCliente] = useState(original?.cliente ?? '');
+  // Cliente registrado elegido en el buscador. El panel no agenda sin uno: nada se vincula por adivinanza.
+  const [clienteId, setClienteId] = useState<number | null>(original?.cliente_id ?? null);
+  const [numeroTelefono, setNumeroTelefono] = useState(() => original ? phoneValueFrom(original.telefono_e164 || original.numero_telefono).nationalNumber : '');
+  const [telefonoE164, setTelefonoE164] = useState<string | undefined>(() => original ? phoneValueFrom(original.telefono_e164 || original.numero_telefono).e164 : undefined);
+  const [servicio, setServicio] = useState(initialData?.servicio || (original ? original.servicio_confirmado || original.servicio || original.servicio_solicitado || '' : ''));
+  const [notas, setNotas] = useState(original?.notas ?? '');
+  const [planId, setPlanId] = useState<number | null>(original?.plan_id ?? null);
   // Por defecto el staff agenda directamente (AGENDADO): en la mayoría de casos
   // la reserva creada desde el panel ya está confirmada. Desactivar el toggle la
   // envía a aprobación (PENDIENTE).
-  const [agendarDirecto, setAgendarDirecto] = useState(true);
+  const [agendarDirecto, setAgendarDirecto] = useState(original ? aprobando || original.estado === 'AGENDADO' : true);
   const [serviciosAPI, setServiciosAPI] = useState<Array<{ id: number; nombre: string; categoria: string; tipoEspacio: string; costo: string; costo_variable?: boolean; tiempo: string; requiere_evaluacion: boolean }>>([]);
 
   /** Slots que ocupa el servicio elegido. 1 hora si no se conoce su duración. */
@@ -168,6 +187,26 @@ export function useReservationForm(
     },
     [semanaActual],
   );
+
+  // Al editar, el calendario abre en la semana y el dia de la reserva (una sola vez, ya montado).
+  const posicionada = useRef(false);
+  useEffect(() => {
+    if (!original || posicionada.current || semanasDisponibles.length === 0) return;
+    posicionada.current = true;
+    const d = new Date(`${original.fecha}T00:00:00`);
+    if (d.getDay() === 0) return;
+    const idx = semanasDisponibles.findIndex((sem) => {
+      const ini = new Date(sem.fechaInicio);
+      ini.setHours(0, 0, 0, 0);
+      const fin = new Date(ini);
+      fin.setDate(fin.getDate() + 5);
+      return d >= ini && d <= fin;
+    });
+    if (idx < 0) return;
+    const dias: DiaSemana[] = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES', 'SÁBADO'];
+    setSemanaIndex(idx);
+    setDia(dias[d.getDay() - 1]);
+  }, [original, semanasDisponibles]);
 
   const tipo = useMemo(() => {
     const svc = serviciosAPI.find(s => s.nombre === servicio);
@@ -247,6 +286,7 @@ export function useReservationForm(
 
       // Filtrar reservas para el día y tipo seleccionado
       const reservasDelDia = reservasData.data.reservas.filter((r: ReservaBD) => {
+        if (original && r.id === original.id) return false; // al editar, la reserva no compite consigo misma
         if (!estadoOcupaCapacidad(r.estado)) return false;
         const tipoReserva = r.tipo?.toLowerCase();
         const matchesTipo = tipo.toLowerCase() === 'm'
@@ -282,7 +322,7 @@ export function useReservationForm(
     }
 
     return map;
-  }, [dia, effectiveSucursal, fechasSemana, reservasData, tipo, locales]);
+  }, [dia, effectiveSucursal, fechasSemana, reservasData, tipo, locales, original]);
 
   useEffect(() => {
     const fechaDia = fechaDelDia(fechasSemana, dia) ?? null;
@@ -363,26 +403,8 @@ export function useReservationForm(
     return Array.from(byCategory.entries()).map(([label, options]) => ({ label, options }));
   }, [serviciosAPI]);
 
-  /**
-   * Datos del diálogo de confirmación. Es `null` mientras el rango elegido
-   * dura exactamente lo que el servicio — el caso normal, que no interrumpe.
-   * Se compara en bloques de 30 min porque la rejilla no permite otra cosa
-   * (un servicio de 50 min ocupa 2 bloques y no cuenta como desajuste).
-   */
-  const desajusteDuracion = (() => {
-    if (!servicio || !horaDesde || !horaHasta) return null;
-    const slotsServicio = slotsDeServicio(servicio);
-    const slotsElegidos = slotsEnRango(horaDesde, horaHasta);
-    if (slotsElegidos <= 0 || slotsElegidos === slotsServicio) return null;
-    return {
-      horaDesde,
-      horaHasta,
-      duracionServicio: formatearDuracion(slotsServicio * SLOT_MIN),
-      duracionElegida: formatearDuracion(slotsElegidos * SLOT_MIN),
-      esMasLargo: slotsElegidos > slotsServicio,
-      bloquesDiferencia: Math.abs(slotsElegidos - slotsServicio),
-    };
-  })();
+  /** Datos del diálogo de confirmación; `null` mientras el rango dura lo que el servicio. */
+  const desajusteDuracion = servicio ? calcularDesajusteDuracion(slotsDeServicio(servicio), horaDesde, horaHasta) : null;
 
   // ── Handlers ───────────────────────────────────────────
   /** Elegido el día, el aviso de "falta el día" (y el del tope) ya no aplica. */
@@ -497,7 +519,8 @@ export function useReservationForm(
   };
 
   // ── Validación y submit ────────────────────────────────
-  const validate = (): boolean => {
+  // Devuelve el primer error (o null si todo esta bien) para decirselo al usuario.
+  const validate = (): string | null => {
     const e = validateReservationForm(
       effectiveSucursal,
       fechaDelDia(fechasSemana, dia)?.toISOString().split('T')[0] || '',
@@ -518,10 +541,18 @@ export function useReservationForm(
     }
     // No validar aquí si está ocupado - dejar que el backend lo valide
     // para permitir cambios de último minuto si hay slots disponibles
-    if (horaDesde && hoursAvailability.get(horaDesde) === 'past') {
+    const fechaElegida = fechaDelDia(fechasSemana, dia)?.toLocaleDateString('en-CA');
+    // Al editar sin mover el horario, que ya haya pasado no es un error.
+    const horarioSinMover = original && horaDesde === original.hora_desde && fechaElegida === original.fecha;
+    if (horaDesde && hoursAvailability.get(horaDesde) === 'past' && !horarioSinMover) {
       e.horaDesde = 'No se pueden hacer reservas en horarios pasados';
     } else if (horaDesde && hoursAvailability.get(horaDesde) === 'closed') {
       e.horaDesde = 'Ese horario está fuera de atención';
+    }
+    // Al editar una reserva vieja sin cliente no se obliga a vincularlo; al aprobarla si.
+    // Si escribio sobre el cliente ya enlazado, debe volver a elegir uno de la lista.
+    if ((!original || aprobando || original.cliente_id != null) && initialData?.isAdmin && clienteId == null) {
+      e.cliente = 'Elige un cliente de la lista o crea uno nuevo';
     }
     // El fallback boliviano sólo existe para clientes API anteriores. Desde la
     // interfaz, un país seleccionado debe producir siempre su E.164 válido.
@@ -529,14 +560,21 @@ export function useReservationForm(
       e.numeroTelefono = 'El número no es válido para el país seleccionado';
     }
     setErrors(e);
-    return Object.keys(e).length === 0;
+    return Object.values(e)[0] ?? null;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validate()) {
-      toast.error('Faltan datos o hay campos con error. Revisa los marcados en rojo.');
+    const primerError = validate();
+    if (primerError) {
+      toast.error(primerError);
+      // El campo con error puede quedar fuera de pantalla: se lleva al primero.
+      window.setTimeout(() => {
+        const campo = document.querySelector<HTMLElement>('form [aria-invalid="true"], form [class*="inputError"], form [class*="errorText"]');
+        campo?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        campo?.focus({ preventScroll: true });
+      }, 0);
       return;
     }
 
@@ -548,7 +586,7 @@ export function useReservationForm(
     }
 
     // Revalidar paquete antes de enviar (#C + #F capa 2)
-    if (planId != null && effectiveSucursal) {
+    if (planId != null && effectiveSucursal && planId !== original?.plan_id) {
       try {
 		const planRes = await getPlanByID(planId);
         const plan = planRes?.data?.plan;
@@ -559,9 +597,10 @@ export function useReservationForm(
           && plan.activo !== false
           && plan.sesiones_usadas < plan.sesiones_totales
           && normalizar(plan.cliente_nombre_texto || plan.cliente) === normalizar(cliente)
-          && normalizar(plan.local_nombre_texto) === normalizar(effectiveSucursal);
+          && normalizar(plan.local_nombre_texto) === normalizar(effectiveSucursal)
+          && (config['paquetes.usar_desde'] !== 'PAGADO' || plan.estado_cobranza === 'PAGADO');
         if (!planValido) {
-          toast.error('El paquete ya no es válido para esta sucursal.');
+          toast.error(config['paquetes.usar_desde'] === 'PAGADO' && plan?.estado_cobranza !== 'PAGADO' ? 'El paquete todavía no está pagado.' : 'El paquete ya no es válido para esta sucursal.');
           setPlanId(null);
           return;
         }
@@ -582,6 +621,7 @@ export function useReservationForm(
   };
 
   const enviarReserva = async (fechaISO: string, confirmarDuplicado = false) => {
+    if (original) return guardarEdicion(fechaISO, confirmarDuplicado);
     setError(null);
     const horaDesdeNorm = normalizarHora(horaDesde);
     const horaHastaNorm = normalizarHora(horaHasta);
@@ -596,6 +636,7 @@ export function useReservationForm(
           hora_hasta: horaHastaNorm,
           tipo: tipoBody,
           cliente,
+          cliente_id: initialData?.isAdmin ? clienteId ?? undefined : undefined,
           numero_telefono: numeroTelefono.replace(/\D/g, ''),
           telefono_e164: telefonoE164,
           servicio,
@@ -609,13 +650,20 @@ export function useReservationForm(
           ...(confirmarDuplicado && { confirmar_duplicado: true }),
         };
 
-        await crearReserva(payload);
+        const creada = await crearReserva(payload);
         setReservasDuplicadas(null);
         toast.success(
           agendarDirecto
             ? '¡Reserva agendada con éxito!'
             : 'Reserva registrada. Quedará pendiente de aprobación.',
         );
+        // La reserva ya está guardada: la falta de insumos solo se informa (RN-12). El formulario público nunca lo muestra.
+        if (initialData?.isAdmin && creada.advertencias_inventario?.length) {
+          toast.warning(describirAdvertencias(creada.advertencias_inventario, '\n'), {
+            title: 'Falta stock para este servicio',
+            duration: 10000,
+          });
+        }
 
         if (onSuccess) {
           onSuccess();
@@ -635,6 +683,98 @@ export function useReservationForm(
       } finally {
         setConfirmandoDuracion(false);
       }
+  };
+
+  /** Edicion: solo se envian los campos que cambian. El precio no se edita: sigue al servicio. */
+  const guardarEdicion = async (fechaISO: string, confirmarDuplicado: boolean) => {
+    if (!original) return;
+    setError(null);
+    const desde = normalizarHora(horaDesde);
+    const hasta = normalizarHora(horaHasta);
+    const servicioOriginal = original.servicio_confirmado || original.servicio || original.servicio_solicitado || '';
+    const servicioInfo = serviciosAPI.find(sv => sv.nombre === servicio);
+    const digitos = numeroTelefono.replace(/\D/g, '');
+    const telOriginal = phoneValueFrom(original.telefono_e164 || original.numero_telefono);
+    const telefonoCambio = digitos !== telOriginal.nationalNumber.replace(/\D/g, '') || telefonoE164 !== telOriginal.e164;
+    // Cliente nuevo o corregido: se enlaza. El servidor lo rechaza si la reserva ya tiene cargos o paquete.
+    const cambiaCliente = clienteId != null && clienteId !== original.cliente_id;
+    const enlazar = cambiaCliente && !enlazadaRef.current;
+    const reprograma = fechaISO !== original.fecha || desde !== original.hora_desde || hasta !== original.hora_hasta || effectiveSucursal !== original.local;
+
+    const cambios = {
+      ...(effectiveSucursal !== original.local && { nuevo_local: effectiveSucursal }),
+      ...(fechaISO !== original.fecha && { nueva_fecha: fechaISO }),
+      ...(desde !== original.hora_desde && { nueva_hora_desde: desde }),
+      ...(hasta !== original.hora_hasta && { nueva_hora_hasta: hasta }),
+      ...(notas !== (original.notas ?? '') && { nuevas_notas: notas }),
+      ...(telefonoCambio && digitos && { nuevo_numero_telefono: digitos, nuevo_telefono_e164: telefonoE164 }),
+      ...((servicio !== servicioOriginal || aprobando) && servicio && {
+        nuevo_servicio_confirmado: servicio,
+        ...(servicio !== servicioOriginal && { nuevo_servicio: servicio }),
+        ...(servicioInfo && {
+          nuevo_tipo: (servicioInfo.tipoEspacio === 'B' ? 'B' : 'M') as 'M' | 'B',
+          // El precio sigue al servicio: solo cambia si cambia el servicio, o si al aprobar aun no tenia.
+          ...((servicio !== servicioOriginal || original.precio == null)
+            && (servicioInfo.costo_variable === true ? { limpiar_precio: true } : { nuevo_precio: Number(servicioInfo.costo) || 0 })),
+        }),
+      }),
+      ...(cambiaCliente && cliente.trim() !== (original.cliente ?? '') && { nuevo_cliente: cliente.trim() }),
+      ...(aprobando && { nuevo_estado: 'AGENDADO' as const }),
+      ...(planId !== (original.plan_id ?? null) && (planId == null ? { limpiar_plan_id: true } : { nuevo_plan_id: planId })),
+    };
+
+    if (Object.keys(cambios).length === 0 && !enlazar) {
+      setConfirmandoDuracion(false);
+      toast.info('No hay cambios para guardar.');
+      return;
+    }
+
+    setGuardandoEdicion(true);
+    try {
+      if (enlazar && clienteId != null) {
+        await vincularReservaCliente(original.id, { cliente_id: clienteId, actualizar_telefono: actualizarTelefonoCliente });
+        enlazadaRef.current = true;
+      }
+      if (Object.keys(cambios).length > 0) {
+        await actualizarReservaDB({ id: original.id, local: original.local, ...(confirmarDuplicado && { confirmar_duplicado: true }), ...cambios });
+      }
+      setReservasDuplicadas(null);
+      if (aprobando) {
+        avisarReservaAgendada({
+          ...original,
+          estado: 'AGENDADO',
+          local: effectiveSucursal,
+          cliente,
+          fecha: fechaISO,
+          hora_desde: desde,
+          hora_hasta: hasta,
+          numero_telefono: digitos,
+          telefono_e164: telefonoE164,
+          servicio_confirmado: servicio,
+        });
+      } else {
+        toast.success('Cambios guardados.');
+      }
+      // Una reserva ya confirmada que cambia de horario o sucursal vuelve a las notificaciones: hay que reavisar.
+      if (original.notificado && original.estado === 'AGENDADO' && reprograma) {
+        toast.warning('Avísale al cliente del cambio por WhatsApp desde la lista.', { title: 'Reserva reprogramada' });
+      }
+      if (onSuccess) onSuccess();
+      else router.push('/atrevida-gestion/reservas');
+      router.refresh();
+    } catch (err: unknown) {
+      const duplicadas = reservasDuplicadasDeError(err);
+      if (duplicadas) {
+        setReservasDuplicadas(duplicadas);
+        return;
+      }
+      const mensaje = err instanceof Error ? err.message : 'No se pudieron guardar los cambios';
+      setError(mensaje);
+      toast.error(mensaje);
+    } finally {
+      setGuardandoEdicion(false);
+      setConfirmandoDuracion(false);
+    }
   };
 
   /** El staff vio que el cliente ya tiene reserva ese día y quiere crear otra igual. */
@@ -678,6 +818,7 @@ export function useReservationForm(
     dia,
     horaDesde, horaHasta,
     cliente, setCliente,
+    clienteId, setClienteId,
     numeroTelefono, setNumeroTelefono,
     telefonoE164, setTelefonoE164,
     notas, setNotas,
@@ -692,7 +833,10 @@ export function useReservationForm(
     confirmandoDuracion,
     desajusteDuracion,
     reservasDuplicadas,
-    loading: loading || loadingLocales,
+    loading: loading || loadingLocales || guardandoEdicion,
+    editando: original !== null,
+    aprobando,
+    actualizarTelefonoCliente, setActualizarTelefonoCliente,
     // Derived
     hoursAvailability,
     diasDisponibles,

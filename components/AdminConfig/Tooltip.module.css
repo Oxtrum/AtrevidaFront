@@ -1,0 +1,50 @@
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  cursor: help;
+  border-radius: var(--admin-radius-sm);
+}
+
+.trigger:focus-visible {
+  outline: 2px solid var(--admin-accent-primary);
+  outline-offset: 2px;
+}
+
+.tip {
+  position: fixed;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  width: max-content;
+  max-width: 17.5rem;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-md);
+  /* La superficie del tema es translúcida; sobre una tabla se leería el texto de atrás. */
+  background-color: var(--admin-bg);
+  background-image: linear-gradient(var(--admin-surface-3), var(--admin-surface-3));
+  box-shadow: var(--admin-shadow-md);
+  color: var(--admin-text-muted);
+  font-size: 0.76rem;
+  line-height: 1.45;
+  text-transform: none;
+  letter-spacing: 0;
+  pointer-events: none;
+  animation: tipIn 0.12s ease-out;
+}
+
+.tip strong {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--admin-foreground);
+}
+
+@keyframes tipIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tip { animation: none; }
+}

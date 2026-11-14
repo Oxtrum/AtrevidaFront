@@ -1,5 +1,6 @@
 'use client';
 
+import { ModalPortal } from '@/components/AdminConfig/ModalPortal';
 import { WhatsappIcon } from '@/components/icons/WhatsappIcon';
 import modal from '@/components/AdminConfig/FormModal.module.css';
 import detail from './ReservaDetailModal.module.css';
@@ -42,6 +43,7 @@ export function ReservaDuplicadaDialog({
   const cantidad = lista.length === 1 ? 'una reserva' : `${lista.length} reservas`;
 
   return (
+    <ModalPortal>
     <div className={modal.overlay} onClick={onClose}>
       <div
         className={modal.modal}
@@ -101,5 +103,6 @@ export function ReservaDuplicadaDialog({
         </div>
       </div>
     </div>
+    </ModalPortal>
   );
 }

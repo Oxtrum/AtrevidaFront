@@ -3,11 +3,14 @@
 import { useState, useCallback } from 'react';
 import { crearReservaDB } from '@/lib/api/reservas';
 import type { ReservaTipoBody } from '@/lib/api/reservas';
+import type { AdvertenciaInventario } from '@/types/inventario';
 import type { DiaSemana, EstadoReserva, ReservaFormData } from '@/types/reserva';
 
 interface CrearReservaResult {
     id: string;
     mensaje: string;
+    alerta_inventario?: boolean;
+    advertencias_inventario?: AdvertenciaInventario[];
 }
 
 interface UseCrearReservaReturn {
@@ -25,6 +28,7 @@ interface CrearReservaData {
     hora_hasta: string;
     tipo: ReservaTipoBody;
     cliente: string;
+    cliente_id?: number;
     numero_telefono?: string;
     telefono_e164?: string;
     servicio: string;
@@ -60,6 +64,7 @@ export function useCrearReserva(): UseCrearReservaReturn {
                     hora_hasta: data.hora_hasta,
                     tipo: data.tipo,
                     cliente: data.cliente,
+                    cliente_id: data.cliente_id,
                     numero_telefono: data.numero_telefono || '',
                     telefono_e164: data.telefono_e164,
                     servicio: data.servicio,

@@ -2,9 +2,11 @@ import { apiClient } from './client';
 import { withLocalIdScope, withNombreLocalScope } from './localScope';
 import type { ApiResponse } from '@/types/reserva';
 import type { PaginationMetadata, PaginationParams } from './pagination';
+import type { TipoPago } from '@/lib/utils/tipoPago';
 
 export interface DetalleServicio {
   servicio_id: number | null;
+  /** Insumo del inventario vendido en la linea (excluye a servicio_id); al registrar el pago baja su stock. */
   servicio: string;
   precio_unitario: number;
   cantidad: number;
@@ -19,8 +21,11 @@ export interface CrearPagoData {
   cliente_nombre: string;
   descuento: number;
   estado: string;
-  tipo_pago: 'qr' | 'efectivo';
+  tipo_pago: TipoPago;
   activo: boolean;
+  /** Reserva que se cobra con este pago (opcional; una reserva admite un solo cobro). */
+  /** Fecha del hecho (YYYY-MM-DD): cuando ocurrio el cobro. Sin ella es ahora; no puede ser futura. */
+  fecha_hecho?: string;
   detalle: DetalleServicio[];
 }
 
@@ -38,7 +43,12 @@ export interface Pago {
   estado: string;
   tipo_pago?: string;
   activo: boolean;
+  /** Abono a cuenta de un cliente (sin servicios), no una venta de mostrador. */
+  es_abono?: boolean;
+  /** Fecha del hecho: cuando ocurrio el cobro. */
   fecha_creacion: string;
+  /** Momento real en que se registro en el sistema (lo pone el servidor). */
+  registrado_en?: string;
   fecha_modificacion: string;
 }
 
@@ -134,6 +144,8 @@ export async function getPagosDB(params?: GetPagosParams, signal?: AbortSignal):
 	  limit: scopedParams.limit,
 	  cursor: scopedParams.cursor,
 	  include_total: scopedParams.include_total,
+      ordenar_por: scopedParams.ordenar_por,
+      sentido: scopedParams.sentido,
     },
   });
 }
@@ -158,4 +170,45 @@ export async function getPagosResumenDB(
       local: scopedParams.local,
     },
   });
+}
+
+/** Un servicio vendido dentro de un pago, con el descuento del pago repartido en proporcion a su subtotal. */
+export interface VentaDetalleLinea {
+  codigo_pago: string;
+  /** Fecha y hora del pago (ISO). */
+  fecha: string;
+  local: string;
+  cliente_nombre: string;
+  cliente_nit: string;
+  cajero: string;
+  tipo_pago: string;
+  servicio: string;
+  /** Qué se vendió: servicio del catálogo, insumo, paquete o línea libre. */
+  tipo_linea: 'SERVICIO' | 'INSUMO' | 'PAQUETE' | 'OTRO';
+  cantidad: number;
+  precio_unitario: number;
+  subtotal: number;
+  descuento_prorrateado: number;
+  /** Total final del pago completo: se repite en cada linea del mismo pago. */
+  total_pago: number;
+}
+
+export interface VentasDetalleResponse {
+  filtros: { fecha_desde: string; fecha_hasta: string; local: string };
+  /** true si el periodo tiene mas lineas que el limite del servidor. */
+  truncado: boolean;
+  lineas: VentaDetalleLinea[];
+}
+
+/** Cada servicio vendido del periodo (pagos PAGADOS). Solo admin_sys. Base del Excel del libro financiero. */
+export async function getVentasDetalleDB(params: PagosResumenParams): Promise<VentasDetalleResponse> {
+  const scopedParams = withNombreLocalScope(params);
+  const res = await apiClient.get<ApiResponse<VentasDetalleResponse>>('/bd/pagos/ventas-detalle', {
+    params: {
+      fecha_desde: scopedParams.fecha_desde,
+      fecha_hasta: scopedParams.fecha_hasta,
+      local: scopedParams.local,
+    },
+  });
+  return res.data;
 }
