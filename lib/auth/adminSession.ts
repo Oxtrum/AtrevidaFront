@@ -85,9 +85,19 @@ export function getStoredAdminRole(): string | null {
     ?? getRoleFromToken();
 }
 
+/** Historial de pagos: admin_sys y coordinacion (que ve los pagos, pero no los reportes financieros). */
 export function canViewAdminPayments(): boolean {
   const role = getStoredAdminRole();
-  return role === 'admin_sys' || role === 'admin';
+  return role === 'admin_sys' || role === 'coordinacion';
+}
+
+/**
+ * Administrar catálogo e inventario (categorías, combos, paquetes, ítems) y anular compras:
+ * admin_sys y coordinacion. El backend exige lo mismo (CoordinacionRequired).
+ */
+export function canManageCatalog(): boolean {
+  const role = getStoredAdminRole();
+  return role === 'admin_sys' || role === 'coordinacion';
 }
 
 export function isAdminSys(): boolean {

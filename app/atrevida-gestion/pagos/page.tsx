@@ -9,6 +9,7 @@ import { PagoDetalleCodeButton, PagoDetalleModal, PagoProductosCell } from '@/co
 import { getPagosDB } from '@/lib/api/pagos';
 import type { Pago } from '@/lib/api/pagos';
 import { PAGE_LIMIT } from '@/lib/api/pagination';
+import { canViewFinancialReports } from '@/lib/auth/adminSession';
 import { useAdminLocalScopeState } from '@/lib/auth/useAdminLocalScope';
 import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
 import { useLocales } from '@/lib/hooks/useLocales';
@@ -127,6 +128,10 @@ export default function HistorialDePagosPage() {
     void fetchData();
   }, [fetchData]);
 
+  const [verTotal, setVerTotal] = useState(false);
+  useEffect(() => {
+    setVerTotal(canViewFinancialReports());
+  }, []);
   const totalBs = useMemo(() => pagos.reduce((sum, pago) => sum + Number(pago.total_final ?? 0), 0), [pagos]);
 
   const opcionesLocal = useMemo(
@@ -194,7 +199,8 @@ export default function HistorialDePagosPage() {
 
       <StatGrid>
         <StatCard value={loading ? '—' : total} label="Pagos encontrados" loading={loading} />
-        <StatCard value={loading ? '—' : formatMoney(totalBs)} label="Total visible" loading={loading} />
+        {/* La suma es un dato financiero: solo admin_sys. El resto ve los pagos, no el total. */}
+        {verTotal && <StatCard value={loading ? '—' : formatMoney(totalBs)} label="Total visible" loading={loading} />}
       </StatGrid>
 
       <FilterBar>

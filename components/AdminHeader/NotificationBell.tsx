@@ -32,6 +32,7 @@ import styles from './NotificationBell.module.css';
 const ROLE_LABELS: Record<string, string> = {
   admin_sys: 'Admin sistema',
   admin: 'Administrador',
+  coordinacion: 'Coordinadora',
   gerencia: 'Recepción',
 };
 

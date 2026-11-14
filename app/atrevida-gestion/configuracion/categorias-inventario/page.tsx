@@ -12,7 +12,7 @@ export default function CategoriasInventarioPage() {
   const { data, loading, error, reload } = useAsyncData(getCategoriasInventario, 'cats-inv');
 
   return (
-    <AdminPageShell roles={['admin_sys']}>
+    <AdminPageShell roles={['admin_sys', 'coordinacion']}>
       <PageHeader
         kicker="Configuración"
         kickerIcon={<Boxes size={14} strokeWidth={2} />}

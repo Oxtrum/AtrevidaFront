@@ -22,7 +22,7 @@ import {
 import { FormModal, PageHeader } from '@/components/AdminConfig';
 import { toast } from '@/components/Shared/Toast';
 import { cambiarPassword } from '@/lib/api/auth';
-import { getStoredAdminRole, getStoredAdminTokenClaims, getStoredAdminUser, isAdminSys } from '@/lib/auth/adminSession';
+import { canManageCatalog, getStoredAdminRole, getStoredAdminTokenClaims, getStoredAdminUser, isAdminSys } from '@/lib/auth/adminSession';
 import styles from './page.module.css';
 
 interface ProfileInfo {
@@ -116,7 +116,7 @@ const OPTIONS = [
     href: '/atrevida-gestion/configuracion/categorias-inventario',
     color: '#06B6D4',
     colorRgb: '6, 182, 212',
-    adminSysOnly: true,
+    catalogOnly: true,
   },
   {
     title: 'Inventario y finanzas',
@@ -144,6 +144,7 @@ const EMPTY_PASSWORD_VISIBILITY: PasswordVisibility = {
 const ROLE_LABELS: Record<string, string> = {
   admin_sys: 'Administrador del sistema',
   admin: 'Administrador',
+  coordinacion: 'Coordinadora',
   gerencia: 'Recepción',
 };
 
@@ -166,6 +167,7 @@ export default function ConfiguracionPage() {
   const router = useRouter();
   const [profile, setProfile] = useState<ProfileInfo | null>(null);
   const [adminSys, setAdminSys] = useState(false);
+  const [catalogo, setCatalogo] = useState(false);
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [passwordForm, setPasswordForm] = useState<PasswordForm>(EMPTY_PASSWORD_FORM);
   const [passwordErrors, setPasswordErrors] = useState<PasswordErrors>({});
@@ -181,6 +183,7 @@ export default function ConfiguracionPage() {
 
     setProfile(readProfileInfo());
     setAdminSys(isAdminSys());
+    setCatalogo(canManageCatalog());
   }, [router]);
 
   const resetPasswordState = () => {
@@ -291,7 +294,11 @@ export default function ConfiguracionPage() {
           </section>
 
           <div className={styles.grid}>
-            {OPTIONS.filter((opt) => !('adminSysOnly' in opt && opt.adminSysOnly) || adminSys).map((opt) => (
+            {OPTIONS.filter((opt) => {
+              if ('adminSysOnly' in opt && opt.adminSysOnly) return adminSys;
+              if ('catalogOnly' in opt && opt.catalogOnly) return catalogo;
+              return true;
+            }).map((opt) => (
               <div
                 key={opt.href}
                 className={styles.card}

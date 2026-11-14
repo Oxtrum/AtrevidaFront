@@ -1,4 +1,5 @@
 import { apiClient } from './client';
+import { esRolGlobal } from '@/lib/auth/roles';
 import type { ApiResponse } from '@/types/reserva';
 
 export interface UsuarioResumen {
@@ -13,7 +14,7 @@ export interface UsuarioResumen {
   nombre_lugar?: string | null;
 }
 
-export type RolCodigo = 'admin_sys' | 'gerencia';
+export type RolCodigo = 'admin_sys' | 'coordinacion' | 'gerencia';
 
 export interface LoginResponse {
   expires_in: number;
@@ -59,7 +60,7 @@ export async function registrarUsuario(
     username,
     password,
     rol_codigo: rolCodigo,
-    ...(rolCodigo !== 'admin_sys' && localId !== undefined && { local_id: localId }),
+    ...(!esRolGlobal(rolCodigo) && localId !== undefined && { local_id: localId }),
   });
 }
 
