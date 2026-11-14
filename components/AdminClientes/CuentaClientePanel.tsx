@@ -6,7 +6,7 @@ import { Ban, Info } from 'lucide-react';
 import { DataTable, RowActionsMenu, StatusBadge, Tooltip } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import type { AbonoCliente, CargoCliente, CuentaCliente } from '@/lib/api/cuenta';
-import { estadoCargoTexto, tipoCargoTexto, tonoEstadoCargo } from '@/lib/utils/cuenta';
+import { estadoCargoTexto, metodoDeCargo, tipoCargoTexto, tonoEstadoCargo } from '@/lib/utils/cuenta';
 import { formatFecha } from '@/lib/utils/formatDateTime';
 import { formatMoney } from '@/lib/utils/format';
 import { etiquetaTipoPago } from '@/lib/utils/tipoPago';
@@ -80,10 +80,21 @@ export function CuentaClientePanel({ cuenta, loading, verAnulados, onVerAnulados
           </span>
         ) : (
           <span className={styles.celda}>
-            <span>{etiquetaTipoPago(row.abono.tipo_pago)}</span>
+            <span>Abono a cuenta</span>
             <span className={styles.detalle}>{row.abono.codigo_pago}</span>
           </span>
         ),
+    },
+    {
+      key: 'metodo',
+      label: 'Método',
+      searchable: false,
+      sortable: false,
+      render: (_v, row) => {
+        // El pago trae su método; el cargo, el de los pagos que lo cubren (vacío si aún nada lo cubre).
+        const metodo = row.clase === 'pago' ? etiquetaTipoPago(row.abono.tipo_pago) : metodoDeCargo(row.cargo.pagos);
+        return metodo ? <span>{metodo}</span> : <span className={styles.manual}>—</span>;
+      },
     },
     {
       key: 'origen',

@@ -1,4 +1,5 @@
 import type { BadgeTone } from '@/components/AdminConfig/StatusBadge';
+import { etiquetaTipoPago } from './tipoPago';
 
 export type EstadoCargo = 'PENDIENTE' | 'PARCIAL' | 'PAGADO';
 export type TipoCargo = 'PAQUETE' | 'SERVICIO' | 'INSUMO' | 'OTRO';
@@ -25,6 +26,12 @@ export const tonoPorPagar = (porPagar: number): BadgeTone => (porPagar > 0 ? 'wa
 export const estadoCargoTexto = (e: EstadoCargo): string => TEXTO_ESTADO[e];
 export const tonoEstadoCargo = (e: EstadoCargo): BadgeTone => TONO_ESTADO[e];
 export const tipoCargoTexto = (t: TipoCargo): string => TIPOS_CARGO.find((x) => x.value === t)?.label ?? t;
+
+/** Metodos con los que se pago un cargo, sin repetir (por ejemplo Efectivo y QR). Vacio si nada lo cubre. */
+export function metodoDeCargo(pagos: { tipo_pago: string }[] | undefined): string {
+  const etiquetas = [...new Set((pagos ?? []).map((p) => etiquetaTipoPago(p.tipo_pago)))];
+  return etiquetas.join(' y ');
+}
 
 /** Lee un monto escrito a mano (acepta coma o punto). Devuelve null si esta vacio, es negativo o no es un numero. */
 export function parseMonto(raw: string): number | null {

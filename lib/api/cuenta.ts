@@ -39,6 +39,15 @@ export interface CargoCliente {
   plan_nombre?: string;
   anulado: boolean;
   motivo_anulacion?: string;
+  /** Pagos que lo cubren, con su metodo; vacio si nada lo cubre. */
+  pagos: PagoDeCargo[];
+}
+
+/** Lo que un pago cubre de un cargo. */
+export interface PagoDeCargo {
+  codigo_pago: string;
+  tipo_pago: string;
+  monto: number;
 }
 
 export interface AbonoCliente {
