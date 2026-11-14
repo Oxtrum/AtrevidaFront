@@ -17,19 +17,10 @@
   flex-wrap: wrap;
 }
 
-/* Semana: ‹ [selector] 📅 › como un solo grupo, para leerse como un control. */
+/* Semana: SelectorSemana ocupa el espacio libre; al envolver, llena su fila. */
 .weekGroup {
-  display: flex;
-  flex: 1 1 22rem; /* ocupa el espacio libre; al envolver, llena su fila */
+  flex: 1 1 22rem;
   min-width: 0;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.weekGroup .chipSelectWide {
-  flex: 1;
-  min-width: 0;
-  width: auto;
 }
 
 /* Chips de ancho propio: el problema anterior era que cada control ocupaba
@@ -53,10 +44,6 @@
   min-width: 0;
 }
 
-.chipSelectWide {
-  width: clamp(12rem, 24vw, 19rem);
-}
-
 .chipStatic {
   padding: 0.5rem 0.75rem;
   border: 1px solid var(--admin-border-subtle);
@@ -68,35 +55,8 @@
   white-space: nowrap;
 }
 
-.stepper {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 42px; /* misma altura que los selects vecinos */
-  flex-shrink: 0;
-  border: 1px solid var(--admin-border-subtle);
-  border-radius: var(--admin-radius-md);
-  background: var(--admin-input-bg);
-  color: var(--admin-text-muted);
-  cursor: pointer;
-  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
-}
-
-.stepper:hover:not(:disabled) {
-  color: var(--admin-foreground);
-  border-color: var(--admin-accent-primary);
-  background: rgba(236, 0, 140, 0.08);
-}
-
-.stepper:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
-
 @media (max-width: 768px) {
-  .chipSelect,
-  .chipSelectWide {
+  .chipSelect {
     width: 100%;
   }
 
@@ -108,14 +68,8 @@
     width: 100%;
   }
 
-  .weekGroup .chipSelectWide {
-    flex: 1;
-    min-width: 0;
-  }
-
   /* El select trae min-width: 10rem; en pantallas angostas debe poder encoger. */
-  .chipSelect > *,
-  .chipSelectWide > * {
+  .chipSelect > * {
     min-width: 0;
   }
 }

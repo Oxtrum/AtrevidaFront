@@ -1,8 +1,8 @@
 'use client';
 
-import { Building2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Building2 } from 'lucide-react';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
-import { DatePickerPopover } from '@/components/AdminReservationForm/DatePickerPopover';
+import { SelectorFecha } from '@/components/AdminConfig';
 import styles from './ReservasToolbar.module.css';
 
 interface ReservasToolbarProps {
@@ -11,9 +11,6 @@ interface ReservasToolbarProps {
   onLocalChange: (value: string) => void;
   /** Sesión acotada a un local: el selector se muestra fijo. */
   localLocked?: boolean;
-  semanaIndex: number;
-  semanaOptions: { value: string; label: string }[];
-  onSemanaChange: (value: string) => void;
   /** Fecha resaltada en el calendario (YYYY-MM-DD) y rango elegible. */
   fechaISO: string;
   minISO: string;
@@ -22,7 +19,7 @@ interface ReservasToolbarProps {
 }
 
 /**
- * Reúne sucursal y semana del calendario en una sola barra compacta.
+ * Reúne sucursal y semana del calendario en una sola barra compacta (la semana es SelectorFecha).
  * Antes eran cuatro controles del mismo nivel repartidos en dos superficies,
  * con los selects ocupando media pantalla cada uno.
  */
@@ -31,21 +28,11 @@ export function ReservasToolbar({
   localOptions,
   onLocalChange,
   localLocked = false,
-  semanaIndex,
-  semanaOptions,
-  onSemanaChange,
   fechaISO,
   minISO,
   maxISO,
   onFechaSelect,
 }: ReservasToolbarProps) {
-  const ultimaSemana = semanaOptions.length - 1;
-
-  const irASemana = (siguiente: number) => {
-    if (siguiente < 0 || siguiente > ultimaSemana) return;
-    onSemanaChange(String(siguiente));
-  };
-
   return (
     <div className={styles.toolbar}>
       <div className={styles.row}>
@@ -67,43 +54,8 @@ export function ReservasToolbar({
           )}
         </div>
 
-        <div className={styles.weekGroup} role="group" aria-label="Semana">
-          <button
-            type="button"
-            className={styles.stepper}
-            onClick={() => irASemana(semanaIndex - 1)}
-            disabled={semanaIndex <= 0}
-            aria-label="Semana anterior"
-          >
-            <ChevronLeft size={16} strokeWidth={2.2} />
-          </button>
-          <div className={styles.chipSelectWide}>
-            <CustomSelect
-              id="reservas-semana"
-              value={String(semanaIndex)}
-              onChange={onSemanaChange}
-              options={semanaOptions}
-              searchable={false}
-            />
-          </div>
-          <DatePickerPopover
-            value={fechaISO}
-            min={minISO}
-            max={maxISO}
-            onSelect={onFechaSelect}
-            triggerClassName={styles.stepper}
-            iconSize={16}
-            align="right"
-          />
-          <button
-            type="button"
-            className={styles.stepper}
-            onClick={() => irASemana(semanaIndex + 1)}
-            disabled={semanaIndex >= ultimaSemana}
-            aria-label="Semana siguiente"
-          >
-            <ChevronRight size={16} strokeWidth={2.2} />
-          </button>
+        <div className={styles.weekGroup}>
+          <SelectorFecha id="reservas-semana" value={fechaISO} min={minISO} max={maxISO} onChange={onFechaSelect} />
         </div>
       </div>
     </div>

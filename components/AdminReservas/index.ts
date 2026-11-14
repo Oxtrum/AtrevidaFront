@@ -6,6 +6,8 @@ export { BandejaReservas } from './BandejaReservas';
 export {
   ReservaRow,
   ReservaMetaItem,
+  ReservaDetalle,
+  ReservaHint,
   ReservaContacto,
   ReservaStatusLine,
   ReservaNote,

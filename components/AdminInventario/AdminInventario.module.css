@@ -29,7 +29,7 @@
 }
 
 .positive {
-  color: #34d399;
+  color: var(--admin-success-text);
   font-weight: 700;
 }
 

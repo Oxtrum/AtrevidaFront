@@ -28,7 +28,7 @@
   border: 1px solid rgba(52, 211, 153, 0.35);
   border-radius: var(--admin-radius-full);
   background: rgba(52, 211, 153, 0.1);
-  color: #34d399;
+  color: var(--admin-success-text);
   font-size: var(--admin-fs-xs);
   font-weight: 700;
   text-decoration: none;

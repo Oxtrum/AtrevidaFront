@@ -46,7 +46,7 @@
   padding: 1px 8px;
   border-radius: var(--admin-radius-full);
   background: rgba(245, 158, 11, 0.14);
-  color: #fbbf24;
+  color: var(--admin-warning-text);
   font-weight: 700;
 }
 

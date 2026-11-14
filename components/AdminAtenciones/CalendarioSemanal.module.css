@@ -1,0 +1,34 @@
+.recargando { opacity: .6; pointer-events: none; transition: opacity var(--admin-t-normal) var(--admin-ease); }
+
+/* Resumen sobre la vista: mismo sitio en calendario y en lista. */
+.heading { display: flex; align-items: center; gap: .5rem; padding: 0 .25rem; color: var(--admin-foreground); }
+.heading strong { font-weight: 700; }
+.heading .accion { margin-left: auto; }
+
+/* Contenedor: la misma superficie de FilterBar y DataTable (AdminPanel card), con menos aire. */
+.contenedor { padding: .75rem; }
+.calendar { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); align-items: start; gap: .6rem; }
+.day { display: grid; gap: .5rem; min-width: 0; }
+.day header { display: flex; align-items: center; justify-content: space-between; gap: .3rem; padding: 0 .2rem .4rem; border-bottom: 1px solid var(--admin-border-subtle); font-size: .8125rem; font-weight: 700; text-transform: capitalize; }
+.cantidad { min-width: 1.2rem; padding: .05rem .4rem; border-radius: var(--admin-radius-full); background: color-mix(in srgb, var(--admin-foreground) 12%, var(--admin-bg)); color: var(--admin-foreground); font-size: .75rem; font-weight: 700; text-align: center; }
+.hoy header { border-bottom-color: var(--admin-accent-primary); }
+.hoy .fecha { color: var(--admin-accent-text); }
+.sinEventos { opacity: .5; }
+
+.events { display: grid; grid-template-columns: minmax(0, 1fr); gap: .45rem; align-content: start; }
+/* Sin fondo: solo el borde delimita la tarjeta sobre la superficie del panel; el fondo aparece al pasar el cursor. */
+.event { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; gap: .2rem; width: 100%; padding: .5rem .6rem; border: 1px solid color-mix(in srgb, var(--admin-foreground) 12%, transparent); border-radius: var(--admin-radius-md); background: transparent; color: var(--admin-foreground); font: inherit; text-align: left; cursor: pointer; transition: border-color var(--admin-t-normal) var(--admin-ease), background var(--admin-t-normal) var(--admin-ease); }
+.event:hover { border-color: color-mix(in srgb, var(--admin-foreground) 22%, transparent); background: color-mix(in srgb, var(--admin-foreground) 5%, transparent); }
+.event:focus-visible, .more:focus-visible { outline: 2px solid var(--admin-accent-primary); outline-offset: 2px; }
+
+.more { padding: .3rem .2rem; border: 0; background: transparent; color: var(--admin-accent-text); font: inherit; font-size: .8125rem; font-weight: 700; text-align: left; cursor: pointer; }
+
+/* Con 6 columnas cada una queda en ~150px; desde 1280px hacia abajo, 3 columnas para que los nombres de insumos respiren. */
+@media (max-width: 1280px) {
+  .calendar { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .calendar { grid-template-columns: 1fr; }
+  /* En el teléfono solo se muestran los días con atenciones. */
+  .sinEventos { display: none; }
+}

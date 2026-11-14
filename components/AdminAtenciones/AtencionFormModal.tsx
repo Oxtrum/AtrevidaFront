@@ -195,7 +195,7 @@ export function AtencionFormModal({ reserva, atencion, onClose, onSaved }: Atenc
     if (!reserva) return;
     if (estadoCatalogo !== 'ready') return;
     if (!nombre.trim() || !fecha || !lugar.trim()) {
-      setError('Completa quién atendió, la fecha y el lugar.');
+      setError('Complete el nombre del personal, la fecha y el lugar.');
       return;
     }
     if (inicio && fin && fin <= inicio) {
@@ -228,13 +228,13 @@ export function AtencionFormModal({ reserva, atencion, onClose, onSaved }: Atenc
         : await registrarAtencion(reserva.id, datosAtencion);
       const pendientes = (resultado.insumos ?? []).filter((item) => item.estado_descuento === 'PENDIENTE_STOCK').length;
       toast.success(pendientes > 0
-        ? `${atencion ? 'Atención actualizada' : 'Atención registrada'}; ${pendientes} insumo(s) quedaron pendientes de descuento. Revisa el stock registrado.`
+        ? `${atencion ? 'Atención actualizada' : 'Atención registrada'}; ${pendientes} insumo(s) con descuento de inventario pendiente. Revise el stock registrado.`
         : atencion ? 'Atención actualizada.' : 'Atención registrada y reserva completada.');
       setConfirmacionStock(false);
       onSaved();
       onClose();
     } catch (cause) {
-      const message = cause instanceof Error ? cause.message : 'No se pudo registrar la atención.';
+      const message = cause instanceof Error ? cause.message : 'No fue posible registrar la atención.';
       setError(message);
       setConfirmacionStock(false);
       toast.error(message);
@@ -284,7 +284,7 @@ export function AtencionFormModal({ reserva, atencion, onClose, onSaved }: Atenc
           <FormField label="Lugar" htmlFor="at-lugar" required wide>
             <input id="at-lugar" value={lugar} readOnly={lugarBloqueado} onChange={(event) => setLugar(event.target.value)} />
           </FormField>
-          <FormField label="Quien lo atendió" htmlFor="at-empleado" required hint="Escribe un nombre o elige una sugerencia.">
+          <FormField label="Atendido por" htmlFor="at-empleado" required hint="Ingrese un nombre o seleccione una sugerencia.">
             <div className={styles.autocomplete}>
               <input
                 id="at-empleado"
@@ -345,7 +345,7 @@ export function AtencionFormModal({ reserva, atencion, onClose, onSaved }: Atenc
                   </div>
                 )}
               </div>
-              {insumos.length === 0 && !busqueda.trim() && <p>No se usaron servicios en esta atención</p>}
+              {insumos.length === 0 && !busqueda.trim() && <p>No se registraron insumos en esta atención</p>}
               {insumos.length > 0 && (
                 <>
                   <div className={styles.supplyColumns} aria-hidden="true">
@@ -407,7 +407,7 @@ export function AtencionFormModal({ reserva, atencion, onClose, onSaved }: Atenc
         onConfirm={() => void guardar(true)}
         message={(
           <>
-            <p>Se registrará el consumo aunque supere el stock. Revisa el stock registrado para confirmar si requiere un ajuste.</p>
+            <p>El consumo se registrará aunque supere el stock. Revise el stock registrado para determinar si requiere un ajuste.</p>
             <ul>{faltantes.map((item) => <li key={item.nombre}>{item.nombre}: consumo {cantidadLabel(item.cantidad)} {item.unidad}, stock {cantidadLabel(item.stock)} {item.unidad}.</li>)}</ul>
           </>
         )}

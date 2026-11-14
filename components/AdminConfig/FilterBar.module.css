@@ -22,6 +22,39 @@
   grid-column: span 2;
 }
 
+.full {
+  grid-column: 1 / -1;
+}
+
+.item > * {
+  min-width: 0;
+}
+
+/* Una sola línea: cada filtro tiene un ancho base y todos se reparten el resto. Si no caben, bajan de fila. */
+.unaLinea {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.unaLinea .item {
+  flex: 1 1 130px;
+}
+
+.unaLinea .grow {
+  flex: 2 1 180px;
+}
+
+.unaLinea .full {
+  flex: 3 1 400px;
+}
+
+.unaLinea .action {
+  flex: 0 0 auto;
+  align-self: flex-end;
+  white-space: nowrap;
+}
+
 .action {
   display: flex;
   min-width: 0;
@@ -42,12 +75,13 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--admin-text-dim);
+  color: var(--admin-text-muted);
 }
 
 .item input[type='date'],
 .item input[type='month'],
 .item input[type='text'],
+.item input[type='search'],
 /* Los <input> sin atributo type son de texto, pero no coinciden con [type='text']. */
 .item input:not([type]) {
   min-height: 42px;
@@ -83,4 +117,20 @@
 :global([data-admin-theme='light']) .item input[type='date'],
 :global([data-admin-theme='light']) .item input[type='month'] {
   color-scheme: light;
+}
+
+/* Filtros secundarios: una segunda fila dentro de la misma caja, separada por una línea fina. */
+.avanzados {
+  grid-column: 1 / -1;
+  flex: 1 1 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.875rem 0.75rem;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--admin-border-subtle);
+}
+
+.avanzados .item {
+  flex: 1 1 160px;
 }

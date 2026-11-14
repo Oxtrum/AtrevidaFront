@@ -76,7 +76,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--admin-text-dim);
+  color: var(--admin-text-muted);
   padding-left: 0.25rem;
 }
 

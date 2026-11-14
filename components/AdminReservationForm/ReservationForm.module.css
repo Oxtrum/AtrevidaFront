@@ -562,15 +562,7 @@
   color: var(--admin-text-dim);
 }
 
-/* ─── Week stepper ( ‹ select › ) ─────────────────────────────── */
-
-.weekStepper {
-  display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr) auto;
-  margin-bottom: 0.6rem;
-  align-items: center;
-  gap: 0.5rem;
-}
+/* ─── Botón redondo del calendario (disparador por defecto) ───── */
 
 .weekStepButton {
   display: inline-flex;

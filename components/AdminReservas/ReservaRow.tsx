@@ -1,5 +1,6 @@
 import { AlertTriangle, MapPin, Phone, type LucideIcon } from 'lucide-react';
 import { Tooltip } from '@/components/AdminConfig';
+import type { BadgeTone } from '@/components/AdminConfig';
 import styles from './ReservaRow.module.css';
 
 /**
@@ -56,7 +57,8 @@ export function formatFalta(horaDesde?: string) {
 }
 
 interface ReservaRowProps {
-  tone: ReservaRowTone;
+  /** Color del riel. Acepta el estado de una reserva o un tono de StatusBadge (Atenciones). */
+  tone: ReservaRowTone | BadgeTone;
   /** Resalta la fila (p. ej. completada pendiente de cobro). */
   highlight?: boolean;
   /** compact = hora | datos | acción (Citas próximas). */
@@ -94,6 +96,7 @@ export function ReservaRow({
         styles.row,
         styles[tone],
         compact ? styles.compact : '',
+        !compact && !status ? styles.sinEstado : '',
         highlight ? styles.highlight : '',
         onClick ? styles.clickable : '',
         className,
@@ -118,7 +121,7 @@ export function ReservaRow({
       </div>
 
       {!compact && meta && <div className={styles.meta}>{meta}</div>}
-      {!compact && <div className={styles.status}>{status}</div>}
+      {!compact && status && <div className={styles.status}>{status}</div>}
       {actions && <div className={styles.actions} onClick={onClick ? (e) => e.stopPropagation() : undefined}>{actions}</div>}
       {footer && <div className={styles.footer}>{footer}</div>}
     </article>
@@ -132,6 +135,16 @@ export function ReservaMetaItem({ icon: Icon, children, muted }: { icon: LucideI
       {children}
     </span>
   );
+}
+
+/** Aviso corto junto al título ("Siguiente · en 20 min"). */
+export function ReservaHint({ children }: { children: React.ReactNode }) {
+  return <span className={styles.hint}>{children}</span>;
+}
+
+/** Línea de texto bajo el servicio (insumos usados, motivo…). */
+export function ReservaDetalle({ children }: { children: React.ReactNode }) {
+  return <p className={styles.detalle}>{children}</p>;
 }
 
 /** Local + teléfono, el meta estándar de una reserva. `showLocal` false cuando la lista ya está filtrada por local. */
@@ -157,13 +170,13 @@ export function ReservaNote({ warn, hint, children }: { warn?: boolean; hint?: s
 
 
 /** Línea de estado discreta: ● Estado · notas · ⚠ Stock. `showEstado` false cuando la pestaña ya dice el estado. */
-export function ReservaStatusLine({ estado, notes = [], stock, showEstado = true }: { estado: string; notes?: StatusNote[]; stock?: boolean; showEstado?: boolean }) {
+export function ReservaStatusLine({ estado, label, notes = [], stock, showEstado = true }: { estado: string; /** Texto propio cuando el estado no es de reserva. */ label?: string; notes?: StatusNote[]; stock?: boolean; showEstado?: boolean }) {
   return (
     <div className={styles.statusLine}>
       {showEstado && (
         <span className={styles.state}>
           <i className={styles.dot} />
-          {RESERVA_ESTADO_LABEL[estado] ?? estado}
+          {label ?? RESERVA_ESTADO_LABEL[estado] ?? estado}
         </span>
       )}
       {notes.map((n) => (

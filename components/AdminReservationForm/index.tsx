@@ -7,13 +7,13 @@ import { CustomSelect } from '../Custom/CustomSelectAdmin';
 import { TimeSlotPicker } from './TimeSlotPicker';
 import { horarioHabilitado } from '@/lib/utils/diaSeleccion';
 import { DaySelector } from './DaySelector';
-import { WeekStepper } from './WeekStepper';
 import PlanSelector from './PlanSelector';
 import { ServiceSelect } from './ServiceSelect';
 import { useReservationForm, type ReservationFormInitialData } from './useReservationForm';
 import type { ClientePG } from '@/lib/api/clientes';
 import { ClienteSelect } from '@/components/AdminClientes';
 import { ConfirmDialog } from '@/components/AdminConfig/ConfirmDialog';
+import { SelectorFecha } from '@/components/AdminConfig';
 import { ReservaDuplicadaDialog } from '@/components/AdminReservas/ReservaDuplicadaDialog';
 import { AvisoDuracion } from './AvisoDuracion';
 import { PhoneInput } from '@/components/PhoneInput';
@@ -32,7 +32,6 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
   const [clienteElegido, setClienteElegido] = useState<ClientePG | null>(null);
   const {
     sucursal, setSucursal,
-    semanaIndex,
     dia,
     horaDesde, horaHasta,
     cliente, setCliente,
@@ -52,9 +51,9 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
     hoursAvailability,
     diasDisponibles,
     sucursalOptions,
-    semanaOptions,
     servicioGroups,
-    handleSemanaChange,
+    handleSemanaISO,
+    semanaInicioISO,
     handleFechaSelect,
     fechaSeleccionadaISO,
     rangoFechas,
@@ -144,14 +143,11 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
           {/* Día */}
           <div className={`${styles.formGroup} ${styles.fullWidth}`}>
             <label>Semana y día</label>
-            <WeekStepper
-              semanaIndex={semanaIndex}
-              semanaOptions={semanaOptions}
-              onSemanaChange={handleSemanaChange}
-              fechaISO={fechaSeleccionadaISO}
-              minISO={rangoFechas.min}
-              maxISO={rangoFechas.max}
-              onFechaSelect={handleFechaSelect}
+            <SelectorFecha
+              value={fechaSeleccionadaISO || semanaInicioISO}
+              min={rangoFechas.min}
+              max={rangoFechas.max}
+              onChange={(iso, origen) => (origen === 'semana' ? handleSemanaISO(iso) : handleFechaSelect(iso))}
               hasError={!!errors.semana}
             />
             {errors.semana && <span className={styles.errorText}>{errors.semana}</span>}

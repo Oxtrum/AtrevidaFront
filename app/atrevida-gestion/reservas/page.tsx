@@ -176,15 +176,6 @@ function AdminReservasContent() {
     [adminLocalScope.ready, locales, scopedLocalName]
   );
 
-  const semanaOptions = useMemo(
-    () => generarSemanas().map((semana, idx) => {
-      const sabado = new Date(semana.fechaInicio);
-      sabado.setDate(sabado.getDate() + 5);
-      return { value: String(idx), label: `${semana.titulo} DE ${sabado.getFullYear()}` };
-    }),
-    []
-  );
-
   // Calendario de fechas: resalta el lunes de la semana activa y salta de semana al elegir.
   const semanaFechaISO = useMemo(() => {
     const semana = generarSemanas()[Number(semanaActiva)];
@@ -253,9 +244,6 @@ function AdminReservasContent() {
                 localOptions={localesOptions}
                 onLocalChange={handleSucursalChange}
                 localLocked={!!scopedLocalName}
-                semanaIndex={Number(semanaActiva)}
-                semanaOptions={semanaOptions}
-                onSemanaChange={handleSemanaChange}
                 fechaISO={semanaFechaISO}
                 minISO={rangoFechas.min}
                 maxISO={rangoFechas.max}

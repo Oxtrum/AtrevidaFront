@@ -33,12 +33,10 @@
 .lg .monto { font-size: 1.6rem; letter-spacing: -0.01em; }
 
 /* El color nunca va solo: la etiqueta escrita dice lo mismo. */
-.success { color: #34d399; }
-.warning { color: #fbbf24; }
+.success { color: var(--admin-success-text); }
+.warning { color: var(--admin-warning-text); }
 .danger { color: var(--admin-accent-danger); }
 .neutral { color: var(--admin-text-muted); }
 
 /* En tema claro los tonos del oscuro no alcanzan contraste sobre blanco. */
-:global([data-admin-theme='light']) .success { color: #047857; }
-:global([data-admin-theme='light']) .warning { color: #b45309; }
 :global([data-admin-theme='light']) .danger { color: #b91c1c; }

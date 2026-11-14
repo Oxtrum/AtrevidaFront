@@ -19,7 +19,7 @@ import {
   StatGrid,
   StatusBadge,
   Tabs,
-  WeekNavigator,
+  SelectorFecha,
 } from '@/components/AdminConfig';
 import type { Column, TabItem } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
@@ -63,8 +63,8 @@ interface ConsumosTabProps {
 const DIAS_SEMANA = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
 const ESTADO_OPTIONS: { value: EstadoDescuentoConsumo; label: string }[] = [
-  { value: 'PENDIENTE', label: 'Deducción pendiente' },
-  { value: 'DESCONTADO', label: 'Descontado' },
+  { value: 'PENDIENTE', label: 'Descuento pendiente' },
+  { value: 'DESCONTADO', label: 'Descuento aplicado' },
 ];
 
 const VISTA_TABS: TabItem<VistaConsumos>[] = [
@@ -243,7 +243,7 @@ export function ConsumosTab({ dimension = 'insumo', contexto = 'inventario' }: C
       const item = itemOptions.find((option) => option.value === itemId);
       partes.push(item ? `el insumo ${item.label}` : 'el insumo seleccionado');
     }
-    if (!esEmpleado && estado) partes.push(estado === 'PENDIENTE' ? 'deducciones pendientes' : 'consumos descontados');
+    if (!esEmpleado && estado) partes.push(estado === 'PENDIENTE' ? 'descuento de inventario pendiente' : 'descuento de inventario aplicado');
     if (clienteAplicado) partes.push(`cliente "${clienteAplicado}"`);
     if (servicioAplicado) partes.push(`servicio "${servicioAplicado}"`);
     if (empleadoAplicado) partes.push(`${esEmpleado ? 'empleado' : 'personal'} "${empleadoAplicado}"`);
@@ -520,7 +520,7 @@ export function ConsumosTab({ dimension = 'insumo', contexto = 'inventario' }: C
     },
     {
       key: 'cantidad_pendiente',
-      label: 'Pendiente de descuento',
+      label: 'Descuento pendiente',
       searchable: false,
       render: (value) => {
         const pendiente = value as number;
@@ -591,8 +591,8 @@ export function ConsumosTab({ dimension = 'insumo', contexto = 'inventario' }: C
       <div className={styles.filters}>
         <FilterBar>
           {vista === 'calendario' ? (
-            <FilterBar.Item label="Semana" grow>
-              <WeekNavigator value={fechaBase} onChange={cambiarSemana} />
+            <FilterBar.Item label="Semana" full>
+              <SelectorFecha conHoy value={fechaBase} onChange={cambiarSemana} />
             </FilterBar.Item>
           ) : (
             <FilterBar.Item label="Mes">
@@ -626,7 +626,7 @@ export function ConsumosTab({ dimension = 'insumo', contexto = 'inventario' }: C
             </FilterBar.Item>
           )}
           {!esEmpleado && (
-            <FilterBar.Item label="Deducción">
+            <FilterBar.Item label="Inventario">
               <CustomSelect
                 value={estado}
                 onChange={setEstado}
@@ -686,7 +686,7 @@ export function ConsumosTab({ dimension = 'insumo', contexto = 'inventario' }: C
             ) : (
               <>
                 <StatCard value={totalLineas} label="Líneas de insumo" loading={loadingCalendario && eventos.length === 0} />
-                <StatCard value={eventosPendientes} label="Con deducción pendiente" loading={loadingCalendario && eventos.length === 0} />
+                <StatCard value={eventosPendientes} label="Con descuento de inventario pendiente" loading={loadingCalendario && eventos.length === 0} />
               </>
             )}
           </StatGrid>
@@ -742,7 +742,7 @@ export function ConsumosTab({ dimension = 'insumo', contexto = 'inventario' }: C
                                     {evento.horario_programado && <span className={styles.programado} title="Hora tomada de la reserva">prog.</span>}
                                   </span>
                                   {!esEmpleado && evento.insumos_pendientes > 0 && (
-                                    <AlertTriangle size={13} className={styles.warnIcon} aria-label="Deducción pendiente" />
+                                    <AlertTriangle size={13} className={styles.warnIcon} aria-label="Descuento de inventario pendiente" />
                                   )}
                                 </span>
                                 <strong className={styles.eventClient}>{evento.cliente || 'Sin cliente'}</strong>
@@ -798,7 +798,7 @@ export function ConsumosTab({ dimension = 'insumo', contexto = 'inventario' }: C
             ) : (
               <>
                 <StatCard value={resumen.length} label="Insumos con consumo" loading={loadingReporte && resumen.length === 0} />
-                <StatCard value={resumenConPendiente} label="Con deducción pendiente" loading={loadingReporte && resumen.length === 0} />
+                <StatCard value={resumenConPendiente} label="Con descuento de inventario pendiente" loading={loadingReporte && resumen.length === 0} />
                 <StatCard value={resumenDescontado} label="Descontados" loading={loadingReporte && resumen.length === 0} />
               </>
             )}

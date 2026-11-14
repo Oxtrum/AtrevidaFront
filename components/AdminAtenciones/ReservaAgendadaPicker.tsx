@@ -73,7 +73,7 @@ function Picker({ local, onClose, onSelect }: ReservaAgendadaPickerProps) {
 
   return (
     <FormModal isOpen onClose={onClose} title="Registrar atención" size="lg" hideFooter>
-      <p className={styles.ayuda}>Elige la reserva agendada que se atendió. Al guardar la atención, la reserva queda completada.</p>
+      <p className={styles.ayuda}>Seleccione la reserva agendada que fue atendida. Al guardar la atención, la reserva pasa a estado completada.</p>
       <div className={styles.buscador}>
         <Search size={15} strokeWidth={2} aria-hidden />
         <input

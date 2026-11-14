@@ -1,8 +1,3 @@
-.filterGap{margin-bottom:.65rem}
-.advancedFilters{margin-bottom:1rem;padding:.65rem;border:1px solid var(--admin-border-subtle);border-radius:var(--admin-radius-md);background:var(--admin-surface-1)}
-.filterAction,.clearFilters{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;min-height:2.25rem;padding:0 .75rem;border:1px solid var(--admin-border);border-radius:var(--admin-radius-sm);background:var(--admin-surface-2);color:var(--admin-foreground);font:inherit;font-size:.83rem;font-weight:600;cursor:pointer}
-.filterAction:hover,.clearFilters:hover{border-color:var(--admin-accent-primary);color:var(--admin-accent-primary)}
-.filterAction:focus-visible,.clearFilters:focus-visible{outline:2px solid var(--admin-accent-primary);outline-offset:2px}
 .truncate{display:block;max-width:15rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .historyTable :global(table){table-layout:fixed}
 .historyTable :global(th),.historyTable :global(td){padding-left:.75rem;padding-right:.75rem;overflow:hidden;text-overflow:ellipsis}

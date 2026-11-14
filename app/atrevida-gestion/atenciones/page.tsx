@@ -48,7 +48,7 @@ function AtencionesContent() {
         kickerIcon={<ClipboardCheck size={14} />}
         title="Atenciones"
         accentWord="Atenciones"
-        subtitle="Registro de clientes atendidos, insumos usados y personal que atendió."
+        subtitle="Registro de las atenciones realizadas, los insumos utilizados y el personal responsable."
       />
       <Tabs
         tabs={[

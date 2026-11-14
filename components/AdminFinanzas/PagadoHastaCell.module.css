@@ -7,7 +7,7 @@
 .neutro { font-weight: 500; }
 .atrasado { color: #ff7b93; }
 .adelantado { color: #38bdf8; }
-.al-dia { color: #34d399; }
+.al-dia { color: var(--admin-success-text); }
 .sin-pagos,
 .inactivo { color: var(--admin-text-dim); font-weight: 500; }
 
