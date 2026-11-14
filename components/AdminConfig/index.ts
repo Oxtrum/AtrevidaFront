@@ -28,6 +28,7 @@ export type { CatalogRow, CatalogValues } from './CatalogManager';
 export { AdminButton } from './AdminButton';
 export { Tooltip } from './Tooltip';
 export { MonthPicker, formatMes } from './MonthPicker';
+export { WeekNavigator } from './WeekNavigator';
 export { ChoiceChips } from './ChoiceChips';
 export type { ChoiceOption } from './ChoiceChips';
 export { VisibilityToggle } from './VisibilityToggle';

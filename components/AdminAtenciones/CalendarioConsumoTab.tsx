@@ -1,8 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, CalendarDays, ChevronLeft, ChevronRight, ClipboardList, Eye, List, MapPin, Pencil } from 'lucide-react';
-import { AdminButton, AdminPanel, AlertBanner, CursorPagination, FilterBar, LocalSelect, StatusBadge } from '@/components/AdminConfig';
+import { AlertTriangle, CalendarDays, ClipboardList, Eye, List, MapPin, Pencil } from 'lucide-react';
+import { AdminButton, AdminPanel, AlertBanner, CursorPagination, FilterBar, LocalSelect, StatusBadge, WeekNavigator } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
 import { AtencionDetalleModal } from '@/components/AdminAtenciones/AtencionDetalleModal';
 import { AtencionFormModal } from '@/components/AdminAtenciones/AtencionFormModal';
@@ -92,7 +92,7 @@ export function CalendarioConsumoTab() {
   const itemOptions = items.filter((item) => item.activo).map((item) => ({ value: String(item.id), label: `${item.nombre} (${item.unidad_medida})` }));
   return <>
     <div className={styles.filters}><FilterBar>
-      <FilterBar.Item label="Semana" className={styles.weekFilter}><div className={styles.weekNav}><button type="button" onClick={() => setFechaBase(sumarDias(fechaBase, -7))} aria-label="Semana anterior"><ChevronLeft size={16} /></button><input type="date" value={fechaBase} onChange={(event) => setFechaBase(event.target.value)} /><button type="button" onClick={() => setFechaBase(sumarDias(fechaBase, 7))} aria-label="Semana siguiente"><ChevronRight size={16} /></button><button type="button" className={styles.today} onClick={() => setFechaBase(hoyISO())}>Hoy</button></div></FilterBar.Item>
+      <FilterBar.Item label="Semana" grow><WeekNavigator value={fechaBase} onChange={setFechaBase} /></FilterBar.Item>
       {localAsignado ? <FilterBar.Item label="Local"><input value={localAsignado.nombre_local ?? 'Local asignado'} disabled aria-label="Local asignado" /></FilterBar.Item> : <FilterBar.Item label="Local"><LocalSelect value={localId} onChange={setLocalId} emptyLabel="Todos los locales" /></FilterBar.Item>}
       <FilterBar.Item label="Insumo"><CustomSelect value={itemId} onChange={setItemId} options={itemOptions} placeholder="Todos" allowClear /></FilterBar.Item>
       <FilterBar.Item label="Stock"><CustomSelect value={estado} onChange={setEstado} options={[{ value: 'DESCONTADO', label: 'Descontado' }, { value: 'PENDIENTE', label: 'Deducción pendiente' }]} placeholder="Todos" allowClear searchable={false} /></FilterBar.Item>

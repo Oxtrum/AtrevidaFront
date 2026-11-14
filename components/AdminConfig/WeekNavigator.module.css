@@ -1,0 +1,86 @@
+.navigator {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.picker {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+  min-height: 42px;
+  padding: 0.2rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-input-bg);
+}
+
+.arrow {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: var(--admin-radius-sm);
+  background: transparent;
+  color: var(--admin-text-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.arrow:hover {
+  background: rgba(236, 0, 140, 0.1);
+  color: var(--admin-accent-primary);
+}
+
+/* El campo de fecha va sin borde propio (el borde es el del grupo); el selector gana en especificidad a FilterBar. */
+.navigator .picker input[type='date'] {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  padding: 0 0.35rem;
+  border: 0;
+  background: transparent;
+  color: var(--admin-foreground);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.navigator .picker input[type='date']:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.today {
+  flex: none;
+  min-height: 42px;
+  padding: 0 0.9rem;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-surface-2);
+  color: var(--admin-foreground);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.today:hover {
+  border-color: var(--admin-accent-primary);
+  color: var(--admin-accent-primary);
+}
+
+.arrow:focus-visible,
+.today:focus-visible,
+.picker:has(.date:focus-visible) {
+  outline: 2px solid var(--admin-accent-primary);
+  outline-offset: 2px;
+}
