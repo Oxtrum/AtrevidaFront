@@ -10,6 +10,7 @@ import { useDebouncedValue } from '@/lib/hooks/useDebouncedValue';
 import { useInventarioItems } from '@/lib/hooks/useInventarioItems';
 import { leerVistaCliente, useVistaUrl } from '@/lib/hooks/useVistaUrl';
 import { ATENCION_ESTADO, estadoDeAtencion } from '@/lib/utils/atencionEstado';
+import { cantidadTexto } from '@/lib/utils/cantidadTexto';
 import { todayISO } from '@/lib/utils/format';
 import { diasDeSemana } from '@/lib/utils/semana';
 import type { CalendarioConsumoEvento } from '@/types/atencionesVistas';
@@ -22,6 +23,7 @@ import { CabeceraVista, CalendarioSemanal } from './CalendarioSemanal';
 const STOCK_OPTIONS = [{ value: 'DESCONTADO', label: 'Descuento aplicado' }, { value: 'PENDIENTE', label: 'Descuento pendiente' }];
 const fechaDe = (evento: CalendarioConsumoEvento) => evento.fecha;
 const claveDe = (evento: CalendarioConsumoEvento) => evento.atencion_id;
+const esPendiente = (evento: CalendarioConsumoEvento) => evento.insumos_pendientes > 0;
 
 /** Calendario semanal de insumos declarados en cada atención cerrada. */
 export function CalendarioConsumoTab() {
@@ -53,7 +55,7 @@ export function CalendarioConsumoTab() {
   const ctrl = useAtencionModales(() => void load());
   const eventos = data?.eventos ?? [];
   const cabecera = (
-    <CabeceraVista titulo="Insumos utilizados" suelta={modo === 'lista'}>
+    <CabeceraVista titulo={loading ? 'Cargando…' : cantidadTexto(eventos.length, 'consumo registrado', 'consumos registrados', pagination.page)}>
       <VistaToggle value={modo} onChange={setModo} />
     </CabeceraVista>
   );
@@ -74,26 +76,24 @@ export function CalendarioConsumoTab() {
 
       {error && <AlertBanner tone="danger" title="No fue posible cargar el calendario">{error}</AlertBanner>}
 
+      {cabecera}
       {modo === 'calendario' ? (
         <CalendarioSemanal
-          cabecera={cabecera}
-          acento="secondary"
 
           dias={dias}
           eventos={eventos}
           fechaDe={fechaDe}
           claveDe={claveDe}
           loading={loading}
-          vacio="Sin consumos"
+          esPendiente={esPendiente}
+          vacio={{ title: 'No hay consumos en la semana seleccionada', hint: 'Seleccione otra semana o modifique los filtros.' }}
           onAbrir={(e) => void ctrl.verAtencion(e.atencion_id, e.reserva_id)}
           renderEvento={(e) => (
             <CalendarioEvento
+              tono={ATENCION_ESTADO[estadoDeAtencion(e)].tone}
               horaDesde={e.hora_inicio}
               horaHasta={e.hora_fin}
               cliente={e.cliente}
-              servicio={e.servicio}
-              local={e.local_nombre}
-              empleado={e.empleado_nombre}
               aviso={e.insumos_pendientes > 0 ? ATENCION_ESTADO.STOCK_PENDIENTE.label : undefined}
             >
               <InsumosEvento insumos={e.insumos} />
@@ -102,7 +102,6 @@ export function CalendarioConsumoTab() {
         />
       ) : (
         <>
-          {cabecera}
           <AtencionLista total={eventos.length} loading={loading} vacio={{ title: 'No hay consumos en la semana seleccionada', hint: 'Seleccione otra semana o modifique los filtros.' }}>
             {eventos.map((e) => (
               <AtencionFila

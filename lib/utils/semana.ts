@@ -29,7 +29,7 @@ export function diasDeSemana(iso: string, cantidad = 6): string[] {
 
 const MESES = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
 
-/** "SEMANA 9 AL 14 DE NOVIEMBRE DE 2026" para la semana (lunes a sábado) de cualquier día. */
+/** "9 AL 14 DE NOVIEMBRE DE 2026" para la semana (lunes a sábado) de cualquier día. */
 export function tituloSemana(iso: string): string {
   const lunes = aUTC(lunesDe(iso));
   const sabado = aUTC(sumarDias(lunesDe(iso), 5));
@@ -38,7 +38,7 @@ export function tituloSemana(iso: string): string {
   const rango = mesInicio === mesFin
     ? `${lunes.getUTCDate()} AL ${sabado.getUTCDate()} DE ${mesFin}`
     : `${lunes.getUTCDate()} DE ${mesInicio} AL ${sabado.getUTCDate()} DE ${mesFin}`;
-  return `SEMANA ${rango} DE ${sabado.getUTCFullYear()}`;
+  return `${rango} DE ${sabado.getUTCFullYear()}`;
 }
 
 /** Una entrada por semana entre dos fechas, ambas incluidas. Alimenta el selector de semanas. */

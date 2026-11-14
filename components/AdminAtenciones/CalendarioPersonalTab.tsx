@@ -8,6 +8,7 @@ import { useCursorList } from '@/lib/hooks/useCursorList';
 import { useDebouncedValue } from '@/lib/hooks/useDebouncedValue';
 import { leerVistaCliente, useVistaUrl } from '@/lib/hooks/useVistaUrl';
 import { ATENCION_ESTADO, estadoDeAtencion } from '@/lib/utils/atencionEstado';
+import { cantidadTexto } from '@/lib/utils/cantidadTexto';
 import { todayISO } from '@/lib/utils/format';
 import { diasDeSemana } from '@/lib/utils/semana';
 import type { CalendarioPersonalEvento } from '@/types/atencionesVistas';
@@ -19,6 +20,7 @@ import { CabeceraVista, CalendarioSemanal } from './CalendarioSemanal';
 
 const fechaDe = (evento: CalendarioPersonalEvento) => evento.fecha;
 const claveDe = (evento: CalendarioPersonalEvento) => evento.atencion_id;
+const esPendiente = (evento: CalendarioPersonalEvento) => evento.insumos_pendientes > 0;
 
 /** Calendario semanal de atenciones cerradas que prioriza quién atendió. */
 export function CalendarioPersonalTab() {
@@ -50,7 +52,7 @@ export function CalendarioPersonalTab() {
   const ctrl = useAtencionModales(() => void load());
   const eventos = data?.eventos ?? [];
   const cabecera = (
-    <CabeceraVista titulo="Atenciones por personal" suelta={modo === 'lista'}>
+    <CabeceraVista titulo={loading ? 'Cargando…' : cantidadTexto(eventos.length, 'atención', 'atenciones', pagination.page)}>
       <VistaToggle value={modo} onChange={setModo} />
     </CabeceraVista>
   );
@@ -60,38 +62,37 @@ export function CalendarioPersonalTab() {
       <FilterBar unaLinea>
         <FilterBar.Item label="Semana" full><SelectorFecha conHoy value={fechaBase} onChange={setFechaBase} /></FilterBar.Item>
         <FilterBar.Local value={localId} onChange={setLocalId} />
-        <FilterBar.Item label="Personal"><input value={empleado} onChange={(e) => setEmpleado(e.target.value)} placeholder="Nombre del personal" /></FilterBar.Item>
+        <FilterBar.Item label="Personal"><input value={empleado} onChange={(e) => setEmpleado(e.target.value)} placeholder="Nombre" /></FilterBar.Item>
         <FilterBar.Search value={q} onChange={setQ} />
       </FilterBar>
 
       {error && <AlertBanner tone="danger" title="No fue posible cargar el calendario">{error}</AlertBanner>}
 
+      {cabecera}
       {modo === 'calendario' ? (
         <CalendarioSemanal
-          cabecera={cabecera}
           dias={dias}
           eventos={eventos}
           fechaDe={fechaDe}
           claveDe={claveDe}
           loading={loading}
-          vacio="Sin atenciones"
+          esPendiente={esPendiente}
+          vacio={{ title: 'No hay atenciones en la semana seleccionada', hint: 'Seleccione otra semana o modifique los filtros.' }}
           onAbrir={(e) => void ctrl.verAtencion(e.atencion_id, e.reserva_id)}
           renderEvento={(e) => (
             <CalendarioEvento
+              tono={ATENCION_ESTADO[estadoDeAtencion(e)].tone}
               horaDesde={e.hora_inicio}
               horaHasta={e.hora_fin}
               cliente={e.cliente}
               servicio={e.servicio}
-              local={e.lugar || e.local_nombre}
               empleado={e.empleado_nombre}
-              empleadoPrimero
               aviso={e.insumos_pendientes > 0 ? ATENCION_ESTADO.STOCK_PENDIENTE.label : undefined}
             />
           )}
         />
       ) : (
         <>
-          {cabecera}
           <AtencionLista total={eventos.length} loading={loading} vacio={{ title: 'No hay atenciones en la semana seleccionada', hint: 'Seleccione otra semana o modifique los filtros.' }}>
             {eventos.map((e) => (
               <AtencionFila

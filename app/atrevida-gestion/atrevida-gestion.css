@@ -17,6 +17,14 @@
   --admin-accent-warning: #ffe600;
   --admin-accent-danger: #ff4d6d;
   --admin-accent-info: #14aeef;
+  /* Texto de estado: mismo color que StatusBadge; en tema claro se oscurece para llegar a 4.5:1. */
+  --admin-warning-text: #fbbf24;
+  --admin-success-text: #34d399;
+  /* Texto en rosa de marca (enlaces, día actual): más claro en oscuro, más oscuro en claro. */
+  --admin-accent-text: color-mix(in srgb, var(--admin-accent-primary) 72%, var(--admin-foreground));
+  /* Textos secundarios con tinte de marca en vez de gris: lila para nombres y etiquetas, celeste para horas y cantidades. */
+  --admin-text-lilac: color-mix(in srgb, var(--admin-accent-secondary) 34%, var(--admin-foreground));
+  --admin-text-sky: color-mix(in srgb, var(--admin-accent-tertiary) 48%, var(--admin-foreground));
 
   --admin-surface-1: rgba(18, 18, 25, 0.76);
   --admin-surface-2: rgba(24, 24, 34, 0.78);
@@ -127,6 +135,8 @@
   --admin-text-muted: rgba(26, 20, 32, 0.72);
   --admin-text-dim: rgba(26, 20, 32, 0.50);
   --admin-text-light: rgba(26, 20, 32, 0.88);
+  --admin-warning-text: #92400e;
+  --admin-success-text: #065f46;
 
   --admin-surface-1: #ffffff;
   --admin-surface-2: #f8f9fc;
