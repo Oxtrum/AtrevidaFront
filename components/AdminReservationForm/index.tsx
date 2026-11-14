@@ -37,6 +37,8 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
     horaDesde, horaHasta,
     cliente, setCliente,
     setClienteId,
+    sinRegistrar,
+    setSinRegistrar,
     numeroTelefono, setNumeroTelefono,
     telefonoE164, setTelefonoE164,
     notas, setNotas,
@@ -79,7 +81,20 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
   };
 
   // Elegido de la lista o recien creado: el nombre y el telefono del cliente pasan a la reserva.
+  // Cliente de una sola visita: se suelta al cliente elegido y la reserva queda por vincular.
+  const handleSinRegistrar = (activo: boolean) => {
+    setSinRegistrar(activo);
+    if (!activo) return;
+    setClienteId(null);
+    setClienteElegido(null);
+    setActualizarTelefonoCliente(false);
+  };
+
+  // Una reserva que ya tiene cliente no se desvincula desde aquí: solo se ofrece al reservar o si estaba por vincular.
+  const puedeSinRegistrar = initialData?.isAdmin === true && (initialData?.reserva?.cliente_id ?? null) == null;
+
   const handleClienteElegido = (clienteItem: ClientePG) => {
+    setSinRegistrar(false);
     setCliente(`${clienteItem.nombre} ${clienteItem.apellido}`.trim());
     setClienteId(clienteItem.id);
     setClienteElegido(clienteItem);
@@ -202,7 +217,7 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
 
           {/* Cliente */}
           <div className={`${styles.formGroup} ${styles.fullWidth}`}>
-            {initialData?.isAdmin ? (
+            {initialData?.isAdmin && !sinRegistrar ? (
               <ClienteSelect
                 id="reserva-cliente"
                 value={cliente}
@@ -230,6 +245,23 @@ export default function AdminReservationForm({ initialData, onSuccess }: Reserva
                 />
                 {errors.cliente && <span className={styles.errorText}>{errors.cliente}</span>}
               </>
+            )}
+            {puedeSinRegistrar && (
+              <label className={styles.directToggle}>
+                <input
+                  type="checkbox"
+                  className={styles.directToggleInput}
+                  checked={sinRegistrar}
+                  onChange={(e) => handleSinRegistrar(e.target.checked)}
+                />
+                <span className={styles.directToggleSwitch} aria-hidden="true">
+                  <span className={styles.directToggleThumb} />
+                </span>
+                <span className={styles.directToggleText}>
+                  <span className={styles.directToggleTitle}>Cliente de una sola visita</span>
+                  <span className={styles.directToggleHint}>No se registra. Solo nombre y teléfono; la reserva queda por vincular.</span>
+                </span>
+              </label>
             )}
           </div>
 

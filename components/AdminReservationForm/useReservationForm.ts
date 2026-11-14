@@ -23,6 +23,7 @@ import { getPlanByID } from '@/lib/api/planes';
 import { actualizarReservaDB, reservasDuplicadasDeError, type ReservaDuplicada } from '@/lib/api/reservas';
 import { vincularReservaCliente } from '@/lib/api/vinculo';
 import { phoneValueFrom } from '@/lib/utils/phone';
+import { errorDeClienteDeReserva } from '@/lib/utils/reservaCliente';
 import { avisarReservaAgendada } from '@/lib/utils/avisoAgendada';
 import { validateReservationForm, } from '@/lib/utils/reservationValidation';
 import { type SlotStatus, capacidadDeLocal, estadoOcupaCapacidad, normalizarHoraSlot } from '@/lib/utils/hoursAvailability';
@@ -114,6 +115,8 @@ export function useReservationForm(
   const [cliente, setCliente] = useState(original?.cliente ?? '');
   // Cliente registrado elegido en el buscador. El panel no agenda sin uno: nada se vincula por adivinanza.
   const [clienteId, setClienteId] = useState<number | null>(original?.cliente_id ?? null);
+  // Cliente de una sola visita: no se registra y la reserva queda por vincular.
+  const [sinRegistrar, setSinRegistrar] = useState(false);
   const [numeroTelefono, setNumeroTelefono] = useState(() => original ? phoneValueFrom(original.telefono_e164 || original.numero_telefono).nationalNumber : '');
   const [telefonoE164, setTelefonoE164] = useState<string | undefined>(() => original ? phoneValueFrom(original.telefono_e164 || original.numero_telefono).e164 : undefined);
   const [servicio, setServicio] = useState(initialData?.servicio || (original ? original.servicio_confirmado || original.servicio || original.servicio_solicitado || '' : ''));
@@ -551,9 +554,16 @@ export function useReservationForm(
     }
     // Al editar una reserva vieja sin cliente no se obliga a vincularlo; al aprobarla si.
     // Si escribio sobre el cliente ya enlazado, debe volver a elegir uno de la lista.
-    if ((!original || aprobando || original.cliente_id != null) && initialData?.isAdmin && clienteId == null) {
-      e.cliente = 'Elige un cliente de la lista o crea uno nuevo';
-    }
+    const errorCliente = errorDeClienteDeReserva({
+      esAdmin: initialData?.isAdmin === true,
+      editando: original !== null,
+      aprobando,
+      clienteIdOriginal: original?.cliente_id ?? null,
+      clienteId,
+      sinRegistrar,
+      nombre: cliente,
+    });
+    if (errorCliente) e.cliente = errorCliente;
     // El fallback boliviano sólo existe para clientes API anteriores. Desde la
     // interfaz, un país seleccionado debe producir siempre su E.164 válido.
     if (numeroTelefono.trim() && !telefonoE164) {
@@ -637,6 +647,7 @@ export function useReservationForm(
           tipo: tipoBody,
           cliente,
           cliente_id: initialData?.isAdmin ? clienteId ?? undefined : undefined,
+          ...(initialData?.isAdmin && sinRegistrar && clienteId == null && { sin_registrar: true }),
           numero_telefono: numeroTelefono.replace(/\D/g, ''),
           telefono_e164: telefonoE164,
           servicio,
@@ -819,6 +830,7 @@ export function useReservationForm(
     horaDesde, horaHasta,
     cliente, setCliente,
     clienteId, setClienteId,
+    sinRegistrar, setSinRegistrar,
     numeroTelefono, setNumeroTelefono,
     telefonoE164, setTelefonoE164,
     notas, setNotas,
