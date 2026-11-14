@@ -29,3 +29,9 @@ export function withLocalIdScope<T extends { local_id?: number; local?: string; 
     local_id: workplace.local_id,
   };
 }
+
+/** Local inicial de un filtro: el asignado al usuario tiene prioridad sobre el de una URL compartida. */
+export function localInicial(deUrl = ''): string {
+  const asignado = getAdminLocalScope()?.local_id;
+  return asignado ? String(asignado) : deUrl;
+}
