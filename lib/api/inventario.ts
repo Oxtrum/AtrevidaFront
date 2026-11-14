@@ -2,6 +2,7 @@ import { apiClient } from './client';
 import { withLocalIdScope } from './localScope';
 import { subirAUrlFirmada } from './storage';
 import type { PaginationMetadata } from './pagination';
+import { PAGINA_COMPLETA, traerTodasLasPaginas } from './traerTodas';
 import type { ApiResponse } from '@/types/reserva';
 import type {
   AjusteInventarioInput,
@@ -22,18 +23,22 @@ import type {
 // Las funciones devuelven el payload ya desenvuelto: si el shape final del
 // backend difiere del plan, el ajuste queda aquí y no en los componentes.
 
+/** Todos los ítems con esos filtros: recorre las páginas del servidor, así que un catálogo grande no se corta. */
 export async function getInventarioItems(params: GetInventarioItemsParams = {}): Promise<InventarioItem[]> {
   const scoped = withLocalIdScope(params);
-  const res = await apiClient.get<ApiResponse<{ items: InventarioItem[] }>>('/bd/inventario/items', {
-    params: {
-      ...scoped,
-      bajo_stock: scoped.bajo_stock ? 'true' : undefined,
-      por_local: scoped.por_local ? 'true' : undefined,
-      activo: scoped.activo === undefined ? undefined : String(scoped.activo),
-      limit: scoped.limit ?? 200,
-    },
+  return traerTodasLasPaginas(async (cursor) => {
+    const res = await apiClient.get<ApiResponse<{ items: InventarioItem[]; paginacion?: PaginationMetadata }>>('/bd/inventario/items', {
+      params: {
+        ...scoped,
+        bajo_stock: scoped.bajo_stock ? 'true' : undefined,
+        por_local: scoped.por_local ? 'true' : undefined,
+        activo: scoped.activo === undefined ? undefined : String(scoped.activo),
+        limit: PAGINA_COMPLETA,
+        cursor,
+      },
+    });
+    return { filas: res.data?.items ?? [], paginacion: res.data?.paginacion };
   });
-  return res.data?.items ?? [];
 }
 
 export async function getInventarioItem(id: number): Promise<InventarioItem> {
@@ -120,7 +125,7 @@ export interface ConsumosPage {
   total_registros?: number;
 }
 
-/** Eventos de consumo por fecha de atención. Sin `limit`/`cursor` devuelve hasta 500. */
+/** Una página de eventos de consumo por fecha de atención. Sin `limit`/`cursor` el servidor devuelve hasta 500. */
 export async function getConsumosInventario(params: GetConsumosParams = {}, signal?: AbortSignal): Promise<ConsumosPage> {
   const scoped = withLocalIdScope(params);
   const res = await apiClient.get<ApiResponse<ConsumosPage>>('/bd/inventario/consumos', {
@@ -132,6 +137,14 @@ export async function getConsumosInventario(params: GetConsumosParams = {}, sign
     paginacion: res.data?.paginacion,
     total_registros: res.data?.total_registros,
   };
+}
+
+/** Todos los eventos de consumo del rango y los filtros: recorre las páginas, así que una semana o un mes cargado no se corta en 500. */
+export async function getConsumosInventarioTodos(params: GetConsumosParams = {}, signal?: AbortSignal): Promise<ConsumoEvento[]> {
+  return traerTodasLasPaginas(async (cursor) => {
+    const pagina = await getConsumosInventario({ ...params, limit: PAGINA_COMPLETA, cursor }, signal);
+    return { filas: pagina.consumos, paginacion: pagina.paginacion };
+  });
 }
 
 /** Totales por insumo y unidad para el rango y filtros indicados. */

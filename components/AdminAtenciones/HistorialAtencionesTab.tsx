@@ -103,7 +103,7 @@ export function HistorialAtencionesTab() {
   const [avanzadosAbiertos, setAvanzadosAbiertos] = useState(() => Boolean(
     link.texto.cliente || link.texto.servicio || link.texto.empleado || link.itemId || link.pendientesStock,
   ));
-  const { items } = useInventarioItems({ activo: true, limit: 500 });
+  const { items } = useInventarioItems({ activo: true });
 
   useEffect(() => {
     const t = window.setTimeout(() => setTextoAplicado(texto), 350);

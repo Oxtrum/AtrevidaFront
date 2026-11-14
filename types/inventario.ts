@@ -129,7 +129,6 @@ export interface GetInventarioItemsParams {
   local_id?: number;
   bajo_stock?: boolean;
   activo?: boolean;
-  limit?: number;
   /** Sin local_id: una fila por ítem y local, sin sumar el stock entre locales. */
   por_local?: boolean;
 }

@@ -28,7 +28,7 @@ import { AtencionDetalleModal } from '@/components/AdminAtenciones/AtencionDetal
 import { getAtencion } from '@/lib/api/atenciones';
 import {
   getConsumosEmpleadosInventario,
-  getConsumosInventario,
+  getConsumosInventarioTodos,
   getConsumosResumenInventario,
 } from '@/lib/api/inventario';
 import { getAdminLocalScope } from '@/lib/api/localScope';
@@ -231,7 +231,7 @@ export function ConsumosTab({ dimension = 'insumo', contexto = 'inventario' }: C
     return { ...filtrosBase, fecha_desde: rango.desde, fecha_hasta: rango.hasta };
   }, [filtrosBase, mes]);
 
-  const { items: inventarioItems } = useInventarioItems({ limit: 200 });
+  const { items: inventarioItems } = useInventarioItems();
   const itemOptions = useMemo(
     () => inventarioItems.map((item) => ({ value: String(item.id), label: `${item.nombre} (${item.unidad_medida})` })),
     [inventarioItems],
@@ -279,9 +279,9 @@ export function ConsumosTab({ dimension = 'insumo', contexto = 'inventario' }: C
     setLoadingCalendario(true);
     setErrorCalendario(null);
     try {
-      const res = await getConsumosInventario(filtrosCalendario, controller.signal);
+      const todos = await getConsumosInventarioTodos(filtrosCalendario, controller.signal);
       if (id !== calendarioRequest.current) return;
-      setEventos(res.consumos);
+      setEventos(todos);
     } catch (err) {
       if (controller.signal.aborted || id !== calendarioRequest.current) return;
       setErrorCalendario(err instanceof Error ? err.message : 'Error al cargar consumos');
@@ -349,11 +349,11 @@ export function ConsumosTab({ dimension = 'insumo', contexto = 'inventario' }: C
     setLoadingDetalle(true);
     const id = ++detalleResumenRequest.current;
     try {
-      const res = await getConsumosInventario({ ...filtrosReporte, item_id: row.item_id ?? undefined });
+      const todos = await getConsumosInventarioTodos({ ...filtrosReporte, item_id: row.item_id ?? undefined });
       if (id !== detalleResumenRequest.current) return;
       const estadoFiltro = filtrosReporte.estado_descuento ?? '';
       setEventosDetalle(
-        res.consumos.filter((evento) =>
+        todos.filter((evento) =>
           evento.insumos.some((insumo) => coincideInsumo(insumo, row) && coincideEstado(insumo, estadoFiltro)),
         ),
       );
@@ -383,9 +383,9 @@ export function ConsumosTab({ dimension = 'insumo', contexto = 'inventario' }: C
         filtros.empleado_id = undefined;
         filtros.empleado = row.empleado_nombre;
       }
-      const res = await getConsumosInventario(filtros);
+      const todos = await getConsumosInventarioTodos(filtros);
       if (id !== detalleEmpleadoRequest.current) return;
-      setEventosDetalle(res.consumos);
+      setEventosDetalle(todos);
     } catch (err) {
       if (id !== detalleEmpleadoRequest.current) return;
       setErrorDetalle(err instanceof Error ? err.message : 'Error al cargar las atenciones');

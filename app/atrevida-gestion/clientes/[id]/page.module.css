@@ -72,9 +72,3 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-
-.nota {
-  margin: 0;
-  color: var(--admin-text-muted);
-  font-size: var(--admin-fs-sm);
-}

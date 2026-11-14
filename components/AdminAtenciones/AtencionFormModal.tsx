@@ -104,7 +104,7 @@ export function AtencionFormModal({ reserva, atencion, onClose, onSaved }: Atenc
         }
 
         const [items, sugeridos] = await Promise.all([
-          getInventarioItems({ ...(localId ? { local_id: localId } : {}), activo: true, limit: 500 }),
+          getInventarioItems({ ...(localId ? { local_id: localId } : {}), activo: true }),
           atencion ? Promise.resolve([]) : getInsumosSugeridos(reservaId, controller.signal),
         ]);
         if (controller.signal.aborted) return;

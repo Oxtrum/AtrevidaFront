@@ -102,7 +102,7 @@ export function CargoFormModal({ isOpen, clienteId, onClose, onSaved }: CargoFor
           return { value: String(c.id), nombre: c.nombre, precio, etiqueta: conPrecio(c.nombre, precio) };
         });
       }
-      const items = await getInventarioItems({ local_id: local.id, activo: true, limit: 500 });
+      const items = await getInventarioItems({ local_id: local.id, activo: true });
       return items.map((i) => ({
         value: String(i.id),
         nombre: i.nombre,

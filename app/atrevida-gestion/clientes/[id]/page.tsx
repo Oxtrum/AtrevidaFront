@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Banknote, CalendarDays, Package2, Pencil, Plus, Wallet } from 'lucide-react';
-import { AdminButton, AdminPageShell, AlertBanner, DataTable, ReasonDialog, StatusBadge, Tabs } from '@/components/AdminConfig';
+import { AdminButton, AdminPageShell, AlertBanner, CursorPagination, DataTable, ReasonDialog, StatusBadge, Tabs } from '@/components/AdminConfig';
 import type { BadgeTone } from '@/components/AdminConfig';
 import type { Column, TabItem } from '@/components/AdminConfig';
 import {
@@ -23,7 +23,10 @@ import { toast } from '@/components/Shared/Toast';
 import { getClienteByID, type ClientePG } from '@/lib/api/clientes';
 import { anularCargo, getCuentaCliente, type CargoCliente, type CuentaCliente } from '@/lib/api/cuenta';
 import { getPlanesDB, type PlanItem } from '@/lib/api/planes';
+import { PAGE_LIMIT } from '@/lib/api/pagination';
+import { PAGINA_COMPLETA, traerTodasLasPaginas } from '@/lib/api/traerTodas';
 import { getReservasDB } from '@/lib/api/reservas';
+import { useCursorPagination } from '@/lib/hooks/useCursorPagination';
 import type { ReservaBD } from '@/types/reserva';
 import { formatMoney } from '@/lib/utils/format';
 import styles from './page.module.css';
@@ -47,7 +50,6 @@ const COBRANZA_PAQUETE: Record<string, { label: string; tone: BadgeTone }> = {
   VENCIDO: { label: 'Vencido', tone: 'danger' },
 };
 
-const RESERVAS_POR_PAGINA = 100;
 
 const nombreCompleto = (c: ClientePG) => `${c.nombre} ${c.apellido}`.trim();
 
@@ -62,6 +64,8 @@ export default function ClienteFichaPage() {
   const [cuenta, setCuenta] = useState<CuentaCliente | null>(null);
   const [reservas, setReservas] = useState<ReservaBD[]>([]);
   const [totalReservas, setTotalReservas] = useState(0);
+  const paginacionReservas = useCursorPagination(String(clienteId));
+  const { cursor: cursorReservas, requestRevision: revisionReservas, shouldIncludeTotal, setMetadata: setMetadataReservas } = paginacionReservas;
   const [paquetes, setPaquetes] = useState<PlanItem[]>([]);
   const [cargandoPaquetes, setCargandoPaquetes] = useState(true);
   const [paqueteAbierto, setPaqueteAbierto] = useState<PlanItem | null>(null);
@@ -106,30 +110,39 @@ export default function ClienteFichaPage() {
 
   const cargarReservas = useCallback(async () => {
     if (!idValido) return;
+    void revisionReservas; // al volver a la primera página, el cambio de revisión recarga la lista
     setCargandoReservas(true);
     try {
       const res = await getReservasDB({
         cliente_id: clienteId,
-        limit: RESERVAS_POR_PAGINA,
-        include_total: true,
+        limit: PAGE_LIMIT,
+        cursor: cursorReservas,
+        include_total: shouldIncludeTotal(),
         ordenar_por: 'fecha',
         sentido: 'desc',
       });
       setReservas(res.data?.reservas ?? []);
-      setTotalReservas(res.data?.paginacion?.total_registros ?? res.data?.total ?? 0);
+      setMetadataReservas(res.data?.paginacion);
+      // El total solo llega en la primera página: las demás conservan el que ya se conoce.
+      const total = res.data?.paginacion?.total_registros ?? res.data?.total;
+      if (total !== undefined) setTotalReservas(total);
       setErrorReservas(null);
     } catch (err) {
       setErrorReservas(err instanceof Error ? err.message : 'No se pudieron cargar las reservas');
     } finally {
       setCargandoReservas(false);
     }
-  }, [clienteId, idValido]);
+  }, [clienteId, idValido, cursorReservas, revisionReservas, shouldIncludeTotal, setMetadataReservas]);
 
   const cargarPaquetes = useCallback(async () => {
     if (!idValido) return;
     try {
-      const res = await getPlanesDB({ cliente_id: clienteId, orden: 'prioridad_estado', limit: 100 });
-      setPaquetes(res.data?.planes ?? []);
+      // Todos sus paquetes: se recorren las páginas del servidor para que ninguno quede fuera.
+      const todos = await traerTodasLasPaginas(async (cursor) => {
+        const res = await getPlanesDB({ cliente_id: clienteId, orden: 'prioridad_estado', limit: PAGINA_COMPLETA, cursor });
+        return { filas: res.data?.planes ?? [], paginacion: res.data?.paginacion };
+      });
+      setPaquetes(todos);
       setErrorPaquetes(null);
     } catch (err) {
       setErrorPaquetes(err instanceof Error ? err.message : 'No se pudieron cargar los paquetes');
@@ -328,12 +341,20 @@ export default function ClienteFichaPage() {
               error={errorReservas}
               onRefresh={cargarReservas}
               getRowKey={(r) => r.id}
-              defaultSort={{ key: 'fecha', dir: 'desc' }}
-              searchPlaceholder="Buscar en sus reservas…"
               emptyMessage="Este cliente todavía no tiene reservas"
+              pageSize={0}
+              sortable={false}
+              hideSearch
             />
-            {totalReservas > reservas.length && (
-              <p className={styles.nota}>Se muestran sus {reservas.length} reservas más recientes de {totalReservas}.</p>
+            {(paginacionReservas.page > 1 || paginacionReservas.hasNext) && (
+              <CursorPagination
+                page={paginacionReservas.page}
+                totalPages={paginacionReservas.totalPages}
+                hasNext={paginacionReservas.hasNext}
+                loading={cargandoReservas}
+                onPrevious={paginacionReservas.previous}
+                onNext={paginacionReservas.next}
+              />
             )}
           </>
         )}

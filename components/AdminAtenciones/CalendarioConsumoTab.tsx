@@ -59,7 +59,7 @@ export function CalendarioConsumoTab() {
   const [textoAplicado, setTextoAplicado] = useState(() => ({ cliente: link.cliente.trim(), servicio: link.servicio.trim(), empleado: link.empleado.trim(), q: link.q.trim() }));
   const [expandidos, setExpandidos] = useState<Set<string>>(() => new Set());
   const localAsignado = getAdminLocalScope();
-  const { items } = useInventarioItems({ activo: true, limit: 200 });
+  const { items } = useInventarioItems({ activo: true });
 
   useEffect(() => { const timer = window.setTimeout(() => setTextoAplicado({ cliente: cliente.trim(), servicio: servicio.trim(), empleado: empleado.trim(), q: q.trim() }), 350); return () => window.clearTimeout(timer); }, [cliente, servicio, empleado, q]);
   const lunes = useMemo(() => lunesDe(fechaBase), [fechaBase]);

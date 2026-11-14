@@ -39,7 +39,7 @@ interface DataTableProps<T> {
   sort?: SortState | null;
   onSortChange?: (sort: SortState) => void;
   /**
-   * Filas por página cuando la tabla tiene todos sus datos en el navegador (25 por defecto). El paginador solo
+   * Filas por página cuando la tabla tiene todos sus datos en el navegador (50 por defecto). El paginador solo
    * aparece si hay más filas que eso. 0 lo apaga: úsalo cuando la página ya pagina por fuera. Las tablas que
    * ordena el servidor (`onSortChange`) nunca paginan aquí.
    */
@@ -71,7 +71,7 @@ export function DataTable<T extends Record<string, unknown>>({
   defaultSort = null,
   sort,
   onSortChange,
-  pageSize = 25,
+  pageSize = 50,
 }: DataTableProps<T>) {
   const [query, setQueryState] = useState('');
   const [page, setPage] = useState(1);
