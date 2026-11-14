@@ -4,8 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertTriangle,
   CalendarDays,
-  ChevronLeft,
-  ChevronRight,
   ClipboardList,
 } from 'lucide-react';
 import {
@@ -21,6 +19,7 @@ import {
   StatGrid,
   StatusBadge,
   Tabs,
+  WeekNavigator,
 } from '@/components/AdminConfig';
 import type { Column, TabItem } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
@@ -456,15 +455,9 @@ export function ConsumosTab({ dimension = 'insumo', contexto = 'inventario' }: C
     window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
   }, [contexto, esEmpleado, vista, fechaBase, mes, localId, itemId, estado, clienteAplicado, servicioAplicado, empleadoAplicado, qAplicado]);
 
-  const moverSemana = (semanas: number) => {
-    if (!lunes) return;
+  const cambiarSemana = (fecha: string) => {
     setDiasExpandidos(new Set());
-    setFechaBase(sumarDias(lunes, semanas * 7));
-  };
-
-  const irHoy = () => {
-    setDiasExpandidos(new Set());
-    setFechaBase(todayISO());
+    setFechaBase(fecha);
   };
 
   const alternarDia = (dia: string) => {
@@ -598,26 +591,8 @@ export function ConsumosTab({ dimension = 'insumo', contexto = 'inventario' }: C
       <div className={styles.filters}>
         <FilterBar>
           {vista === 'calendario' ? (
-            <FilterBar.Item label="Semana">
-              <div className={styles.dateNav}>
-                <button type="button" onClick={() => moverSemana(-1)} disabled={!lunes} aria-label="Semana anterior">
-                  <ChevronLeft size={16} />
-                </button>
-                <input
-                  type="date"
-                  value={fechaBase}
-                  onChange={(event) => {
-                    setDiasExpandidos(new Set());
-                    setFechaBase(event.target.value || todayISO());
-                  }}
-                />
-                <button type="button" className={styles.hoy} onClick={irHoy} disabled={!fechaBase}>
-                  Hoy
-                </button>
-                <button type="button" onClick={() => moverSemana(1)} disabled={!lunes} aria-label="Semana siguiente">
-                  <ChevronRight size={16} />
-                </button>
-              </div>
+            <FilterBar.Item label="Semana" grow>
+              <WeekNavigator value={fechaBase} onChange={cambiarSemana} />
             </FilterBar.Item>
           ) : (
             <FilterBar.Item label="Mes">

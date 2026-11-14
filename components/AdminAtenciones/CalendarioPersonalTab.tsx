@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, CalendarDays, ChevronLeft, ChevronRight, ClipboardList, Eye, List, MapPin, Pencil, UsersRound } from 'lucide-react';
+import { AlertTriangle, CalendarDays, ClipboardList, Eye, List, MapPin, Pencil, UsersRound } from 'lucide-react';
 import {
   AdminPanel,
   AdminButton,
@@ -10,6 +10,7 @@ import {
   FilterBar,
   LocalSelect,
   StatusBadge,
+  WeekNavigator,
 } from '@/components/AdminConfig';
 import { AtencionDetalleModal } from '@/components/AdminAtenciones/AtencionDetalleModal';
 import { AtencionFormModal } from '@/components/AdminAtenciones/AtencionFormModal';
@@ -212,7 +213,6 @@ export function CalendarioPersonalTab() {
     }
   };
 
-  const cambiarSemana = (diasCambio: number) => setFechaBase(sumarDias(fechaBase, diasCambio));
   const alternarDia = (dia: string) => setExpandidos((current) => {
     const next = new Set(current);
     if (next.has(dia)) next.delete(dia); else next.add(dia);
@@ -223,14 +223,7 @@ export function CalendarioPersonalTab() {
     <>
       <div className={styles.filters}>
         <FilterBar>
-          <FilterBar.Item label="Semana" className={styles.weekFilter}>
-            <div className={styles.weekNav}>
-              <button type="button" onClick={() => cambiarSemana(-7)} aria-label="Semana anterior"><ChevronLeft size={16} /></button>
-              <input type="date" value={fechaBase} onChange={(event) => setFechaBase(event.target.value)} />
-              <button type="button" onClick={() => cambiarSemana(7)} aria-label="Semana siguiente"><ChevronRight size={16} /></button>
-              <button type="button" className={styles.today} onClick={() => setFechaBase(hoyISO())}>Hoy</button>
-            </div>
-          </FilterBar.Item>
+          <FilterBar.Item label="Semana" grow><WeekNavigator value={fechaBase} onChange={setFechaBase} /></FilterBar.Item>
           {localAsignado ? (
             <FilterBar.Item label="Local"><input value={localAsignado.nombre_local ?? 'Local asignado'} disabled aria-label="Local asignado" /></FilterBar.Item>
           ) : (
