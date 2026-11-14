@@ -50,3 +50,6 @@ graphify-out/cost.json
 .claude/settings.local.json
 .opencode/
 .claude/skills/
+
+# Capturas locales de antes y despues (no se versionan)
+.capturas/
