@@ -4,8 +4,9 @@ import { BarChart3 } from 'lucide-react';
 import { AdminPageShell, PageHeader } from '@/components/AdminConfig';
 import { ReportePersonalPanel } from '@/components/AdminRRHH';
 
-// Igual que el resto de Recursos Humanos: solo admin_sys.
-const ROLES = ['admin_sys'];
+// Productividad del personal, sin sueldos ni dinero: admin_sys y coordinacion.
+// El resto de Recursos Humanos (empleados y planillas) sigue siendo solo de admin_sys.
+const ROLES = ['admin_sys', 'coordinacion'];
 
 export default function ReportesRRHHPage() {
   return (

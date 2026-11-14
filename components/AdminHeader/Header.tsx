@@ -31,7 +31,7 @@ import { canManageCatalog, canViewAdminPayments, canViewFinancialReports, clearS
 
 const BASE = '/atrevida-gestion';
 
-type NavAccess = 'financial' | 'payments' | 'adminSys' | 'catalog';
+type NavAccess = 'financial' | 'payments' | 'adminSys' | 'catalog' | 'staffReports';
 
 /** Destino del menú. Si varias entradas comparten `path`, `param` dice qué pestaña (?clave=valor) abre cada una. */
 interface NavTarget {
@@ -117,7 +117,7 @@ const NAV_ITEMS: NavItem[] = [
     icon: UsersRound,
     children: [
       { label: 'Empleados y planillas', path: `${BASE}/rrhh`, exact: true, access: 'financial' },
-      { label: 'Reportes de recursos humanos', path: `${BASE}/rrhh/reportes`, access: 'financial' },
+      { label: 'Reportes de recursos humanos', path: `${BASE}/rrhh/reportes`, access: 'staffReports' },
     ],
   },
   {
@@ -414,7 +414,7 @@ export default function Header() {
           <Suspense fallback={null}>
             <NavList
               pathname={pathname}
-              permissions={{ financial: showFinancialReports, payments: showAdminPayments, adminSys: showAdminSys, catalog: showCatalog }}
+              permissions={{ financial: showFinancialReports, payments: showAdminPayments, adminSys: showAdminSys, catalog: showCatalog, staffReports: showCatalog }}
               onNavigate={() => setMobileOpen(false)}
               navRef={navRef}
             />
