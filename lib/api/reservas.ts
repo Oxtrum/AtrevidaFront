@@ -102,10 +102,8 @@ export interface CrearReservaDBData {
   hora_hasta: string;
   tipo: ReservaTipoBody;
   cliente: string;
-  /** Cliente registrado dueño de la reserva. Obligatorio en el panel; el formulario público no lo manda. */
+  /** Cliente registrado dueño de la reserva. Opcional en el panel (sin él la reserva queda por vincular); el formulario público no lo manda. */
   cliente_id?: number;
-  /** Solo el panel: cliente de una sola visita, la reserva queda por vincular. No va junto con cliente_id. */
-  sin_registrar?: boolean;
   numero_telefono: string;
   telefono_e164?: string;
   servicio: string;
