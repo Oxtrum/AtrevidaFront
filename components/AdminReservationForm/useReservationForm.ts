@@ -383,14 +383,6 @@ export function useReservationForm(
   );
 
   // ── Select options ─────────────────────────────────────
-  const semanaOptions = semanasDisponibles.map((s, idx) => {
-    const sabado = new Date(s.fechaInicio);
-    sabado.setDate(sabado.getDate() + 5);
-    return {
-      value: String(idx),
-      label: `${s.titulo} DE ${sabado.getFullYear()}`,
-    };
-  });
   const servicioGroups = useMemo(() => {
     const byCategory = new Map<string, Array<{ value: string; label: string }>>();
     for (const s of serviciosAPI) {
@@ -466,6 +458,15 @@ export function useReservationForm(
     setHoraHasta('');
     setEsperandoAjuste(false);
     setSlotWarning(null);
+  };
+
+  /** Lunes (YYYY-MM-DD) de la semana visible; sirve de valor del selector cuando aún no hay día elegido. */
+  const semanaInicioISO = semanasDisponibles[semanaIndex]?.fechaInicio.toLocaleDateString('en-CA') ?? '';
+
+  /** Cambia de semana desde el selector (recibe el lunes elegido). */
+  const handleSemanaISO = (lunesISO: string) => {
+    const idx = semanasDisponibles.findIndex((s) => s.fechaInicio.toLocaleDateString('en-CA') === lunesISO);
+    if (idx >= 0) handleSemanaChange(String(idx));
   };
 
   const handleServicioChange = (value: string) => {
@@ -846,10 +847,11 @@ export function useReservationForm(
     hoursAvailability,
     diasDisponibles,
     sucursalOptions,
-    semanaOptions,
     servicioGroups,
     // Handlers
     handleSemanaChange,
+    handleSemanaISO,
+    semanaInicioISO,
     handleFechaSelect,
     fechaSeleccionadaISO,
     rangoFechas,

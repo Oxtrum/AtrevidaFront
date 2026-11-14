@@ -22,6 +22,38 @@
   grid-column: span 2;
 }
 
+.full {
+  grid-column: 1 / -1;
+}
+
+.item > * {
+  min-width: 0;
+}
+
+/* Una sola línea: cada filtro tiene un ancho base y todos se reparten el resto. Si no caben, bajan de fila. */
+.unaLinea {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.unaLinea .item {
+  flex: 1 1 130px;
+}
+
+.unaLinea .grow {
+  flex: 2 1 180px;
+}
+
+.unaLinea .full {
+  flex: 3 1 400px;
+}
+
+.unaLinea .action {
+  flex: 0 1 140px;
+  align-self: flex-end;
+}
+
 .action {
   display: flex;
   min-width: 0;
@@ -48,6 +80,7 @@
 .item input[type='date'],
 .item input[type='month'],
 .item input[type='text'],
+.item input[type='search'],
 /* Los <input> sin atributo type son de texto, pero no coinciden con [type='text']. */
 .item input:not([type]) {
   min-height: 42px;

@@ -1,0 +1,7 @@
+.lista { display: grid; gap: .5rem; transition: opacity var(--admin-t-normal) var(--admin-ease); }
+.recargando { opacity: .6; pointer-events: none; }
+
+.grupo { display: grid; gap: .5rem; }
+.grupo + .grupo { margin-top: .5rem; }
+.grupoTitulo { display: flex; align-items: center; gap: .5rem; margin: 0; padding: 0 .25rem; font-size: .8125rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--admin-text-muted); }
+.grupoTitulo span { padding: .05rem .45rem; border-radius: var(--admin-radius-full); background: var(--admin-pill-bg); font-size: .75rem; letter-spacing: 0; }

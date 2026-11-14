@@ -30,13 +30,25 @@
 
 .clickable { cursor: pointer; }
 
-.pendiente { --rail: #fbbf24; }
-.agendado { --rail: var(--admin-accent-tertiary); }
-.completado { --rail: #34d399; }
-.rechazado { --rail: var(--admin-accent-danger); }
+.pendiente, .warning { --rail: #fbbf24; }
+.agendado, .info { --rail: var(--admin-accent-tertiary); }
+.completado, .success { --rail: #34d399; }
+.rechazado, .danger { --rail: var(--admin-accent-danger); }
+.neutral { --rail: var(--admin-border); }
 
 .highlight {
   --rail: #fbbf24;
+}
+
+/* Sin columna de estado (la pestaña ya dice cuál es): su espacio pasa a los datos. */
+.sinEstado { grid-template-columns: 5rem minmax(0, 1fr) 14rem auto; }
+
+.hint {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--admin-accent-primary);
 }
 
 /* Hora */
@@ -103,6 +115,12 @@
   font-weight: 600;
   color: var(--admin-accent-primary);
   text-transform: capitalize;
+}
+
+.detalle {
+  margin: 0.15rem 0 0;
+  font-size: 0.78rem;
+  color: var(--admin-text-muted);
 }
 
 /* Local y teléfono */

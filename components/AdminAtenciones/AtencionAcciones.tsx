@@ -1,28 +1,45 @@
 'use client';
 
-import { ClipboardList, Eye, Pencil, Trash2 } from 'lucide-react';
-import { RowActionsMenu } from '@/components/AdminConfig';
-import type { Atencion } from '@/lib/api/atenciones';
+import { ClipboardCheck, ClipboardList, Eye, Pencil, Trash2, XCircle } from 'lucide-react';
+import { AdminButton, RowActionsMenu } from '@/components/AdminConfig';
+import type { RowAction } from '@/components/AdminConfig';
+import type { AtencionCtrl } from './AtencionModales';
 
-interface AtencionAccionesProps {
-  atencion: Atencion;
-  onEdit: () => void;
-  onVerReserva: () => void;
-  onVerAtencion: () => void;
-  onDesactivar: () => void;
+/** Qué puede hacerse con la fila. Lo decide el servidor; la fila solo lo muestra. */
+export interface PermisosAtencion {
+  atender?: boolean;
+  cancelar?: boolean;
+  verAtencion?: boolean;
+  editar?: boolean;
 }
 
-export function AtencionAcciones({ atencion, onEdit, onVerReserva, onVerAtencion, onDesactivar }: AtencionAccionesProps) {
-  const puedeEditar = atencion.insumos_pendientes > 0;
+interface AtencionAccionesProps {
+  ctrl: AtencionCtrl;
+  reservaId: number;
+  atencionId?: number | null;
+  puede: PermisosAtencion;
+  /** Solo el Historial desactiva atenciones. */
+  onDesactivar?: () => void;
+}
+
+/**
+ * Acciones de cualquier fila de Atenciones: un botón para lo principal (Atender) y un menú con el resto.
+ * Es el único lugar que decide qué acciones existen y cómo se ven.
+ */
+export function AtencionAcciones({ ctrl, reservaId, atencionId, puede, onDesactivar }: AtencionAccionesProps) {
+  const acciones: RowAction[] = [
+    ...(puede.verAtencion && atencionId ? [{ label: 'Ver atención', icon: <ClipboardList size={14} />, onClick: () => void ctrl.verAtencion(atencionId, reservaId) }] : []),
+    ...(puede.editar && atencionId ? [{ label: 'Editar atención', icon: <Pencil size={14} />, onClick: () => void ctrl.editar(atencionId, reservaId) }] : []),
+    { label: 'Ver reserva', icon: <Eye size={14} />, onClick: () => void ctrl.verReserva(reservaId) },
+    ...(puede.cancelar ? [{ label: 'Cancelar reserva', icon: <XCircle size={14} />, variant: 'danger' as const, onClick: () => void ctrl.cancelar(reservaId) }] : []),
+    ...(onDesactivar ? [{ label: 'Desactivar atención', icon: <Trash2 size={14} />, variant: 'danger' as const, onClick: onDesactivar }] : []),
+  ];
   return (
-    <RowActionsMenu
-      ariaLabel={`Acciones de atención ${atencion.id}`}
-      actions={[
-        { label: 'Editar atención', icon: <Pencil size={14} />, onClick: onEdit, disabled: !puedeEditar },
-        { label: 'Ver reserva', icon: <Eye size={14} />, onClick: onVerReserva },
-        { label: 'Ver atención', icon: <ClipboardList size={14} />, onClick: onVerAtencion },
-        { label: 'Desactivar atención', icon: <Trash2 size={14} />, variant: 'danger', onClick: onDesactivar },
-      ]}
-    />
+    <>
+      {puede.atender && (
+        <AdminButton size="xs" icon={<ClipboardCheck size={13} />} onClick={() => void ctrl.atender(reservaId)}>Atender</AdminButton>
+      )}
+      <RowActionsMenu ariaLabel={`Acciones de la reserva ${reservaId}`} actions={acciones} />
+    </>
   );
 }

@@ -1,0 +1,13 @@
+.aviso { display: flex; align-items: flex-start; gap: .3rem; color: var(--admin-accent-danger); font-size: .75rem; font-weight: 700; line-height: 1.3; }
+.aviso svg { flex: none; margin-top: .1rem; }
+.hora { white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--acento); font-size: .78rem; font-weight: 700; }
+.cliente { overflow-wrap: anywhere; font-size: .875rem; font-weight: 700; line-height: 1.2; }
+.servicio { color: var(--admin-text-muted); font-size: .8125rem; overflow-wrap: anywhere; }
+.meta { display: flex; flex-wrap: wrap; align-items: center; gap: .15rem .6rem; color: var(--admin-text-dim); font-size: .7rem; }
+.meta span { display: inline-flex; align-items: center; gap: .2rem; }
+.personal { display: flex; align-items: center; gap: .3rem; font-size: .8rem; font-weight: 700; }
+.personal svg { color: var(--acento); flex: none; }
+.insumos { display: grid; gap: .15rem; padding: .35rem .45rem; border-radius: var(--admin-radius-sm); background: color-mix(in srgb, var(--admin-surface-1) 70%, transparent); }
+.insumos span { display: flex; justify-content: space-between; gap: .4rem; font-size: .74rem; }
+.insumos b { white-space: nowrap; }
+.pendiente { color: var(--admin-accent-danger); }

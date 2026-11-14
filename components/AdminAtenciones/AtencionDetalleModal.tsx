@@ -45,7 +45,7 @@ export function AtencionDetalleModal({ reserva, atencion, onClose }: AtencionDet
         <section className={`${styles.detailSection} ${styles.atencionSection}`}>
           <div className={styles.sectionHeader}><ClipboardCheck size={16} aria-hidden="true" /><h3>Atención</h3><span>Servicio registrado</span></div>
           <div className={styles.detailGrid}>
-            <Dato label="Quien lo atendió">{atencion.empleado_nombre}</Dato>
+            <Dato label="Atendido por">{atencion.empleado_nombre}</Dato>
             <Dato label="Fecha">{atencion.fecha_atencion.slice(0, 10)}</Dato>
             <Dato label="Horario">{[atencion.hora_inicio, atencion.hora_fin].filter(Boolean).join('–')}</Dato>
             <Dato label="Lugar">{atencion.lugar}</Dato>
@@ -59,7 +59,7 @@ export function AtencionDetalleModal({ reserva, atencion, onClose }: AtencionDet
                   <li key={item.id}>
                     <strong>{item.item_nombre}</strong>
                     <span className={styles.supplyQuantity}>{item.cantidad_usada} {item.unidad_medida}</span>
-                    {item.estado_descuento === 'PENDIENTE_STOCK' ? <StatusBadge tone="danger">Deducción pendiente</StatusBadge> : <small>Descontado: {item.cantidad_descontada} {item.unidad_medida}</small>}
+                    {item.estado_descuento === 'PENDIENTE_STOCK' ? <StatusBadge tone="danger">Descuento pendiente</StatusBadge> : <small>Descontado: {item.cantidad_descontada} {item.unidad_medida}</small>}
                   </li>
                 ))}
               </ul>

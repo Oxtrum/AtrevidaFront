@@ -19,7 +19,7 @@ import {
   StatGrid,
   StatusBadge,
   Tabs,
-  WeekNavigator,
+  SelectorFecha,
 } from '@/components/AdminConfig';
 import type { Column, TabItem } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
@@ -591,8 +591,8 @@ export function ConsumosTab({ dimension = 'insumo', contexto = 'inventario' }: C
       <div className={styles.filters}>
         <FilterBar>
           {vista === 'calendario' ? (
-            <FilterBar.Item label="Semana" grow>
-              <WeekNavigator value={fechaBase} onChange={cambiarSemana} />
+            <FilterBar.Item label="Semana" full>
+              <SelectorFecha conHoy value={fechaBase} onChange={cambiarSemana} />
             </FilterBar.Item>
           ) : (
             <FilterBar.Item label="Mes">
