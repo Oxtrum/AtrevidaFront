@@ -12,6 +12,7 @@ import {
   CalendarDays,
   ClipboardCheck,
   ChevronDown,
+  Clock3,
   CreditCard,
   LayoutDashboard,
   LogOut,
@@ -74,6 +75,12 @@ const NAV_ITEMS: NavItem[] = [
     path: `${BASE}/reservas`,
     param: ['vista', 'pendientes'],
     icon: ShieldCheck,
+  },
+  {
+    label: 'Citas próximas',
+    detail: 'Recordatorios de hoy',
+    path: `${BASE}/reservas/proximas`,
+    icon: Clock3,
   },
   {
     label: 'Atenciones',
@@ -149,6 +156,16 @@ function isTargetActive(target: NavTarget, pathname: string, search: URLSearchPa
     ? pathname === target.path
     : pathname === target.path || pathname.startsWith(`${target.path}/`);
   if (!onPath) return false;
+  // Una subruta con entrada propia (Citas próximas bajo Reservas) solo marca la suya.
+  if (
+    pathname !== target.path &&
+    ALL_TARGETS.some(
+      (other) =>
+        other.path.length > target.path.length && (pathname === other.path || pathname.startsWith(`${other.path}/`))
+    )
+  ) {
+    return false;
+  }
 
   const key = target.param?.[0] ?? target.defaultParam;
   if (!key) return true;
