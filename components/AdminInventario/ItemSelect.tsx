@@ -1,7 +1,6 @@
 'use client';
 
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
-import { getAdminLocalScope } from '@/lib/api/localScope';
 import type { InventarioItem } from '@/types/inventario';
 
 interface ItemSelectProps {
@@ -18,7 +17,6 @@ interface ItemSelectProps {
   selectedSubtitle?: string;
   onSearchChange?: (query: string) => void;
   minSearchChars?: number;
-  localNameFallback?: string;
 }
 
 /** Selector buscable de ítems de inventario (solo activos). */
@@ -35,9 +33,7 @@ export function ItemSelect({
   selectedSubtitle,
   onSearchChange,
   minSearchChars,
-  localNameFallback,
 }: ItemSelectProps) {
-  const localAsignado = getAdminLocalScope()?.nombre_local;
   const options = items
     .filter((i) => i.activo && (!excludeIds.includes(String(i.id)) || String(i.id) === value))
     .map((i) => ({

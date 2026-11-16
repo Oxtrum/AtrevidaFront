@@ -117,7 +117,6 @@ export function LineItemsEditor({
               selectedSubtitle={line.item_subtitle}
               onSearchChange={onItemSearchChange}
               minSearchChars={itemSearchMinChars}
-              localNameFallback={itemLocalName}
             />
             <div className={styles.fieldWithUnit}>
               <input
