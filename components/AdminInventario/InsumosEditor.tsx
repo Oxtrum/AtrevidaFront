@@ -7,7 +7,7 @@ import { useInventarioItems } from '@/lib/hooks/useInventarioItems';
 import { LineItemsEditor, newLine, parsePositive } from './LineItemsEditor';
 import type { ItemLine } from './LineItemsEditor';
 
-const ACTIVE_ITEMS = { activo: true } as const;
+const ACTIVE_ITEMS = { activo: true, por_local: true } as const;
 
 export interface InsumosEditorHandle {
   /** Devuelve un mensaje de error de validación, o null si está listo para guardar. */

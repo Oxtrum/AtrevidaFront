@@ -43,7 +43,7 @@ export function ItemSelect({
     .map((i) => ({
       value: String(i.id),
       label: `${i.nombre} (${i.codigo})`,
-      subtitle: `${i.local_nombre ?? localNameFallback ?? localAsignado ?? 'Local no especificado'} · ${i.unidad_medida}`,
+      subtitle: `${i.local_nombre ?? 'Local no especificado'} · ${i.unidad_medida}`,
     }));
 
   if (value && selectedLabel && !options.some((option) => option.value === value)) {
