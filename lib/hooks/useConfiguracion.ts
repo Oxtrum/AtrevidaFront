@@ -6,7 +6,6 @@ import type { ConfiguracionSistema } from '@/types/finanzas';
 
 export const CONFIG_DEFAULTS: ConfiguracionSistema = {
   'inventario.politica_sin_stock': 'ADVERTIR',
-  'inventario.descontar_en_estado': 'COMPLETADO',
   'inventario.permitir_stock_negativo': true,
   'inventario.considerar_comprometido': true,
   'finanzas.estado_gasto_fijo_generado': 'PENDIENTE',

@@ -90,11 +90,11 @@ export default function ParametrosPage() {
         kickerIcon={<SlidersHorizontal size={14} strokeWidth={2} />}
         title="Parámetros de Inventario y Finanzas"
         accentWord="Parámetros"
-        subtitle="Reglas de stock en reservas y de generación de gastos fijos"
+        subtitle="Reglas de disponibilidad, consumo de stock y generación de gastos fijos"
         backHref="/atrevida-gestion/configuracion"
       />
       <fieldset className={styles.fieldset} disabled={saving}>
-        <AdminPanel card title="Inventario" description="Qué pasa con el stock cuando se agenda o completa una reserva." icon={<Boxes size={18} strokeWidth={1.75} />}>
+        <AdminPanel card title="Inventario" description="Disponibilidad al agendar y consumo real al registrar una atención." icon={<Boxes size={18} strokeWidth={1.75} />}>
           <div className={styles.grid}>
             <FormField label="Si no hay stock al reservar" labelId="p-pol-lbl" hint="Advertir: la reserva se guarda con aviso. Bloquear: el panel interno rechaza la reserva (el formulario público siempre registra).">
               <CustomSelect
@@ -105,16 +105,7 @@ export default function ParametrosPage() {
                 ariaLabelledBy="p-pol-lbl"
               />
             </FormField>
-            <FormField label="Descontar insumos cuando la reserva pasa a" labelId="p-desc-lbl" hint="Completado = cuando el servicio se realizó.">
-              <CustomSelect
-                value={form['inventario.descontar_en_estado']}
-                onChange={(v) => set('inventario.descontar_en_estado', v as ConfiguracionSistema['inventario.descontar_en_estado'])}
-                options={[{ value: 'COMPLETADO', label: 'Completado' }, { value: 'AGENDADO', label: 'Agendado' }]}
-                searchable={false}
-                ariaLabelledBy="p-desc-lbl"
-              />
-            </FormField>
-            <FormField label="Permitir stock negativo al completar" labelId="p-neg-lbl" hint="Si no alcanza el stock, permite completar y deja el faltante por regularizar. En “No” se rechaza.">
+            <FormField label="Permitir stock negativo al registrar un consumo" labelId="p-neg-lbl" hint="En una atención con faltante se pedirá confirmación para descontar y dejar saldo negativo. En “No”, el consumo queda pendiente de regularización. En ventas de insumos, esta regla define si se permite o se bloquea el saldo negativo.">
               <div id="p-neg-lbl">{bool('inventario.permitir_stock_negativo')}</div>
             </FormField>
             <FormField label="Considerar reservas agendadas futuras" labelId="p-comp-lbl" hint="Al calcular si alcanza el stock, también cuenta lo que necesitan las reservas agendadas de los próximos días en este local. Así no se promete un insumo que ya está reservado para otra clienta.">

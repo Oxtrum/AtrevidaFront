@@ -253,7 +253,6 @@ export interface GetReporteFinancieroParams {
 // ── Configuración (§3.5) ──
 export interface ConfiguracionSistema {
   'inventario.politica_sin_stock': 'ADVERTIR' | 'BLOQUEAR';
-  'inventario.descontar_en_estado': 'COMPLETADO' | 'AGENDADO';
   'inventario.permitir_stock_negativo': boolean;
   'inventario.considerar_comprometido': boolean;
   'finanzas.estado_gasto_fijo_generado': 'PENDIENTE' | 'PAGADO';
