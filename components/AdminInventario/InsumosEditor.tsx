@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { getInsumosServicio, guardarInsumosServicio } from '@/lib/api/inventario';
+import { useDebouncedValue } from '@/lib/hooks/useDebouncedValue';
 import { useInventarioItems } from '@/lib/hooks/useInventarioItems';
 import { LineItemsEditor, newLine, parsePositive } from './LineItemsEditor';
 import type { ItemLine } from './LineItemsEditor';
@@ -17,6 +18,9 @@ export interface InsumosEditorHandle {
 interface InsumosEditorProps {
   /** Servicio existente (carga sus insumos). null = servicio nuevo, sin insumos aún. */
   servicioId: number | null;
+  /** El catálogo debe limitarse al local donde se ofrece el servicio. */
+  localId?: number;
+  localName?: string;
   onReady: (handle: InsumosEditorHandle) => void;
 }
 
@@ -24,8 +28,14 @@ interface InsumosEditorProps {
  * Sección "Insumos por sesión" del modal de servicio. Expone validate/save al
  * padre vía `onReady` para guardarse junto con el servicio (PUT /servicios/:id/insumos).
  */
-export function InsumosEditor({ servicioId, onReady }: InsumosEditorProps) {
-  const { items } = useInventarioItems(ACTIVE_ITEMS);
+export function InsumosEditor({ servicioId, localId, localName, onReady }: InsumosEditorProps) {
+  const [busquedaItem, setBusquedaItem] = useState('');
+  const busquedaAplicada = useDebouncedValue(busquedaItem.trim());
+  const puedeBuscar = localId !== undefined && busquedaAplicada.length >= 2;
+  const { items } = useInventarioItems(
+    { ...ACTIVE_ITEMS, local_id: localId, q: puedeBuscar ? busquedaAplicada : undefined },
+    puedeBuscar,
+  );
   const [lines, setLines] = useState<ItemLine[]>([]);
   const [loadedFor, setLoadedFor] = useState<number | null | undefined>(undefined);
 
@@ -38,10 +48,15 @@ export function InsumosEditor({ servicioId, onReady }: InsumosEditorProps) {
     }
     getInsumosServicio(servicioId)
       .then((insumos) =>
-        setLines(insumos.map((i) => newLine({ item_id: String(i.item_id), cantidad: String(i.cantidad_por_sesion) }))),
+        setLines(insumos.map((i) => newLine({
+          item_id: String(i.item_id),
+          item_label: i.item_nombre,
+          item_subtitle: i.unidad_medida ? `${localName || 'Local del servicio'} · ${i.unidad_medida}` : localName,
+          cantidad: String(i.cantidad_por_sesion),
+        }))),
       )
       .catch(() => setLines([]));
-  }, [servicioId, loadedFor]);
+  }, [servicioId, loadedFor, localName]);
 
   useEffect(() => {
     const filled = () => lines.filter((l) => l.item_id || l.cantidad);
@@ -65,6 +80,9 @@ export function InsumosEditor({ servicioId, onReady }: InsumosEditorProps) {
       onChange={setLines}
       quantityLabel="Cantidad por sesión"
       addLabel="Agregar insumo"
+      onItemSearchChange={setBusquedaItem}
+      itemSearchMinChars={2}
+      itemLocalName={localName}
     />
   );
 }

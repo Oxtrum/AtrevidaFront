@@ -7,7 +7,7 @@ import type { GetInventarioItemsParams, InventarioItem } from '@/types/inventari
 const EMPTY: InventarioItem[] = [];
 
 /** Ítems de inventario (para tablas y selectores). Recarga al cambiar los params. */
-export function useInventarioItems(params: GetInventarioItemsParams = {}) {
-  const { data, loading, error, reload } = useAsyncData(() => getInventarioItems(params), JSON.stringify(params));
+export function useInventarioItems(params: GetInventarioItemsParams = {}, enabled = true) {
+  const { data, loading, error, reload } = useAsyncData(() => getInventarioItems(params), JSON.stringify(params), enabled);
   return { items: data ?? EMPTY, loading, error, reload };
 }

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
-import { Filter, Pencil, Plus, Scissors, Search, Trash2, X } from 'lucide-react';
+import { Pencil, Plus, Scissors, Search, Trash2 } from 'lucide-react';
 import { PageHeader, DataTable, FormModal, RowActionsMenu } from '@/components/AdminConfig';
 import type { Column } from '@/components/AdminConfig';
 import { CustomSelect } from '@/components/Custom/CustomSelectAdmin';
@@ -152,14 +152,6 @@ export default function ServiciosPage() {
   // Sin filtros principales se listan los servicios de todos los locales.
   const hasFilter = adminLocalScope.ready;
 
-  // Contar filtros secundarios activos para mostrar indicador
-  const activeSecondaryFilters = [
-    filtroNombre,
-    filtroSesiones,
-    filtroEvaluacion !== 'all' ? filtroEvaluacion : '',
-    filtroEstado !== 'activos' ? filtroEstado : '',
-  ].filter(Boolean).length;
-
   // Row-action state
   const [activarLocalRow, setActivarLocalRow] = useState<ServicioRow | null>(null);
   const [activarLocalValue, setActivarLocalValue] = useState('');
@@ -185,6 +177,10 @@ export default function ServiciosPage() {
   const localOptions = useMemo(
     () => locales.map((l) => ({ value: l.nombre, label: l.nombre })),
     [locales],
+  );
+  const formLocalId = useMemo(
+    () => locales.find((local) => local.nombre === form.local)?.id,
+    [locales, form.local],
   );
   const localFiltroOptions = useMemo(
     () => [{ value: '', label: 'Todos los locales' }, ...localOptions],
@@ -997,7 +993,12 @@ export default function ServiciosPage() {
             <span className={styles.formDividerLabel}>Insumos por sesión</span>
           </div>
           <div className={styles.span6}>
-            <InsumosEditor servicioId={isEdit ? editingId : null} onReady={(handle) => { insumosRef.current = handle; }} />
+            <InsumosEditor
+              servicioId={isEdit ? editingId : null}
+              localId={formLocalId}
+              localName={form.local}
+              onReady={(handle) => { insumosRef.current = handle; }}
+            />
           </div>
 
         </div>

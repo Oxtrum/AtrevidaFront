@@ -14,7 +14,7 @@ interface UseAsyncDataResult<T> {
  * de cargas anteriores (filtros que cambian rápido). `fetcher` puede cambiar de
  * identidad entre renders: solo `key` dispara una nueva carga.
  */
-export function useAsyncData<T>(fetcher: () => Promise<T>, key: string): UseAsyncDataResult<T> {
+export function useAsyncData<T>(fetcher: () => Promise<T>, key: string, enabled = true): UseAsyncDataResult<T> {
   const fetcherRef = useRef(fetcher);
   const requestRef = useRef(0);
   const [data, setData] = useState<T | null>(null);
@@ -26,6 +26,7 @@ export function useAsyncData<T>(fetcher: () => Promise<T>, key: string): UseAsyn
   });
 
   const reload = useCallback(async () => {
+    if (!enabled) return;
     const id = ++requestRef.current;
     setLoading(true);
     setError(null);
@@ -37,12 +38,19 @@ export function useAsyncData<T>(fetcher: () => Promise<T>, key: string): UseAsyn
     } finally {
       if (id === requestRef.current) setLoading(false);
     }
-  }, []);
+  }, [enabled]);
 
   useEffect(() => {
+    if (!enabled) {
+      requestRef.current += 1;
+      setData(null);
+      setError(null);
+      setLoading(false);
+      return;
+    }
     if (!window.localStorage.getItem('adminToken')) return;
     void reload();
-  }, [key, reload]);
+  }, [key, reload, enabled]);
 
   return { data, loading, error, reload };
 }

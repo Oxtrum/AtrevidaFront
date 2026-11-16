@@ -10,6 +10,8 @@ import styles from './AdminInventario.module.css';
 export interface ItemLine {
   key: string;
   item_id: string;
+  item_label?: string;
+  item_subtitle?: string;
   cantidad: string;
   costo: string;
 }
@@ -41,6 +43,10 @@ interface LineItemsEditorProps {
   quantityLabel?: string;
   addLabel?: string;
   error?: string;
+  /** Búsqueda remota opcional para catálogos grandes. */
+  onItemSearchChange?: (query: string) => void;
+  itemSearchMinChars?: number;
+  itemLocalName?: string;
 }
 
 /**
@@ -57,6 +63,9 @@ export function LineItemsEditor({
   quantityLabel = 'Cantidad',
   addLabel = 'Agregar ítem',
   error,
+  onItemSearchChange,
+  itemSearchMinChars,
+  itemLocalName,
 }: LineItemsEditorProps) {
   const patch = (key: string, p: Partial<ItemLine>) =>
     onChange(lines.map((l) => (l.key === key ? { ...l, ...p } : l)));
@@ -66,6 +75,8 @@ export function LineItemsEditor({
     // Sugerimos el último costo de compra, editable.
     patch(line.key, {
       item_id: itemId,
+      item_label: item ? `${item.nombre} (${item.codigo})` : undefined,
+      item_subtitle: item ? `${item.local_nombre ?? itemLocalName ?? 'Local no especificado'} · ${item.unidad_medida}` : undefined,
       ...(showCost && !line.costo && item?.costo_referencia ? { costo: String(item.costo_referencia) } : {}),
     });
   };
@@ -96,7 +107,18 @@ export function LineItemsEditor({
         const item = items.find((i) => String(i.id) === line.item_id);
         return (
           <div key={line.key} className={styles.line}>
-            <ItemSelect compact items={items} value={line.item_id} excludeIds={chosen} onChange={(v) => handleItem(line, v)} />
+            <ItemSelect
+              compact
+              items={items}
+              value={line.item_id}
+              excludeIds={chosen}
+              onChange={(v) => handleItem(line, v)}
+              selectedLabel={line.item_label}
+              selectedSubtitle={line.item_subtitle}
+              onSearchChange={onItemSearchChange}
+              minSearchChars={itemSearchMinChars}
+              localNameFallback={itemLocalName}
+            />
             <div className={styles.fieldWithUnit}>
               <input
                 type="text"
