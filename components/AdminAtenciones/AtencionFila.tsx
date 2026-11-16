@@ -1,10 +1,11 @@
 'use client';
 
-import { MapPin, UsersRound } from 'lucide-react';
+import { AlertTriangle, MapPin, UsersRound } from 'lucide-react';
 import { ReservaDetalle, ReservaHint, ReservaMetaItem, ReservaRow, ReservaStatusLine, formatDiaCorto, formatFalta } from '@/components/AdminReservas';
 import { ATENCION_ESTADO, type EstadoAtencion } from '@/lib/utils/atencionEstado';
 import { AtencionAcciones, type PermisosAtencion } from './AtencionAcciones';
 import type { AtencionCtrl } from './AtencionModales';
+import styles from './AtencionFila.module.css';
 
 interface AtencionFilaProps {
   ctrl: AtencionCtrl;
@@ -31,6 +32,8 @@ interface AtencionFilaProps {
   /** Marca la cita que sigue (Jornada de hoy). */
   siguiente?: boolean;
   onDesactivar?: () => void;
+  /** En Jornada, nombra la desactivación como reapertura de reserva. */
+  accionReabrir?: boolean;
 }
 
 const hora = (valor?: string | null) => valor?.slice(0, 5) || undefined;
@@ -41,12 +44,9 @@ const hora = (valor?: string | null) => valor?.slice(0, 5) || undefined;
  */
 export function AtencionFila({
   ctrl, estado, reservaId, atencionId, puede, cliente, servicio, fecha, horaDesde, horaHasta,
-  local, empleado, detalle, stockPendiente = 0, mostrarEstado = true, mostrarSinPersonal = false, siguiente = false, onDesactivar,
+  local, empleado, detalle, stockPendiente = 0, mostrarEstado = true, mostrarSinPersonal = false, siguiente = false, onDesactivar, accionReabrir = false,
 }: AtencionFilaProps) {
   const meta = ATENCION_ESTADO[estado as EstadoAtencion];
-  const notas = stockPendiente > 0 && estado !== 'STOCK_PENDIENTE'
-    ? [{ text: ATENCION_ESTADO.STOCK_PENDIENTE.label, warn: true }]
-    : [];
   const abrir = puede.verAtencion && atencionId ? () => void ctrl.verAtencion(atencionId, reservaId) : () => void ctrl.verReserva(reservaId);
   return (
     <ReservaRow
@@ -57,7 +57,17 @@ export function AtencionFila({
       title={cliente || 'Sin cliente'}
       id={reservaId}
       service={servicio || 'Sin servicio'}
-      details={detalle ? <ReservaDetalle>{detalle}</ReservaDetalle> : undefined}
+      details={detalle || stockPendiente > 0 ? (
+        <>
+          {detalle && <ReservaDetalle>{detalle}</ReservaDetalle>}
+          {stockPendiente > 0 && (
+            <span className={styles.stockPending}>
+              <AlertTriangle size={13} strokeWidth={2} />
+              {ATENCION_ESTADO.STOCK_PENDIENTE.label}
+            </span>
+          )}
+        </>
+      ) : undefined}
       meta={(
         <>
           {local && <ReservaMetaItem icon={MapPin}>{local}</ReservaMetaItem>}
@@ -67,10 +77,10 @@ export function AtencionFila({
         </>
       )}
       titleHint={siguiente ? <ReservaHint>{formatFalta(horaDesde ?? undefined) ? `Próxima cita · ${formatFalta(horaDesde ?? undefined)}` : 'En curso'}</ReservaHint> : undefined}
-      status={mostrarEstado || notas.length > 0
-        ? <ReservaStatusLine estado={estado} label={meta?.label} showEstado={mostrarEstado} notes={notas} />
+      status={mostrarEstado
+        ? <ReservaStatusLine estado={estado} label={meta?.label} showEstado={mostrarEstado} />
         : undefined}
-      actions={<AtencionAcciones ctrl={ctrl} reservaId={reservaId} atencionId={atencionId} puede={puede} onDesactivar={onDesactivar} />}
+      actions={<AtencionAcciones ctrl={ctrl} reservaId={reservaId} atencionId={atencionId} puede={puede} onDesactivar={onDesactivar} accionReabrir={accionReabrir} />}
       onClick={abrir}
     />
   );

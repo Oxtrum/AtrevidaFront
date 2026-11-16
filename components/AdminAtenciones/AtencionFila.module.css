@@ -1,0 +1,16 @@
+.stockPending {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.38rem;
+  padding: 0.22rem 0.48rem;
+  border: 1px solid color-mix(in srgb, #fbbf24 52%, transparent);
+  border-radius: var(--admin-radius-sm);
+  background: color-mix(in srgb, #fbbf24 11%, transparent);
+  color: var(--admin-warning-text);
+  font-size: 0.7rem;
+  font-weight: 750;
+  line-height: 1.15;
+}
+
+.stockPending svg { flex: none; }

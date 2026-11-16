@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { AlertBanner, CursorPagination, FilterBar, SelectorFecha, StatCard, StatGrid } from '@/components/AdminConfig';
-import { getJornada, getJornadaResumen, type EstadoOperativoJornada } from '@/lib/api/atenciones';
+import { AlertBanner, ConfirmDialog, CursorPagination, FilterBar, SelectorFecha, StatCard, StatGrid } from '@/components/AdminConfig';
+import { desactivarAtencion, getJornada, getJornadaResumen, type EstadoOperativoJornada, type JornadaAtencion } from '@/lib/api/atenciones';
 import { getAdminLocalScope, localInicial } from '@/lib/api/localScope';
 import { useAsyncData } from '@/lib/hooks/useAsyncData';
 import { useCursorList } from '@/lib/hooks/useCursorList';
@@ -14,6 +14,8 @@ import { agruparPorFranja, proximaReservaId } from '@/lib/utils/jornada';
 import { AtencionFila } from './AtencionFila';
 import { AtencionGrupo, AtencionLista } from './AtencionLista';
 import { AtencionModales, useAtencionModales } from './AtencionModales';
+import { toast } from '@/components/Shared/Toast';
+import styles from './JornadaTab.module.css';
 
 const ESTADOS: EstadoOperativoJornada[] = ['PROGRAMADA', 'PENDIENTE_CIERRE', 'ATENDIDA', 'CANCELADA'];
 
@@ -39,6 +41,28 @@ export function JornadaTab() {
     `${fecha}|${localId}`,
   );
   const ctrl = useAtencionModales(() => { void load(); void resumen.reload(); });
+  const [aDesactivar, setADesactivar] = useState<JornadaAtencion | null>(null);
+  const [restituirStock, setRestituirStock] = useState(false);
+  const [reabrirReserva, setReabrirReserva] = useState(true);
+  const [desactivando, setDesactivando] = useState(false);
+
+  const confirmarReapertura = async () => {
+    if (!aDesactivar) return;
+    setDesactivando(true);
+    try {
+      await desactivarAtencion(aDesactivar.atencion_id!, restituirStock, reabrirReserva);
+      toast.success(reabrirReserva
+        ? `Atención desactivada; reserva reabierta${restituirStock ? ' e inventario restituido' : ''}.`
+        : restituirStock ? 'Atención desactivada e inventario restituido.' : 'Atención desactivada.');
+      setADesactivar(null);
+      void load();
+      void resumen.reload();
+    } catch (cause) {
+      toast.error(cause instanceof Error ? cause.message : 'No fue posible desactivar la atención.');
+    } finally {
+      setDesactivando(false);
+    }
+  };
 
   const hoy = resumen.data?.hoy || data?.hoy || '';
   const cifras = resumen.data?.resumen;
@@ -107,6 +131,10 @@ export function JornadaTab() {
                 stockPendiente={row.insumos_pendientes}
                 mostrarEstado={!estado}
                 siguiente={row.reserva_id === siguienteId}
+                onDesactivar={row.atencion_id && estadoDeJornada(row) === 'ATENDIDA'
+                  ? () => { setRestituirStock(false); setReabrirReserva(true); setADesactivar(row); }
+                  : undefined}
+                accionReabrir={Boolean(row.atencion_id && estadoDeJornada(row) === 'ATENDIDA')}
               />
             ))}
           </AtencionGrupo>
@@ -115,6 +143,42 @@ export function JornadaTab() {
       <CursorPagination page={pagination.page} totalPages={pagination.totalPages} hasNext={pagination.hasNext} loading={loading} onPrevious={pagination.previous} onNext={pagination.next} />
 
       <AtencionModales ctrl={ctrl} />
+      <ConfirmDialog
+        isOpen={!!aDesactivar}
+        title="Reabrir reserva"
+        confirmLabel="Reabrir reserva"
+        danger
+        loading={desactivando}
+        onConfirm={() => void confirmarReapertura()}
+        onClose={() => { if (!desactivando) setADesactivar(null); }}
+        message={(
+          <div className={styles.reopenDialog}>
+            <p className={styles.reopenWarning}>ATENCIÓN: Esta acción inhabilitará la atención realizada por <strong>{aDesactivar?.empleado_nombre || 'personal no registrado'}</strong> en <strong>{aDesactivar?.local_nombre || 'el local de la reserva'}</strong>.</p>
+            <div className={styles.reopenOptions}>
+              <label className={styles.reopenOption}>
+                <input type="checkbox" checked={reabrirReserva} onChange={(event) => setReabrirReserva(event.target.checked)} />
+                <span><strong>Marcar la reserva como pendiente de atención</strong><small>La reserva volverá al estado Agendada y podrá atenderse nuevamente.</small></span>
+              </label>
+              <label className={styles.reopenOption}>
+                <input type="checkbox" checked={restituirStock} onChange={(event) => setRestituirStock(event.target.checked)} />
+                <span><strong>Restituir al inventario las cantidades descontadas</strong><small>Solo se devolverán los insumos que fueron descontados realmente.</small></span>
+              </label>
+            </div>
+            <section className={styles.reopenSummary} aria-label="Resumen de reserva y atención">
+              <div>
+                <span>RESERVA #{aDesactivar?.reserva_id}</span>
+                <strong>{aDesactivar?.cliente || 'Sin cliente'}</strong>
+                <small>{aDesactivar?.servicio || 'Sin servicio'}</small>
+              </div>
+              <div>
+                <span>ATENCIÓN</span>
+                <strong>{aDesactivar?.hora_desde?.slice(0, 5) || 'Sin hora'} – {aDesactivar?.hora_hasta?.slice(0, 5) || 'Sin hora'}</strong>
+                <small>{aDesactivar?.insumos_registrados ? `${aDesactivar.insumos_registrados} insumo(s) registrado(s)` : 'Sin insumos registrados'}</small>
+              </div>
+            </section>
+          </div>
+        )}
+      />
     </>
   );
 }

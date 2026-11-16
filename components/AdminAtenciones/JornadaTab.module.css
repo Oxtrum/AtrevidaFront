@@ -1,0 +1,108 @@
+.reopenDialog {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.reopenWarning {
+  margin: 0;
+  padding: 0.72rem 0.8rem;
+  border: 1px solid color-mix(in srgb, #fbbf24 48%, transparent);
+  border-radius: var(--admin-radius-md);
+  background: color-mix(in srgb, #fbbf24 9%, transparent);
+  color: var(--admin-warning-text);
+  font-size: 0.84rem;
+  font-weight: 650;
+  line-height: 1.5;
+}
+
+.reopenWarning strong { color: var(--admin-foreground); }
+
+.reopenOptions {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.reopenOption {
+  display: grid;
+  grid-template-columns: 1.1rem minmax(0, 1fr);
+  align-items: start;
+  gap: 0.62rem;
+  padding: 0.72rem 0.78rem;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-surface-2);
+  cursor: pointer;
+}
+
+.reopenOption:hover { border-color: var(--admin-border-hover); }
+
+.reopenOption input {
+  width: 1rem;
+  height: 1rem;
+  margin: 0.12rem 0 0;
+  accent-color: var(--admin-accent-primary);
+}
+
+.reopenOption span {
+  display: grid;
+  gap: 0.16rem;
+}
+
+.reopenOption strong {
+  color: var(--admin-foreground);
+  font-size: 0.82rem;
+  line-height: 1.28;
+}
+
+.reopenOption small {
+  color: var(--admin-text-muted);
+  font-size: 0.74rem;
+  line-height: 1.38;
+}
+
+.reopenSummary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--admin-border-subtle);
+  border-radius: var(--admin-radius-md);
+  background: var(--admin-surface-1);
+}
+
+.reopenSummary > div {
+  display: grid;
+  gap: 0.22rem;
+  min-width: 0;
+  padding: 0.72rem 0.8rem;
+}
+
+.reopenSummary > div + div { border-left: 1px solid var(--admin-border-subtle); }
+
+.reopenSummary span {
+  color: var(--admin-text-dim);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.reopenSummary strong,
+.reopenSummary small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reopenSummary strong {
+  color: var(--admin-foreground);
+  font-size: 0.8rem;
+}
+
+.reopenSummary small {
+  color: var(--admin-text-muted);
+  font-size: 0.72rem;
+}
+
+@media (max-width: 520px) {
+  .reopenSummary { grid-template-columns: 1fr; }
+  .reopenSummary > div + div { border-top: 1px solid var(--admin-border-subtle); border-left: 0; }
+}
