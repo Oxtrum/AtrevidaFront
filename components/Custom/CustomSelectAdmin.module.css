@@ -45,6 +45,22 @@
   font-size: 0.875rem;
 }
 
+.customSelectSearchTrigger {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--admin-foreground);
+  font: inherit;
+  font-size: 0.875rem;
+}
+
+.customSelectSearchTrigger::placeholder {
+  color: var(--admin-text-dim);
+}
+
 .customSelectValue {
   color: var(--admin-foreground);
   font-weight: 600;
@@ -132,6 +148,8 @@
 }
 
 .selectOption {
+  display: flex;
+  align-items: center;
   padding: 0.75rem 1rem;
   font-size: 0.875rem;
   color: var(--admin-foreground);
@@ -140,6 +158,25 @@
     color var(--admin-t-fast) var(--admin-ease),
     background var(--admin-t-fast) var(--admin-ease);
   background: transparent;
+}
+
+.selectOptionText {
+  display: grid;
+  gap: 0.16rem;
+  min-width: 0;
+}
+
+.selectOptionSubtitle {
+  color: var(--admin-text-dim);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.selectOptionActive .selectOptionSubtitle,
+.selectOptionHighlight .selectOptionSubtitle {
+  color: currentColor;
+  opacity: 0.72;
 }
 
 .selectOptionHighlight {

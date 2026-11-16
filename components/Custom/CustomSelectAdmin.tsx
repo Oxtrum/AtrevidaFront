@@ -11,6 +11,8 @@ import { useSearchableSelect, type RenderOption } from "./useSearchableSelect";
 interface SelectOption {
   value: string;
   label: string;
+  /** Contexto secundario opcional, por ejemplo local y unidad de medida. */
+  subtitle?: string;
   disabled?: boolean;
 }
 
@@ -29,6 +31,14 @@ interface CustomSelectProps {
   allowClear?: boolean;
   /** Altura reducida (36px) para filas de tablas/editores. */
   compact?: boolean;
+  /** Muestra el buscador aunque todavía no haya opciones cargadas. */
+  forceSearch?: boolean;
+  /** Caracteres requeridos antes de mostrar resultados. */
+  minSearchChars?: number;
+  /** Útil cuando las opciones se consultan bajo demanda. */
+  onSearchChange?: (query: string) => void;
+  /** Coloca la búsqueda en el propio disparador, sin desplegar un panel vacío. */
+  searchInTrigger?: boolean;
 }
 
 export function CustomSelect({
@@ -43,6 +53,10 @@ export function CustomSelect({
   searchable = true,
   allowClear = false,
   compact = false,
+  forceSearch = false,
+  minSearchChars = 0,
+  onSearchChange,
+  searchInTrigger = false,
 }: CustomSelectProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -50,7 +64,14 @@ export function CustomSelect({
   const dropdownRef = useRef<HTMLDivElement>(null);
   // Posición fija del dropdown (se portaliza a body para no ser recortado por
   // contenedores con overflow: auto/hidden).
-  const [coords, setCoords] = useState<{ top: number; left: number; width: number } | null>(null);
+  const [coords, setCoords] = useState<{
+    top?: number;
+    bottom?: number;
+    left: number;
+    width: number;
+    maxHeight: number;
+    placement: 'top' | 'bottom';
+  } | null>(null);
   const [portalTarget, setPortalTarget] = useState<Element | null>(null);
 
   // Manejo robusto de listeners globales y BFCache
@@ -127,7 +148,24 @@ export function CustomSelect({
       const el = triggerRef.current;
       if (!el) return;
       const r = el.getBoundingClientRect();
-      setCoords({ top: r.bottom + 6, left: r.left, width: r.width });
+      const gap = 6;
+      const margin = 12;
+      const desiredHeight = 280;
+      const espacioAbajo = window.innerHeight - r.bottom - gap - margin;
+      const espacioArriba = r.top - gap - margin;
+      const abrirArriba = espacioAbajo < desiredHeight && espacioArriba > espacioAbajo;
+      const maxHeight = Math.max(120, Math.min(desiredHeight, abrirArriba ? espacioArriba : espacioAbajo));
+      setCoords({
+        // Al abrir arriba se ancla el borde inferior al disparador. Así el
+        // panel crece desde el campo según sus resultados reales, en vez de
+        // reservar siempre sus 280px máximos y quedar flotando a media página.
+        top: abrirArriba ? undefined : r.bottom + gap,
+        bottom: abrirArriba ? window.innerHeight - r.top + gap : undefined,
+        left: r.left,
+        width: r.width,
+        maxHeight,
+        placement: abrirArriba ? 'top' : 'bottom',
+      });
       // Portalizar dentro del scope [data-admin="true"] (donde viven las vars
       // --admin-*), no a document.body, o el dropdown pierde fondo/color/borde.
       // Sigue escapando el overflow del modal porque el root admin está por encima.
@@ -165,6 +203,13 @@ export function CustomSelect({
     threshold: searchable ? undefined : Number.POSITIVE_INFINITY,
   });
 
+  useEffect(() => {
+    if (!open) return;
+    onSearchChange?.('');
+  }, [open, onSearchChange]);
+
+  const puedeMostrarResultados = minSearchChars === 0 || query.trim().length >= minSearchChars;
+
   const renderOption = (opt: RenderOption) => (
     <div
       key={opt._key}
@@ -181,11 +226,14 @@ export function CustomSelect({
       role="option"
       aria-selected={opt._key === selectedKey}
     >
-      {opt.label}
+      <span className={styles.selectOptionText}>
+        <span>{opt.label}</span>
+        {opt.subtitle && <span className={styles.selectOptionSubtitle}>{opt.subtitle}</span>}
+      </span>
     </div>
   );
 
-  const dropdown = open && coords && portalTarget
+  const dropdown = open && coords && portalTarget && (!searchInTrigger || puedeMostrarResultados)
     ? createPortal(
       <div
         ref={(el) => { dropdownRef.current = el; listboxRef.current = el; }}
@@ -193,16 +241,30 @@ export function CustomSelect({
         className={styles.selectDropdown}
         role="listbox"
         aria-labelledby={ariaLabelledBy}
-        style={{ position: 'fixed', top: coords.top, left: coords.left, width: coords.width, right: 'auto' }}
+        data-placement={coords.placement}
+        style={{
+          position: 'fixed',
+          // La hoja de estilos define `top` por defecto; usar `auto` aquí es
+          // necesario al anclar hacia arriba para que no compita con `bottom`.
+          top: coords.top ?? 'auto',
+          bottom: coords.bottom ?? 'auto',
+          left: coords.left,
+          width: coords.width,
+          maxHeight: coords.maxHeight,
+          right: 'auto',
+        }}
       >
-        {showSearch && (
+        {!searchInTrigger && (showSearch || forceSearch) && (
           <div className={styles.selectSearch}>
             <Search size={15} strokeWidth={1.8} aria-hidden="true" />
             <input
               ref={searchInputRef}
               type="text"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                onSearchChange?.(e.target.value);
+              }}
               onKeyDown={onKeyDown}
               onMouseDown={(e) => e.stopPropagation()}
               placeholder="Buscar..."
@@ -213,11 +275,11 @@ export function CustomSelect({
         )}
 
         {/* Sin allowClear el placeholder no es una opción: se muestra como título de la lista. */}
-        {placeholder && !allowClear && !query && (
+        {puedeMostrarResultados && placeholder && !allowClear && !query && (
           <div className={styles.selectGroup} role="presentation">{placeholder}</div>
         )}
 
-        {placeholder && allowClear && !query && (
+        {puedeMostrarResultados && placeholder && allowClear && !query && (
           <div
             className={`${styles.selectOption} ${!value ? styles.selectOptionActive : ''}`}
             onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); handleSelect(''); }}
@@ -228,7 +290,9 @@ export function CustomSelect({
           </div>
         )}
 
-        {visibleGroups
+        {!puedeMostrarResultados ? (
+          <div className={styles.selectEmpty}>Escribe al menos {minSearchChars} caracteres</div>
+        ) : visibleGroups
           ? visibleGroups.map(g => (
             <div key={g.label}>
               <div className={styles.selectGroup}>{g.label}</div>
@@ -238,7 +302,7 @@ export function CustomSelect({
           : visibleOptions.map(renderOption)
         }
 
-        {isEmpty && (
+        {puedeMostrarResultados && isEmpty && (
           <div className={styles.selectEmpty}>Sin resultados</div>
         )}
       </div>,
@@ -255,7 +319,12 @@ export function CustomSelect({
         ref={triggerRef}
         id={id}
         className={`${styles.customSelectTrigger} ${compact ? styles.customSelectCompact : ''}`}
-        onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(prev => !prev); }}
+        onMouseDown={(e) => {
+          if (e.target instanceof HTMLInputElement) return;
+          e.preventDefault();
+          e.stopPropagation();
+          setOpen(prev => !prev);
+        }}
         tabIndex={0}
         onKeyDown={(e) => {
           if (!open) {
@@ -271,9 +340,30 @@ export function CustomSelect({
         aria-labelledby={ariaLabelledBy}
         aria-invalid={hasError || undefined}
       >
-        <span className={selectedLabel ? styles.customSelectValue : styles.customSelectPlaceholder}>
-          {selectedLabel || placeholder || 'Seleccionar'}
-        </span>
+        {searchInTrigger && open ? (
+          <input
+            ref={searchInputRef}
+            className={styles.customSelectSearchTrigger}
+            type="text"
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              onSearchChange?.(e.target.value);
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+            onKeyDown={(e) => {
+              e.stopPropagation();
+              onKeyDown(e);
+            }}
+            placeholder={minSearchChars > 0 ? `Buscar (mín. ${minSearchChars} caracteres)…` : 'Buscar...'}
+            aria-label="Buscar opción"
+            autoFocus
+          />
+        ) : (
+          <span className={selectedLabel ? styles.customSelectValue : styles.customSelectPlaceholder}>
+            {selectedLabel || placeholder || 'Seleccionar'}
+          </span>
+        )}
         <span className={`${styles.customSelectArrow} ${open ? styles.customSelectArrowOpen : ''}`}>
           <svg width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true">
             <path d="M5 6L0 0H10L5 6Z" fill="currentColor" />
