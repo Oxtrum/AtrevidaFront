@@ -9,7 +9,7 @@ export interface RowAction {
   label: string;
   icon?: React.ReactNode;
   onClick: () => void;
-  variant?: 'default' | 'danger';
+  variant?: 'default' | 'warning' | 'danger';
   disabled?: boolean;
 }
 
@@ -141,7 +141,7 @@ function ActionItem({
     <button
       type="button"
       role="menuitem"
-      className={`${styles.item} ${action.variant === 'danger' ? styles.itemDanger : ''}`}
+      className={`${styles.item} ${action.variant === 'warning' ? styles.itemWarning : ''} ${action.variant === 'danger' ? styles.itemDanger : ''}`}
       disabled={action.disabled}
       onClick={() => {
         if (action.disabled) return;

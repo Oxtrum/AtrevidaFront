@@ -121,6 +121,15 @@
   color: var(--admin-accent-danger);
 }
 
+.itemWarning {
+  color: var(--admin-warning-text);
+}
+
+.itemWarning:hover:not(:disabled) {
+  background: rgba(251, 191, 36, 0.12);
+  color: var(--admin-warning-text);
+}
+
 /* ── Icon ────────────────────────────────────────────────────────────────── */
 
 .itemIcon {
@@ -131,7 +140,8 @@
 }
 
 .item:hover .itemIcon,
-.itemDanger:hover .itemIcon {
+.itemDanger:hover .itemIcon,
+.itemWarning:hover .itemIcon {
   opacity: 1;
 }
 
