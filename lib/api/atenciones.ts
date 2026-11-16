@@ -271,6 +271,6 @@ export async function actualizarAtencion(id: number, data: AtencionInput): Promi
   return response.data as Atencion;
 }
 
-export async function desactivarAtencion(id: number, restituirStock: boolean): Promise<void> {
-  await apiClient.post(`/bd/atenciones/${id}/desactivar`, { restituir_stock: restituirStock });
+export async function desactivarAtencion(id: number, restituirStock: boolean, reabrirReserva: boolean): Promise<void> {
+  await apiClient.post(`/bd/atenciones/${id}/desactivar`, { restituir_stock: restituirStock, reabrir_reserva: reabrirReserva });
 }

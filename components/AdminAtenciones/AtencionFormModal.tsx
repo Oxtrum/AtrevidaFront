@@ -6,6 +6,7 @@ import { ConfirmDialog } from '@/components/AdminConfig/ConfirmDialog';
 import { FormField, FormGrid, FormModal } from '@/components/AdminConfig';
 import { toast } from '@/components/Shared/Toast';
 import { getInventarioItems } from '@/lib/api/inventario';
+import { useConfiguracion } from '@/lib/hooks/useConfiguracion';
 import {
   getInsumosSugeridos,
   getPersonalSugerido,
@@ -53,6 +54,7 @@ interface AtencionFormModalProps {
 }
 
 export function AtencionFormModal({ reserva, atencion, onClose, onSaved }: AtencionFormModalProps) {
+  const { config: configuracion, loading: cargandoConfiguracion } = useConfiguracion();
   const reservaId = reserva?.id;
   const [nombre, setNombre] = useState('');
   const [empleadoId, setEmpleadoId] = useState<number>();
@@ -203,6 +205,10 @@ export function AtencionFormModal({ reserva, atencion, onClose, onSaved }: Atenc
       return;
     }
     if (!confirmarStockInsuficiente && faltantes.length > 0) {
+      if (cargandoConfiguracion) {
+        setError('Cargando las reglas de inventario. Intente nuevamente en un momento.');
+        return;
+      }
       setConfirmacionStock(true);
       return;
     }
@@ -401,13 +407,18 @@ export function AtencionFormModal({ reserva, atencion, onClose, onSaved }: Atenc
       <ConfirmDialog
         isOpen={confirmacionStock}
         title="Consumo mayor al stock registrado"
-        confirmLabel="Confirmar y registrar"
+        confirmLabel={configuracion['inventario.permitir_stock_negativo'] ? 'Descontar de todas formas' : 'Registrar con descuento pendiente'}
+        cancelLabel={configuracion['inventario.permitir_stock_negativo'] ? 'Ajustar stock primero' : 'Cancelar'}
         loading={loading}
         onClose={() => setConfirmacionStock(false)}
         onConfirm={() => void guardar(true)}
         message={(
           <>
-            <p>El consumo se registrará aunque supere el stock. Revise el stock registrado para determinar si requiere un ajuste.</p>
+            {configuracion['inventario.permitir_stock_negativo'] ? (
+              <p>Si confirma, se descontará el consumo y el stock quedará negativo. Si prefiere corregir el registro antes, cierre este aviso, ajuste el stock en Inventario y vuelva a registrar la atención.</p>
+            ) : (
+              <p>El consumo se registrará sin descontar el faltante y quedará pendiente de regularización. Revise el stock registrado antes de regularizarlo.</p>
+            )}
             <ul>{faltantes.map((item) => <li key={item.nombre}>{item.nombre}: consumo {cantidadLabel(item.cantidad)} {item.unidad}, stock {cantidadLabel(item.stock)} {item.unidad}.</li>)}</ul>
           </>
         )}

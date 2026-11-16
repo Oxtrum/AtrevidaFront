@@ -97,13 +97,16 @@ export function HistorialAtencionesTab() {
 
   const [aDesactivar, setADesactivar] = useState<Atencion | null>(null);
   const [restituirStock, setRestituirStock] = useState(false);
+  const [reabrirReserva, setReabrirReserva] = useState(true);
   const [desactivando, setDesactivando] = useState(false);
   const confirmarDesactivacion = async () => {
     if (!aDesactivar) return;
     setDesactivando(true);
     try {
-      await desactivarAtencion(aDesactivar.id, restituirStock);
-      toast.success(restituirStock ? 'Atención desactivada e inventario restituido.' : 'Atención desactivada.');
+      await desactivarAtencion(aDesactivar.id, restituirStock, reabrirReserva);
+      toast.success(reabrirReserva
+        ? `Atención desactivada; reserva reabierta${restituirStock ? ' e inventario restituido' : ''}.`
+        : restituirStock ? 'Atención desactivada e inventario restituido.' : 'Atención desactivada.');
       setADesactivar(null);
       pagination.resetAfterMutation();
     } catch (err) {
@@ -142,7 +145,7 @@ export function HistorialAtencionesTab() {
             reservaId={row.reserva_id}
             atencionId={row.id}
             puede={{ verAtencion: cerrada, editar: cerrada && row.insumos_pendientes > 0 }}
-            onDesactivar={cerrada ? () => { setRestituirStock(false); setADesactivar(row); } : undefined}
+            onDesactivar={cerrada ? () => { setRestituirStock(false); setReabrirReserva(true); setADesactivar(row); } : undefined}
           />
         );
       },
@@ -221,7 +224,11 @@ export function HistorialAtencionesTab() {
         onClose={() => { if (!desactivando) setADesactivar(null); }}
         message={(
           <div className={styles.deactivateMessage}>
-            <p>La atención de {aDesactivar?.empleado_nombre} dejará de mostrarse en el listado. ¿Desea restituir al inventario las cantidades descontadas?</p>
+            <p>La atención de {aDesactivar?.empleado_nombre} dejará de mostrarse en el listado.</p>
+            <label>
+              <input type="checkbox" checked={reabrirReserva} onChange={(event) => setReabrirReserva(event.target.checked)} />
+              Marcar la reserva como pendiente de atención
+            </label>
             <label>
               <input type="checkbox" checked={restituirStock} onChange={(event) => setRestituirStock(event.target.checked)} />
               Restituir al inventario las cantidades descontadas
