@@ -149,6 +149,7 @@
 .removeSupply:hover { border-color: var(--admin-accent-danger); background: rgba(255, 77, 109, .16); }
 .error { color: var(--admin-danger, #ef4444); font-size: .85rem; }
 .stockWarning { display: block; margin-top: .15rem; color: var(--admin-warning, #d88c24); font-size: .78rem; font-weight: 600; }
+.supplyHint { display: block; margin-top: .15rem; color: var(--admin-text-muted); font-size: .76rem; }
 
 @media (max-width: 650px) {
   .detailGrid { grid-template-columns: 1fr; }

@@ -126,7 +126,8 @@ export function AtencionFormModal({ reserva, atencion, onClose, onSaved }: Atenc
           const item = catalogoPorId.get(sugerido.item_id);
           return [{
             item: item ? { ...item, stock_actual: sugerido.disponible } : sugerido,
-            cantidad: String(sugerido.cantidad_por_sesion),
+            // Uso variable: se deja vacío para que se escriba lo que realmente se usó.
+            cantidad: sugerido.cantidad_por_sesion == null ? '' : String(sugerido.cantidad_por_sesion),
           }];
           });
         setInsumos(iniciales);
@@ -372,6 +373,7 @@ export function AtencionFormModal({ reserva, atencion, onClose, onSaved }: Atenc
                           <div className={styles.supplyName}>
                             <strong>{itemNombre}</strong>
                             {excede && <span className={styles.stockWarning}>El consumo supera el stock registrado.</span>}
+                            {!(cantidad > 0) && <span className={styles.supplyHint}>Escribe cuánto se usó; sin cantidad no se descuenta.</span>}
                           </div>
                           <div className={styles.stockCell}>
                             <strong>{cantidadLabel(stock)} {linea.item.unidad_medida}</strong>

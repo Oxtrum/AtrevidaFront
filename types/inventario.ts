@@ -269,7 +269,8 @@ export interface ServicioInsumo {
   item_id: number;
   item_nombre?: string;
   unidad_medida?: UnidadMedida;
-  cantidad_por_sesion: number;
+  /** null = uso variable: se escribe en cada atención y no se reserva ni descuenta automáticamente. */
+  cantidad_por_sesion: number | null;
 }
 
 // ── Compras ──

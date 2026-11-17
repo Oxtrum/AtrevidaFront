@@ -1,7 +1,6 @@
 'use client';
 
 import { Plus, Trash2 } from 'lucide-react';
-import { AdminButton } from '@/components/AdminConfig';
 import { formatMoney } from '@/lib/utils/format';
 import type { InventarioItem } from '@/types/inventario';
 import { ItemSelect } from './ItemSelect';
@@ -12,6 +11,8 @@ export interface ItemLine {
   item_id: string;
   item_label?: string;
   item_subtitle?: string;
+  /** Unidad del ítem guardada en la línea: al editar, el catálogo puede no estar cargado (solo se busca al escribir). */
+  item_unidad?: string;
   cantidad: string;
   costo: string;
 }
@@ -35,8 +36,13 @@ interface LineItemsEditorProps {
   lines: ItemLine[];
   items: InventarioItem[];
   onChange: (lines: ItemLine[]) => void;
-  /** Título de la sección; el botón "Agregar" queda a su derecha. */
+  /** Título de la sección (opcional). */
   title?: string;
+  /** Texto que se muestra cuando aún no hay líneas, sobre el botón "Agregar". */
+  emptyHint?: string;
+  /** Ayuda que se muestra bajo las líneas cuando hay al menos una. */
+  footerHint?: string;
+  quantityPlaceholder?: string;
   /** Muestra costo unitario, subtotal y total (compras). Sin esto: solo ítem + cantidad (insumos). */
   showCost?: boolean;
   moneda?: string;
@@ -58,6 +64,9 @@ export function LineItemsEditor({
   items,
   onChange,
   title,
+  emptyHint,
+  footerHint,
+  quantityPlaceholder = '0',
   showCost = false,
   moneda = 'Bs',
   quantityLabel = 'Cantidad',
@@ -77,6 +86,7 @@ export function LineItemsEditor({
       item_id: itemId,
       item_label: item ? `${item.nombre} (${item.codigo})` : undefined,
       item_subtitle: item ? `${item.local_nombre ?? itemLocalName ?? 'Local no especificado'} · ${item.unidad_medida}` : undefined,
+      item_unidad: item?.unidad_medida,
       ...(showCost && !line.costo && item?.costo_referencia ? { costo: String(item.costo_referencia) } : {}),
     });
   };
@@ -86,12 +96,9 @@ export function LineItemsEditor({
 
   return (
     <div className={`${styles.lines} ${showCost ? '' : styles.linesNoCost}`}>
-      <div className={styles.linesHeader}>
-        <span className={styles.linesTitle}>{title}</span>
-        <AdminButton variant="inline" icon={<Plus size={13} strokeWidth={2.2} />} onClick={() => onChange([...lines, newLine()])}>
-          {addLabel}
-        </AdminButton>
-      </div>
+      {title && <span className={styles.linesTitle}>{title}</span>}
+
+      {lines.length === 0 && emptyHint && <p className={styles.linesEmpty}>{emptyHint}</p>}
 
       {lines.length > 0 && (
         <div className={styles.lineHead}>
@@ -105,6 +112,7 @@ export function LineItemsEditor({
 
       {lines.map((line, index) => {
         const item = items.find((i) => String(i.id) === line.item_id);
+        const unidad = item?.unidad_medida ?? line.item_unidad;
         return (
           <div key={line.key} className={styles.line}>
             <ItemSelect
@@ -124,10 +132,10 @@ export function LineItemsEditor({
                 inputMode="decimal"
                 value={line.cantidad}
                 onChange={(e) => patch(line.key, { cantidad: e.target.value })}
-                placeholder="0"
+                placeholder={quantityPlaceholder}
                 aria-label={`${quantityLabel} línea ${index + 1}`}
               />
-              {item && <span className={styles.unitInline}>{item.unidad_medida.toLowerCase()}</span>}
+              {unidad && <span className={styles.unitInline}>{unidad.toLowerCase()}</span>}
             </div>
             {showCost && (
               <div className={styles.fieldWithUnit}>
@@ -157,6 +165,14 @@ export function LineItemsEditor({
           </div>
         );
       })}
+
+      {lines.length > 0 && footerHint && <p className={styles.linesEmpty}>{footerHint}</p>}
+
+      {/* Debajo de la lista y a todo el ancho: se encuentra fácil y sigue a la vista al agregar varias líneas. */}
+      <button type="button" className={styles.addLine} onClick={() => onChange([...lines, newLine()])}>
+        <Plus size={16} strokeWidth={2.2} aria-hidden="true" />
+        {addLabel}
+      </button>
 
       {showCost && lines.length > 0 && (
         <div className={styles.total}>

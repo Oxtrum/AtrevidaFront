@@ -52,23 +52,29 @@ export function InsumosEditor({ servicioId, localId, localName, onReady }: Insum
           item_id: String(i.item_id),
           item_label: i.item_nombre,
           item_subtitle: i.unidad_medida ? `${localName || 'Local del servicio'} · ${i.unidad_medida}` : localName,
-          cantidad: String(i.cantidad_por_sesion),
+          item_unidad: i.unidad_medida,
+          cantidad: i.cantidad_por_sesion == null ? '' : String(i.cantidad_por_sesion),
         }))),
       )
       .catch(() => setLines([]));
   }, [servicioId, loadedFor, localName]);
 
   useEffect(() => {
-    const filled = () => lines.filter((l) => l.item_id || l.cantidad);
+    const filled = () => lines.filter((l) => l.item_id || l.cantidad.trim());
+    // Cantidad vacía = uso variable (se escribe en cada atención); si se escribe, debe ser mayor a 0.
+    const cantidadOpcional = (v: string) => (v.trim() ? parsePositive(v) : null);
     onReady({
-      validate: () =>
-        filled().some((l) => !l.item_id || !parsePositive(l.cantidad))
-          ? 'Cada insumo necesita ítem y una cantidad por sesión mayor a 0'
-          : null,
+      validate: () => {
+        if (filled().some((l) => !l.item_id)) return 'Elige el ítem de cada insumo o quita la línea vacía';
+        if (filled().some((l) => l.cantidad.trim() && !parsePositive(l.cantidad))) {
+          return 'La cantidad por sesión debe ser mayor a 0, o déjala vacía si el uso varía';
+        }
+        return null;
+      },
       save: (id) =>
         guardarInsumosServicio(
           id,
-          filled().map((l) => ({ item_id: Number(l.item_id), cantidad_por_sesion: parsePositive(l.cantidad) })),
+          filled().map((l) => ({ item_id: Number(l.item_id), cantidad_por_sesion: cantidadOpcional(l.cantidad) })),
         ),
     });
   }, [lines, onReady]);
@@ -79,7 +85,10 @@ export function InsumosEditor({ servicioId, localId, localName, onReady }: Insum
       items={items}
       onChange={setLines}
       quantityLabel="Cantidad por sesión"
+      quantityPlaceholder="Variable"
       addLabel="Agregar insumo"
+      emptyHint="Este servicio todavía no tiene insumos. Agrega los que usa en cada sesión y se cargarán solos al registrar la atención."
+      footerHint="Deja la cantidad vacía si el uso varía: el insumo aparecerá en la atención para que escribas cuánto se usó, y no se reservará stock de antemano."
       onItemSearchChange={setBusquedaItem}
       itemSearchMinChars={2}
       itemLocalName={localName}

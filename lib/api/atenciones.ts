@@ -39,7 +39,8 @@ export interface Atencion {
 }
 
 export interface PersonalSugerido { id: number; nombre: string; cargo?: string; local_id?: number; local_nombre?: string }
-export interface InsumoSugerido { item_id: number; item_nombre: string; unidad_medida: string; cantidad_por_sesion: number; disponible: number }
+/** cantidad_por_sesion null = uso variable: se prellena vacío para escribir lo que se usó. */
+export interface InsumoSugerido { item_id: number; item_nombre: string; unidad_medida: string; cantidad_por_sesion: number | null; disponible: number }
 
 /** Filtros del historial de atenciones; se combinan con la paginación por cursor. */
 export interface AtencionesFiltros extends PaginationParams {

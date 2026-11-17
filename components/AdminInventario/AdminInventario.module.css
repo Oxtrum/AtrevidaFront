@@ -74,18 +74,50 @@
   gap: 0.4rem;
 }
 
-.linesHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 0.15rem;
-}
-
 .linesTitle {
+  margin-bottom: 0.15rem;
   font-size: 0.8rem;
   font-weight: 500;
   color: var(--admin-foreground);
+}
+
+.linesEmpty {
+  margin: 0 0 0.2rem;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--admin-text-muted);
+}
+
+/* Botón "Agregar" a todo el ancho, debajo de las líneas: objetivo grande y fácil de encontrar. */
+.addLine {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 0.2rem;
+  padding: 0.6rem 1rem;
+  border: 1px dashed var(--admin-border-strong);
+  border-radius: var(--admin-radius-md);
+  background: transparent;
+  color: var(--admin-accent-primary);
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.addLine:hover {
+  border-color: var(--admin-accent-primary);
+  background: rgba(236, 0, 140, 0.08);
+}
+
+.addLine:focus-visible {
+  outline: none;
+  border-color: var(--admin-accent-primary);
+  box-shadow: 0 0 0 3px rgba(236, 0, 140, 0.16);
 }
 
 .lineHead,
