@@ -61,6 +61,14 @@ export async function cambiarEstadoMovimientoFinanciero(
   await apiClient.patch(`/bd/finanzas/movimientos/${id}/estado`, { estado, motivo });
 }
 
+/**
+ * Borra definitivamente un egreso variable u otro ingreso registrado por error (cualquier estado).
+ * Los egresos de compras, planillas y gastos fijos no se eliminan: el backend responde 409.
+ */
+export async function eliminarMovimientoFinanciero(id: number): Promise<void> {
+  await apiClient.delete(`/bd/finanzas/movimientos/${id}`);
+}
+
 // ── Gastos fijos (plantillas) ──
 
 export async function getGastosFijos(): Promise<GastoFijo[]> {

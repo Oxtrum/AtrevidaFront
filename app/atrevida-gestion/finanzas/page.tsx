@@ -2,11 +2,12 @@
 
 import { Suspense, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeftRight, Ban, Banknote, CheckCircle2, Download, Pencil, Plus, RefreshCw, TrendingUp } from 'lucide-react';
+import { ArrowLeftRight, Ban, Banknote, CheckCircle2, Download, Pencil, Plus, RefreshCw, Trash2, TrendingUp } from 'lucide-react';
 import {
   AdminButton,
   AdminPageShell,
   AlertBanner,
+  ConfirmDialog,
   CursorPagination,
   DataTable,
   FilterBar,
@@ -31,6 +32,7 @@ import { ReporteVentasPanel } from '@/components/AdminFinanzas/ReporteVentasPane
 import { toast } from '@/components/Shared/Toast';
 import {
   cambiarEstadoMovimientoFinanciero,
+  eliminarMovimientoFinanciero,
   getCategoriasFinancieras,
   getFlujoFinanciero,
   getGastosFijos,
@@ -137,6 +139,25 @@ function MovimientosPanel() {
   const [anulando, setAnulando] = useState<MovimientoFinanciero | null>(null);
   // Los egresos nacidos de un gasto fijo se anulan con otro diálogo (deshacer, saltar mes o dejar de pagarlo).
   const [anulandoFijo, setAnulandoFijo] = useState<MovimientoFinanciero | null>(null);
+  // Solo los movimientos manuales (egreso variable u otro ingreso) se borran; el resto tiene su propio flujo.
+  const [eliminando, setEliminando] = useState<MovimientoFinanciero | null>(null);
+  const [borrando, setBorrando] = useState(false);
+  const esManual = (mov: MovimientoFinanciero) => !mov.compra_id && !mov.planilla_id && !mov.gasto_fijo_id;
+
+  const confirmarEliminar = async () => {
+    if (!eliminando) return;
+    setBorrando(true);
+    try {
+      await eliminarMovimientoFinanciero(eliminando.id);
+      toast.success(`${eliminando.codigo} eliminado`);
+      setEliminando(null);
+      await recargarTodo();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'No se pudo eliminar el movimiento');
+    } finally {
+      setBorrando(false);
+    }
+  };
 
   const recargarTodo = async () => {
     await Promise.all([reload(), recargarMovs(), recargarFijos()]);
@@ -229,9 +250,12 @@ function MovimientosPanel() {
       searchable: false,
       // Las ventas se gestionan en Cobros / Historial de Pagos; solo los movimientos manuales se editan aquí.
       render: (_v, r) => {
-        if (r.origen === 'VENTA' || r.estado === 'ANULADO') return null;
+        if (r.origen === 'VENTA') return null;
         const mov = movsPorId.get(Number(r.clave.replace('mov-', '')));
         if (!mov) return null;
+        const eliminar = { label: 'Eliminar', icon: <Trash2 size={12} strokeWidth={2} />, onClick: () => setEliminando(mov), variant: 'danger' as const };
+        // Un anulado ya no se edita: solo se puede borrar si fue un registro manual.
+        if (r.estado === 'ANULADO') return esManual(mov) ? <RowActionsMenu actions={[eliminar]} /> : null;
         return (
           <RowActionsMenu
             actions={[
@@ -242,6 +266,7 @@ function MovimientosPanel() {
               ...(mov.compra_id || mov.planilla_id || (mov.gasto_fijo_id && mov.estado !== 'PAGADO')
                 ? []
                 : [{ label: mov.gasto_fijo_id ? 'Deshacer pago' : 'Anular', icon: <Ban size={12} strokeWidth={2} />, onClick: () => (mov.gasto_fijo_id ? setAnulandoFijo(mov) : setAnulando(mov)), variant: 'danger' as const }]),
+              ...(esManual(mov) ? [eliminar] : []),
             ]}
           />
         );
@@ -406,6 +431,17 @@ function MovimientosPanel() {
           await recargarTodo();
         }}
         onClose={() => setAnulando(null)}
+      />
+
+      <ConfirmDialog
+        isOpen={eliminando !== null}
+        danger
+        title={`Eliminar ${eliminando?.codigo ?? ''}`}
+        message={`Se borrará definitivamente ${eliminando?.naturaleza === 'INGRESO' ? 'este ingreso' : 'este egreso'} de ${eliminando ? money(eliminando.monto) : ''}. No queda en el historial y no se puede deshacer. Si solo quieres que deje de contar y conservar el registro, usa "Anular".`}
+        confirmLabel="Eliminar"
+        loading={borrando}
+        onConfirm={() => { void confirmarEliminar(); }}
+        onClose={() => { if (!borrando) setEliminando(null); }}
       />
     </>
   );
