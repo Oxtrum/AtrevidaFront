@@ -240,8 +240,9 @@ export default function CalendarGrid({
                 type="button"
                 className={`${styles.dayButton} ${diaActual === dia ? styles.daySelectorActive : ''
                   } ${esPasado ? styles.dayButtonPasado : ''}`}
+                // Los días pasados se pueden abrir para ver sus reservas; crear
+                // sigue bloqueado en cada slot (TimeSlotAdmin con esPasado).
                 onClick={() => cambiarDia(dia)}
-                disabled={esPasado}
               >
                 <span className={styles.dayButtonShort}>{DIA_CORTO[dia]}</span>
                 {info && <span className={styles.dayButtonDate}>{info.dia}</span>}

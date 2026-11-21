@@ -4,7 +4,10 @@ import { Suspense, useRef, useEffect, useState, useMemo } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import gsap from 'gsap';
 import { CalendarDays, CalendarRange, List } from 'lucide-react';
-import { DiaSemana, ReservaBD, ReservaDetalle, generarSemanas, getFechasDeSemana } from '@/types/reserva';
+import {
+  DiaSemana, ReservaBD, ReservaDetalle, SEMANAS_HISTORIAL, SEMANAS_RESERVABLES,
+  generarSemanas, getFechasDeSemana, indiceSemanaDe, obtenerSemana,
+} from '@/types/reserva';
 import { SLOTS_POR_HORA, calcularHoraFin } from '@/lib/constants/reservationForm';
 import { CalendarAdmin } from '@/components/Calendar';
 import { useLocales } from '@/lib/hooks/useLocales';
@@ -55,11 +58,13 @@ function AdminReservasContent() {
   // mantiene sincronizada vía onSemanaChange. Sirven para recortar la hora de
   // fin al cierre del local al prellenar el formulario de creación.
   const fechasCalendario = useMemo(() => {
-    const semanas = generarSemanas();
-    const idx = Number(semanaActiva);
-    const semana = semanas[Number.isFinite(idx) ? idx : 0] ?? semanas[0];
+    const semana = obtenerSemana(Number(semanaActiva)) ?? obtenerSemana(0);
     return semana ? getFechasDeSemana(semana.fechaInicio) : null;
   }, [semanaActiva]);
+
+  // El formulario de creación solo conoce semanas actuales y futuras: desde una
+  // semana pasada abre en la actual.
+  const semanaParaCrear = String(Math.max(0, Number(semanaActiva) || 0));
 
   // Verificar autenticación admin
   useEffect(() => {
@@ -110,7 +115,7 @@ function AdminReservasContent() {
 
     const params = new URLSearchParams({
       local: effectiveSucursalActiva,
-      semana: semanaActiva,
+      semana: semanaParaCrear,
       dia: dia,
       hora_desde,
       hora_hasta,
@@ -178,13 +183,13 @@ function AdminReservasContent() {
 
   // Calendario de fechas: resalta el lunes de la semana activa y salta de semana al elegir.
   const semanaFechaISO = useMemo(() => {
-    const semana = generarSemanas()[Number(semanaActiva)];
+    const semana = obtenerSemana(Number(semanaActiva));
     return semana ? semana.fechaInicio.toLocaleDateString('en-CA') : '';
   }, [semanaActiva]);
 
   const rangoFechas = useMemo(() => {
     const semanas = generarSemanas();
-    const primera = semanas[0]?.fechaInicio;
+    const primera = obtenerSemana(-SEMANAS_HISTORIAL)?.fechaInicio;
     const ultima = semanas[semanas.length - 1]?.fechaInicio;
     if (!primera || !ultima) return { min: '', max: '' };
     const fin = new Date(ultima);
@@ -195,14 +200,8 @@ function AdminReservasContent() {
   const handleFechaSelect = (iso: string) => {
     const d = new Date(`${iso}T00:00:00`);
     if (d.getDay() === 0) return; // domingos sin atención
-    const idx = generarSemanas().findIndex(s => {
-      const ini = new Date(s.fechaInicio);
-      ini.setHours(0, 0, 0, 0);
-      const fin = new Date(ini);
-      fin.setDate(fin.getDate() + 5);
-      return d >= ini && d <= fin;
-    });
-    if (idx < 0) return;
+    const idx = indiceSemanaDe(d);
+    if (idx < -SEMANAS_HISTORIAL || idx >= SEMANAS_RESERVABLES) return;
     setSemanaActiva(String(idx));
   };
 
@@ -221,7 +220,7 @@ function AdminReservasContent() {
                   onClick={() => {
                     const params = new URLSearchParams({
                       local: effectiveSucursalActiva,
-                      semana: semanaActiva,
+                      semana: semanaParaCrear,
                     });
                     router.push(`/atrevida-gestion/reservas/crear?${params.toString()}`);
                   }}

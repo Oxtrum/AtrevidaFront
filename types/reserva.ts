@@ -332,35 +332,56 @@ export function generarSemanas(cantidad: number = SEMANAS_RESERVABLES): { valor:
     fechaInicioSemana = new Date(lunesActual);
   }
 
-  const MESES_ES = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
-
   for (let i = 0; i < cantidad; i++) {
     const fechaInicio = new Date(fechaInicioSemana);
     fechaInicio.setDate(fechaInicioSemana.getDate() + (i * 7));
-
-    const fechaFin = new Date(fechaInicio);
-    fechaFin.setDate(fechaInicio.getDate() + 5);
-
-    const diaInicio = fechaInicio.getDate();
-    const diaFin = fechaFin.getDate();
-    const mesInicio = MESES_ES[fechaInicio.getMonth()];
-    const mesFin = MESES_ES[fechaFin.getMonth()];
-
-    let titulo: string;
-    if (mesInicio === mesFin) {
-      titulo = `SEMANA ${diaInicio} AL ${diaFin} DE ${mesInicio}`;
-    } else {
-      titulo = `SEMANA ${diaInicio} DE ${mesInicio} AL ${diaFin} DE ${mesFin}`;
-    }
-
-    semanas.push({
-      valor: titulo,
-      titulo,
-      fechaInicio,
-    });
+    semanas.push(construirSemana(fechaInicio));
   }
 
   return semanas;
+}
+
+function construirSemana(fechaInicio: Date): { valor: string; titulo: string; fechaInicio: Date } {
+  const MESES_ES = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+  const fechaFin = new Date(fechaInicio);
+  fechaFin.setDate(fechaInicio.getDate() + 5);
+
+  const diaInicio = fechaInicio.getDate();
+  const diaFin = fechaFin.getDate();
+  const mesInicio = MESES_ES[fechaInicio.getMonth()];
+  const mesFin = MESES_ES[fechaFin.getMonth()];
+
+  const titulo = mesInicio === mesFin
+    ? `SEMANA ${diaInicio} AL ${diaFin} DE ${mesInicio}`
+    : `SEMANA ${diaInicio} DE ${mesInicio} AL ${diaFin} DE ${mesFin}`;
+
+  return { valor: titulo, titulo, fechaInicio };
+}
+
+/** Semanas anteriores a la actual que el calendario admin deja consultar (1 año). */
+export const SEMANAS_HISTORIAL = 52;
+
+/**
+ * Semana por índice relativo a la actual: 0 es la de `generarSemanas()[0]`,
+ * positivos hacia adelante y negativos hacia atrás (solo consulta).
+ */
+export function obtenerSemana(indice: number): { valor: string; titulo: string; fechaInicio: Date } | undefined {
+  if (!Number.isInteger(indice)) return undefined;
+  if (indice >= 0) return generarSemanas(indice + 1)[indice];
+  const base = generarSemanas(1)[0];
+  if (!base) return undefined;
+  const fechaInicio = new Date(base.fechaInicio);
+  fechaInicio.setDate(fechaInicio.getDate() + indice * 7);
+  return construirSemana(fechaInicio);
+}
+
+/** Índice (relativo a la semana actual) de la semana que contiene `fecha`. */
+export function indiceSemanaDe(fecha: Date): number {
+  const base = generarSemanas(1)[0].fechaInicio;
+  const lunes = new Date(fecha);
+  lunes.setHours(0, 0, 0, 0);
+  lunes.setDate(lunes.getDate() - ((lunes.getDay() + 6) % 7));
+  return Math.round((lunes.getTime() - base.getTime()) / (7 * 24 * 60 * 60 * 1000));
 }
 
 export function getFechasDeSemana(fechaInicio: Date): Map<DiaSemana, FechaDia> {

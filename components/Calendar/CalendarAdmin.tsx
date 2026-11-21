@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import gsap from 'gsap';
-import { DiaSemana, ReservaDetalle, generarSemanas, getFechasDeSemana } from '@/types/reserva';
+import { DiaSemana, ReservaDetalle, generarSemanas, getFechasDeSemana, obtenerSemana } from '@/types/reserva';
 import { useLocales } from '@/lib/hooks/useLocales';
 import { useReservasCalendario } from '@/lib/hooks/useReservasCalendario';
 import CalendarGrid from './CalendarGridAdmin';
@@ -59,7 +59,11 @@ export default function CalendarAdmin({
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   const semanasDisponibles = useMemo(() => generarSemanas(), []);
-  const semanaActual = semanasDisponibles[semanaIndex];
+  // Índices negativos = semanas anteriores (solo consulta); no están en `semanasDisponibles`.
+  const semanaActual = useMemo(
+    () => (semanaIndex >= 0 ? semanasDisponibles[semanaIndex] : obtenerSemana(semanaIndex)),
+    [semanaIndex, semanasDisponibles],
+  );
   const fechas = useMemo(() => (semanaActual ? getFechasDeSemana(semanaActual.fechaInicio) : null), [semanaActual]);
 
   // Fetch reservas cuando cambian sucursal o semana
