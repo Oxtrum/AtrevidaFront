@@ -101,7 +101,7 @@ export function ReporteVentasPanel() {
           loading={loading}
           empty={sinVentas ? 'Sin ventas en este periodo' : null}
         >
-          <RankedBars items={localItems} format={money} tone="ingreso" maxItems={8} showShare />
+          <RankedBars items={localItems} format={money} tone="ingreso" showShare />
         </ChartPanel>
 
         <ChartPanel
@@ -121,7 +121,7 @@ export function ReporteVentasPanel() {
           ? `No se pudo cargar el detalle por servicio: ${detalle.error}`
           : servicioItems.length === 0 ? 'Sin servicios vendidos en este periodo' : null}
       >
-        <RankedBars items={servicioItems} format={formatNumber} tone="ingreso" maxItems={8} showShare />
+        <RankedBars items={servicioItems} format={formatNumber} tone="ingreso" showShare />
       </ChartPanel>
     </div>
   );

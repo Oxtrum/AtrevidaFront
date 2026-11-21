@@ -267,7 +267,6 @@ export function ReportePersonalPanel() {
             }))}
             format={(v) => String(v)}
             tone="egreso"
-            maxItems={10}
             showShare
           />
         </ChartPanel>

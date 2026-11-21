@@ -1,3 +1,9 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
 .list {
   display: flex;
   flex-direction: column;
@@ -40,6 +46,12 @@
   font-size: 0.875rem;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.rank {
+  margin-right: 0.35rem;
+  color: var(--admin-text-dim);
+  font-variant-numeric: tabular-nums;
 }
 
 .hint {
@@ -91,10 +103,6 @@
 }
 
 .neutral {
-  --bar-color: var(--admin-chart-neutral);
-}
-
-.others .bar {
   --bar-color: var(--admin-chart-neutral);
 }
 

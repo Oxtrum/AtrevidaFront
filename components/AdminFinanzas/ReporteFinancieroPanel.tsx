@@ -100,7 +100,7 @@ export function ReporteFinancieroPanel() {
           loading={loading}
           empty={!data ? (loading ? 'Cargando…' : null) : categorias.length ? null : 'Sin egresos pagados en el periodo'}
         >
-          <RankedBars items={categorias} format={money} tone="egreso" maxItems={6} showShare />
+          <RankedBars items={categorias} format={money} tone="egreso" showShare />
         </ChartPanel>
       </div>
 

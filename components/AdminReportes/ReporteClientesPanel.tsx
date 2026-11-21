@@ -278,7 +278,6 @@ export function ReporteClientesPanel() {
             }))}
             format={(v) => formatMoney(v)}
             tone="ingreso"
-            maxItems={10}
           />
         </ChartPanel>
         <ChartPanel
@@ -296,7 +295,6 @@ export function ReporteClientesPanel() {
             }))}
             format={(v) => String(v)}
             tone="egreso"
-            maxItems={10}
           />
         </ChartPanel>
         <ChartPanel
@@ -314,7 +312,6 @@ export function ReporteClientesPanel() {
             }))}
             format={textoRacha}
             tone="neutral"
-            maxItems={10}
           />
         </ChartPanel>
         <ChartPanel
@@ -332,7 +329,6 @@ export function ReporteClientesPanel() {
             }))}
             format={(v) => formatMoney(v)}
             tone="egreso"
-            maxItems={10}
           />
         </ChartPanel>
         <ChartPanel
@@ -363,7 +359,6 @@ export function ReporteClientesPanel() {
             }))}
             format={(v) => String(v)}
             tone="neutral"
-            maxItems={10}
           />
         </ChartPanel>
       </div>
