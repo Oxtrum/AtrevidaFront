@@ -43,6 +43,8 @@ const getWeekBars = (resumen: ReservasResumenData) => {
     { day: 'Mié', value: resumen.semana.miercoles ?? 0 },
     { day: 'Jue', value: resumen.semana.jueves ?? 0 },
     { day: 'Vie', value: resumen.semana.viernes ?? 0 },
+    // El sábado solo llega cuando ya es sábado o domingo; el total de la semana ya lo incluye.
+    ...(resumen.semana.sabado !== undefined ? [{ day: 'Sáb', value: resumen.semana.sabado }] : []),
   ];
   const max = Math.max(1, ...values.map((bar) => bar.value));
   return values.map((bar) => ({ ...bar, height: `${Math.max(6, Math.round((bar.value / max) * 100))}%` }));
@@ -107,6 +109,9 @@ export default function AdminDashboardPage() {
   }, [adminLocalScope.ready, effectiveLocal, resumenFecha, scopedLocalName]);
 
   const bars = getWeekBars(resumen);
+  // Con un backend anterior estos campos no vienen: el total se arma con por atender + atendidas.
+  const reservasDia = resumen.reservas_dia ?? resumen.reservas_agendadas_dia + resumen.servicios_completados_dia;
+  const canceladasDia = resumen.reservas_canceladas_dia;
 
   return (
     <AdminPageShell>
@@ -141,12 +146,18 @@ export default function AdminDashboardPage() {
       <DashboardTrastienda />
 
       <StatGrid>
-        <StatCard label="Reservas hoy" value={resumen.reservas_agendadas_dia} sublabel="Agendadas" accentColor="#EC008C" loading={loading} />
-        <StatCard label="Completados" value={resumen.servicios_completados_dia} sublabel="Hoy" accentColor="#14AEEF" loading={loading} />
-        <StatCard label="Cancelaciones" value={resumen.cancelaciones_hoy} sublabel="Hoy" accentColor="#FFE600" loading={loading} />
+        <StatCard label="Reservas hoy" value={reservasDia} sublabel={`${resumen.reservas_agendadas_dia} por atender`} accentColor="#EC008C" loading={loading} />
+        <StatCard label="Completados" value={resumen.servicios_completados_dia} sublabel="Ya atendidas hoy" accentColor="#14AEEF" loading={loading} />
+        <StatCard label="Cancelaciones" value={canceladasDia ?? '—'} sublabel="Reservas de hoy" accentColor="#FFE600" loading={loading} />
         {/* El backend manda los ingresos solo a admin_sys: sin el dato no hay tarjeta. */}
         {resumen.ingresos_hoy !== undefined && (
-          <StatCard label="Ingresos" value={formatMoney(resumen.ingresos_hoy)} sublabel="Hoy" accentColor="#92278F" loading={loading} />
+          <StatCard
+            label="Ingresos"
+            value={formatMoney(resumen.ingresos_hoy)}
+            sublabel={resumen.cobros_hoy !== undefined ? `${resumen.cobros_hoy} ${resumen.cobros_hoy === 1 ? 'cobro' : 'cobros'} hoy` : 'Hoy'}
+            accentColor="#92278F"
+            loading={loading}
+          />
         )}
         <StatCard label="Clientes" value={clientesTotal ?? '—'} sublabel="En el directorio" accentColor="#14AEEF" loading={loading} />
       </StatGrid>
@@ -154,7 +165,7 @@ export default function AdminDashboardPage() {
       <AdminPanel
         card
         title="Reservas de la semana"
-        description={loading ? undefined : `${resumen.semana.total_reservas} en total`}
+        description={loading ? undefined : `${resumen.semana.total_reservas} en total, atendidas y por atender`}
         icon={<BarChart2 size={18} strokeWidth={1.8} />}
       >
         <div className={styles.grafico}>

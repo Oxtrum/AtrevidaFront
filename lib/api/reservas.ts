@@ -80,10 +80,18 @@ export interface ReservasResumenIngresos {
 }
 
 export interface ReservasResumenData {
+  /** Reservas del día que se atienden: por atender (AGENDADO) + ya atendidas (COMPLETADO). */
+  reservas_dia?: number;
+  /** Reservas del día que siguen por atender; baja a medida que se completan. */
   reservas_agendadas_dia: number;
   servicios_completados_dia: number;
+  /** Reservas con fecha de hoy que se cancelaron. */
+  reservas_canceladas_dia?: number;
   /** Los tres campos de ingresos solo los recibe admin_sys; para el resto no vienen. */
   ingresos_hoy?: number;
+  /** Pagos cobrados hoy. */
+  cobros_hoy?: number;
+  /** @deprecated Es la misma cifra que cobros_hoy (pagos), no reservas canceladas. */
   cancelaciones_hoy: number;
   ingresos_semana?: number;
   semana: ReservasResumenSemana;

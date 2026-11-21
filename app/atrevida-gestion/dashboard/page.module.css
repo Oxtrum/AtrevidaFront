@@ -17,7 +17,8 @@
 /* Cinco columnas, una por dia habil. */
 .grafico {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   gap: 1rem;
   padding-top: 1rem;
 }
